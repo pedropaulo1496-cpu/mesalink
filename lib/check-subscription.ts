@@ -4,23 +4,25 @@ import { hasTrialExpired } from "./subscription";
 export async function canAccessApp(email: string) {
   const user = await prisma.user.findUnique({
     where: { email },
-    include: {
-      subscription: true,
-    },
+    include: { subscription: true },
   });
 
-  if (!user) {
+  if (!user?.subscription) {
     return false;
   }
 
   const subscription = user.subscription;
 
-  if (
-    subscription?.status === "TRIAL" &&
-    hasTrialExpired(subscription.trialEndsAt)
-  ) {
-    return false;
+  if (subscription.status === "ACTIVE") {
+    return true;
   }
 
-  return true;
+  if (
+    subscription.status === "TRIAL" &&
+    !hasTrialExpired(subscription.trialEndsAt)
+  ) {
+    return true;
+  }
+
+  return false;
 }

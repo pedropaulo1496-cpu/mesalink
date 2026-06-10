@@ -20,12 +20,25 @@ export async function POST(request: Request) {
       include: { subscription: true },
     });
 
-    if (!user || !user.subscription) {
+    if (!user) {
       return NextResponse.json(
-        { error: "Utilizador sem subscrição." },
-        { status: 400 }
+        { error: "Utilizador não encontrado." },
+        { status: 404 }
       );
     }
+
+    const subscription =
+      user.subscription ??
+      (await prisma.subscription.create({
+        data: {
+          userId: user.id,
+          plan: "STARTER",
+          status: "TRIAL",
+          trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          restaurantLimit: 1,
+          priceMonthly: 1750,
+        },
+      }));
 
     const { billing } = await request.json();
 
@@ -47,14 +60,14 @@ export async function POST(request: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: {
         userId: user.id,
-        subscriptionId: user.subscription.id,
+        subscriptionId: subscription.id,
         plan: "STARTER",
         billing,
       },
       subscription_data: {
         metadata: {
           userId: user.id,
-          subscriptionId: user.subscription.id,
+          subscriptionId: subscription.id,
           plan: "STARTER",
           billing,
         },
