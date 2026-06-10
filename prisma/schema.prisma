@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurants  Restaurant[]
+  subscription Subscription?
+  passwordResetTokens PasswordResetToken[]
+}
+
+model Subscription {
+  id String @id @default(cuid())
+
+  plan   String @default("STARTER")
+  status String @default("ACTIVE")
+
+  trialEndsAt DateTime?
+
+  restaurantLimit Int @default(1)
+  priceMonthly    Int @default(29)
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Restaurant {
+  id      String  @id @default(cuid())
+  name    String
+  slug    String  @unique
+  email   String?
+  phone   String?
+  address String?
+
+  plan String @default("STARTER")
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  reservationMode           String  @default("TABLES")
+  totalCapacity             Int?
+  manualApprovalGuests      Int?
+  approvalOnTableMerge      Boolean @default(true)
+  onlineReservationsEnabled Boolean @default(true)
+
+  mondayOpen   Boolean @default(false)
+  mondayLunch  String?
+  mondayDinner String?
+
+  tuesdayOpen   Boolean @default(false)
+  tuesdayLunch  String?
+  tuesdayDinner String?
+
+  wednesdayOpen   Boolean @default(false)
+  wednesdayLunch  String?
+  wednesdayDinner String?
+
+  thursdayOpen   Boolean @default(false)
+  thursdayLunch  String?
+  thursdayDinner String?
+
+  fridayOpen   Boolean @default(false)
+  fridayLunch  String?
+  fridayDinner String?
+
+  saturdayOpen   Boolean @default(false)
+  saturdayLunch  String?
+  saturdayDinner String?
+
+  sundayOpen   Boolean @default(false)
+  sundayLunch  String?
+  sundayDinner String?
+
+  tables       Table[]
+  reservations Reservation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Table {
+  id       String @id @default(cuid())
+  number   Int
+  capacity Int
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  reservations Reservation[]
+
+  createdAt DateTime @default(now())
+}
+
+model Customer {
+  id String @id @default(cuid())
+
+  name  String
+  phone String  @unique
+  email String?
+
+  reservations Reservation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reservation {
+  id String @id @default(cuid())
+
+  customerName String
+  phone        String
+  email        String?
+  date         DateTime
+  guests       Int
+
+  status String @default("CONFIRMED")
+
+  // CONFIRMED
+  // PENDING
+  // SEATED
+  // FINISHED
+  // NO_SHOW
+  // CANCELLED
+  // REJECTED
+
+  approvalReason String?
+
+  restaurantId String?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
+
+  tableId String?
+  table   Table?  @relation(fields: [tableId], references: [id])
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
