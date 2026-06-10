@@ -123,7 +123,7 @@ export default async function RestaurantPage({
     )
     .slice(0, 5);
 
-  const publicUrl = `http://localhost:3000/reserve/${restaurant.slug}`;
+  const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reserve/${restaurant.slug}`;
 
   return (
     <main className="min-h-screen bg-[#070504] text-[#fff7ea]">

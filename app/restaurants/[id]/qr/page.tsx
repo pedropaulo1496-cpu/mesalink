@@ -21,7 +21,7 @@ export default async function QRPage({
     );
   }
 
-  const reservationUrl = `http://localhost:3000/reserve/${restaurant.slug}`;
+  const reservationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reserve/${restaurant.slug}`;
 
   const qrCode = await QRCode.toDataURL(reservationUrl, {
     margin: 2,
