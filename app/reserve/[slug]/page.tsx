@@ -135,7 +135,7 @@ async function createPublicReservation(formData: FormData) {
   if (shouldSendEmail) {
     try {
       const emailResult = await resend.emails.send({
-        from: "MesaLink <onboarding@resend.dev>",
+        from: "MesaLink <info@mesalink.pt>",
         to: email,
         subject:
           status === "PENDING"
