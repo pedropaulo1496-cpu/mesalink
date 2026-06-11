@@ -244,7 +244,7 @@ export default function ReserveForm({
     return (
       <main className="relative min-h-screen overflow-hidden bg-[#020617] px-6 py-10 text-white">
         <PublicBackground />
-        <FloatingOrbs />
+        
 
         <motion.div
           initial={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -289,7 +289,7 @@ export default function ReserveForm({
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] px-5 py-8 text-white">
       <PublicBackground />
-      <FloatingOrbs />
+      
 
       <motion.div
         initial={{ opacity: 0 }}
@@ -662,38 +662,6 @@ function PublicBackground() {
       />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.16),transparent_35%),linear-gradient(to_bottom,#020617,#050816_40%,#020617)]" />
-    </div>
-  );
-}
-
-function FloatingOrbs() {
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[5] overflow-hidden">
-      {[...Array(14)].map((_, i) => (
-        <motion.div
-          key={i}
-          className={
-            i % 2 === 0
-              ? "absolute h-40 w-40 rounded-full bg-cyan-400/25 blur-[80px]"
-              : "absolute h-36 w-36 rounded-full bg-violet-400/20 blur-[80px]"
-          }
-          animate={{
-            y: ["115vh", "-25vh"],
-            x: [
-              `${8 + (i % 5) * 18}vw`,
-              `${18 + (i % 4) * 20}vw`,
-            ],
-            opacity: [0, 0.75, 0.25, 0],
-            scale: [0.45, 1.15, 0.75],
-          }}
-          transition={{
-            duration: 16 + i,
-            repeat: Infinity,
-            ease: "linear",
-            delay: i * 0.65,
-          }}
-        />
-      ))}
     </div>
   );
 }
