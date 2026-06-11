@@ -1,19 +1,8 @@
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
 
-export default async function HomePage() {
-  const headersList = await headers();
-  const userAgent = headersList.get("user-agent") || "";
-
-  const isMobileOrTablet =
-    /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(userAgent);
-
-  if (isMobileOrTablet) {
-    return <MobileHome />;
-  }
-
+export default function HomePage() {
   return <HomeDesktop />;
 }
 
