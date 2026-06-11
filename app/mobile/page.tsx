@@ -10,53 +10,51 @@ export default function MobilePage() {
   const phoneRotate = useTransform(scrollYProgress, [0, 0.25], [-6, 4]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020201] text-[#fff7ea]">
+    <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
       <Background />
 
       <section className="relative z-10 min-h-screen px-5 pb-14 pt-5">
         <nav className="mb-12 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black">
-            Mesa<span className="text-[#f0c36a]">Link</span>
+            Mesa<span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">Link</span>
           </Link>
 
           <Link
             href="/login"
-            className="rounded-full border border-[#f0c36a]/40 bg-black/30 px-5 py-2 text-sm font-black text-[#f0c36a] backdrop-blur"
+            className="rounded-full border border-cyan-300/30 bg-white/5 px-5 py-2 text-sm font-black text-cyan-200 backdrop-blur"
           >
             Entrar
           </Link>
         </nav>
 
         <motion.div style={{ y: heroY }}>
-          <Badge>✦ O futuro das reservas</Badge>
+          <Badge>AI Reservation OS</Badge>
 
           <h1 className="mt-5 text-[52px] font-black leading-[0.88] tracking-[-0.07em]">
-            Transforme o{" "}
-            <span className="bg-gradient-to-r from-[#f0c36a] via-[#fff3bd] to-[#f0c36a] bg-clip-text text-transparent">
-              Google Maps
-            </span>{" "}
-            numa máquina de reservas.
+            O futuro das reservas tem{" "}
+            <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
+              inteligência.
+            </span>
           </h1>
 
-          <p className="mt-6 text-[17px] leading-relaxed text-[#d6c7ad]">
-            O MesaLink liga Google Maps, Instagram, TikTok, website e QR Codes
-            a uma central de reservas futurista. Sem chamadas. Sem comissões.
-            Sem perder clientes.
+          <p className="mt-6 text-[17px] leading-relaxed text-slate-300">
+            Transforme Google Maps, Instagram, TikTok, website e QR Codes numa
+            central inteligente de reservas. Hoje: automação. Brevemente: IA.
           </p>
 
           <div className="mt-7 grid gap-3">
-            <Button asChild className="h-14 rounded-full bg-[#f0c36a] text-base font-black text-black shadow-[0_0_65px_rgba(240,195,106,0.5)] hover:bg-[#ffd982]">
-              <Link href="/register">Ativar MesaLink →</Link>
+            <Button asChild className="h-14 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-base font-black text-black shadow-[0_0_65px_rgba(96,165,250,0.55)] hover:opacity-90">
+              <Link href="/register">Ativar MesaLink AI →</Link>
             </Button>
 
-            <Button asChild variant="outline" className="h-14 rounded-full border-[#f0c36a]/40 bg-black/30 text-base font-black text-white backdrop-blur hover:bg-white/10">
+            <Button asChild variant="outline" className="h-14 rounded-full border-cyan-300/30 bg-white/5 text-base font-black text-white backdrop-blur hover:bg-white/10">
               <Link href="/pricing">Ver planos →</Link>
             </Button>
           </div>
 
           <div className="mt-8 grid grid-cols-3 gap-3">
-            <HeroStat icon="⚡" value="10 min" label="setup" />
             <HeroStat icon="📍" value="Maps" label="ready" />
+            <HeroStat icon="⚡" value="24h" label="online" />
             <HeroStat icon="🤖" value="IA" label="brevemente" />
           </div>
         </motion.div>
@@ -69,16 +67,18 @@ export default function MobilePage() {
       <StickyBar />
 
       <section className="relative z-10 px-5 py-16">
-        <Badge>Fluxo inteligente</Badge>
+        <Badge>AI Flow</Badge>
 
         <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em]">
-          Todos os canais convergem para{" "}
-          <span className="text-[#f0c36a]">reservas confirmadas.</span>
+          Todos os canais entram no{" "}
+          <span className="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text text-transparent">
+            AI Core.
+          </span>
         </h2>
 
-        <p className="mt-5 text-base leading-relaxed text-[#a99a82]">
-          Do Google Maps, redes sociais, website e QR Codes diretamente para o
-          MesaLink.
+        <p className="mt-5 text-base leading-relaxed text-slate-400">
+          Google Maps, redes sociais e website convergem para uma central
+          inteligente de reservas.
         </p>
 
         <FlowNetwork />
@@ -89,10 +89,10 @@ export default function MobilePage() {
 
         <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em]">
           Quem encontra o restaurante no Google{" "}
-          <span className="text-[#f0c36a]">reserva na hora.</span>
+          <span className="text-cyan-300">reserva na hora.</span>
         </h2>
 
-        <p className="mt-5 text-base leading-relaxed text-[#a99a82]">
+        <p className="mt-5 text-base leading-relaxed text-slate-400">
           O perfil Google deixa de ser só uma montra. Passa a ser uma entrada
           direta para reservas confirmadas.
         </p>
@@ -105,37 +105,38 @@ export default function MobilePage() {
       </section>
 
       <section className="relative z-10 px-5 py-14">
-        <div className="relative overflow-hidden rounded-[36px] border border-blue-400/20 bg-[#080b1a] p-6 shadow-[0_0_90px_rgba(59,130,246,0.2)]">
-          <div className="absolute -right-16 top-10 h-52 w-52 rounded-full bg-blue-500/25 blur-[70px]" />
-          <div className="absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-purple-500/20 blur-[70px]" />
+        <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/20 bg-[#06111f] p-6 shadow-[0_0_90px_rgba(34,211,238,0.2)]">
+          <div className="absolute -right-16 top-10 h-52 w-52 rounded-full bg-cyan-500/25 blur-[70px]" />
+          <div className="absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-violet-500/25 blur-[70px]" />
 
-          <Badge purple>Brevemente com IA</Badge>
+          <Badge purple>MesaLink Intelligence</Badge>
 
           <h2 className="relative mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em]">
-            O próximo salto das reservas vem com{" "}
-            <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">
-              Inteligência Artificial.
+            Brevemente, uma IA para{" "}
+            <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">
+              vender mais mesas.
             </span>
           </h2>
 
-          <p className="relative mt-5 text-base leading-relaxed text-[#b8bed6]">
-            Em breve, o MesaLink vai ajudar a prever movimento, sugerir horários,
-            otimizar capacidade e automatizar mensagens.
+          <p className="relative mt-5 text-base leading-relaxed text-slate-300">
+            Estamos a preparar uma camada inteligente para prever movimento,
+            reduzir no-shows e otimizar horários automaticamente.
           </p>
 
           <div className="relative mt-8 grid gap-3">
-            <AiItem title="Previsão de movimento" text="Antecipe dias fortes, dias fracos e picos de procura." />
-            <AiItem title="Sugestões inteligentes" text="Melhore horários, capacidade e ocupação." />
-            <AiItem title="Mensagens automáticas" text="Confirmações, lembretes e follow-ups." />
+            <AiItem title="Previsão de ocupação" text="Antecipe dias fortes, dias fracos e picos de procura." />
+            <AiItem title="Sugestão de horários" text="Recomendações automáticas para melhorar ocupação." />
+            <AiItem title="Previsão de no-shows" text="Identifique reservas com maior risco de falha." />
+            <AiItem title="Assistente operacional" text="Ajuda inteligente para gerir o serviço do dia." />
           </div>
         </div>
       </section>
 
       <section className="relative z-10 px-5 py-14">
-        <Badge>MesaLink OS</Badge>
+        <Badge>Restaurant AI OS</Badge>
 
         <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em]">
-          Uma sala de controlo para o restaurante.
+          Uma sala de controlo inteligente para o restaurante.
         </h2>
 
         <div className="mt-8 grid gap-4">
@@ -147,11 +148,11 @@ export default function MobilePage() {
       </section>
 
       <section className="relative z-10 px-5 pb-16">
-        <div className="relative overflow-hidden rounded-[36px] border border-[#f0c36a]/20 bg-[#f0c36a] p-7 text-black shadow-[0_0_90px_rgba(240,195,106,0.4)]">
+        <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/20 bg-gradient-to-br from-cyan-300 via-blue-400 to-violet-500 p-7 text-black shadow-[0_0_90px_rgba(96,165,250,0.5)]">
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/40 blur-3xl" />
 
           <h2 className="relative text-[42px] font-black leading-[0.88] tracking-[-0.06em]">
-            Entre agora no futuro das reservas.
+            Entre agora no futuro inteligente das reservas.
           </h2>
 
           <p className="relative mt-5 text-base leading-relaxed text-black/70">
@@ -175,8 +176,8 @@ export default function MobilePage() {
 
 function FlowNetwork() {
   return (
-    <div className="relative mx-auto mt-10 h-[460px] max-w-sm overflow-hidden rounded-[36px] border border-[#f0c36a]/10 bg-white/[0.03] p-4 backdrop-blur-xl">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(240,195,106,0.18),transparent_35%)]" />
+    <div className="relative mx-auto mt-10 h-[460px] max-w-sm overflow-hidden rounded-[36px] border border-cyan-300/10 bg-white/[0.03] p-4 backdrop-blur-xl">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(34,211,238,0.18),transparent_35%)]" />
 
       <FlowLine />
 
@@ -186,11 +187,23 @@ function FlowNetwork() {
       <Source top={304} left={12} icon="🌐" label="Website" />
 
       <motion.div
-        animate={{ scale: [1, 1.05, 1], boxShadow: ["0 0 35px rgba(240,195,106,0.20)", "0 0 70px rgba(240,195,106,0.45)", "0 0 35px rgba(240,195,106,0.20)"] }}
+        animate={{
+          scale: [1, 1.05, 1],
+          boxShadow: [
+            "0 0 35px rgba(34,211,238,0.22)",
+            "0 0 75px rgba(167,139,250,0.45)",
+            "0 0 35px rgba(34,211,238,0.22)",
+          ],
+        }}
         transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[165px] z-10 flex h-32 w-32 -translate-x-1/2 items-center justify-center rounded-[36px] border border-[#f0c36a]/30 bg-[#120d08] text-xl font-black text-[#f0c36a]"
+        className="absolute left-1/2 top-[165px] z-10 flex h-32 w-32 -translate-x-1/2 flex-col items-center justify-center rounded-[36px] border border-cyan-300/30 bg-[#06111f] text-center"
       >
-        MesaLink
+        <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-xl font-black text-transparent">
+          AI CORE
+        </span>
+        <span className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+          Processing
+        </span>
       </motion.div>
 
       <ConfirmedBooking />
@@ -208,10 +221,10 @@ function FlowNetwork() {
 function FlowLine() {
   return (
     <svg className="absolute inset-0 h-full w-full" viewBox="0 0 360 460" fill="none">
-      <path d="M86 58 C150 70 165 150 180 200" stroke="rgba(240,195,106,0.18)" strokeWidth="2" />
-      <path d="M78 146 C140 155 160 180 180 210" stroke="rgba(240,195,106,0.18)" strokeWidth="2" />
-      <path d="M88 242 C140 240 158 220 180 220" stroke="rgba(240,195,106,0.18)" strokeWidth="2" />
-      <path d="M82 338 C150 330 168 270 180 240" stroke="rgba(240,195,106,0.18)" strokeWidth="2" />
+      <path d="M86 58 C150 70 165 150 180 200" stroke="rgba(34,211,238,0.18)" strokeWidth="2" />
+      <path d="M78 146 C140 155 160 180 180 210" stroke="rgba(96,165,250,0.18)" strokeWidth="2" />
+      <path d="M88 242 C140 240 158 220 180 220" stroke="rgba(167,139,250,0.18)" strokeWidth="2" />
+      <path d="M82 338 C150 330 168 270 180 240" stroke="rgba(34,211,238,0.18)" strokeWidth="2" />
       <path d="M180 260 C190 330 190 370 180 410" stroke="rgba(34,197,94,0.22)" strokeWidth="2" />
     </svg>
   );
@@ -233,7 +246,7 @@ function Source({
       animate={{ y: [0, -4, 0] }}
       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       style={{ top, left }}
-      className="absolute z-10 rounded-2xl border border-white/10 bg-[#0b0805]/90 px-4 py-3 backdrop-blur"
+      className="absolute z-10 rounded-2xl border border-white/10 bg-[#020617]/90 px-4 py-3 backdrop-blur"
     >
       <p className="text-lg">{icon}</p>
       <p className="text-xs font-black">{label}</p>
@@ -259,7 +272,7 @@ function FlowParticle({ delay, startY }: { delay: number; startY: number }) {
       initial={{ x: 80, y: startY, opacity: 0 }}
       animate={{ x: 180, y: 210, opacity: [0, 1, 1, 0] }}
       transition={{ duration: 2.8, repeat: Infinity, delay, ease: "easeInOut" }}
-      className="absolute z-20 h-3 w-3 rounded-full bg-[#f0c36a] shadow-[0_0_22px_rgba(240,195,106,1)]"
+      className="absolute z-20 h-3 w-3 rounded-full bg-cyan-300 shadow-[0_0_22px_rgba(34,211,238,1)]"
     />
   );
 }
