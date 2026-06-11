@@ -68,6 +68,22 @@ export default function MobilePage() {
 
       <StickyBar />
 
+      <section className="relative z-10 px-5 py-16">
+        <Badge>Fluxo inteligente</Badge>
+
+        <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em]">
+          Todos os canais convergem para{" "}
+          <span className="text-[#f0c36a]">reservas confirmadas.</span>
+        </h2>
+
+        <p className="mt-5 text-base leading-relaxed text-[#a99a82]">
+          Do Google Maps, redes sociais, website e QR Codes diretamente para o
+          MesaLink.
+        </p>
+
+        <FlowNetwork />
+      </section>
+
       <section className="relative z-10 px-5 py-14">
         <Badge>Google Maps first</Badge>
 
@@ -154,6 +170,108 @@ export default function MobilePage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function FlowNetwork() {
+  return (
+    <div className="relative mx-auto mt-10 h-[460px] max-w-sm overflow-hidden rounded-[36px] border border-[#f0c36a]/10 bg-white/[0.03] p-4 backdrop-blur-xl">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(240,195,106,0.18),transparent_35%)]" />
+
+      <FlowLine />
+
+      <Source top={24} left={14} icon="📍" label="Google Maps" />
+      <Source top={112} left={6} icon="📸" label="Instagram" />
+      <Source top={208} left={22} icon="🎵" label="TikTok" />
+      <Source top={304} left={12} icon="🌐" label="Website" />
+
+      <motion.div
+        animate={{ scale: [1, 1.05, 1], boxShadow: ["0 0 35px rgba(240,195,106,0.20)", "0 0 70px rgba(240,195,106,0.45)", "0 0 35px rgba(240,195,106,0.20)"] }}
+        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute left-1/2 top-[165px] z-10 flex h-32 w-32 -translate-x-1/2 items-center justify-center rounded-[36px] border border-[#f0c36a]/30 bg-[#120d08] text-xl font-black text-[#f0c36a]"
+      >
+        MesaLink
+      </motion.div>
+
+      <ConfirmedBooking />
+
+      <FlowParticle delay={0} startY={50} />
+      <FlowParticle delay={0.9} startY={138} />
+      <FlowParticle delay={1.8} startY={234} />
+      <FlowParticle delay={2.7} startY={330} />
+      <FlowParticleToBooking delay={1.2} />
+      <FlowParticleToBooking delay={2.8} />
+    </div>
+  );
+}
+
+function FlowLine() {
+  return (
+    <svg className="absolute inset-0 h-full w-full" viewBox="0 0 360 460" fill="none">
+      <path d="M86 58 C150 70 165 150 180 200" stroke="rgba(240,195,106,0.18)" strokeWidth="2" />
+      <path d="M78 146 C140 155 160 180 180 210" stroke="rgba(240,195,106,0.18)" strokeWidth="2" />
+      <path d="M88 242 C140 240 158 220 180 220" stroke="rgba(240,195,106,0.18)" strokeWidth="2" />
+      <path d="M82 338 C150 330 168 270 180 240" stroke="rgba(240,195,106,0.18)" strokeWidth="2" />
+      <path d="M180 260 C190 330 190 370 180 410" stroke="rgba(34,197,94,0.22)" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function Source({
+  top,
+  left,
+  icon,
+  label,
+}: {
+  top: number;
+  left: number;
+  icon: string;
+  label: string;
+}) {
+  return (
+    <motion.div
+      animate={{ y: [0, -4, 0] }}
+      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      style={{ top, left }}
+      className="absolute z-10 rounded-2xl border border-white/10 bg-[#0b0805]/90 px-4 py-3 backdrop-blur"
+    >
+      <p className="text-lg">{icon}</p>
+      <p className="text-xs font-black">{label}</p>
+    </motion.div>
+  );
+}
+
+function ConfirmedBooking() {
+  return (
+    <motion.div
+      animate={{ y: [0, -5, 0], opacity: [0.88, 1, 0.88] }}
+      transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+      className="absolute bottom-7 left-1/2 z-10 -translate-x-1/2 rounded-full border border-green-400/20 bg-green-500/15 px-5 py-3 text-sm font-black text-green-300 shadow-[0_0_35px_rgba(34,197,94,0.18)]"
+    >
+      🍽 Reserva Confirmada
+    </motion.div>
+  );
+}
+
+function FlowParticle({ delay, startY }: { delay: number; startY: number }) {
+  return (
+    <motion.div
+      initial={{ x: 80, y: startY, opacity: 0 }}
+      animate={{ x: 180, y: 210, opacity: [0, 1, 1, 0] }}
+      transition={{ duration: 2.8, repeat: Infinity, delay, ease: "easeInOut" }}
+      className="absolute z-20 h-3 w-3 rounded-full bg-[#f0c36a] shadow-[0_0_22px_rgba(240,195,106,1)]"
+    />
+  );
+}
+
+function FlowParticleToBooking({ delay }: { delay: number }) {
+  return (
+    <motion.div
+      initial={{ x: 180, y: 260, opacity: 0 }}
+      animate={{ x: 180, y: 400, opacity: [0, 1, 1, 0] }}
+      transition={{ duration: 2.4, repeat: Infinity, delay, ease: "easeInOut" }}
+      className="absolute z-20 h-3 w-3 rounded-full bg-green-400 shadow-[0_0_22px_rgba(34,197,94,1)]"
+    />
   );
 }
 
