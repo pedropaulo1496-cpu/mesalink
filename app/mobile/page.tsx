@@ -1,18 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useScroll, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 export default function MobilePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#030201] text-[#fff7ea]">
-      <ScrollLine />
+      <AmbientGlow />
 
       <section className="relative min-h-screen px-5 pb-10 pt-5">
-        <div className="absolute left-1/2 top-[-120px] h-[360px] w-[360px] -translate-x-1/2 rounded-full bg-[#f0c36a]/25 blur-[90px]" />
-        <div className="absolute right-[-120px] top-[220px] h-[260px] w-[260px] rounded-full bg-orange-500/15 blur-[80px]" />
-
         <nav className="relative z-10 mb-12 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black tracking-tight">
             Mesa<span className="text-[#f0c36a]">Link</span>
@@ -28,29 +25,36 @@ export default function MobilePage() {
 
         <div className="relative z-10">
           <p className="mb-5 inline-flex rounded-full border border-[#f0c36a]/30 bg-[#f0c36a]/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-[#f0c36a]">
-            Sistema inteligente de reservas
+            O futuro das reservas online
           </p>
 
           <h1 className="mb-5 text-[48px] font-black leading-[0.9] tracking-[-0.06em]">
-            O futuro das{" "}
+            Transforme o{" "}
             <span className="bg-gradient-to-r from-[#f0c36a] via-[#fff0b8] to-[#f0c36a] bg-clip-text text-transparent">
-              reservas online
+              Google Maps
             </span>{" "}
-            do seu restaurante.
+            numa máquina de reservas.
           </h1>
 
           <p className="mb-7 text-[17px] leading-relaxed text-[#d6c7ad]">
-            Transforme Instagram, TikTok, Google Maps, website e QR Codes numa
-            máquina automática de reservas — sem chamadas, sem comissões e sem
-            caos no WhatsApp.
+            Receba reservas do Google Maps, Instagram, TikTok, website e QR
+            Codes num único sistema — sem chamadas, sem comissões e sem caos no
+            WhatsApp.
           </p>
 
           <div className="grid gap-3">
-            <Button asChild className="h-14 rounded-full bg-[#f0c36a] text-base font-black text-black shadow-[0_0_55px_rgba(240,195,106,0.42)] hover:bg-[#ffd982]">
+            <Button
+              asChild
+              className="h-14 rounded-full bg-[#f0c36a] text-base font-black text-black shadow-[0_0_55px_rgba(240,195,106,0.42)] hover:bg-[#ffd982]"
+            >
               <Link href="/register">Ativar MesaLink</Link>
             </Button>
 
-            <Button asChild variant="outline" className="h-14 rounded-full border-[#f0c36a]/40 bg-white/[0.04] text-base font-bold text-white backdrop-blur hover:bg-white/10">
+            <Button
+              asChild
+              variant="outline"
+              className="h-14 rounded-full border-[#f0c36a]/40 bg-white/[0.04] text-base font-bold text-white backdrop-blur hover:bg-white/10"
+            >
               <Link href="/pricing">Ver planos</Link>
             </Button>
           </div>
@@ -78,36 +82,133 @@ export default function MobilePage() {
             </p>
           </div>
 
-          <Link href="/register" className="rounded-full bg-[#f0c36a] px-4 py-2 text-sm font-black text-black">
+          <Link
+            href="/register"
+            className="rounded-full bg-[#f0c36a] px-4 py-2 text-sm font-black text-black"
+          >
             Começar
           </Link>
         </div>
       </section>
 
+      <section className="relative px-5 py-16">
+        <GlowTitle
+          eyebrow="Google Maps"
+          title="A pesquisa acaba. A reserva começa."
+        />
+
+        <div className="relative overflow-hidden rounded-[32px] border border-[#f0c36a]/20 bg-[#120d08] p-6 shadow-[0_0_60px_rgba(240,195,106,0.12)]">
+          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#f0c36a]/20 blur-3xl" />
+
+          <p className="mb-3 text-xs font-black uppercase tracking-[0.25em] text-[#f0c36a]">
+            Google Maps ready
+          </p>
+
+          <h3 className="mb-3 text-3xl font-black leading-tight">
+            Quem encontra o restaurante no Google pode reservar na hora.
+          </h3>
+
+          <p className="text-sm leading-relaxed text-[#a99a82]">
+            Coloque o link do MesaLink no perfil Google do restaurante e
+            transforme pesquisas locais em reservas confirmadas.
+          </p>
+        </div>
+      </section>
+
       <Section eyebrow="Canais" title="Um link. Todos os canais. Zero fricção.">
-        <ChannelCard number="01" title="Instagram & TikTok" text="Transforme bio, stories, reels e campanhas em reservas confirmadas." />
-        <ChannelCard number="02" title="Google Maps" text="Clientes que procuram restaurante passam a reservar em segundos." />
-        <ChannelCard number="03" title="Website" text="Reservas diretas sem depender de plataformas com comissão." />
-        <ChannelCard number="04" title="QR Codes" text="Menus, montra, cartões e mesas passam a gerar reservas." />
+        <ChannelCard
+          number="01"
+          title="Google Maps"
+          text="O canal principal para transformar intenção em reserva."
+        />
+        <ChannelCard
+          number="02"
+          title="Instagram & TikTok"
+          text="Bio, stories, reels e campanhas com reserva direta."
+        />
+        <ChannelCard
+          number="03"
+          title="Website"
+          text="Reservas próprias sem depender de plataformas com comissão."
+        />
+        <ChannelCard
+          number="04"
+          title="QR Codes"
+          text="Menus, montra, cartões e mesas passam a gerar reservas."
+        />
       </Section>
 
       <section className="relative bg-[#080604] px-5 py-16">
-        <div className="absolute left-[-120px] top-20 h-72 w-72 rounded-full bg-[#f0c36a]/10 blur-[90px]" />
+        <GlowTitle
+          eyebrow="Brevemente"
+          title="IA para ajudar o restaurante a vender mais."
+        />
 
-        <GlowTitle eyebrow="Automação" title="O cliente reserva. O sistema organiza." />
+        <div className="grid gap-4">
+          <FeatureCard
+            icon="🤖"
+            title="Sugestões com IA"
+            text="Brevemente: recomendações automáticas para melhorar horários, capacidade e reservas."
+          />
+          <FeatureCard
+            icon="📈"
+            title="Previsão de procura"
+            text="Brevemente: perceber dias fortes, dias fracos e horários com maior potencial."
+          />
+          <FeatureCard
+            icon="💬"
+            title="Assistente inteligente"
+            text="Brevemente: ajuda para responder, organizar e otimizar reservas."
+          />
+        </div>
+      </section>
 
-        <div className="relative grid gap-4">
-          <ProcessCard step="1" title="Cliente toca no link" text="Vem do Instagram, Google, site, QR Code ou anúncio." />
-          <ProcessCard step="2" title="Escolhe data e hora" text="Sem mensagens, sem telefonemas, sem idas e voltas." />
-          <ProcessCard step="3" title="MesaLink centraliza tudo" text="Reservas, clientes, horários, serviço do dia e histórico." />
+      <section className="relative px-5 py-16">
+        <GlowTitle
+          eyebrow="Automação"
+          title="O cliente reserva. O sistema organiza."
+        />
+
+        <div className="grid gap-4">
+          <ProcessCard
+            step="1"
+            title="Cliente toca no link"
+            text="Vem do Google Maps, Instagram, website, QR Code ou anúncio."
+          />
+          <ProcessCard
+            step="2"
+            title="Escolhe data e hora"
+            text="Sem mensagens, sem telefonemas, sem idas e voltas."
+          />
+          <ProcessCard
+            step="3"
+            title="MesaLink centraliza tudo"
+            text="Reservas, clientes, horários, serviço do dia e histórico."
+          />
         </div>
       </section>
 
       <Section eyebrow="Painel" title="Uma sala de controlo para o restaurante.">
-        <FeatureCard icon="⚡" title="Serviço do dia" text="Almoço, jantar, pendentes, confirmadas, check-ins e no-shows." />
-        <FeatureCard icon="👁️" title="Visão em tempo real" text="Saiba quantas pessoas entram em cada horário." />
-        <FeatureCard icon="🧠" title="Clientes automáticos" text="Histórico, contactos e observações guardados sem esforço." />
-        <FeatureCard icon="🛡️" title="Controlo total" text="Aprovação manual para grupos grandes ou pedidos especiais." />
+        <FeatureCard
+          icon="⚡"
+          title="Serviço do dia"
+          text="Almoço, jantar, pendentes, confirmadas, check-ins e no-shows."
+        />
+        <FeatureCard
+          icon="👁️"
+          title="Visão em tempo real"
+          text="Saiba quantas pessoas entram em cada horário."
+        />
+        <FeatureCard
+          icon="🧠"
+          title="Clientes automáticos"
+          text="Histórico, contactos e observações guardados sem esforço."
+        />
+        <FeatureCard
+          icon="🛡️"
+          title="Controlo total"
+          text="Aprovação manual para grupos grandes ou pedidos especiais."
+        />
       </Section>
 
       <section className="px-5 pb-16">
@@ -126,7 +227,10 @@ export default function MobilePage() {
             Sem comissões. Sem perder clientes. Sem depender de mensagens.
           </p>
 
-          <Button asChild className="h-14 w-full rounded-full bg-black text-base font-black text-white hover:bg-black/90">
+          <Button
+            asChild
+            className="h-14 w-full rounded-full bg-black text-base font-black text-white hover:bg-black/90"
+          >
             <Link href="/register">Criar conta grátis</Link>
           </Button>
         </div>
@@ -135,40 +239,22 @@ export default function MobilePage() {
   );
 }
 
-function ScrollLine() {
-  const { scrollYProgress } = useScroll();
-
-  const pathLength = useSpring(scrollYProgress, {
-    stiffness: 80,
-    damping: 24,
-    restDelta: 0.001,
-  });
-
+function AmbientGlow() {
   return (
-    <div className="pointer-events-none fixed inset-0 z-20 opacity-90">
-      <svg className="h-full w-full" viewBox="0 0 390 1200" fill="none" preserveAspectRatio="none">
-        <path
-          d="M335 110 C250 210 330 320 205 430 C95 530 120 655 260 770 C365 860 310 1000 110 1130"
-          stroke="rgba(240,195,106,0.10)"
-          strokeWidth="2"
-        />
+    <div className="pointer-events-none fixed inset-0 z-0">
+      <motion.div
+        animate={{ y: [0, 35, 0], scale: [1, 1.08, 1] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute left-1/2 top-[-120px] h-[360px] w-[360px] -translate-x-1/2 rounded-full bg-[#f0c36a]/25 blur-[90px]"
+      />
 
-        <motion.path
-          d="M335 110 C250 210 330 320 205 430 C95 530 120 655 260 770 C365 860 310 1000 110 1130"
-          stroke="url(#goldGlow)"
-          strokeWidth="3"
-          strokeLinecap="round"
-          style={{ pathLength }}
-        />
+      <motion.div
+        animate={{ x: [0, -25, 0], y: [0, 30, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute right-[-120px] top-[360px] h-[260px] w-[260px] rounded-full bg-orange-500/15 blur-[80px]"
+      />
 
-        <defs>
-          <linearGradient id="goldGlow" x1="0" y1="0" x2="1" y2="1">
-            <stop stopColor="#f0c36a" />
-            <stop offset="0.5" stopColor="#fff0b8" />
-            <stop offset="1" stopColor="#f0c36a" />
-          </linearGradient>
-        </defs>
-      </svg>
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(240,195,106,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(240,195,106,0.04)_1px,transparent_1px)] bg-[size:42px_42px]" />
     </div>
   );
 }
