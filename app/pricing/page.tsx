@@ -16,17 +16,15 @@ export default function PricingPage() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-3 text-sm">
-            <Link
-              href="/login"
-              className="rounded-full border border-cyan-300/25 bg-white/5 px-5 py-2 font-black text-cyan-200 backdrop-blur hover:bg-white/10"
-            >
-              Entrar
-            </Link>
-          </div>
+          <Link
+            href="/login"
+            className="rounded-full border border-cyan-300/25 bg-white/5 px-5 py-2 text-sm font-black text-cyan-200 backdrop-blur hover:bg-white/10"
+          >
+            Entrar
+          </Link>
         </nav>
 
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-6xl">
           <div className="mx-auto mb-12 max-w-4xl text-center">
             <Badge>Preço de lançamento</Badge>
 
@@ -43,47 +41,48 @@ export default function PricingPage() {
             </p>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/25 bg-[#06111f]/90 p-6 shadow-[0_0_100px_rgba(34,211,238,0.18)] backdrop-blur-2xl sm:p-8">
+          <div className="mx-auto max-w-5xl">
+            <div className="relative overflow-hidden rounded-[40px] border border-cyan-300/25 bg-[#06111f]/90 p-6 shadow-[0_0_100px_rgba(34,211,238,0.18)] backdrop-blur-2xl sm:p-8 lg:p-10">
               <div className="absolute -right-20 top-10 h-64 w-64 rounded-full bg-cyan-500/20 blur-[90px]" />
               <div className="absolute -left-24 bottom-0 h-64 w-64 rounded-full bg-violet-500/20 blur-[90px]" />
 
               <div className="relative">
-                <Badge>Disponível agora</Badge>
-
-                <div className="mt-6 flex flex-col gap-8 xl:flex-row xl:items-start xl:justify-between">
-                  <div>
-                    <h2 className="text-4xl font-black tracking-[-0.04em]">
-                      Starter
-                    </h2>
-
-                    <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-300">
-                      Para restaurantes que querem trocar chamadas, mensagens e
-                      papel por uma experiência de reservas moderna.
-                    </p>
-                  </div>
-
-                  <div className="rounded-[28px] border border-cyan-300/15 bg-black/25 p-5 xl:text-right">
-                    <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+                <div className="mb-8 flex justify-center">
+                  <div className="grid w-full max-w-xl grid-cols-2 gap-3 rounded-full border border-white/10 bg-black/25 p-2">
+                    <div className="rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 py-3 text-center text-sm font-black text-black">
                       Mensal
-                    </p>
-
-                    <div className="mt-2">
-                      <span className="text-6xl font-black tracking-[-0.06em] text-cyan-300">
-                        17,50€
-                      </span>
-                      <span className="ml-2 text-sm text-slate-400">
-                        + IVA
-                      </span>
                     </div>
 
-                    <p className="mt-3 text-sm text-slate-400">
-                      Por restaurante · Sem comissões
+                    <div className="rounded-full py-3 text-center text-sm font-black text-slate-400">
+                      Anual
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <Badge>Plano Starter</Badge>
+
+                  <h2 className="mt-5 text-4xl font-black tracking-[-0.05em] sm:text-5xl">
+                    Tudo para começar.
+                  </h2>
+
+                  <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-300">
+                    Para restaurantes que querem trocar chamadas, mensagens e
+                    papel por uma experiência moderna de reservas online.
+                  </p>
+
+                  <div className="mt-8">
+                    <span className="text-7xl font-black tracking-[-0.08em] text-cyan-300 sm:text-8xl">
+                      17,50€
+                    </span>
+
+                    <p className="mt-3 text-sm font-bold text-slate-400">
+                      + IVA / mês · Por restaurante · Sem comissões
                     </p>
 
-                    <div className="mt-4 rounded-2xl border border-violet-300/20 bg-violet-500/10 p-4 text-sm text-violet-100">
+                    <div className="mx-auto mt-5 max-w-md rounded-2xl border border-violet-300/20 bg-violet-500/10 p-4 text-sm text-violet-100">
                       <strong className="text-white">
-                        Anual: 192,50€ + IVA
+                        Anual: 192,50€ + IVA / ano
                       </strong>
                       <br />
                       Pague 11 meses e use 12.
@@ -91,25 +90,25 @@ export default function PricingPage() {
                   </div>
                 </div>
 
-                <div className="mt-8 grid grid-cols-3 gap-3">
+                <div className="mx-auto mt-8 grid max-w-3xl grid-cols-3 gap-3">
                   <HeroStat value="0%" label="comissões" />
                   <HeroStat value="24h" label="online" />
                   <HeroStat value="10min" label="setup" />
                 </div>
 
-                <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {[
                     "Página pública de reservas",
-                    "Link para Google Maps, Instagram e website",
-                    "QR Code de reservas incluído",
+                    "Link para Google Maps",
+                    "Link para Instagram",
+                    "QR Code incluído",
                     "Dashboard do restaurante",
                     "Calendário mensal",
                     "Serviço do dia",
                     "Gestão de clientes",
                     "Gestão de mesas",
                     "Horários de funcionamento",
-                    "Aprovação manual de grupos grandes",
-                    "Modo por mesas ou por capacidade",
+                    "Aprovação manual",
                     "Sem comissão por reserva",
                   ].map((feature) => (
                     <div
@@ -122,7 +121,7 @@ export default function PricingPage() {
                   ))}
                 </div>
 
-                <div className="mt-8 grid gap-3">
+                <div className="mx-auto mt-10 grid max-w-xl gap-3">
                   <CheckoutButton />
 
                   <Link
@@ -134,39 +133,40 @@ export default function PricingPage() {
                 </div>
               </div>
             </div>
-
-            <div className="grid gap-6">
-              <ComingSoonCard
-                title="Pro"
-                price="22,50€ + IVA / mês"
-                description="Automatizações para restaurantes que querem reduzir trabalho manual."
-                features={[
-                  "Emails automáticos",
-                  "Lembretes de reserva",
-                  "Lista de espera",
-                  "Estatísticas avançadas",
-                  "Exportação de clientes",
-                ]}
-              />
-
-              <ComingSoonCard
-                title="QR Ordering"
-                price="+15€ + IVA / mês"
-                description="Pedidos diretamente pela mesa, sem esperar pelo empregado."
-                features={[
-                  "QR por mesa",
-                  "Menu digital",
-                  "Pedidos pelo telemóvel",
-                  "Chamada de empregado",
-                  "Gestão de pedidos",
-                ]}
-              />
-            </div>
           </div>
 
-          <div className="mt-8 overflow-hidden rounded-[36px] border border-cyan-300/20 bg-gradient-to-br from-cyan-300 via-blue-400 to-violet-500 p-7 text-black shadow-[0_0_100px_rgba(96,165,250,0.45)]">
-            <h2 className="text-[38px] font-black leading-[0.9] tracking-[-0.06em] sm:text-5xl">
-              Um sistema simples para transformar visitas em reservas.
+          <section className="mx-auto mt-10 max-w-5xl">
+            <div className="grid gap-4 md:grid-cols-2">
+              <RoadmapCard
+                title="Pro"
+                text="Automatizações, lembretes, lista de espera e estatísticas avançadas."
+              />
+
+              <RoadmapCard
+                title="QR Ordering"
+                text="Menu digital, QR por mesa, pedidos pelo telemóvel e chamada de empregado."
+              />
+            </div>
+          </section>
+
+          <section className="mx-auto mt-10 max-w-5xl rounded-[36px] border border-white/10 bg-white/[0.04] p-6 backdrop-blur-2xl sm:p-8">
+            <Badge>FAQ</Badge>
+
+            <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] sm:text-4xl">
+              Perguntas rápidas.
+            </h2>
+
+            <div className="mt-8 grid gap-3 md:grid-cols-2">
+              <FAQ question="Há comissões por reserva?" answer="Não. O MesaLink não cobra comissão por reserva." />
+              <FAQ question="Posso cancelar?" answer="Sim. Pode cancelar quando quiser." />
+              <FAQ question="Demora muito a configurar?" answer="Não. A configuração inicial demora cerca de 10 minutos." />
+              <FAQ question="Funciona com Google Maps?" answer="Sim. Pode usar o link público no Google Maps, Instagram, website e QR Code." />
+            </div>
+          </section>
+
+          <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[36px] border border-cyan-300/20 bg-gradient-to-br from-cyan-300 via-blue-400 to-violet-500 p-7 text-black shadow-[0_0_100px_rgba(96,165,250,0.45)] sm:p-9">
+            <h2 className="text-[40px] font-black leading-[0.9] tracking-[-0.06em] sm:text-5xl">
+              Comece hoje. Receba reservas amanhã.
             </h2>
 
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-black/70">
@@ -206,54 +206,36 @@ function Badge({ children }: { children: React.ReactNode }) {
 
 function HeroStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center backdrop-blur">
       <p className="text-2xl font-black text-cyan-300">{value}</p>
-      <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+      <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
         {label}
       </p>
     </div>
   );
 }
 
-function ComingSoonCard({
-  title,
-  price,
-  description,
-  features,
-}: {
-  title: string;
-  price: string;
-  description: string;
-  features: string[];
-}) {
+function RoadmapCard({ title, text }: { title: string; text: string }) {
   return (
-    <div className="relative overflow-hidden rounded-[32px] border border-violet-300/15 bg-white/[0.04] p-6 backdrop-blur-2xl">
-      <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-violet-500/20 blur-[70px]" />
+    <div className="rounded-[28px] border border-violet-300/15 bg-white/[0.04] p-6 backdrop-blur-2xl">
+      <span className="inline-flex rounded-full border border-violet-300/25 bg-violet-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-violet-200">
+        Em breve
+      </span>
 
-      <div className="relative">
-        <span className="inline-flex rounded-full border border-violet-300/25 bg-violet-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-violet-200">
-          Em breve
-        </span>
+      <h3 className="mt-4 text-2xl font-black tracking-[-0.04em]">
+        {title}
+      </h3>
 
-        <h3 className="mt-5 text-3xl font-black tracking-[-0.04em]">
-          {title}
-        </h3>
+      <p className="mt-3 text-sm leading-relaxed text-slate-400">{text}</p>
+    </div>
+  );
+}
 
-        <p className="mt-2 font-black text-cyan-300">{price}</p>
-
-        <p className="mt-4 text-sm leading-relaxed text-slate-400">
-          {description}
-        </p>
-
-        <ul className="mt-6 space-y-3 text-sm text-slate-300">
-          {features.map((feature) => (
-            <li key={feature} className="flex gap-3">
-              <span className="text-violet-300">•</span>
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+function FAQ({ question, answer }: { question: string; answer: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
+      <h3 className="font-black text-white">{question}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-slate-400">{answer}</p>
     </div>
   );
 }
