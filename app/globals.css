@@ -155,3 +155,21 @@
 .input-dark:focus {
   border-color: #f0c36a;
 }
+.input-ai {
+  height: 3rem;
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0 1rem;
+  color: white;
+  outline: none;
+}
+
+.input-ai::placeholder {
+  color: rgb(71 85 105);
+}
+
+.input-ai:focus {
+  border-color: rgba(103, 232, 249, 0.5);
+}

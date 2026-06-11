@@ -26,8 +26,7 @@ async function updateSettings(formData: FormData) {
       manualApprovalGuests:
         manualApprovalGuests > 0 ? manualApprovalGuests : null,
 
-      approvalOnTableMerge:
-        formData.get("approvalOnTableMerge") === "on",
+      approvalOnTableMerge: formData.get("approvalOnTableMerge") === "on",
 
       onlineReservationsEnabled:
         formData.get("onlineReservationsEnabled") === "on",
@@ -88,62 +87,58 @@ export default async function SettingsPage({
 
   if (!restaurant) {
     return (
-      <main className="min-h-screen bg-[#0f0f0f] p-10 text-white">
+      <main className="min-h-screen bg-[#020617] p-10 text-white">
         Restaurante não encontrado
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0f0f0f] p-8 text-white">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header className="flex flex-col justify-between gap-6 border-b border-[#2b2b2b] pb-8 md:flex-row md:items-center">
+    <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
+      <Background />
+
+      <section className="relative z-10 mx-auto max-w-7xl px-5 py-8 sm:px-8">
+        <header className="flex flex-col justify-between gap-6 border-b border-cyan-300/10 pb-8 md:flex-row md:items-center">
           <div>
             <Link
               href={`/restaurants/${id}`}
-              className="text-sm text-[#9e9e9e] hover:text-white"
+              className="text-sm font-bold text-slate-400 hover:text-white"
             >
               ← Voltar ao dashboard
             </Link>
 
-            <h1 className="mt-4 text-5xl font-black tracking-tight">
+            <p className="mt-8 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+              MesaLink Control
+            </p>
+
+            <h1 className="mt-3 text-5xl font-black tracking-[-0.06em]">
               Configurações
             </h1>
 
-            <p className="mt-2 text-[#9e9e9e]">
-              {restaurant.name}
-            </p>
+            <p className="mt-2 text-slate-400">{restaurant.name}</p>
           </div>
 
-          <div className="rounded-full border border-[#2b2b2b] bg-[#181818] px-5 py-3 text-sm font-bold text-[#f0c36a]">
+          <div className="w-fit rounded-full border border-cyan-300/20 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-300">
             Gestão operacional
           </div>
         </header>
 
-        <form
-          id="settings-form"
-          action={updateSettings}
-          className="space-y-6"
-        >
-          <input
-            type="hidden"
-            name="restaurantId"
-            value={restaurant.id}
-          />
+        <form id="settings-form" action={updateSettings} className="space-y-6">
+          <input type="hidden" name="restaurantId" value={restaurant.id} />
 
-          <section className="grid grid-cols-1 gap-6 lg:grid-cols-[420px_1fr]">
-            <div className="rounded-[2rem] border border-[#2b2b2b] bg-[#181818] p-6">
-              <p className="text-sm font-bold uppercase tracking-widest text-[#f0c36a]">
+          <section className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[420px_1fr]">
+            <div className="rounded-[2rem] border border-cyan-300/15 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.1)] backdrop-blur-2xl">
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
                 Reservas
               </p>
 
-              <h2 className="mt-3 text-3xl font-black">
+              <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">
                 Regras principais
               </h2>
 
-              <p className="mt-2 text-sm leading-relaxed text-[#9e9e9e]">
-                Defina se o restaurante trabalha por mesas ou por capacidade,
-                e quando uma reserva deve ficar pendente.
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                Defina se o restaurante trabalha por mesas ou por capacidade, e
+                quando uma reserva deve ficar pendente.
               </p>
 
               <div className="mt-6 space-y-5">
@@ -151,7 +146,7 @@ export default async function SettingsPage({
                   <select
                     name="reservationMode"
                     defaultValue={restaurant.reservationMode}
-                    className="input-dark"
+                    className="input-ai"
                   >
                     <option value="TABLES">Por Mesas</option>
                     <option value="CAPACITY">Por Capacidade</option>
@@ -164,10 +159,10 @@ export default async function SettingsPage({
                     name="totalCapacity"
                     defaultValue={restaurant.totalCapacity ?? ""}
                     placeholder="Ex: 60"
-                    className="input-dark"
+                    className="input-ai"
                   />
 
-                  <p className="mt-2 text-xs text-[#7d7d7d]">
+                  <p className="mt-2 text-xs text-slate-500">
                     Usado apenas quando o modo é Por Capacidade.
                   </p>
                 </Field>
@@ -178,10 +173,10 @@ export default async function SettingsPage({
                     name="manualApprovalGuests"
                     defaultValue={restaurant.manualApprovalGuests ?? ""}
                     placeholder="Ex: 8"
-                    className="input-dark"
+                    className="input-ai"
                   />
 
-                  <p className="mt-2 text-xs text-[#7d7d7d]">
+                  <p className="mt-2 text-xs text-slate-500">
                     Reservas com este número de pessoas ou mais ficam pendentes.
                   </p>
                 </Field>
@@ -202,14 +197,14 @@ export default async function SettingsPage({
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-[#2b2b2b] bg-[#181818] p-6">
+            <div className="rounded-[2rem] border border-cyan-300/15 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.1)] backdrop-blur-2xl">
               <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-widest text-[#f0c36a]">
+                  <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
                     Horários
                   </p>
 
-                  <h2 className="mt-3 text-3xl font-black">
+                  <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">
                     Funcionamento semanal
                   </h2>
                 </div>
@@ -220,27 +215,29 @@ export default async function SettingsPage({
               <div className="space-y-3">
                 {weekdays.map((day) => {
                   const openKey = `${day.key}Open` as keyof typeof restaurant;
-                  const lunchKey = `${day.key}Lunch` as keyof typeof restaurant;
-                  const dinnerKey = `${day.key}Dinner` as keyof typeof restaurant;
+                  const lunchKey =
+                    `${day.key}Lunch` as keyof typeof restaurant;
+                  const dinnerKey =
+                    `${day.key}Dinner` as keyof typeof restaurant;
 
                   return (
                     <div
                       key={day.key}
-                      className="grid grid-cols-1 gap-4 rounded-3xl border border-[#2b2b2b] bg-[#111111] p-4 md:grid-cols-[160px_1fr_1fr]"
+                      className="grid grid-cols-1 gap-4 rounded-3xl border border-white/10 bg-black/25 p-4 md:grid-cols-[160px_1fr_1fr]"
                     >
                       <label className="flex items-center gap-3 font-black">
                         <input
                           type="checkbox"
                           name={`${day.key}Open`}
                           defaultChecked={Boolean(restaurant[openKey])}
-                          className="h-4 w-4 accent-[#f0c36a]"
+                          className="h-4 w-4 accent-cyan-300"
                         />
 
                         {day.label}
                       </label>
 
                       <div>
-                        <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#7d7d7d]">
+                        <p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-slate-500">
                           Almoço
                         </p>
 
@@ -248,12 +245,12 @@ export default async function SettingsPage({
                           name={`${day.key}Lunch`}
                           defaultValue={String(restaurant[lunchKey] ?? "")}
                           placeholder="12:00-15:00"
-                          className="input-dark"
+                          className="input-ai"
                         />
                       </div>
 
                       <div>
-                        <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#7d7d7d]">
+                        <p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-slate-500">
                           Jantar
                         </p>
 
@@ -261,7 +258,7 @@ export default async function SettingsPage({
                           name={`${day.key}Dinner`}
                           defaultValue={String(restaurant[dinnerKey] ?? "")}
                           placeholder="19:00-23:00"
-                          className="input-dark"
+                          className="input-ai"
                         />
                       </div>
                     </div>
@@ -272,12 +269,12 @@ export default async function SettingsPage({
           </section>
 
           <div className="sticky bottom-6 z-20 flex justify-end">
-            <button className="rounded-full bg-[#f0c36a] px-8 py-4 font-black text-black shadow-2xl hover:bg-[#ffd982]">
+            <button className="rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-8 py-4 font-black text-black shadow-[0_0_60px_rgba(96,165,250,0.35)] hover:opacity-90">
               Guardar alterações
             </button>
           </div>
         </form>
-      </div>
+      </section>
     </main>
   );
 }
@@ -291,7 +288,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-[#d6d6d6]">
+      <span className="mb-2 block text-sm font-bold text-slate-300">
         {label}
       </span>
 
@@ -312,20 +309,30 @@ function ToggleBox({
   text: string;
 }) {
   return (
-    <div className="rounded-3xl border border-[#2b2b2b] bg-[#111111] p-4">
+    <div className="rounded-3xl border border-white/10 bg-black/25 p-4">
       <label className="flex items-start gap-3">
         <input
           type="checkbox"
           name={name}
           defaultChecked={defaultChecked}
-          className="mt-1 h-4 w-4 accent-[#f0c36a]"
+          className="mt-1 h-4 w-4 accent-cyan-300"
         />
 
         <div>
           <p className="font-black">{title}</p>
-          <p className="mt-1 text-sm text-[#9e9e9e]">{text}</p>
+          <p className="mt-1 text-sm leading-relaxed text-slate-400">{text}</p>
         </div>
       </label>
+    </div>
+  );
+}
+
+function Background() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0">
+      <div className="absolute left-1/2 top-[-180px] h-[460px] w-[460px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[120px]" />
+      <div className="absolute right-[-160px] top-[280px] h-[360px] w-[360px] rounded-full bg-violet-500/15 blur-[110px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.15),transparent_35%),linear-gradient(to_bottom,#020617,#050816_45%,#020617)]" />
     </div>
   );
 }
