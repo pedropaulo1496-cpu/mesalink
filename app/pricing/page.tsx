@@ -47,10 +47,6 @@ export default function PricingPage() {
               <div className="absolute -left-24 bottom-0 h-64 w-64 rounded-full bg-violet-500/20 blur-[90px]" />
 
               <div className="relative">
-                <div className="mb-8 flex justify-center">
-                  <div className="grid w-full max-w-xl grid-cols-2 gap-3 rounded-full border border-white/10 bg-black/25 p-2">
-                  </div>
-                </div>
 
                 <div className="text-center">
                   <Badge>Plano Starter</Badge>
