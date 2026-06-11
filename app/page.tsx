@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
 
 export default async function HomePage() {
-  const headersList = headers();
+  const headersList = await headers();
   const userAgent = headersList.get("user-agent") || "";
 
   const isMobileOrTablet =
