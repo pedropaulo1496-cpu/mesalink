@@ -37,16 +37,16 @@ export default function MobilePage() {
           <Badge>AI Reservation OS</Badge>
 
           <h1 className="mt-5 text-[52px] font-black leading-[0.88] tracking-[-0.07em]">
-            O futuro das reservas começa no{" "}
-            <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-400 bg-clip-text text-transparent">
-              Google Maps.
-            </span>
-          </h1>
+  A próxima geração das{" "}
+  <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-400 bg-clip-text text-transparent">
+    reservas para restaurantes.
+  </span>
+</h1>
 
-          <p className="mt-6 text-[17px] leading-relaxed text-slate-300">
-            Transforme Google Maps, Instagram, TikTok, website e QR Codes numa
-            central inteligente de reservas. Hoje: automação. Brevemente: IA.
-          </p>
+<p className="mt-6 text-[17px] leading-relaxed text-slate-300">
+  Transforme Google Maps, redes sociais e website
+  num sistema inteligente de reservas.
+</p>
 
           <div className="mt-7 grid gap-3">
             <Button
@@ -80,12 +80,12 @@ export default function MobilePage() {
       <StickyBar />
 
       <section className="relative z-10 px-5 py-16">
-        <Badge>AI Flow</Badge>
+        <Badge>Reservation Intelligence</Badge>
 
         <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em]">
-          Todos os canais entram no{" "}
+          Todos os canais{" "}
           <span className="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text text-transparent">
-            AI Core.
+            trabalham em conjunto.
           </span>
         </h2>
 
