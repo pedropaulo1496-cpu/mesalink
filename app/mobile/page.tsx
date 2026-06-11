@@ -9,6 +9,10 @@ export default function MobilePage() {
     <main className="relative min-h-screen overflow-hidden bg-[#020201] text-[#fff7ea]">
       <Background />
 
+      <div className="fixed left-0 top-0 z-[9999] bg-red-600 p-3 text-white">
+  NOVO MOBILE
+</div>
+
       <section className="relative z-10 px-5 pb-12 pt-5">
         <nav className="mb-12 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black">
