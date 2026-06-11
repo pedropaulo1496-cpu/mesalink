@@ -16,7 +16,7 @@ export default function ManageSubscriptionButton() {
   return (
     <button
       onClick={openPortal}
-      className="h-14 rounded-full bg-[#f0c36a] px-8 font-black text-black hover:bg-[#ffd982]"
+      className="flex h-14 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-8 text-base font-black text-black shadow-[0_0_60px_rgba(96,165,250,0.35)] transition hover:opacity-90"
     >
       Gerir subscrição
     </button>
