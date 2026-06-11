@@ -14,7 +14,10 @@ async function createReservation(formData: FormData) {
   const dateValue = String(formData.get("date"));
   const timeValue = String(formData.get("time"));
 
-  const tableId = reservationMode === "TABLES" ? tableIdValue : null;
+  const tableId =
+  reservationMode === "TABLES" && tableIdValue !== ""
+    ? tableIdValue
+    : null;
   const date = new Date(`${dateValue}T${timeValue}`);
 
   const startDate = date;
@@ -45,6 +48,20 @@ async function createReservation(formData: FormData) {
     update: { name: customerName },
     create: { name: customerName, phone },
   });
+
+  if (reservationMode === "TABLES" && tableId) {
+  const tableExists = await prisma.table.findFirst({
+    where: {
+      id: tableId,
+      restaurantId,
+    },
+  });
+
+  if (!tableExists) {
+    redirect(`/restaurants/${restaurantId}/reservations/new?error=invalid-table`);
+  }
+}
+
 
   await prisma.reservation.create({
     data: {
