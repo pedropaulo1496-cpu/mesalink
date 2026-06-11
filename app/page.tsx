@@ -3,7 +3,17 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
-  return <HomeDesktop />;
+  return (
+    <>
+      <div className="block lg:hidden">
+        <MobileHome />
+      </div>
+
+      <div className="hidden lg:block">
+        <HomeDesktop />
+      </div>
+    </>
+  );
 }
 
 function MobileHome() {
