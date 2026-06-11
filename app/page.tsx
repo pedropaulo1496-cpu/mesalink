@@ -1,20 +1,19 @@
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
 
-export default async function HomePage() {
-  const headersList = headers();
-  const userAgent = headersList.get("user-agent") || "";
+export default function HomePage() {
+  return (
+    <>
+      <div className="block lg:hidden">
+        <MobileHome />
+      </div>
 
-  const isMobileOrTablet =
-    /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(userAgent);
-
-  if (isMobileOrTablet) {
-    return <MobileHome />;
-  }
-
-  return <HomeDesktop />;
+      <div className="hidden lg:block">
+        <HomeDesktop />
+      </div>
+    </>
+  );
 }
 
 function MobileHome() {
