@@ -68,7 +68,6 @@ function generateTimesFromRange(range: string | null) {
   if (!range || !range.includes("-")) return [];
 
   const [start, end] = range.split("-").map((value) => value.trim());
-
   if (!start || !end) return [];
 
   const [startHour, startMinute] = start.split(":").map(Number);
@@ -84,7 +83,6 @@ function generateTimesFromRange(range: string | null) {
   }
 
   const times: string[] = [];
-
   let currentMinutes = startHour * 60 + startMinute;
   let endMinutes = endHour * 60 + endMinute;
 
@@ -117,10 +115,7 @@ function getAvailableHoursForDay(restaurant: Restaurant, selectedDay: string) {
 
   if (!open) return [];
 
-  return [
-    ...generateTimesFromRange(lunch),
-    ...generateTimesFromRange(dinner),
-  ];
+  return [...generateTimesFromRange(lunch), ...generateTimesFromRange(dinner)];
 }
 
 function isTableAvailable(date: Date, reservations: Reservation[]) {
@@ -198,9 +193,7 @@ export default function ReserveForm({
     }
   }, [availableHours, selectedHour]);
 
-  const selectedDateValue =
-    selectedHour ? `${selectedDay}T${selectedHour}` : "";
-
+  const selectedDateValue = selectedHour ? `${selectedDay}T${selectedHour}` : "";
   const isCapacityMode = restaurant.reservationMode === "CAPACITY";
 
   const freeTables = useMemo(() => {
@@ -247,35 +240,32 @@ export default function ReserveForm({
     ? tableCombination?.tables[0]?.id ?? ""
     : selectedTableId;
 
-  const canSubmit =
-    !!selectedHour && (isCapacityMode || !!tableIdToSubmit);
+  const canSubmit = !!selectedHour && (isCapacityMode || !!tableIdToSubmit);
 
   if (!restaurant.onlineReservationsEnabled) {
     return (
-      <main className="min-h-screen bg-[#0f0f0f] px-6 py-10 text-white">
-        <div className="mx-auto max-w-2xl">
-          <div className="rounded-[2rem] border border-[#2b2b2b] bg-[#181818] p-8 text-center">
-            <p className="text-sm font-bold uppercase tracking-widest text-[#f0c36a]">
-              Reservas online
-            </p>
+      <main className="relative min-h-screen overflow-hidden bg-[#020617] px-6 py-10 text-white">
+        <PublicBackground />
 
-            <h1 className="mt-4 text-4xl font-black">
+        <div className="relative z-10 mx-auto max-w-2xl">
+          <div className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-8 text-center shadow-[0_0_70px_rgba(34,211,238,0.12)] backdrop-blur-xl">
+            <Badge>Reserva online</Badge>
+
+            <h1 className="mt-5 text-4xl font-black tracking-[-0.05em]">
               {restaurant.name}
             </h1>
 
-            <div className="mt-8 rounded-3xl border border-yellow-500/20 bg-yellow-500/10 p-6">
-              <h2 className="text-2xl font-black text-yellow-300">
+            <div className="mt-8 rounded-3xl border border-yellow-300/20 bg-yellow-400/10 p-6">
+              <h2 className="text-2xl font-black text-yellow-200">
                 Reservas indisponíveis
               </h2>
 
-              <p className="mt-3 text-[#d6d6d6]">
+              <p className="mt-3 text-slate-300">
                 Este restaurante não está a aceitar reservas online neste momento.
               </p>
             </div>
 
-            <p className="mt-8 text-xs text-[#7d7d7d]">
-              Powered by MesaLink
-            </p>
+            <p className="mt-8 text-xs text-slate-500">Powered by MesaLink</p>
           </div>
         </div>
       </main>
@@ -283,24 +273,30 @@ export default function ReserveForm({
   }
 
   return (
-    <main className="min-h-screen bg-[#0f0f0f] px-5 py-8 text-white">
-      <div className="mx-auto max-w-5xl">
-        <header className="mb-8 text-center">
-          <p className="text-sm font-bold uppercase tracking-widest text-[#f0c36a]">
-            Reserva online
-          </p>
+    <main className="relative min-h-screen overflow-hidden bg-[#020617] px-5 py-8 text-white">
+      <PublicBackground />
 
-          <h1 className="mt-4 text-5xl font-black tracking-tight">
+      <div className="relative z-10 mx-auto max-w-5xl">
+        <header className="mb-8 text-center">
+          <Badge>MesaLink AI</Badge>
+
+          <h1 className="mt-5 text-5xl font-black leading-[0.9] tracking-[-0.06em]">
             {restaurant.name}
           </h1>
 
-          <p className="mx-auto mt-4 max-w-xl text-[#9e9e9e]">
-            Reserve a sua mesa em menos de 30 segundos.
+          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-slate-300">
+            A próxima geração das reservas para restaurantes.
           </p>
+
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            <Chip tone="cyan">⚡ Confirmação rápida</Chip>
+            <Chip tone="violet">🤖 Powered by AI</Chip>
+            <Chip tone="green">🍽️ Reserva online</Chip>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
-          <section className="rounded-[2rem] border border-[#2b2b2b] bg-[#181818] p-6 md:p-8">
+          <section className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_70px_rgba(34,211,238,0.1)] backdrop-blur-xl md:p-8">
             {error === "conflict" && (
               <Alert
                 tone="red"
@@ -327,22 +323,22 @@ export default function ReserveForm({
 
             <div className="space-y-8">
               <div>
-                <StepTitle number="1" title="Escolha o dia" />
+                <StepTitle number="1" title="📅 Quando?" />
 
                 <input
                   type="date"
                   min={today}
                   value={selectedDay}
                   onChange={(e) => setSelectedDay(e.target.value)}
-                  className="mt-4 h-14 w-full rounded-2xl border border-[#2b2b2b] bg-[#111111] px-4 text-white outline-none focus:border-[#f0c36a]"
+                  className="mt-4 h-14 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none focus:border-cyan-300/40"
                 />
               </div>
 
               <div>
-                <StepTitle number="2" title="Escolha a hora" />
+                <StepTitle number="2" title="🕒 A que horas?" />
 
                 {availableHours.length === 0 ? (
-                  <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-red-300">
+                  <div className="mt-4 rounded-2xl border border-red-300/20 bg-red-400/10 p-5 text-red-200">
                     O restaurante está fechado neste dia.
                   </div>
                 ) : (
@@ -357,8 +353,8 @@ export default function ReserveForm({
                           onClick={() => setSelectedHour(hour)}
                           className={
                             isSelected
-                              ? "h-12 rounded-full bg-[#f0c36a] font-black text-black"
-                              : "h-12 rounded-full border border-[#2b2b2b] bg-[#111111] font-bold text-[#d6d6d6] hover:border-[#f0c36a]"
+                              ? "h-12 rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 font-black text-black shadow-[0_0_30px_rgba(34,211,238,0.25)]"
+                              : "h-12 rounded-full border border-cyan-300/10 bg-[#020617]/70 font-bold text-slate-300 hover:border-cyan-300/40"
                           }
                         >
                           {hour}
@@ -370,7 +366,7 @@ export default function ReserveForm({
               </div>
 
               <div>
-                <StepTitle number="3" title="Número de pessoas" />
+                <StepTitle number="3" title="👥 Quantas pessoas?" />
 
                 <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-6">
                   {[1, 2, 3, 4, 5, 6, 8, 10].map((value) => {
@@ -383,8 +379,8 @@ export default function ReserveForm({
                         onClick={() => setGuests(value)}
                         className={
                           isSelected
-                            ? "h-12 rounded-full bg-[#f0c36a] font-black text-black"
-                            : "h-12 rounded-full border border-[#2b2b2b] bg-[#111111] font-bold text-[#d6d6d6] hover:border-[#f0c36a]"
+                            ? "h-12 rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 font-black text-black shadow-[0_0_30px_rgba(34,211,238,0.25)]"
+                            : "h-12 rounded-full border border-cyan-300/10 bg-[#020617]/70 font-bold text-slate-300 hover:border-cyan-300/40"
                         }
                       >
                         {value}
@@ -394,7 +390,7 @@ export default function ReserveForm({
                 </div>
 
                 <div className="mt-4">
-                  <label className="mb-2 block text-sm font-bold text-[#9e9e9e]">
+                  <label className="mb-2 block text-sm font-bold text-slate-400">
                     Outro número
                   </label>
 
@@ -405,19 +401,22 @@ export default function ReserveForm({
                     value={guests}
                     onChange={(e) => setGuests(Number(e.target.value))}
                     placeholder="Número de pessoas"
-                    className="h-14 w-full rounded-2xl border border-[#2b2b2b] bg-[#111111] px-4 text-white outline-none focus:border-[#f0c36a]"
+                    className="h-14 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40"
                     required
                   />
                 </div>
               </div>
 
-              {!isCapacityMode && selectedHour && availableTables.length === 0 && !tableCombination && (
-                <Alert
-                  tone="red"
-                  title="Sem mesas disponíveis"
-                  text={`Não há mesas disponíveis para ${guests} pessoas neste horário.`}
-                />
-              )}
+              {!isCapacityMode &&
+                selectedHour &&
+                availableTables.length === 0 &&
+                !tableCombination && (
+                  <Alert
+                    tone="red"
+                    title="Sem mesas disponíveis"
+                    text={`Não há mesas disponíveis para ${guests} pessoas neste horário.`}
+                  />
+                )}
 
               {tableCombination && (
                 <Alert
@@ -456,15 +455,15 @@ export default function ReserveForm({
                   value={isPendingRequest ? "PENDING" : "CONFIRMED"}
                 />
 
-                <div className="border-t border-[#2b2b2b] pt-8">
-                  <StepTitle number="4" title="Os seus dados" />
+                <div className="border-t border-cyan-300/10 pt-8">
+                  <StepTitle number="4" title="✨ Quase terminado" />
 
                   <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                     <input
                       name="customerName"
                       type="text"
                       placeholder="Nome"
-                      className="h-14 rounded-2xl border border-[#2b2b2b] bg-[#111111] px-4 text-white outline-none placeholder:text-[#6f6f6f] focus:border-[#f0c36a]"
+                      className="h-14 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40"
                       required
                     />
 
@@ -472,28 +471,28 @@ export default function ReserveForm({
                       name="phone"
                       type="text"
                       placeholder="Telefone"
-                      className="h-14 rounded-2xl border border-[#2b2b2b] bg-[#111111] px-4 text-white outline-none placeholder:text-[#6f6f6f] focus:border-[#f0c36a]"
+                      className="h-14 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40"
                       required
                     />
 
                     <input
-  name="email"
-  type="email"
-  placeholder="Email"
-  className="h-14 rounded-2xl border border-[#2b2b2b] bg-[#111111] px-4 text-white outline-none placeholder:text-[#6f6f6f] focus:border-[#f0c36a]"
-  required
-/>
+                      name="email"
+                      type="email"
+                      placeholder="Email"
+                      className="h-14 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40 md:col-span-2"
+                      required
+                    />
                   </div>
 
                   <button
                     type="submit"
                     disabled={!canSubmit}
-                    className="mt-6 h-14 w-full rounded-full bg-[#f0c36a] text-base font-black text-black hover:bg-[#ffd982] disabled:cursor-not-allowed disabled:bg-[#3a3a3a] disabled:text-[#8a8a8a]"
+                    className="mt-6 h-14 w-full rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-base font-black text-black shadow-[0_0_45px_rgba(34,211,238,0.28)] hover:opacity-90 disabled:cursor-not-allowed disabled:bg-none disabled:bg-slate-700 disabled:text-slate-400"
                   >
                     {isPendingRequest ? "Enviar pedido" : "Confirmar reserva"}
                   </button>
 
-                  <p className="mt-4 text-center text-xs text-[#7d7d7d]">
+                  <p className="mt-4 text-center text-xs text-slate-500">
                     Ao reservar, aceita ser contactado sobre esta reserva.
                   </p>
                 </div>
@@ -501,36 +500,63 @@ export default function ReserveForm({
             </div>
           </section>
 
-          <aside className="rounded-[2rem] border border-[#2b2b2b] bg-[#181818] p-6">
-            <p className="text-sm font-bold uppercase tracking-widest text-[#f0c36a]">
+          <aside className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-6 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl">
+            <div className="mb-6 rounded-3xl border border-cyan-300/20 bg-cyan-400/10 p-5">
+              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-300">
+                Experiência premium
+              </p>
+
+              <h3 className="mt-3 text-2xl font-black">
+                Reserva em segundos
+              </h3>
+
+              <p className="mt-2 text-sm text-slate-300">
+                Sem chamadas. Sem esperas. Confirmação instantânea.
+              </p>
+            </div>
+
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
               Resumo
             </p>
 
             <div className="mt-6 space-y-4">
               <SummaryItem label="Restaurante" value={restaurant.name} />
-              <SummaryItem label="Dia" value={new Date(selectedDay).toLocaleDateString("pt-PT")} />
-              <SummaryItem label="Hora" value={selectedHour || "Escolha uma hora"} />
-              <SummaryItem label="Pessoas" value={`${guests} pessoa${guests === 1 ? "" : "s"}`} />
+              <SummaryItem
+                label="Dia"
+                value={new Date(selectedDay).toLocaleDateString("pt-PT")}
+              />
+              <SummaryItem
+                label="Hora"
+                value={selectedHour || "Escolha uma hora"}
+              />
+              <SummaryItem
+                label="Pessoas"
+                value={`${guests} pessoa${guests === 1 ? "" : "s"}`}
+              />
               <SummaryItem
                 label="Estado"
-                value={isPendingRequest ? "Sujeito a aprovação" : "Confirmação imediata"}
+                value={
+                  isPendingRequest
+                    ? "Sujeito a aprovação"
+                    : "Confirmação imediata"
+                }
                 highlight
               />
             </div>
 
-            <div className="mt-8 rounded-3xl border border-[#2b2b2b] bg-[#111111] p-5">
+            <div className="mt-8 rounded-3xl border border-cyan-300/10 bg-[#020617]/70 p-5">
               <p className="font-black">
                 {isPendingRequest ? "Pedido pendente" : "Reserva direta"}
               </p>
 
-              <p className="mt-2 text-sm leading-relaxed text-[#9e9e9e]">
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
                 {isPendingRequest
                   ? "O restaurante irá confirmar ou recusar o pedido."
                   : "Se houver disponibilidade, a reserva fica confirmada no momento."}
               </p>
             </div>
 
-            <p className="mt-8 text-center text-xs text-[#6f6f6f]">
+            <p className="mt-8 text-center text-xs text-slate-500">
               Powered by MesaLink
             </p>
           </aside>
@@ -540,16 +566,51 @@ export default function ReserveForm({
   );
 }
 
-function StepTitle({
-  number,
-  title,
+function PublicBackground() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0">
+      <div className="absolute left-1/2 top-[-200px] h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[140px]" />
+      <div className="absolute right-[-150px] top-[300px] h-[350px] w-[350px] rounded-full bg-violet-500/20 blur-[120px]" />
+      <div className="absolute bottom-[-180px] left-[-120px] h-[350px] w-[350px] rounded-full bg-blue-500/15 blur-[120px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.16),transparent_35%),linear-gradient(to_bottom,#020617,#050816_40%,#020617)]" />
+    </div>
+  );
+}
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-cyan-200">
+      {children}
+    </span>
+  );
+}
+
+function Chip({
+  children,
+  tone,
 }: {
-  number: string;
-  title: string;
+  children: React.ReactNode;
+  tone: "cyan" | "violet" | "green";
 }) {
+  const className =
+    tone === "cyan"
+      ? "border-cyan-300/20 bg-cyan-400/10 text-cyan-200"
+      : tone === "violet"
+      ? "border-violet-300/20 bg-violet-400/10 text-violet-200"
+      : "border-emerald-300/20 bg-emerald-400/10 text-emerald-200";
+
+  return (
+    <span className={`rounded-full border px-4 py-2 text-xs font-black ${className}`}>
+      {children}
+    </span>
+  );
+}
+
+function StepTitle({ number, title }: { number: string; title: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f0c36a] text-sm font-black text-black">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 text-sm font-black text-black">
         {number}
       </span>
 
@@ -568,12 +629,12 @@ function SummaryItem({
   highlight?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-[#2b2b2b] bg-[#111111] p-4">
-      <p className="text-sm text-[#9e9e9e]">{label}</p>
+    <div className="rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-4">
+      <p className="text-sm text-slate-400">{label}</p>
       <p
         className={
           highlight
-            ? "mt-1 font-black text-[#f0c36a]"
+            ? "mt-1 font-black text-cyan-300"
             : "mt-1 font-black text-white"
         }
       >
@@ -594,10 +655,10 @@ function Alert({
 }) {
   const classes =
     tone === "red"
-      ? "border-red-500/20 bg-red-500/10 text-red-300"
+      ? "border-red-300/20 bg-red-400/10 text-red-200"
       : tone === "yellow"
-      ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-300"
-      : "border-blue-500/20 bg-blue-500/10 text-blue-300";
+      ? "border-yellow-300/20 bg-yellow-400/10 text-yellow-200"
+      : "border-cyan-300/20 bg-cyan-400/10 text-cyan-200";
 
   return (
     <div className={`rounded-2xl border p-5 ${classes}`}>
