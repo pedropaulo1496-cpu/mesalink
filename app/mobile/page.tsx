@@ -1,5 +1,6 @@
 "use client";
 
+import Footer from "@/components/Footer";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,6 @@ export default function MobilePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
       <Background />
-      <SiteEnergy opacity={energyOpacity} />
 
       <section className="relative z-10 min-h-screen px-5 pb-14 pt-5">
         <nav className="mb-12 flex items-center justify-between">
@@ -198,6 +198,7 @@ export default function MobilePage() {
           </div>
         </div>
       </section>
+      <Footer />
     </main>
   );
 }
@@ -231,53 +232,6 @@ function Background() {
 
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.16),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
     </div>
-  );
-}
-
-function SiteEnergy({ opacity }: { opacity: any }) {
-  return (
-    <motion.div
-      style={{ opacity }}
-      className="pointer-events-none fixed inset-0 z-[1] overflow-hidden"
-    >
-      {[0, 1, 2, 3, 4, 5].map((item) => (
-        <motion.div
-          key={item}
-          animate={{
-            y: ["-20vh", "120vh"],
-            x: [item % 2 === 0 ? "8vw" : "82vw", item % 2 === 0 ? "72vw" : "12vw"],
-            opacity: [0, 0.65, 0.25, 0],
-            scale: [0.7, 1.3, 0.9],
-          }}
-          transition={{
-            duration: 15 + item * 2,
-            repeat: Infinity,
-            delay: item * 1.5,
-            ease: "linear",
-          }}
-          className="absolute h-28 w-28 rounded-full bg-cyan-400/10 blur-3xl"
-        />
-      ))}
-
-      {[0, 1, 2, 3].map((item) => (
-        <motion.div
-          key={`violet-${item}`}
-          animate={{
-            y: ["-10vh", "115vh"],
-            x: [item % 2 === 0 ? "70vw" : "18vw", item % 2 === 0 ? "20vw" : "80vw"],
-            opacity: [0, 0.45, 0.2, 0],
-            scale: [0.8, 1.6, 1],
-          }}
-          transition={{
-            duration: 18 + item * 2,
-            repeat: Infinity,
-            delay: item * 2.1,
-            ease: "linear",
-          }}
-          className="absolute h-24 w-24 rounded-full bg-violet-400/10 blur-3xl"
-        />
-      ))}
-    </motion.div>
   );
 }
 
