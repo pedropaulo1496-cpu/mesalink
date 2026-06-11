@@ -330,7 +330,7 @@ export default function ReserveForm({
           </div>
         </motion.header>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
+        <div className="mx-auto max-w-4xl">
           <motion.section
             initial={{ opacity: 0, y: 32, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -559,62 +559,16 @@ export default function ReserveForm({
                   </motion.button>
 
                   <p className="mt-4 text-center text-xs text-slate-500">
-                    Ao reservar, aceita ser contactado sobre esta reserva.
-                  </p>
+  Ao reservar, aceita ser contactado sobre esta reserva.
+</p>
+
+<p className="mt-8 text-center text-xs font-medium text-slate-600">
+  Powered by MesaLink
+</p>
                 </motion.div>
               </form>
             </div>
           </motion.section>
-
-          <motion.aside
-            initial={{ opacity: 0, x: 32, scale: 0.98 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            transition={{ duration: 0.75, delay: 0.3 }}
-            className="hidden rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-7 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:flex lg:flex-col lg:justify-between"
-          >
-            <div>
-              <motion.div
-                animate={{
-                  boxShadow: [
-                    "0 0 18px rgba(34,211,238,0.10)",
-                    "0 0 42px rgba(34,211,238,0.24)",
-                    "0 0 18px rgba(34,211,238,0.10)",
-                  ],
-                }}
-                transition={{ duration: 3.5, repeat: Infinity }}
-                className="flex h-20 w-20 items-center justify-center rounded-[28px] border border-cyan-300/25 bg-cyan-400/10 text-4xl"
-              >
-                ✦
-              </motion.div>
-
-              <p className="mt-8 text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-                MesaLink AI
-              </p>
-
-              <h3 className="mt-4 text-4xl font-black leading-[0.95] tracking-[-0.05em]">
-                Reserva em segundos
-              </h3>
-
-              <p className="mt-5 text-sm leading-relaxed text-slate-400">
-                Escolha a data, hora e número de pessoas. O restaurante recebe tudo automaticamente.
-              </p>
-            </div>
-
-            <div className="mt-10 space-y-4">
-              <div className="rounded-3xl border border-cyan-300/10 bg-[#020617]/70 p-5">
-                <p className="text-sm font-black text-cyan-300">
-                  ⚡ Sem chamadas
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                  Uma experiência rápida, limpa e pensada para mobile.
-                </p>
-              </div>
-
-              <div className="rounded-full border border-cyan-300/15 bg-cyan-400/5 px-5 py-4 text-center text-sm font-bold text-slate-300">
-                Powered by <span className="text-cyan-300">MesaLink</span>
-              </div>
-            </div>
-          </motion.aside>
         </div>
       </motion.div>
     </main>
