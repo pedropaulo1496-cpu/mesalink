@@ -62,6 +62,23 @@ async function createReservation(formData: FormData) {
   redirect(`/restaurants/${restaurantId}/reservations`);
 }
 
+const times = [
+  "12:00",
+  "12:30",
+  "13:00",
+  "13:30",
+  "14:00",
+  "14:30",
+  "19:00",
+  "19:30",
+  "20:00",
+  "20:30",
+  "21:00",
+  "21:30",
+  "22:00",
+  "22:30",
+];
+
 export default async function NewReservationPage({
   params,
 }: {
@@ -92,7 +109,7 @@ export default async function NewReservationPage({
     <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
       <Background />
 
-      <section className="relative z-10 mx-auto max-w-4xl px-5 py-8 sm:px-8">
+      <section className="relative z-10 mx-auto max-w-6xl px-5 py-8 sm:px-8">
         <Link
           href={`/restaurants/${id}/reservations`}
           className="text-sm font-bold text-slate-400 hover:text-white"
@@ -100,118 +117,172 @@ export default async function NewReservationPage({
           ← Voltar às reservas
         </Link>
 
-        <div className="mt-8 rounded-[2rem] border border-cyan-300/20 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:p-8">
-          <div className="mb-8">
+        <div className="mt-8 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+          <aside className="rounded-[2rem] border border-cyan-300/20 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:p-8">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
               Nova reserva
             </p>
 
-            <h1 className="mt-3 text-4xl font-black tracking-[-0.05em]">
-              Criar reserva
+            <h1 className="mt-4 text-5xl font-black leading-[0.9] tracking-[-0.06em]">
+              Criar reserva manual.
             </h1>
 
-            <p className="mt-2 text-sm leading-6 text-slate-400">
-              Adicione uma reserva manualmente para {restaurant.name}.
+            <p className="mt-5 text-sm leading-6 text-slate-400">
+              Adicione rapidamente uma reserva ao calendário de{" "}
+              <span className="font-bold text-white">{restaurant.name}</span>.
             </p>
-          </div>
 
-          <form action={createReservation} className="space-y-5">
-            <input type="hidden" name="restaurantId" value={restaurant.id} />
-
-            <input
-              type="hidden"
-              name="reservationMode"
-              value={restaurant.reservationMode}
-            />
-
-            <Field label="Nome do cliente">
-              <input
-                name="customerName"
-                placeholder="Ex: João Silva"
-                className="input-ai"
-                required
+            <div className="mt-8 grid gap-3">
+              <MiniCard label="Estado" value="Confirmada" />
+              <MiniCard
+                label="Modo"
+                value={usesTables ? "Por mesas" : "Por capacidade"}
               />
-            </Field>
-
-            <Field label="Telefone">
-              <input
-                name="phone"
-                placeholder="Ex: 912345678"
-                className="input-ai"
-                required
-              />
-            </Field>
-
-            <Field label="Número de pessoas">
-              <input
-                name="guests"
-                type="number"
-                min="1"
-                placeholder="Ex: 4"
-                className="input-ai"
-                required
-              />
-            </Field>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Field label="Data">
-                <input name="date" type="date" className="input-ai" required />
-              </Field>
-
-              <Field label="Hora">
-                <select name="time" className="input-ai" required>
-                  <option value="">Escolha uma hora</option>
-                  <option value="12:00">12:00</option>
-                  <option value="12:30">12:30</option>
-                  <option value="13:00">13:00</option>
-                  <option value="13:30">13:30</option>
-                  <option value="14:00">14:00</option>
-                  <option value="14:30">14:30</option>
-                  <option value="19:00">19:00</option>
-                  <option value="19:30">19:30</option>
-                  <option value="20:00">20:00</option>
-                  <option value="20:30">20:30</option>
-                  <option value="21:00">21:00</option>
-                  <option value="21:30">21:30</option>
-                  <option value="22:00">22:00</option>
-                  <option value="22:30">22:30</option>
-                </select>
-              </Field>
+              <MiniCard label="Duração" value="2 horas" />
             </div>
+          </aside>
 
-            {usesTables && (
-              <Field label="Mesa">
-                <select name="tableId" className="input-ai" required>
-                  <option value="">Escolha uma mesa</option>
-                  {restaurant.tables.map((table) => (
-                    <option key={table.id} value={table.id}>
-                      Mesa {table.number} ({table.capacity} pessoas)
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            )}
+          <section className="rounded-[2rem] border border-cyan-300/20 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:p-8">
+            <form action={createReservation} className="space-y-8">
+              <input type="hidden" name="restaurantId" value={restaurant.id} />
 
-            {!usesTables && (
-              <div className="rounded-2xl border border-cyan-300/15 bg-cyan-500/10 p-4 text-sm leading-6 text-cyan-100">
-                Este restaurante está em modo <strong>capacidade</strong>. A
-                reserva será criada sem mesa atribuída.
+              <input
+                type="hidden"
+                name="reservationMode"
+                value={restaurant.reservationMode}
+              />
+
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+                  Cliente
+                </p>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <Field label="Nome do cliente">
+                    <input
+                      name="customerName"
+                      placeholder="Ex: João Silva"
+                      className="input-ai h-14"
+                      required
+                    />
+                  </Field>
+
+                  <Field label="Telefone">
+                    <input
+                      name="phone"
+                      placeholder="Ex: 912345678"
+                      className="input-ai h-14"
+                      required
+                    />
+                  </Field>
+                </div>
               </div>
-            )}
 
-            <div className="flex flex-col gap-3 pt-4 md:flex-row">
-              <button className="h-14 flex-1 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-6 font-black text-black shadow-[0_0_60px_rgba(96,165,250,0.35)] hover:opacity-90">
-                Criar reserva
-              </button>
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+                  Reserva
+                </p>
 
-              <Link
-                href={`/restaurants/${id}/reservations`}
-                className="flex h-14 flex-1 items-center justify-center rounded-full border border-cyan-300/25 bg-white/5 px-6 font-black text-white backdrop-blur hover:bg-white/10"
-              >
-                Cancelar
-              </Link>
-            </div>
-          </form>
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <Field label="Número de pessoas">
+                    <input
+                      name="guests"
+                      type="number"
+                      min="1"
+                      placeholder="Ex: 4"
+                      className="input-ai h-14"
+                      required
+                    />
+                  </Field>
+
+                  <Field label="Data">
+                    <input
+                      name="date"
+                      type="date"
+                      className="input-ai h-14"
+                      required
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-4 text-sm font-bold text-slate-300">Hora</p>
+
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+                  {times.map((time) => (
+                    <label key={time} className="group cursor-pointer">
+                      <input
+                        type="radio"
+                        name="time"
+                        value={time}
+                        required
+                        className="peer sr-only"
+                      />
+
+                      <span className="flex h-12 items-center justify-center rounded-2xl border border-white/10 bg-black/25 text-sm font-black text-slate-300 transition peer-checked:border-cyan-300/70 peer-checked:bg-cyan-300 peer-checked:text-black group-hover:border-cyan-300/40">
+                        {time}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {usesTables && (
+                <div>
+                  <p className="mb-4 text-sm font-bold text-slate-300">Mesa</p>
+
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {restaurant.tables.map((table) => (
+                      <label key={table.id} className="group cursor-pointer">
+                        <input
+                          type="radio"
+                          name="tableId"
+                          value={table.id}
+                          required
+                          className="peer sr-only"
+                        />
+
+                        <span className="block rounded-3xl border border-white/10 bg-black/25 p-5 transition peer-checked:border-cyan-300/70 peer-checked:bg-cyan-300/15 group-hover:border-cyan-300/40">
+                          <span className="block text-xl font-black text-white">
+                            Mesa {table.number}
+                          </span>
+
+                          <span className="mt-2 block text-sm text-slate-400">
+                            {table.capacity} pessoas
+                          </span>
+
+                          <span className="mt-4 inline-flex rounded-full border border-cyan-300/20 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-300">
+                            Disponível
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!usesTables && (
+                <div className="rounded-2xl border border-cyan-300/15 bg-cyan-500/10 p-4 text-sm leading-6 text-cyan-100">
+                  Este restaurante está em modo <strong>capacidade</strong>. A
+                  reserva será criada sem mesa atribuída.
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 border-t border-white/10 pt-6 md:flex-row">
+                <button className="h-14 flex-1 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-6 font-black text-black shadow-[0_0_60px_rgba(96,165,250,0.35)] hover:opacity-90">
+                  Criar reserva
+                </button>
+
+                <Link
+                  href={`/restaurants/${id}/reservations`}
+                  className="flex h-14 flex-1 items-center justify-center rounded-full border border-cyan-300/25 bg-white/5 px-6 font-black text-white backdrop-blur hover:bg-white/10"
+                >
+                  Cancelar
+                </Link>
+              </div>
+            </form>
+          </section>
         </div>
       </section>
     </main>
@@ -232,6 +303,17 @@ function Field({
       </span>
       {children}
     </label>
+  );
+}
+
+function MiniCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-2 text-lg font-black text-cyan-300">{value}</p>
+    </div>
   );
 }
 
