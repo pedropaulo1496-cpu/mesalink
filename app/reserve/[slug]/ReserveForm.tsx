@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 
 type Reservation = {
   id: string;
@@ -664,6 +665,33 @@ function Alert({
     <div className={`rounded-2xl border p-5 ${classes}`}>
       <p className="font-black">{title}</p>
       <p className="mt-2 text-sm leading-relaxed">{text}</p>
+    </div>
+  );
+}
+function FloatingOrbs() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
+      {[...Array(12)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute h-24 w-24 rounded-full bg-cyan-400/10 blur-3xl"
+          animate={{
+            y: ["110vh", "-20vh"],
+            x: [
+              `${10 + (i % 4) * 20}vw`,
+              `${20 + (i % 5) * 15}vw`,
+            ],
+            opacity: [0, 0.8, 0.3, 0],
+            scale: [0.5, 1.2, 0.8],
+          }}
+          transition={{
+            duration: 18 + i,
+            repeat: Infinity,
+            ease: "linear",
+            delay: i * 0.8,
+          }}
+        />
+      ))}
     </div>
   );
 }
