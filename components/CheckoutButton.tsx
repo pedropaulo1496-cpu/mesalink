@@ -28,14 +28,14 @@ export default function CheckoutButton() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 rounded-full border border-white/10 bg-black/25 p-2">
         <button
           type="button"
           onClick={() => setBilling("monthly")}
           className={
             billing === "monthly"
-              ? "rounded-2xl bg-[#f0c36a] px-4 py-3 font-black text-black"
-              : "rounded-2xl border border-[#f0c36a]/10 bg-black/20 px-4 py-3 font-bold text-[#d6c7ad]"
+              ? "rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-4 py-3 text-sm font-black text-black shadow-[0_0_40px_rgba(96,165,250,0.35)]"
+              : "rounded-full px-4 py-3 text-sm font-black text-slate-400 transition hover:text-white"
           }
         >
           Mensal
@@ -46,8 +46,8 @@ export default function CheckoutButton() {
           onClick={() => setBilling("yearly")}
           className={
             billing === "yearly"
-              ? "rounded-2xl bg-[#f0c36a] px-4 py-3 font-black text-black"
-              : "rounded-2xl border border-[#f0c36a]/10 bg-black/20 px-4 py-3 font-bold text-[#d6c7ad]"
+              ? "rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-4 py-3 text-sm font-black text-black shadow-[0_0_40px_rgba(96,165,250,0.35)]"
+              : "rounded-full px-4 py-3 text-sm font-black text-slate-400 transition hover:text-white"
           }
         >
           Anual
@@ -58,9 +58,13 @@ export default function CheckoutButton() {
         type="button"
         onClick={checkout}
         disabled={loading}
-        className="flex h-14 w-full items-center justify-center rounded-full bg-[#f0c36a] px-8 text-base font-black text-black hover:bg-[#ffd982] disabled:opacity-60"
+        className="flex h-14 w-full items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-8 text-base font-black text-black shadow-[0_0_70px_rgba(96,165,250,0.45)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? "A abrir checkout..." : "Começar Starter"}
+        {loading
+          ? "A abrir checkout..."
+          : billing === "yearly"
+            ? "Começar anual →"
+            : "Começar mensal →"}
       </button>
     </div>
   );

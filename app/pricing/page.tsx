@@ -49,13 +49,6 @@ export default function PricingPage() {
               <div className="relative">
                 <div className="mb-8 flex justify-center">
                   <div className="grid w-full max-w-xl grid-cols-2 gap-3 rounded-full border border-white/10 bg-black/25 p-2">
-                    <div className="rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 py-3 text-center text-sm font-black text-black">
-                      Mensal
-                    </div>
-
-                    <div className="rounded-full py-3 text-center text-sm font-black text-slate-400">
-                      Anual
-                    </div>
                   </div>
                 </div>
 
