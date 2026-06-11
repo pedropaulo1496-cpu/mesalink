@@ -32,7 +32,9 @@ function getStatusClass(status: string) {
     REJECTED: "border-red-300/30 bg-red-400/10 text-red-200",
   };
 
-  return classes[status] ?? "border-slate-300/30 bg-slate-400/10 text-slate-300";
+  return (
+    classes[status] ?? "border-slate-300/30 bg-slate-400/10 text-slate-300"
+  );
 }
 
 function getApprovalReasonLabel(reason: string | null) {
@@ -42,7 +44,7 @@ function getApprovalReasonLabel(reason: string | null) {
     CAPACITY_LIMIT: "Limite de capacidade",
   };
 
-  return reason ? labels[reason] ?? reason : null;
+  return reason ? (labels[reason] ?? reason) : null;
 }
 
 async function updateReservationStatus(formData: FormData) {
@@ -75,7 +77,7 @@ export default async function DayPage({
     day ??
     `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}-${String(new Date().getDate()).padStart(2, "0")}`;
 
   const dayStart = new Date(selectedDay);
@@ -116,35 +118,35 @@ export default async function DayPage({
   });
 
   const lunchReservations = reservations.filter((reservation) =>
-    isLunch(new Date(reservation.date))
+    isLunch(new Date(reservation.date)),
   );
 
   const dinnerReservations = reservations.filter(
-    (reservation) => !isLunch(new Date(reservation.date))
+    (reservation) => !isLunch(new Date(reservation.date)),
   );
 
   const totalGuests = reservations.reduce(
     (total, reservation) => total + reservation.guests,
-    0
+    0,
   );
 
   const pendingReservations = reservations.filter(
-    (reservation) => reservation.status === "PENDING"
+    (reservation) => reservation.status === "PENDING",
   );
 
   const seatedReservations = reservations.filter(
-    (reservation) => reservation.status === "SEATED"
+    (reservation) => reservation.status === "SEATED",
   );
 
   const pendingGuests = pendingReservations.reduce(
     (total, reservation) => total + reservation.guests,
-    0
+    0,
   );
 
   const nextReservation = reservations.find(
     (reservation) =>
       ["PENDING", "CONFIRMED"].includes(reservation.status) &&
-      new Date(reservation.date) >= new Date()
+      new Date(reservation.date) >= new Date(),
   );
 
   const formattedDate = new Date(selectedDay).toLocaleDateString("pt-PT", {
@@ -154,74 +156,118 @@ export default async function DayPage({
   });
 
   function ReservationCard({
-  reservation,
-}: {
-  reservation: (typeof reservations)[number];
-}) {
-  const reasonLabel = getApprovalReasonLabel(reservation.approvalReason);
+    reservation,
+  }: {
+    reservation: (typeof reservations)[number];
+  }) {
+    const reasonLabel = getApprovalReasonLabel(reservation.approvalReason);
 
-  return (
-    <div className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] px-4 py-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-3">
-            <p className="text-2xl font-black text-cyan-300">
-              {new Date(reservation.date).toLocaleTimeString("pt-PT", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
+    return (
+      <div className="overflow-hidden rounded-2xl border border-cyan-300/10 bg-white/[0.04] px-4 py-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-3">
+              <p className="shrink-0 text-2xl font-black text-cyan-300 sm:text-3xl">
+                {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
 
-            <div className="min-w-0">
-              <p className="truncate font-black text-white">
-                {reservation.customerName}
-              </p>
-              <p className="truncate text-xs text-slate-400">
-                {reservation.guests} pessoas ·{" "}
-                {reservation.table ? `Mesa ${reservation.table.number}` : "Sem mesa"}
-              </p>
+              <div className="min-w-0">
+                <p className="truncate text-lg font-black text-white sm:text-xl">
+                  {reservation.customerName}
+                </p>
+                <p className="truncate text-xs text-slate-400">
+                  {reservation.guests} pessoas ·{" "}
+                  {reservation.table
+                    ? `Mesa ${reservation.table.number}`
+                    : "Sem mesa"}
+                </p>
+              </div>
             </div>
           </div>
+
+          <span
+            className={`w-fit shrink-0 rounded-full border px-3 py-1 text-xs font-black ${getStatusClass(
+              reservation.status,
+            )}`}
+          >
+            {getStatusLabel(reservation.status)}
+          </span>
         </div>
 
-        <span
-          className={`shrink-0 rounded-full border px-3 py-1 text-xs font-black ${getStatusClass(
-            reservation.status
-          )}`}
-        >
-          {getStatusLabel(reservation.status)}
-        </span>
+        {reasonLabel && (
+          <p className="mt-2 text-xs font-bold text-violet-200">
+            ⚠️ {reasonLabel}
+          </p>
+        )}
+
+        <div className="mt-3 flex flex-wrap gap-2 sm:flex-nowrap">
+          {reservation.status === "PENDING" && (
+            <>
+              <StatusButton
+                restaurantId={id}
+                reservationId={reservation.id}
+                day={selectedDay}
+                status="CONFIRMED"
+                label="Aprovar"
+                variant="primary"
+              />
+              <StatusButton
+                restaurantId={id}
+                reservationId={reservation.id}
+                day={selectedDay}
+                status="REJECTED"
+                label="Recusar"
+                variant="red"
+              />
+            </>
+          )}
+
+          {reservation.status === "CONFIRMED" && (
+            <>
+              <StatusButton
+                restaurantId={id}
+                reservationId={reservation.id}
+                day={selectedDay}
+                status="SEATED"
+                label="Check-in"
+                variant="primary"
+              />
+              <StatusButton
+                restaurantId={id}
+                reservationId={reservation.id}
+                day={selectedDay}
+                status="NO_SHOW"
+                label="No-show"
+                variant="orange"
+              />
+              <StatusButton
+                restaurantId={id}
+                reservationId={reservation.id}
+                day={selectedDay}
+                status="CANCELLED"
+                label="Cancelar"
+                variant="red"
+              />
+            </>
+          )}
+
+          {reservation.status === "SEATED" && (
+            <StatusButton
+              restaurantId={id}
+              reservationId={reservation.id}
+              day={selectedDay}
+              status="FINISHED"
+              label="Finalizar"
+              variant="primary"
+            />
+          )}
+        </div>
       </div>
-
-      {reasonLabel && (
-        <p className="mt-2 text-xs font-bold text-violet-200">
-          ⚠️ {reasonLabel}
-        </p>
-      )}
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        {reservation.status === "PENDING" && (
-          <>
-            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="CONFIRMED" label="Aprovar" variant="primary" />
-            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="REJECTED" label="Recusar" variant="red" />
-          </>
-        )}
-
-        {reservation.status === "CONFIRMED" && (
-          <>
-            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="SEATED" label="Check-in" variant="primary" />
-            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="NO_SHOW" label="No-show" variant="orange" />
-            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="CANCELLED" label="Cancelar" variant="red" />
-          </>
-        )}
-
-        {reservation.status === "SEATED" && (
-          <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="FINISHED" label="Finalizar" variant="primary" />
-        )}
-      </div>
-    </div>
-  );
-}
+    );
+  }
 
   function StatusButton({
     restaurantId,
@@ -240,10 +286,10 @@ export default async function DayPage({
   }) {
     const className =
       variant === "primary"
-        ? "rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-4 py-2 text-xs font-black text-black shadow-[0_0_28px_rgba(34,211,238,0.22)] hover:opacity-90"
+        ? "rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-3 py-2 text-xs sm:px-4 font-black text-black shadow-[0_0_28px_rgba(34,211,238,0.22)] hover:opacity-90"
         : variant === "red"
-        ? "rounded-full border border-red-300/30 bg-red-400/10 px-4 py-2 text-xs font-bold text-red-200 hover:bg-red-400/20"
-        : "rounded-full border border-orange-300/30 bg-orange-400/10 px-4 py-2 text-xs font-bold text-orange-200 hover:bg-orange-400/20";
+          ? "rounded-full border border-red-300/30 bg-red-400/10 px-3 py-2 text-xs sm:px-4 font-bold text-red-200 hover:bg-red-400/20"
+          : "rounded-full border border-orange-300/30 bg-orange-400/10 px-3 py-2 text-xs sm:px-4 font-bold text-orange-200 hover:bg-orange-400/20";
 
     return (
       <form action={updateReservationStatus}>
@@ -265,9 +311,9 @@ export default async function DayPage({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.14),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <header className="rounded-[32px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:p-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="relative z-10 mx-auto max-w-7xl space-y-4 px-4 py-5 sm:space-y-6 sm:px-6 lg:px-8 lg:py-8">
+        <header className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-4 shadow-[0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl sm:rounded-[32px] sm:p-5 lg:p-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <Link
                 href={`/restaurants/${id}/calendar`}
@@ -276,7 +322,7 @@ export default async function DayPage({
                 ← Voltar ao calendário
               </Link>
 
-              <p className="mt-6 text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+              <p className="mt-5 text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300 sm:mt-6 sm:tracking-[0.28em]">
                 MesaLink OS · Live Service
               </p>
 
@@ -289,27 +335,30 @@ export default async function DayPage({
               </p>
             </div>
 
-            <div className="rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-3">
+            <div className="w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-2 sm:w-auto sm:p-3">
               <DayPicker restaurantId={id} selectedDay={selectedDay} />
             </div>
           </div>
         </header>
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatBox label="Reservas" value={reservations.length} />
           <StatBox label="Pessoas" value={totalGuests} />
           <StatBox label="Sentados" value={seatedReservations.length} />
-          <StatBox label="Pendentes" value={pendingReservations.length} highlighted />
-          <StatBox label="Data" value={new Date(selectedDay).toLocaleDateString("pt-PT")} />
+          <StatBox
+            label="Pendentes"
+            value={pendingReservations.length}
+            highlighted
+          />
         </section>
 
         {nextReservation && (
-          <section className="rounded-[32px] border border-cyan-300/20 bg-cyan-400/10 p-5 shadow-[0_0_60px_rgba(34,211,238,0.12)]">
+          <section className="rounded-[28px] border border-cyan-300/20 bg-cyan-400/10 p-4 shadow-[0_0_60px_rgba(34,211,238,0.12)] sm:rounded-[32px] sm:p-5">
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
               Próxima entrada
             </p>
 
-            <div className="mt-4 flex items-end justify-between gap-4">
+            <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-4xl font-black text-cyan-200">
                   {new Date(nextReservation.date).toLocaleTimeString("pt-PT", {
@@ -317,14 +366,20 @@ export default async function DayPage({
                     minute: "2-digit",
                   })}
                 </p>
-                <p className="mt-2 text-xl font-black">{nextReservation.customerName}</p>
+                <p className="mt-2 text-xl font-black">
+                  {nextReservation.customerName}
+                </p>
                 <p className="mt-1 text-sm text-slate-400">
                   {nextReservation.guests} pessoas ·{" "}
-                  {nextReservation.table ? `Mesa ${nextReservation.table.number}` : "Sem mesa"}
+                  {nextReservation.table
+                    ? `Mesa ${nextReservation.table.number}`
+                    : "Sem mesa"}
                 </p>
               </div>
 
-              <span className={`rounded-full border px-3 py-1 text-xs font-black ${getStatusClass(nextReservation.status)}`}>
+              <span
+                className={`w-fit rounded-full border px-3 py-1 text-xs font-black ${getStatusClass(nextReservation.status)}`}
+              >
                 {getStatusLabel(nextReservation.status)}
               </span>
             </div>
@@ -343,7 +398,10 @@ export default async function DayPage({
           </ServiceSection>
         )}
 
-        <ServiceSection title="Almoço" label={`${lunchReservations.length} reservas`}>
+        <ServiceSection
+          title="Almoço"
+          label={`${lunchReservations.length} reservas`}
+        >
           {lunchReservations.length > 0 ? (
             lunchReservations.map((reservation) => (
               <ReservationCard key={reservation.id} reservation={reservation} />
@@ -353,7 +411,10 @@ export default async function DayPage({
           )}
         </ServiceSection>
 
-        <ServiceSection title="Jantar" label={`${dinnerReservations.length} reservas`}>
+        <ServiceSection
+          title="Jantar"
+          label={`${dinnerReservations.length} reservas`}
+        >
           {dinnerReservations.length > 0 ? (
             dinnerReservations.map((reservation) => (
               <ReservationCard key={reservation.id} reservation={reservation} />
@@ -382,16 +443,16 @@ function ServiceSection({
     <section
       className={
         warning
-          ? "rounded-[32px] border border-yellow-300/20 bg-yellow-400/10 p-4 shadow-[0_0_55px_rgba(250,204,21,0.12)] lg:p-6"
-          : "rounded-[32px] border border-cyan-300/10 bg-white/[0.04] p-4 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6"
+          ? "rounded-[28px] border border-yellow-300/20 bg-yellow-400/10 p-4 shadow-[0_0_55px_rgba(250,204,21,0.12)] sm:rounded-[32px] lg:p-6"
+          : "rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-4 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl sm:rounded-[32px] lg:p-6"
       }
     >
-      <div className="mb-5 flex items-center justify-between gap-4">
+      <div className="mb-4 flex items-start justify-between gap-3 sm:mb-5 sm:items-center sm:gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
             Serviço
           </p>
-          <h2 className="mt-1 text-3xl font-black tracking-[-0.04em]">
+          <h2 className="mt-1 text-3xl font-black tracking-[-0.04em] sm:text-4xl">
             {title}
           </h2>
         </div>
@@ -408,7 +469,7 @@ function ServiceSection({
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <p className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] p-5 text-slate-400">
+    <p className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] p-4 text-slate-400 sm:p-5">
       {text}
     </p>
   );
@@ -427,12 +488,14 @@ function StatBox({
     <div
       className={
         highlighted
-          ? "rounded-[24px] border border-violet-300/20 bg-violet-400/10 p-5 shadow-[0_0_36px_rgba(167,139,250,0.12)]"
-          : "rounded-[24px] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl"
+          ? "min-w-0 rounded-[20px] border border-violet-300/20 bg-violet-400/10 p-4 shadow-[0_0_36px_rgba(167,139,250,0.12)] sm:rounded-[24px] sm:p-5"
+          : "min-w-0 rounded-[20px] border border-cyan-300/10 bg-white/[0.04] p-4 backdrop-blur-xl sm:rounded-[24px] sm:p-5"
       }
     >
-      <p className="text-xs font-bold text-slate-400">{label}</p>
-      <p className="mt-2 text-2xl font-black text-cyan-300">{value}</p>
+      <p className="truncate text-xs font-bold text-slate-400">{label}</p>
+      <p className="mt-2 truncate text-3xl font-black text-cyan-300 sm:text-2xl lg:text-3xl">
+        {value}
+      </p>
     </div>
   );
 }
