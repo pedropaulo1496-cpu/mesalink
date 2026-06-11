@@ -4,92 +4,91 @@ import CheckoutButton from "@/components/CheckoutButton";
 
 export default function PricingPage() {
   return (
-    <main className="min-h-screen bg-[#070504] text-[#fff7ea]">
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_15%,rgba(240,195,106,0.22),transparent_32%),linear-gradient(to_bottom,#070504,#120d08)]" />
-
-        <div className="relative mx-auto max-w-7xl px-8 py-8">
-          <nav className="mb-24 flex items-center justify-between">
-            <Link href="/" className="text-3xl font-black">
-              Mesa<span className="text-[#f0c36a]">Link</span>
+    <main className="min-h-screen bg-[#050711] text-white">
+      <section className="relative overflow-hidden px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <nav className="mb-16 flex items-center justify-between">
+            <Link href="/" className="text-2xl font-semibold tracking-tight">
+              Mesa<span className="text-cyan-300">Link</span>
             </Link>
 
-            <div className="flex items-center gap-6 text-sm">
-              <Link href="/" className="text-[#d6c7ad] hover:text-white">
+            <div className="flex items-center gap-4 text-sm">
+              <Link href="/" className="hidden text-white/55 hover:text-white sm:block">
                 Início
               </Link>
 
-              <Link href="/login" className="text-[#d6c7ad] hover:text-white">
+              <Link href="/login" className="text-white/55 hover:text-white">
                 Entrar
               </Link>
 
               <Link
                 href="/register?plan=starter"
-                className="rounded-full bg-[#f0c36a] px-6 py-3 font-bold text-black hover:bg-[#ffd982]"
+                className="rounded-2xl bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 font-semibold text-black"
               >
-                Começar agora
+                Começar
               </Link>
             </div>
           </nav>
 
-          <div className="mx-auto mb-16 max-w-4xl text-center">
-            <div className="mb-6 inline-flex rounded-full border border-[#f0c36a]/30 bg-[#f0c36a]/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#f0c36a]">
+          <div className="mx-auto mb-12 max-w-3xl text-center">
+            <div className="mb-5 inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-cyan-300">
               Preço de lançamento
             </div>
 
-            <h1 className="mb-6 text-6xl font-black leading-tight tracking-tight">
-              Um plano simples para receber reservas online.
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+              Reservas online, sem comissões.
             </h1>
 
-            <p className="mx-auto max-w-2xl text-lg leading-relaxed text-[#d6c7ad]">
-              Tudo o que um restaurante precisa para aceitar reservas pelo
-              Google Maps, Instagram, website e QR Code — sem comissões por reserva.
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/55 sm:text-lg">
+              Tudo o que um restaurante precisa para receber reservas pelo
+              Google Maps, Instagram, website e QR Code.
             </p>
           </div>
 
-          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[1fr_0.8fr]">
-            <div className="relative rounded-[2.5rem] border border-[#f0c36a] bg-[#15100b] p-8 shadow-2xl shadow-[#f0c36a]/10">
-              <div className="absolute -top-4 left-8 rounded-full bg-[#f0c36a] px-4 py-1 text-sm font-bold text-black">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-[2rem] border border-cyan-400/25 bg-white/[0.04] p-6 shadow-2xl shadow-cyan-500/10 backdrop-blur-xl sm:p-8">
+              <div className="mb-6 inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-cyan-300">
                 Disponível agora
               </div>
 
-              <div className="flex flex-col justify-between gap-8 md:flex-row md:items-start">
+              <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
                 <div>
-                  <h2 className="text-4xl font-black">Starter</h2>
+                  <h2 className="text-3xl font-semibold tracking-tight">
+                    Starter
+                  </h2>
 
-                  <p className="mt-3 max-w-xl text-[#a99a82]">
+                  <p className="mt-3 max-w-xl text-sm leading-6 text-white/55">
                     Para restaurantes que querem trocar chamadas, mensagens e
-                    papel por um sistema simples de reservas online.
+                    papel por uma página simples de reservas online.
                   </p>
                 </div>
 
-                <div className="md:text-right">
+                <div className="lg:text-right">
                   <div>
-                    <span className="text-6xl font-black text-[#f0c36a]">
+                    <span className="text-5xl font-semibold tracking-tight text-cyan-300">
                       17,50€
                     </span>
-                    <span className="ml-2 text-[#d6c7ad]">
+                    <span className="ml-2 text-sm text-white/45">
                       + IVA / mês
                     </span>
                   </div>
 
-                  <div className="mt-4 space-y-2">
-  <p className="text-sm text-[#a99a82]">
-    Por restaurante · Sem comissões
-  </p>
+                  <p className="mt-3 text-sm text-white/45">
+                    Por restaurante · Sem comissões
+                  </p>
 
-  <div className="inline-flex rounded-full border border-[#f0c36a]/30 bg-[#f0c36a]/10 px-4 py-2 text-sm font-bold text-[#f0c36a]">
-    Pagamento anual: 1 mensalidade grátis
-  </div>
-
-  <p className="text-sm text-[#d6c7ad]">
-    Anual: <strong className="text-[#f0c36a]">192,50€ + IVA / ano</strong> · pague 11 meses e use 12.
-  </p>
-</div>
+                  <div className="mt-4 rounded-2xl border border-violet-400/20 bg-violet-400/10 px-4 py-3 text-sm text-violet-200">
+                    Anual:{" "}
+                    <strong className="text-white">
+                      192,50€ + IVA / ano
+                    </strong>
+                    <br />
+                    Pague 11 meses e use 12.
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {[
                   "Página pública de reservas",
                   "Link para Google Maps, Instagram e website",
@@ -106,24 +105,24 @@ export default function PricingPage() {
                 ].map((feature) => (
                   <div
                     key={feature}
-                    className="flex gap-3 rounded-2xl border border-[#f0c36a]/10 bg-black/20 p-4 text-[#d6c7ad]"
+                    className="flex gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/65"
                   >
-                    <span className="text-[#f0c36a]">✓</span>
+                    <span className="text-cyan-300">✓</span>
                     <span>{feature}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-10">
-  <CheckoutButton />
+              <div className="mt-8 space-y-3">
+                <CheckoutButton />
 
-  <Link
-    href="/contact"
-    className="mt-3 flex h-14 items-center justify-center rounded-full border border-[#f0c36a]/20 bg-white/5 px-8 text-base font-bold text-white hover:border-[#f0c36a]"
-  >
-    Falar connosco
-  </Link>
-</div>
+                <Link
+                  href="/contact"
+                  className="flex h-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-6 text-sm font-medium text-white/70 transition hover:bg-white/[0.06] hover:text-white"
+                >
+                  Falar connosco
+                </Link>
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -155,18 +154,17 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <div className="mt-16 rounded-[2rem] border border-[#f0c36a]/10 bg-[#15100b] p-8 text-center">
-            <h2 className="text-3xl font-black">
-              Sem comissões. Sem complicação. Sem papel.
+          <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-center backdrop-blur-xl sm:p-8">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              Simples. Sem papel. Sem comissões.
             </h2>
 
-            <p className="mx-auto mt-4 max-w-2xl text-[#a99a82]">
-              O MesaLink foi criado para restaurantes que querem transformar
-              visitas no Google em reservas confirmadas, mantendo controlo total
-              da operação.
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/50">
+              O MesaLink transforma visitas no Google, Instagram e website em
+              reservas organizadas no dashboard do restaurante.
             </p>
 
-            <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <TrustItem value="0%" label="Comissões por reserva" />
               <TrustItem value="24h" label="Reservas online" />
               <TrustItem value="10 min" label="Configuração inicial" />
@@ -192,21 +190,21 @@ function ComingSoonCard({
   features: string[];
 }) {
   return (
-    <div className="rounded-[2rem] border border-[#f0c36a]/15 bg-[#0e0a07] p-7">
-      <div className="mb-4 inline-flex rounded-full border border-[#f0c36a]/20 bg-[#f0c36a]/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-[#f0c36a]">
+    <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6 backdrop-blur-xl sm:p-7">
+      <div className="mb-4 inline-flex rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.25em] text-violet-300">
         Em breve
       </div>
 
-      <h3 className="text-3xl font-black">{title}</h3>
+      <h3 className="text-2xl font-semibold tracking-tight">{title}</h3>
 
-      <p className="mt-2 font-bold text-[#f0c36a]">{price}</p>
+      <p className="mt-2 text-sm font-medium text-cyan-300">{price}</p>
 
-      <p className="mt-4 text-[#a99a82]">{description}</p>
+      <p className="mt-4 text-sm leading-6 text-white/50">{description}</p>
 
-      <ul className="mt-6 space-y-3 text-sm text-[#d6c7ad]">
+      <ul className="mt-6 space-y-3 text-sm text-white/60">
         {features.map((feature) => (
           <li key={feature} className="flex gap-3">
-            <span className="text-[#f0c36a]">•</span>
+            <span className="text-violet-300">•</span>
             <span>{feature}</span>
           </li>
         ))}
@@ -215,17 +213,13 @@ function ComingSoonCard({
   );
 }
 
-function TrustItem({
-  value,
-  label,
-}: {
-  value: string;
-  label: string;
-}) {
+function TrustItem({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-3xl border border-[#f0c36a]/10 bg-black/20 p-6">
-      <p className="text-4xl font-black text-[#f0c36a]">{value}</p>
-      <p className="mt-2 text-sm text-[#a99a82]">{label}</p>
+    <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+      <p className="text-3xl font-semibold tracking-tight text-cyan-300">
+        {value}
+      </p>
+      <p className="mt-2 text-sm text-white/45">{label}</p>
     </div>
   );
 }
