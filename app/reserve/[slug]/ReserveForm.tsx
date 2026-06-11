@@ -570,71 +570,50 @@ export default function ReserveForm({
             initial={{ opacity: 0, x: 32, scale: 0.98 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ duration: 0.75, delay: 0.3 }}
-            className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-6 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl"
+            className="hidden rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-7 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:flex lg:flex-col lg:justify-between"
           >
-            <motion.div
-              animate={{
-                boxShadow: [
-                  "0 0 20px rgba(34,211,238,0.08)",
-                  "0 0 45px rgba(34,211,238,0.22)",
-                  "0 0 20px rgba(34,211,238,0.08)",
-                ],
-              }}
-              transition={{ duration: 3.4, repeat: Infinity }}
-              className="mb-6 rounded-3xl border border-cyan-300/20 bg-cyan-400/10 p-5"
-            >
-              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-300">
-                EXPERIÊNCIA PREMIUM
+            <div>
+              <motion.div
+                animate={{
+                  boxShadow: [
+                    "0 0 18px rgba(34,211,238,0.10)",
+                    "0 0 42px rgba(34,211,238,0.24)",
+                    "0 0 18px rgba(34,211,238,0.10)",
+                  ],
+                }}
+                transition={{ duration: 3.5, repeat: Infinity }}
+                className="flex h-20 w-20 items-center justify-center rounded-[28px] border border-cyan-300/25 bg-cyan-400/10 text-4xl"
+              >
+                ✦
+              </motion.div>
+
+              <p className="mt-8 text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+                MesaLink AI
               </p>
 
-              <h3 className="mt-3 text-2xl font-black">Reserva em segundos</h3>
+              <h3 className="mt-4 text-4xl font-black leading-[0.95] tracking-[-0.05em]">
+                Reserva em segundos
+              </h3>
 
-              <p className="mt-2 text-sm text-slate-300">
-                Sem chamadas. Sem esperas. Confirmação instantânea.
-              </p>
-            </motion.div>
-
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-              Resumo
-            </p>
-
-            <div className="mt-6 space-y-4">
-              <SummaryItem label="Restaurante" value={restaurant.name} />
-              <SummaryItem
-                label="Dia"
-                value={new Date(selectedDay).toLocaleDateString("pt-PT")}
-              />
-              <SummaryItem label="Hora" value={selectedHour || "Escolha uma hora"} />
-              <SummaryItem
-                label="Pessoas"
-                value={`${guests} pessoa${guests === 1 ? "" : "s"}`}
-              />
-              <SummaryItem
-                label="Estado"
-                value={
-                  isPendingRequest
-                    ? "Sujeito a aprovação"
-                    : "Confirmação imediata"
-                }
-                highlight
-              />
-            </div>
-
-            <div className="mt-8 rounded-3xl border border-cyan-300/10 bg-[#020617]/70 p-5">
-              <p className="font-black">
-                {isPendingRequest ? "Pedido pendente" : "Reserva direta"}
-              </p>
-
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                {isPendingRequest
-                  ? "O restaurante irá confirmar ou recusar o pedido."
-                  : "Se houver disponibilidade, a reserva fica confirmada no momento."}
+              <p className="mt-5 text-sm leading-relaxed text-slate-400">
+                Escolha a data, hora e número de pessoas. O restaurante recebe tudo automaticamente.
               </p>
             </div>
 
-            <p className="mt-8 text-center text-xs text-slate-500">
-              Powered by MesaLink
-            </p>
+            <div className="mt-10 space-y-4">
+              <div className="rounded-3xl border border-cyan-300/10 bg-[#020617]/70 p-5">
+                <p className="text-sm font-black text-cyan-300">
+                  ⚡ Sem chamadas
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                  Uma experiência rápida, limpa e pensada para mobile.
+                </p>
+              </div>
+
+              <div className="rounded-full border border-cyan-300/15 bg-cyan-400/5 px-5 py-4 text-center text-sm font-bold text-slate-300">
+                Powered by <span className="text-cyan-300">MesaLink</span>
+              </div>
+            </div>
           </motion.aside>
         </div>
       </motion.div>
