@@ -9,14 +9,14 @@ export default function HomePage() {
   const { scrollYProgress } = useScroll();
 
   const heroY = useTransform(scrollYProgress, [0, 0.25], [0, -70]);
-  const phoneRotate = useTransform(scrollYProgress, [0, 0.25], [-5, 5]);
+  const phoneRotate = useTransform(scrollYProgress, [0, 0.25], [-4, 4]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
       <Background />
 
-      <section className="relative z-10 px-5 pb-16 pt-5 lg:px-8">
-        <nav className="mx-auto mb-12 flex max-w-7xl items-center justify-between">
+      <section className="relative z-10 px-5 pb-16 pt-5 lg:px-8 lg:pb-24">
+        <nav className="mx-auto mb-12 flex max-w-7xl items-center justify-between lg:mb-16">
           <Link href="/" className="text-2xl font-black">
             Mesa
             <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
@@ -25,22 +25,21 @@ export default function HomePage() {
           </Link>
 
           <div className="hidden items-center gap-7 text-sm lg:flex">
-            <Link href="#channels" className="text-slate-400 hover:text-white">
+            <Link href="#channels" className="font-bold text-slate-400 hover:text-white">
               Canais
             </Link>
-            <Link href="#ai" className="text-slate-400 hover:text-white">
+            <Link href="#ai" className="font-bold text-slate-400 hover:text-white">
               IA
             </Link>
-            <Link href="/pricing" className="text-slate-400 hover:text-white">
+            <Link href="/pricing" className="font-bold text-slate-400 hover:text-white">
               Preços
             </Link>
-            <Link href="/login" className="text-slate-400 hover:text-white">
+            <Link href="/login" className="font-bold text-slate-400 hover:text-white">
               Entrar
             </Link>
-
             <Link
               href="/register"
-              className="rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-6 py-3 font-black text-black shadow-[0_0_45px_rgba(96,165,250,0.35)]"
+              className="rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-6 py-3 font-black text-black shadow-[0_0_45px_rgba(96,165,250,0.35)] hover:opacity-90"
             >
               Começar
             </Link>
@@ -54,7 +53,7 @@ export default function HomePage() {
           </Link>
         </nav>
 
-        <div className="mx-auto grid max-w-7xl items-center gap-14 lg:min-h-[760px] lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="mx-auto grid max-w-7xl items-center gap-14 lg:min-h-[720px] lg:grid-cols-[1.05fr_0.95fr]">
           <motion.div style={{ y: heroY }}>
             <Badge>AI Reservation OS</Badge>
 
@@ -94,7 +93,7 @@ export default function HomePage() {
             </div>
           </motion.div>
 
-          <motion.div style={{ rotate: phoneRotate }} className="lg:mt-10">
+          <motion.div style={{ rotate: phoneRotate }} className="lg:mt-8">
             <PhoneHero />
           </motion.div>
         </div>
@@ -102,7 +101,7 @@ export default function HomePage() {
 
       <StickyBar />
 
-      <section id="channels" className="relative z-10 px-5 py-20 lg:px-8">
+      <section id="channels" className="relative z-10 px-5 py-16 lg:px-8 lg:py-24">
         <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[0.85fr_1.15fr]">
           <div>
             <Badge>Reservation Intelligence</Badge>
@@ -124,11 +123,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="relative z-10 px-5 py-16 lg:px-8">
+      <section className="relative z-10 px-5 py-14 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-7xl">
           <Badge>Google Maps first</Badge>
 
-          <div className="mt-5 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="mt-5 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
             <div>
               <h2 className="text-[40px] font-black leading-[0.92] tracking-[-0.05em] sm:text-6xl">
                 Quem encontra o restaurante no Google{" "}
@@ -162,7 +161,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="ai" className="relative z-10 px-5 py-16 lg:px-8">
+      <section id="ai" className="relative z-10 px-5 py-14 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-7xl">
           <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/20 bg-[#06111f] p-6 shadow-[0_0_100px_rgba(34,211,238,0.22)] lg:p-10">
             <div className="absolute -right-16 top-10 h-52 w-52 rounded-full bg-cyan-500/25 blur-[70px]" />
@@ -187,29 +186,17 @@ export default function HomePage() {
               </div>
 
               <div className="grid gap-3">
-                <AiItem
-                  title="Previsão de ocupação"
-                  text="Antecipe dias fortes, dias fracos e picos de procura."
-                />
-                <AiItem
-                  title="Sugestão de horários"
-                  text="Recomendações automáticas para melhorar ocupação."
-                />
-                <AiItem
-                  title="Previsão de no-shows"
-                  text="Identifique reservas com maior risco de falha."
-                />
-                <AiItem
-                  title="Assistente operacional"
-                  text="Ajuda inteligente para gerir o serviço do dia."
-                />
+                <AiItem title="Previsão de ocupação" text="Antecipe dias fortes, dias fracos e picos de procura." />
+                <AiItem title="Sugestão de horários" text="Recomendações automáticas para melhorar ocupação." />
+                <AiItem title="Previsão de no-shows" text="Identifique reservas com maior risco de falha." />
+                <AiItem title="Assistente operacional" text="Ajuda inteligente para gerir o serviço do dia." />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="relative z-10 px-5 py-16 lg:px-8">
+      <section className="relative z-10 px-5 py-14 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-7xl">
           <Badge>Restaurant AI OS</Badge>
 
@@ -218,31 +205,15 @@ export default function HomePage() {
           </h2>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Feature
-              icon="⚡"
-              title="Serviço do dia"
-              text="Almoço, jantar, pendentes, confirmadas, check-ins e no-shows."
-            />
-            <Feature
-              icon="👁️"
-              title="Visão em tempo real"
-              text="Saiba quantas pessoas entram em cada horário."
-            />
-            <Feature
-              icon="🧠"
-              title="Clientes automáticos"
-              text="Histórico, contactos e observações guardados sem esforço."
-            />
-            <Feature
-              icon="🛡️"
-              title="Controlo total"
-              text="Aprovação manual para grupos grandes ou pedidos especiais."
-            />
+            <Feature icon="⚡" title="Serviço do dia" text="Almoço, jantar, pendentes, confirmadas, check-ins e no-shows." />
+            <Feature icon="👁️" title="Visão em tempo real" text="Saiba quantas pessoas entram em cada horário." />
+            <Feature icon="🧠" title="Clientes automáticos" text="Histórico, contactos e observações guardados sem esforço." />
+            <Feature icon="🛡️" title="Controlo total" text="Aprovação manual para grupos grandes ou pedidos especiais." />
           </div>
         </div>
       </section>
 
-      <section className="relative z-10 px-5 pb-20 lg:px-8">
+      <section className="relative z-10 px-5 pb-16 lg:px-8 lg:pb-24">
         <div className="mx-auto max-w-7xl">
           <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/20 bg-gradient-to-br from-cyan-300 via-blue-400 to-violet-500 p-7 text-black shadow-[0_0_100px_rgba(96,165,250,0.55)] lg:p-10">
             <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/40 blur-3xl" />
@@ -282,13 +253,13 @@ function Background() {
       <motion.div
         animate={{ scale: [1, 1.18, 1], y: [0, 42, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[-140px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px]"
+        className="absolute left-1/2 top-[-140px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px] lg:h-[620px] lg:w-[620px]"
       />
 
       <motion.div
         animate={{ x: [0, -35, 0], y: [0, 50, 0] }}
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute right-[-140px] top-[420px] h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px]"
+        className="absolute right-[-140px] top-[420px] h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px] lg:h-[440px] lg:w-[440px]"
       />
 
       <motion.div
@@ -298,7 +269,7 @@ function Background() {
       />
 
       <motion.div
-        animate={{ opacity: [0.12, 0.34, 0.12] }}
+        animate={{ opacity: [0.12, 0.28, 0.12] }}
         transition={{ duration: 4, repeat: Infinity }}
         className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.08)_1px,transparent_1px)] bg-[size:44px_44px]"
       />
@@ -310,7 +281,7 @@ function Background() {
 
 function StickyBar() {
   return (
-    <section className="sticky top-0 z-30 border-y border-cyan-300/10 bg-[#020617]/80 px-5 py-4 backdrop-blur-2xl">
+    <section className="sticky top-0 z-30 border-y border-cyan-300/10 bg-[#020617]/80 px-5 py-4 backdrop-blur-2xl lg:hidden">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-300">
@@ -350,7 +321,7 @@ function PhoneHero() {
       initial={{ opacity: 0, y: 45, scale: 0.94 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.85, delay: 0.15 }}
-      className="relative mx-auto max-w-[330px]"
+      className="relative mx-auto max-w-[330px] lg:max-w-[430px]"
     >
       <div className="absolute inset-0 translate-y-10 rounded-[48px] bg-cyan-500/25 blur-[80px]" />
       <div className="absolute inset-0 translate-y-16 rounded-[48px] bg-violet-500/20 blur-[100px]" />
@@ -362,11 +333,11 @@ function PhoneHero() {
       >
         <div className="mx-auto mb-3 h-1.5 w-20 rounded-full bg-cyan-300/50" />
 
-        <div className="rounded-[34px] border border-white/10 bg-black/45 p-4 backdrop-blur-xl">
+        <div className="rounded-[34px] border border-white/10 bg-black/45 p-4 backdrop-blur-xl lg:p-5">
           <div className="mb-5 flex items-center justify-between">
             <div>
               <p className="text-xs text-slate-400">MesaLink AI OS</p>
-              <h3 className="text-2xl font-black">Live Control</h3>
+              <h3 className="text-2xl font-black lg:text-3xl">Live Control</h3>
             </div>
 
             <span className="rounded-full bg-cyan-500/15 px-3 py-1 text-xs font-black text-cyan-300">
@@ -410,7 +381,7 @@ function PhoneHero() {
 
 function FlowNetwork() {
   return (
-    <div className="relative mx-auto mt-10 h-[520px] max-w-sm overflow-hidden rounded-[40px] border border-cyan-300/10 bg-white/[0.035] p-4 backdrop-blur-2xl">
+    <div className="relative mx-auto mt-10 h-[520px] w-full max-w-sm overflow-hidden rounded-[40px] border border-cyan-300/10 bg-white/[0.035] p-4 backdrop-blur-2xl lg:h-[620px] lg:max-w-[560px]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(34,211,238,0.22),transparent_32%)]" />
 
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 360 520" fill="none">
@@ -436,9 +407,9 @@ function FlowNetwork() {
           ],
         }}
         transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[190px] z-10 flex h-36 w-36 -translate-x-1/2 flex-col items-center justify-center rounded-[40px] border border-cyan-300/30 bg-[#06111f]/95 text-center"
+        className="absolute left-1/2 top-[190px] z-10 flex h-36 w-36 -translate-x-1/2 flex-col items-center justify-center rounded-[40px] border border-cyan-300/30 bg-[#06111f]/95 text-center lg:top-[235px] lg:h-44 lg:w-44"
       >
-        <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-xl font-black text-transparent">
+        <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-xl font-black text-transparent lg:text-2xl">
           AI CORE
         </span>
         <motion.span
