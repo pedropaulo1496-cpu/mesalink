@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export default async function ReservationSuccessPage({
   searchParams,
 }: {
@@ -69,12 +67,14 @@ export default async function ReservationSuccessPage({
             />
           </div>
 
-          <Link
-            href="/"
-            className="mt-6 flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-400 to-violet-500 text-sm font-semibold text-black transition hover:scale-[1.01] active:scale-[0.99]"
+          <a
+            href="https://mesalink.pt"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 flex h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-sm font-medium text-white/70 transition hover:bg-white/[0.06] hover:text-white"
           >
-            Voltar ao restaurante
-          </Link>
+            Conhecer o MesaLink
+          </a>
 
           <p className="mt-6 text-center text-xs text-white/35">
             Powered by <span className="text-white/55">MesaLink</span>
