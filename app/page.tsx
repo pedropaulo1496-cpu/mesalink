@@ -282,38 +282,6 @@ function Background() {
       <motion.div
         animate={{ scale: [1, 1.18, 1], y: [0, 42, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[-140px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px] lg:h-[620px] lg:w-[620px]"
-      />
-
-      <motion.div
-        animate={{ x: [0, -35, 0], y: [0, 50, 0] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute right-[-140px] top-[420px] h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px] lg:h-[440px] lg:w-[440px]"
-      />
-
-      <motion.div
-        animate={{ x: [0, 22, 0], opacity: [0.12, 0.3, 0.12] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-[-120px] left-[-120px] h-[320px] w-[320px] rounded-full bg-blue-500/20 blur-[100px]"
-      />
-
-      <motion.div
-        animate={{ opacity: [0.12, 0.28, 0.12] }}
-        transition={{ duration: 4, repeat: Infinity }}
-        className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.08)_1px,transparent_1px)] bg-[size:44px_44px]"
-      />
-
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.16),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
-    </div>
-  );
-}
-
-function Background() {
-  return (
-    <div className="pointer-events-none fixed inset-0 z-0">
-      <motion.div
-        animate={{ scale: [1, 1.18, 1], y: [0, 42, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         className="absolute left-1/2 top-[-140px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px]"
       />
 
