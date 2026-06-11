@@ -105,9 +105,9 @@ export default async function CalendarPage({
   const emptyDays = Array.from({ length: firstDayOfWeek });
 
   return (
-    <main className="min-h-screen bg-[#0f0f0f] p-8 text-white">
+    <main className="relative min-h-screen overflow-hidden bg-[#020617] p-4 text-white lg:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="flex flex-col justify-between gap-6 border-b border-[#2b2b2b] pb-8 md:flex-row md:items-center">
+        <header className="rounded-[34px] border border-cyan-300/10 bg-white/[0.04] p-6 shadow-[0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl">
           <div>
             <Link
               href={`/restaurants/${id}`}
@@ -116,9 +116,13 @@ export default async function CalendarPage({
               ← Voltar ao dashboard
             </Link>
 
-            <h1 className="mt-4 text-5xl font-black tracking-tight">
-              Calendário
-            </h1>
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+  MesaLink OS · Calendar
+</p>
+
+<h1 className="mt-3 text-5xl font-black tracking-[-0.05em]">
+  Calendário
+</h1>
 
             <p className="mt-2 text-[#9e9e9e]">{restaurant.name}</p>
           </div>
@@ -161,7 +165,7 @@ export default async function CalendarPage({
           />
         </section>
 
-        <section className="overflow-hidden rounded-[2rem] border border-[#2b2b2b] bg-[#181818]">
+        <section className="overflow-hidden rounded-[34px] border border-cyan-300/10 bg-white/[0.04] shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl">
           <div className="grid grid-cols-7 border-b border-[#2b2b2b] bg-[#141414]">
             {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => (
               <div
@@ -214,13 +218,13 @@ export default async function CalendarPage({
                 <Link
                   key={day.toISOString()}
                   href={`/restaurants/${id}/day?day=${formatDay(day)}`}
-                  className="group min-h-32 border-r border-b border-[#2b2b2b] bg-[#181818] p-3 transition hover:bg-[#1f1f1f]"
+                  className="group min-h-[140px] border-r border-b border-cyan-300/10 bg-[#020617]/60 p-3 transition hover:bg-cyan-400/5 hover:shadow-[0_0_25px_rgba(34,211,238,0.15)]"
                 >
                   <div className="mb-3 flex items-center justify-between">
                     <span
                       className={
                         isToday
-                          ? "flex h-8 w-8 items-center justify-center rounded-full bg-[#f0c36a] text-sm font-black text-black"
+                          ? "flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 text-sm font-black text-black"
                           : "text-sm font-black text-white"
                       }
                     >
@@ -277,8 +281,8 @@ function CalendarMeal({
     <div
       className={
         active
-          ? "flex justify-between rounded-lg bg-black/40 px-2 py-1 text-[#d6d6d6]"
-          : "flex justify-between rounded-lg bg-black/20 px-2 py-1 text-[#5f5f5f]"
+          ? "flex justify-between rounded-lg border border-cyan-300/10 bg-cyan-400/10 px-2 py-1 text-cyan-100"
+          : "flex justify-between rounded-lg border border-white/5 bg-white/[0.03] px-2 py-1 text-slate-500"
       }
     >
       <span>{label}</span>
@@ -295,9 +299,14 @@ function StatCard({
   value: number | string;
 }) {
   return (
-    <div className="rounded-3xl border border-[#2b2b2b] bg-[#181818] p-6">
-      <p className="text-sm text-[#9e9e9e]">{label}</p>
-      <p className="mt-2 text-3xl font-black text-[#f0c36a]">{value}</p>
+    <div className="rounded-[24px] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl">
+      <p className="text-xs font-bold text-slate-400">
+        {label}
+      </p>
+
+      <p className="mt-2 text-3xl font-black text-cyan-300">
+        {value}
+      </p>
     </div>
   );
 }
