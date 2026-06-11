@@ -295,69 +295,63 @@ export default async function ReservationsPage({
 }
 
 function ReservationCard({
+  restaurantId,
+  restaurantName,
   reservation,
 }: {
-  reservation: (typeof reservations)[number];
+  restaurantId: string;
+  restaurantName: string;
+  reservation: {
+    id: string;
+    date: Date;
+    customerName: string;
+    phone: string;
+    guests: number;
+    status: string;
+    tableNumber: number;
+  };
 }) {
-  const reasonLabel = getApprovalReasonLabel(reservation.approvalReason);
-
   return (
     <div className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] px-4 py-3 backdrop-blur-xl">
-      <div className="grid gap-3 md:grid-cols-[80px_1fr_90px_110px_120px_auto] md:items-center">
-        <div className="text-2xl font-black text-cyan-300">
-          {new Date(reservation.date).toLocaleTimeString("pt-PT", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <p className="text-2xl font-black text-cyan-300">
+              {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+
+            <div className="min-w-0">
+              <p className="truncate font-black text-white">
+                {reservation.customerName}
+              </p>
+              <p className="truncate text-sm text-slate-400">
+                {reservation.phone}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <CompactInfo value={`Mesa ${reservation.tableNumber}`} />
+            <CompactInfo value={`${reservation.guests} pax`} />
+            <StatusPill status={reservation.status} />
+          </div>
         </div>
+      </div>
 
-        <div>
-          <p className="font-black text-white">{reservation.customerName}</p>
-          <p className="text-sm text-slate-400">{reservation.phone}</p>
-        </div>
-
-        <CompactInfo value={`${reservation.guests} pax`} />
-
-        <CompactInfo
-          value={reservation.table ? `Mesa ${reservation.table.number}` : "Sem mesa"}
+      <div className="mt-3 flex flex-wrap gap-2">
+        <WhatsAppButton
+          restaurantName={restaurantName}
+          reservation={reservation}
         />
 
-        <div className="flex flex-wrap gap-2">
-          <span
-            className={`rounded-full border px-3 py-1 text-xs font-black ${getStatusClass(
-              reservation.status
-            )}`}
-          >
-            {getStatusLabel(reservation.status)}
-          </span>
-
-          {reasonLabel && (
-            <span className="rounded-full border border-violet-300/20 bg-violet-400/10 px-3 py-1 text-xs font-bold text-violet-200">
-              {reasonLabel}
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2 md:justify-end">
-          {reservation.status === "PENDING" && (
-            <>
-              <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="CONFIRMED" label="Aprovar" variant="primary" />
-              <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="REJECTED" label="Recusar" variant="red" />
-            </>
-          )}
-
-          {reservation.status === "CONFIRMED" && (
-            <>
-              <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="SEATED" label="Check-in" variant="primary" />
-              <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="NO_SHOW" label="No-show" variant="orange" />
-              <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="CANCELLED" label="Cancelar" variant="red" />
-            </>
-          )}
-
-          {reservation.status === "SEATED" && (
-            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="FINISHED" label="Finalizar" variant="primary" />
-          )}
-        </div>
+        <ReservationActions
+          restaurantId={restaurantId}
+          reservationId={reservation.id}
+          status={reservation.status}
+        />
       </div>
     </div>
   );
@@ -501,17 +495,6 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-function InfoCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-        {label}
-      </p>
-      <p className="mt-1 font-black text-white">{value}</p>
-    </div>
-  );
-}
-
 function EmptyState({ text }: { text: string }) {
   return (
     <p className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] p-5 text-slate-400">
@@ -545,7 +528,7 @@ function StatCard({
 
 function CompactInfo({ value }: { value: string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-white">
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-white">
       {value}
     </div>
   );
