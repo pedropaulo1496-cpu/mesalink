@@ -154,74 +154,74 @@ export default async function DayPage({
   });
 
   function ReservationCard({
-    reservation,
-  }: {
-    reservation: (typeof reservations)[number];
-  }) {
-    const reasonLabel = getApprovalReasonLabel(reservation.approvalReason);
+  reservation,
+}: {
+  reservation: (typeof reservations)[number];
+}) {
+  const reasonLabel = getApprovalReasonLabel(reservation.approvalReason);
 
-    return (
-      <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_40px_rgba(34,211,238,0.06)] backdrop-blur-xl">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-3xl font-black text-cyan-300">
+  return (
+    <div className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] px-4 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <p className="text-2xl font-black text-cyan-300">
               {new Date(reservation.date).toLocaleTimeString("pt-PT", {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
             </p>
-            <p className="mt-2 text-xl font-black text-white">
-              {reservation.customerName}
-            </p>
-            <p className="mt-1 text-sm text-slate-400">{reservation.phone}</p>
-          </div>
 
-          <span
-            className={`shrink-0 rounded-full border px-3 py-1 text-xs font-black ${getStatusClass(
-              reservation.status
-            )}`}
-          >
-            {getStatusLabel(reservation.status)}
-          </span>
+            <div className="min-w-0">
+              <p className="truncate font-black text-white">
+                {reservation.customerName}
+              </p>
+              <p className="truncate text-xs text-slate-400">
+                {reservation.guests} pessoas ·{" "}
+                {reservation.table ? `Mesa ${reservation.table.number}` : "Sem mesa"}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <MiniInfo label="Pessoas" value={`${reservation.guests} pax`} />
-          <MiniInfo
-            label="Mesa"
-            value={reservation.table ? `Mesa ${reservation.table.number}` : "Sem mesa"}
-          />
-        </div>
+        <span
+          className={`shrink-0 rounded-full border px-3 py-1 text-xs font-black ${getStatusClass(
+            reservation.status
+          )}`}
+        >
+          {getStatusLabel(reservation.status)}
+        </span>
+      </div>
 
-        {reasonLabel && (
-          <div className="mt-3 rounded-2xl border border-violet-300/20 bg-violet-400/10 px-4 py-3 text-sm font-bold text-violet-200">
-            ⚠️ {reasonLabel}
-          </div>
+      {reasonLabel && (
+        <p className="mt-2 text-xs font-bold text-violet-200">
+          ⚠️ {reasonLabel}
+        </p>
+      )}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {reservation.status === "PENDING" && (
+          <>
+            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="CONFIRMED" label="Aprovar" variant="primary" />
+            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="REJECTED" label="Recusar" variant="red" />
+          </>
         )}
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          {reservation.status === "PENDING" && (
-            <>
-              <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="CONFIRMED" label="Aprovar" variant="primary" />
-              <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="REJECTED" label="Recusar" variant="red" />
-            </>
-          )}
+        {reservation.status === "CONFIRMED" && (
+          <>
+            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="SEATED" label="Check-in" variant="primary" />
+            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="NO_SHOW" label="No-show" variant="orange" />
+            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="CANCELLED" label="Cancelar" variant="red" />
+          </>
+        )}
 
-          {reservation.status === "CONFIRMED" && (
-            <>
-              <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="SEATED" label="Check-in" variant="primary" />
-              <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="NO_SHOW" label="No-show" variant="orange" />
-              <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="CANCELLED" label="Cancelar" variant="red" />
-            </>
-          )}
-
-          {reservation.status === "SEATED" && (
-            <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="FINISHED" label="Finalizar" variant="primary" />
-          )}
-        </div>
+        {reservation.status === "SEATED" && (
+          <StatusButton restaurantId={id} reservationId={reservation.id} day={selectedDay} status="FINISHED" label="Finalizar" variant="primary" />
+        )}
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   function StatusButton({
     restaurantId,

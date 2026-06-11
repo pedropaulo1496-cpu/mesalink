@@ -165,7 +165,73 @@ export default async function CalendarPage({
           />
         </section>
 
-        <section className="overflow-hidden rounded-[34px] border border-cyan-300/10 bg-white/[0.04] shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl">
+<section className="grid gap-3 md:hidden">
+  {days.map((day) => {
+    const isToday =
+      day.getDate() === today.getDate() &&
+      day.getMonth() === today.getMonth() &&
+      day.getFullYear() === today.getFullYear();
+
+    const dayReservations = monthReservations.filter((reservation) => {
+      const reservationDate = new Date(reservation.date);
+
+      return (
+        reservationDate.getDate() === day.getDate() &&
+        reservationDate.getMonth() === day.getMonth() &&
+        reservationDate.getFullYear() === day.getFullYear()
+      );
+    });
+
+    const lunchGuests = dayReservations
+      .filter((reservation) => isLunch(new Date(reservation.date)))
+      .reduce((total, reservation) => total + reservation.guests, 0);
+
+    const dinnerGuests = dayReservations
+      .filter((reservation) => !isLunch(new Date(reservation.date)))
+      .reduce((total, reservation) => total + reservation.guests, 0);
+
+    const totalDayGuests = lunchGuests + dinnerGuests;
+
+    return (
+      <Link
+        key={day.toISOString()}
+        href={`/restaurants/${id}/day?day=${formatDay(day)}`}
+        className={
+          isToday
+            ? "rounded-2xl border border-cyan-300/30 bg-cyan-400/10 p-4 shadow-[0_0_35px_rgba(34,211,238,0.16)]"
+            : "rounded-2xl border border-cyan-300/10 bg-white/[0.04] p-4"
+        }
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
+              {day.toLocaleDateString("pt-PT", { weekday: "short" })}
+            </p>
+            <p className="mt-1 text-2xl font-black text-white">
+              {day.getDate()}
+            </p>
+          </div>
+
+          <div className="text-right">
+            <p className="text-xl font-black text-cyan-300">
+              {totalDayGuests}p
+            </p>
+            <p className="text-xs text-slate-400">
+              {dayReservations.length} reservas
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <CalendarMeal label="Almoço" value={lunchGuests} active={lunchGuests > 0} />
+          <CalendarMeal label="Jantar" value={dinnerGuests} active={dinnerGuests > 0} />
+        </div>
+      </Link>
+    );
+  })}
+</section>
+
+        <section className="hidden overflow-hidden rounded-[34px] border border-cyan-300/10 bg-white/[0.04] shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl md:block">
           <div className="grid grid-cols-7 border-b border-[#2b2b2b] bg-[#141414]">
             {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => (
               <div
