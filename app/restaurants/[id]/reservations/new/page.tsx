@@ -80,7 +80,7 @@ export default async function NewReservationPage({
 
   if (!restaurant) {
     return (
-      <main className="min-h-screen bg-[#070504] p-10 text-[#fff7ea]">
+      <main className="min-h-screen bg-[#020617] p-10 text-white">
         Restaurante não encontrado
       </main>
     );
@@ -89,32 +89,35 @@ export default async function NewReservationPage({
   const usesTables = restaurant.reservationMode === "TABLES";
 
   return (
-    <main className="min-h-screen bg-[#070504] text-[#fff7ea]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_5%,rgba(240,195,106,0.16),transparent_30%),linear-gradient(to_bottom,#070504,#120d08)]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
+      <Background />
 
-      <div className="relative mx-auto max-w-3xl px-8 py-8">
+      <section className="relative z-10 mx-auto max-w-4xl px-5 py-8 sm:px-8">
         <Link
           href={`/restaurants/${id}/reservations`}
-          className="text-sm font-bold text-[#a99a82] hover:text-white"
+          className="text-sm font-bold text-slate-400 hover:text-white"
         >
           ← Voltar às reservas
         </Link>
 
-        <section className="mt-8 rounded-[2rem] border border-[#f0c36a]/10 bg-[#15100b] p-8 shadow-2xl">
+        <div className="mt-8 rounded-[2rem] border border-cyan-300/20 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:p-8">
           <div className="mb-8">
-            <p className="text-sm font-bold uppercase tracking-widest text-[#f0c36a]">
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
               Nova reserva
             </p>
 
-            <h1 className="mt-3 text-4xl font-black">Criar reserva</h1>
+            <h1 className="mt-3 text-4xl font-black tracking-[-0.05em]">
+              Criar reserva
+            </h1>
 
-            <p className="mt-2 text-[#a99a82]">
+            <p className="mt-2 text-sm leading-6 text-slate-400">
               Adicione uma reserva manualmente para {restaurant.name}.
             </p>
           </div>
 
           <form action={createReservation} className="space-y-5">
             <input type="hidden" name="restaurantId" value={restaurant.id} />
+
             <input
               type="hidden"
               name="reservationMode"
@@ -125,7 +128,7 @@ export default async function NewReservationPage({
               <input
                 name="customerName"
                 placeholder="Ex: João Silva"
-                className="input-dark"
+                className="input-ai"
                 required
               />
             </Field>
@@ -134,7 +137,7 @@ export default async function NewReservationPage({
               <input
                 name="phone"
                 placeholder="Ex: 912345678"
-                className="input-dark"
+                className="input-ai"
                 required
               />
             </Field>
@@ -145,18 +148,18 @@ export default async function NewReservationPage({
                 type="number"
                 min="1"
                 placeholder="Ex: 4"
-                className="input-dark"
+                className="input-ai"
                 required
               />
             </Field>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <Field label="Data">
-                <input name="date" type="date" className="input-dark" required />
+                <input name="date" type="date" className="input-ai" required />
               </Field>
 
               <Field label="Hora">
-                <select name="time" className="input-dark" required>
+                <select name="time" className="input-ai" required>
                   <option value="">Escolha uma hora</option>
                   <option value="12:00">12:00</option>
                   <option value="12:30">12:30</option>
@@ -178,7 +181,7 @@ export default async function NewReservationPage({
 
             {usesTables && (
               <Field label="Mesa">
-                <select name="tableId" className="input-dark" required>
+                <select name="tableId" className="input-ai" required>
                   <option value="">Escolha uma mesa</option>
                   {restaurant.tables.map((table) => (
                     <option key={table.id} value={table.id}>
@@ -190,27 +193,27 @@ export default async function NewReservationPage({
             )}
 
             {!usesTables && (
-              <div className="rounded-2xl border border-[#f0c36a]/10 bg-black/20 p-4 text-sm text-[#a99a82]">
+              <div className="rounded-2xl border border-cyan-300/15 bg-cyan-500/10 p-4 text-sm leading-6 text-cyan-100">
                 Este restaurante está em modo <strong>capacidade</strong>. A
                 reserva será criada sem mesa atribuída.
               </div>
             )}
 
             <div className="flex flex-col gap-3 pt-4 md:flex-row">
-              <button className="h-14 flex-1 rounded-full bg-[#f0c36a] px-6 font-black text-black hover:bg-[#ffd982]">
+              <button className="h-14 flex-1 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-6 font-black text-black shadow-[0_0_60px_rgba(96,165,250,0.35)] hover:opacity-90">
                 Criar reserva
               </button>
 
               <Link
                 href={`/restaurants/${id}/reservations`}
-                className="flex h-14 flex-1 items-center justify-center rounded-full border border-[#f0c36a]/10 bg-black/20 px-6 font-bold text-[#d6c7ad] hover:border-[#f0c36a]/40 hover:text-white"
+                className="flex h-14 flex-1 items-center justify-center rounded-full border border-cyan-300/25 bg-white/5 px-6 font-black text-white backdrop-blur hover:bg-white/10"
               >
                 Cancelar
               </Link>
             </div>
           </form>
-        </section>
-      </div>
+        </div>
+      </section>
     </main>
   );
 }
@@ -224,8 +227,20 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block font-bold text-[#d6c7ad]">{label}</span>
+      <span className="mb-2 block text-sm font-bold text-slate-300">
+        {label}
+      </span>
       {children}
     </label>
+  );
+}
+
+function Background() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0">
+      <div className="absolute left-1/2 top-[-180px] h-[460px] w-[460px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[120px]" />
+      <div className="absolute right-[-160px] top-[280px] h-[360px] w-[360px] rounded-full bg-violet-500/15 blur-[110px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.15),transparent_35%),linear-gradient(to_bottom,#020617,#050816_45%,#020617)]" />
+    </div>
   );
 }
