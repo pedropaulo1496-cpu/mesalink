@@ -270,20 +270,28 @@ export default async function RestaurantPage({
               </p>
 
               <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">
-                Receba reservas 24/7
-              </h2>
+  Receba reservas 24/7
+</h2>
 
-              <p className="mt-3 text-slate-400">
-                Partilhe no Google Maps, Instagram, WhatsApp, website e QR Codes.
-              </p>
+<p className="mt-3 text-slate-400">
+  Partilhe no Google Maps, Instagram, WhatsApp, website e QR Codes.
+</p>
 
-              <div className="mt-6 flex flex-col gap-3 md:flex-row">
-                <div className="flex-1 overflow-hidden rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-4 text-sm text-slate-300">
-                  <p className="truncate">{publicUrl}</p>
-                </div>
+<div className="mt-6 flex flex-col gap-3 md:flex-row">
+  <div className="flex-1 overflow-hidden rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-4 text-sm text-slate-300">
+    <p className="truncate">{publicUrl}</p>
+  </div>
 
-                <CopyButton text={publicUrl} />
-              </div>
+  <CopyButton text={publicUrl} />
+</div>
+
+<p className="mt-3 text-xs text-slate-400">
+  Escreva{" "}
+  <span className="font-semibold text-cyan-300">
+    "Google Business Profile"
+  </span>{" "}
+  no Google, entre no perfil do restaurante e cole este link no botão de reservas.
+</p>
             </div>
 
             <div className="relative mx-auto hidden h-44 w-44 lg:block">
