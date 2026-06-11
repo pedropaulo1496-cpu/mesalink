@@ -149,10 +149,7 @@ function findTableCombination(tables: Table[], guests: number) {
     totalCapacity += table.capacity;
 
     if (totalCapacity >= guests) {
-      return {
-        tables: selected,
-        totalCapacity,
-      };
+      return { tables: selected, totalCapacity };
     }
   }
 
@@ -247,14 +244,30 @@ export default function ReserveForm({
     return (
       <main className="relative min-h-screen overflow-hidden bg-[#020617] px-6 py-10 text-white">
         <PublicBackground />
+        <FloatingOrbs />
 
-        <div className="relative z-10 mx-auto max-w-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 24, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 mx-auto max-w-2xl"
+        >
           <div className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-8 text-center shadow-[0_0_70px_rgba(34,211,238,0.12)] backdrop-blur-xl">
             <Badge>Reserva online</Badge>
 
-            <h1 className="mt-5 text-4xl font-black tracking-[-0.05em]">
+            <motion.h1
+              animate={{
+                textShadow: [
+                  "0 0 0px rgba(34,211,238,0)",
+                  "0 0 35px rgba(34,211,238,0.35)",
+                  "0 0 0px rgba(34,211,238,0)",
+                ],
+              }}
+              transition={{ duration: 4, repeat: Infinity }}
+              className="mt-5 text-4xl font-black tracking-[-0.05em]"
+            >
               {restaurant.name}
-            </h1>
+            </motion.h1>
 
             <div className="mt-8 rounded-3xl border border-yellow-300/20 bg-yellow-400/10 p-6">
               <h2 className="text-2xl font-black text-yellow-200">
@@ -268,7 +281,7 @@ export default function ReserveForm({
 
             <p className="mt-8 text-xs text-slate-500">Powered by MesaLink</p>
           </div>
-        </div>
+        </motion.div>
       </main>
     );
   }
@@ -276,14 +289,35 @@ export default function ReserveForm({
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] px-5 py-8 text-white">
       <PublicBackground />
+      <FloatingOrbs />
 
-      <div className="relative z-10 mx-auto max-w-5xl">
-        <header className="mb-8 text-center">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+        className="relative z-10 mx-auto max-w-5xl"
+      >
+        <motion.header
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="mb-8 text-center"
+        >
           <Badge>MesaLink AI</Badge>
 
-          <h1 className="mt-5 text-5xl font-black leading-[0.9] tracking-[-0.06em]">
+          <motion.h1
+            animate={{
+              textShadow: [
+                "0 0 0px rgba(34,211,238,0)",
+                "0 0 38px rgba(34,211,238,0.38)",
+                "0 0 0px rgba(34,211,238,0)",
+              ],
+            }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="mt-5 text-5xl font-black leading-[0.9] tracking-[-0.06em]"
+          >
             {restaurant.name}
-          </h1>
+          </motion.h1>
 
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-slate-300">
             A próxima geração das reservas para restaurantes.
@@ -294,10 +328,15 @@ export default function ReserveForm({
             <Chip tone="violet">🤖 Powered by AI</Chip>
             <Chip tone="green">🍽️ Reserva online</Chip>
           </div>
-        </header>
+        </motion.header>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
-          <section className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_70px_rgba(34,211,238,0.1)] backdrop-blur-xl md:p-8">
+          <motion.section
+            initial={{ opacity: 0, y: 32, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.75, delay: 0.15 }}
+            className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_70px_rgba(34,211,238,0.1)] backdrop-blur-xl md:p-8"
+          >
             {error === "conflict" && (
               <Alert
                 tone="red"
@@ -323,7 +362,11 @@ export default function ReserveForm({
             )}
 
             <div className="space-y-8">
-              <div>
+              <motion.div
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.25 }}
+              >
                 <StepTitle number="1" title="📅 Quando?" />
 
                 <input
@@ -333,9 +376,13 @@ export default function ReserveForm({
                   onChange={(e) => setSelectedDay(e.target.value)}
                   className="mt-4 h-14 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none focus:border-cyan-300/40"
                 />
-              </div>
+              </motion.div>
 
-              <div>
+              <motion.div
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.35 }}
+              >
                 <StepTitle number="2" title="🕒 A que horas?" />
 
                 {availableHours.length === 0 ? (
@@ -348,9 +395,11 @@ export default function ReserveForm({
                       const isSelected = selectedHour === hour;
 
                       return (
-                        <button
+                        <motion.button
                           key={hour}
                           type="button"
+                          whileHover={{ scale: 1.04 }}
+                          whileTap={{ scale: 0.96 }}
                           onClick={() => setSelectedHour(hour)}
                           className={
                             isSelected
@@ -359,14 +408,18 @@ export default function ReserveForm({
                           }
                         >
                           {hour}
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
                 )}
-              </div>
+              </motion.div>
 
-              <div>
+              <motion.div
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.45 }}
+              >
                 <StepTitle number="3" title="👥 Quantas pessoas?" />
 
                 <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-6">
@@ -374,9 +427,11 @@ export default function ReserveForm({
                     const isSelected = guests === value;
 
                     return (
-                      <button
+                      <motion.button
                         key={value}
                         type="button"
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
                         onClick={() => setGuests(value)}
                         className={
                           isSelected
@@ -385,7 +440,7 @@ export default function ReserveForm({
                         }
                       >
                         {value}
-                      </button>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -406,7 +461,7 @@ export default function ReserveForm({
                     required
                   />
                 </div>
-              </div>
+              </motion.div>
 
               {!isCapacityMode &&
                 selectedHour &&
@@ -456,7 +511,12 @@ export default function ReserveForm({
                   value={isPendingRequest ? "PENDING" : "CONFIRMED"}
                 />
 
-                <div className="border-t border-cyan-300/10 pt-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, delay: 0.55 }}
+                  className="border-t border-cyan-300/10 pt-8"
+                >
                   <StepTitle number="4" title="✨ Quase terminado" />
 
                   <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -485,36 +545,54 @@ export default function ReserveForm({
                     />
                   </div>
 
-                  <button
+                  <motion.button
+                    whileHover={{
+                      scale: 1.02,
+                      boxShadow: "0 0 45px rgba(34,211,238,0.45)",
+                    }}
+                    whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={!canSubmit}
-                    className="mt-6 h-14 w-full rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-base font-black text-black shadow-[0_0_45px_rgba(34,211,238,0.28)] hover:opacity-90 disabled:cursor-not-allowed disabled:bg-none disabled:bg-slate-700 disabled:text-slate-400"
+                    className="mt-6 h-14 w-full rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-base font-black text-black disabled:cursor-not-allowed disabled:bg-none disabled:bg-slate-700 disabled:text-slate-400"
                   >
                     {isPendingRequest ? "Enviar pedido" : "Confirmar reserva"}
-                  </button>
+                  </motion.button>
 
                   <p className="mt-4 text-center text-xs text-slate-500">
                     Ao reservar, aceita ser contactado sobre esta reserva.
                   </p>
-                </div>
+                </motion.div>
               </form>
             </div>
-          </section>
+          </motion.section>
 
-          <aside className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-6 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl">
-            <div className="mb-6 rounded-3xl border border-cyan-300/20 bg-cyan-400/10 p-5">
+          <motion.aside
+            initial={{ opacity: 0, x: 32, scale: 0.98 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 0.75, delay: 0.3 }}
+            className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-6 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl"
+          >
+            <motion.div
+              animate={{
+                boxShadow: [
+                  "0 0 20px rgba(34,211,238,0.08)",
+                  "0 0 45px rgba(34,211,238,0.22)",
+                  "0 0 20px rgba(34,211,238,0.08)",
+                ],
+              }}
+              transition={{ duration: 3.4, repeat: Infinity }}
+              className="mb-6 rounded-3xl border border-cyan-300/20 bg-cyan-400/10 p-5"
+            >
               <p className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-300">
-                Experiência premium
+                EXPERIÊNCIA PREMIUM
               </p>
 
-              <h3 className="mt-3 text-2xl font-black">
-                Reserva em segundos
-              </h3>
+              <h3 className="mt-3 text-2xl font-black">Reserva em segundos</h3>
 
               <p className="mt-2 text-sm text-slate-300">
                 Sem chamadas. Sem esperas. Confirmação instantânea.
               </p>
-            </div>
+            </motion.div>
 
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
               Resumo
@@ -526,10 +604,7 @@ export default function ReserveForm({
                 label="Dia"
                 value={new Date(selectedDay).toLocaleDateString("pt-PT")}
               />
-              <SummaryItem
-                label="Hora"
-                value={selectedHour || "Escolha uma hora"}
-              />
+              <SummaryItem label="Hora" value={selectedHour || "Escolha uma hora"} />
               <SummaryItem
                 label="Pessoas"
                 value={`${guests} pessoa${guests === 1 ? "" : "s"}`}
@@ -560,9 +635,9 @@ export default function ReserveForm({
             <p className="mt-8 text-center text-xs text-slate-500">
               Powered by MesaLink
             </p>
-          </aside>
+          </motion.aside>
         </div>
-      </div>
+      </motion.div>
     </main>
   );
 }
@@ -570,20 +645,74 @@ export default function ReserveForm({
 function PublicBackground() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0">
-      <div className="absolute left-1/2 top-[-200px] h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[140px]" />
-      <div className="absolute right-[-150px] top-[300px] h-[350px] w-[350px] rounded-full bg-violet-500/20 blur-[120px]" />
-      <div className="absolute bottom-[-180px] left-[-120px] h-[350px] w-[350px] rounded-full bg-blue-500/15 blur-[120px]" />
+      <motion.div
+        animate={{ scale: [1, 1.15, 1], y: [0, 35, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute left-1/2 top-[-200px] h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[140px]"
+      />
+      <motion.div
+        animate={{ x: [0, -35, 0], y: [0, 45, 0] }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute right-[-150px] top-[300px] h-[350px] w-[350px] rounded-full bg-violet-500/20 blur-[120px]"
+      />
+      <motion.div
+        animate={{ opacity: [0.1, 0.28, 0.1] }}
+        transition={{ duration: 5, repeat: Infinity }}
+        className="absolute bottom-[-180px] left-[-120px] h-[350px] w-[350px] rounded-full bg-blue-500/15 blur-[120px]"
+      />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.16),transparent_35%),linear-gradient(to_bottom,#020617,#050816_40%,#020617)]" />
     </div>
   );
 }
 
+function FloatingOrbs() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[5] overflow-hidden">
+      {[...Array(14)].map((_, i) => (
+        <motion.div
+          key={i}
+          className={
+            i % 2 === 0
+              ? "absolute h-40 w-40 rounded-full bg-cyan-400/25 blur-[80px]"
+              : "absolute h-36 w-36 rounded-full bg-violet-400/20 blur-[80px]"
+          }
+          animate={{
+            y: ["115vh", "-25vh"],
+            x: [
+              `${8 + (i % 5) * 18}vw`,
+              `${18 + (i % 4) * 20}vw`,
+            ],
+            opacity: [0, 0.75, 0.25, 0],
+            scale: [0.45, 1.15, 0.75],
+          }}
+          transition={{
+            duration: 16 + i,
+            repeat: Infinity,
+            ease: "linear",
+            delay: i * 0.65,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-cyan-200">
+    <motion.span
+      animate={{
+        boxShadow: [
+          "0 0 0px rgba(34,211,238,0)",
+          "0 0 30px rgba(34,211,238,0.25)",
+          "0 0 0px rgba(34,211,238,0)",
+        ],
+      }}
+      transition={{ duration: 3, repeat: Infinity }}
+      className="inline-flex rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-cyan-200"
+    >
       {children}
-    </span>
+    </motion.span>
   );
 }
 
@@ -602,18 +731,32 @@ function Chip({
       : "border-emerald-300/20 bg-emerald-400/10 text-emerald-200";
 
   return (
-    <span className={`rounded-full border px-4 py-2 text-xs font-black ${className}`}>
+    <motion.span
+      whileHover={{ scale: 1.05 }}
+      className={`rounded-full border px-4 py-2 text-xs font-black ${className}`}
+    >
       {children}
-    </span>
+    </motion.span>
   );
 }
 
 function StepTitle({ number, title }: { number: string; title: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 text-sm font-black text-black">
+      <motion.span
+        animate={{
+          scale: [1, 1.08, 1],
+          boxShadow: [
+            "0 0 0px rgba(34,211,238,0)",
+            "0 0 24px rgba(34,211,238,0.35)",
+            "0 0 0px rgba(34,211,238,0)",
+          ],
+        }}
+        transition={{ duration: 2.8, repeat: Infinity }}
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 text-sm font-black text-black"
+      >
         {number}
-      </span>
+      </motion.span>
 
       <h2 className="text-xl font-black">{title}</h2>
     </div>
@@ -630,7 +773,10 @@ function SummaryItem({
   highlight?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-4">
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className="rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-4"
+    >
       <p className="text-sm text-slate-400">{label}</p>
       <p
         className={
@@ -641,7 +787,7 @@ function SummaryItem({
       >
         {value}
       </p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -662,36 +808,13 @@ function Alert({
       : "border-cyan-300/20 bg-cyan-400/10 text-cyan-200";
 
   return (
-    <div className={`rounded-2xl border p-5 ${classes}`}>
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`rounded-2xl border p-5 ${classes}`}
+    >
       <p className="font-black">{title}</p>
       <p className="mt-2 text-sm leading-relaxed">{text}</p>
-    </div>
-  );
-}
-function FloatingOrbs() {
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
-      {[...Array(12)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute h-24 w-24 rounded-full bg-cyan-400/10 blur-3xl"
-          animate={{
-            y: ["110vh", "-20vh"],
-            x: [
-              `${10 + (i % 4) * 20}vw`,
-              `${20 + (i % 5) * 15}vw`,
-            ],
-            opacity: [0, 0.8, 0.3, 0],
-            scale: [0.5, 1.2, 0.8],
-          }}
-          transition={{
-            duration: 18 + i,
-            repeat: Infinity,
-            ease: "linear",
-            delay: i * 0.8,
-          }}
-        />
-      ))}
-    </div>
+    </motion.div>
   );
 }
