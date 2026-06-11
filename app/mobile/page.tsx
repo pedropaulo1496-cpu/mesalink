@@ -6,415 +6,386 @@ import { Button } from "@/components/ui/button";
 
 export default function MobilePage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#030201] text-[#fff7ea]">
-      <AmbientGlow />
+    <main className="relative min-h-screen overflow-hidden bg-[#020201] text-[#fff7ea]">
+      <Background />
 
-      <section className="relative min-h-screen px-5 pb-10 pt-5">
-        <nav className="relative z-10 mb-12 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black tracking-tight">
+      <section className="relative z-10 px-5 pb-12 pt-5">
+        <nav className="mb-12 flex items-center justify-between">
+          <Link href="/" className="text-2xl font-black">
             Mesa<span className="text-[#f0c36a]">Link</span>
           </Link>
 
           <Link
             href="/login"
-            className="rounded-full border border-[#f0c36a]/30 bg-white/5 px-4 py-2 text-sm font-bold text-[#f0c36a] backdrop-blur"
+            className="rounded-full border border-[#f0c36a]/40 px-5 py-2 text-sm font-black text-[#f0c36a]"
           >
             Entrar
           </Link>
         </nav>
 
-        <div className="relative z-10">
-          <p className="mb-5 inline-flex rounded-full border border-[#f0c36a]/30 bg-[#f0c36a]/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-[#f0c36a]">
-            O futuro das reservas online
-          </p>
+        <Badge>✦ O futuro das reservas</Badge>
 
-          <h1 className="mb-5 text-[48px] font-black leading-[0.9] tracking-[-0.06em]">
-            Transforme o{" "}
-            <span className="bg-gradient-to-r from-[#f0c36a] via-[#fff0b8] to-[#f0c36a] bg-clip-text text-transparent">
-              Google Maps
-            </span>{" "}
-            numa máquina de reservas.
-          </h1>
+        <h1 className="mt-5 text-[50px] font-black leading-[0.9] tracking-[-0.06em]">
+          O futuro das{" "}
+          <span className="bg-gradient-to-r from-[#f0c36a] via-[#fff3bd] to-[#f0c36a] bg-clip-text text-transparent">
+            reservas
+          </span>{" "}
+          começa aqui.
+        </h1>
 
-          <p className="mb-7 text-[17px] leading-relaxed text-[#d6c7ad]">
-            Receba reservas do Google Maps, Instagram, TikTok, website e QR
-            Codes num único sistema — sem chamadas, sem comissões e sem caos no
-            WhatsApp.
-          </p>
+        <p className="mt-6 text-[17px] leading-relaxed text-[#d6c7ad]">
+          Transforme Google Maps, Instagram, TikTok, website e QR Codes numa
+          máquina automática de reservas. Sem chamadas. Sem comissões.{" "}
+          <span className="font-black text-[#f0c36a]">Sem perder clientes.</span>
+        </p>
 
-          <div className="grid gap-3">
-            <Button
-              asChild
-              className="h-14 rounded-full bg-[#f0c36a] text-base font-black text-black shadow-[0_0_55px_rgba(240,195,106,0.42)] hover:bg-[#ffd982]"
-            >
-              <Link href="/register">Ativar MesaLink</Link>
-            </Button>
-
-            <Button
-              asChild
-              variant="outline"
-              className="h-14 rounded-full border-[#f0c36a]/40 bg-white/[0.04] text-base font-bold text-white backdrop-blur hover:bg-white/10"
-            >
-              <Link href="/pricing">Ver planos</Link>
-            </Button>
-          </div>
-
-          <div className="mt-6 grid grid-cols-3 gap-2">
-            <PulseStat value="24h" label="online" />
-            <PulseStat value="0%" label="comissões" />
-            <PulseStat value="10min" label="setup" />
-          </div>
-        </div>
-
-        <div className="relative z-10 mt-12">
-          <FuturePhone />
-        </div>
-      </section>
-
-      <section className="sticky top-0 z-30 border-y border-[#f0c36a]/10 bg-[#030201]/80 px-5 py-4 backdrop-blur-2xl">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#f0c36a]">
-              Live system
-            </p>
-            <p className="text-sm font-bold text-white">
-              Reservas sempre ligadas
-            </p>
-          </div>
-
-          <Link
-            href="/register"
-            className="rounded-full bg-[#f0c36a] px-4 py-2 text-sm font-black text-black"
+        <div className="mt-7 grid gap-3">
+          <Button
+            asChild
+            className="h-14 rounded-full bg-[#f0c36a] text-base font-black text-black shadow-[0_0_55px_rgba(240,195,106,0.45)] hover:bg-[#ffd982]"
           >
-            Começar
-          </Link>
+            <Link href="/register">Começar teste gratuito →</Link>
+          </Button>
+
+          <Button
+            asChild
+            variant="outline"
+            className="h-14 rounded-full border-[#f0c36a]/40 bg-black/30 text-base font-black text-white hover:bg-white/10"
+          >
+            <Link href="/pricing">Ver planos →</Link>
+          </Button>
+        </div>
+
+        <div className="mt-8 grid grid-cols-3 gap-3">
+          <HeroStat icon="⚡" value="10 min" label="configuração" />
+          <HeroStat icon="%" value="0%" label="comissões" />
+          <HeroStat icon="🛡️" value="100%" label="seu cliente" />
+        </div>
+
+        <PhoneHero />
+      </section>
+
+      <section className="relative z-10 px-4 pb-12">
+        <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-4 backdrop-blur-xl">
+          <div className="grid grid-cols-2 gap-3">
+            <Rating name="Google Maps" score="4.9" icon="📍" />
+            <Rating name="Instagram" score="4.9" icon="📸" />
+            <Rating name="Facebook" score="4.8" icon="🔵" />
+            <Rating name="TikTok" score="4.9" icon="🎵" />
+          </div>
         </div>
       </section>
 
-      <section className="relative px-5 py-16">
-        <GlowTitle
-          eyebrow="Google Maps"
-          title="A pesquisa acaba. A reserva começa."
-        />
+      <section className="relative z-10 px-5 py-12">
+        <Badge>Todos os canais</Badge>
 
-        <div className="relative overflow-hidden rounded-[32px] border border-[#f0c36a]/20 bg-[#120d08] p-6 shadow-[0_0_60px_rgba(240,195,106,0.12)]">
-          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#f0c36a]/20 blur-3xl" />
+        <h2 className="mt-5 text-[38px] font-black leading-[0.95] tracking-[-0.04em]">
+          Um link.{" "}
+          <span className="text-[#f0c36a]">Todos os canais.</span> Mais reservas.
+        </h2>
 
-          <p className="mb-3 text-xs font-black uppercase tracking-[0.25em] text-[#f0c36a]">
-            Google Maps ready
-          </p>
+        <p className="mt-5 text-base leading-relaxed text-[#a99a82]">
+          Onde os seus clientes estão, o MesaLink transforma em reservas.
+        </p>
 
-          <h3 className="mb-3 text-3xl font-black leading-tight">
-            Quem encontra o restaurante no Google pode reservar na hora.
-          </h3>
-
-          <p className="text-sm leading-relaxed text-[#a99a82]">
-            Coloque o link do MesaLink no perfil Google do restaurante e
-            transforme pesquisas locais em reservas confirmadas.
-          </p>
+        <div className="mt-8 grid grid-cols-2 gap-4">
+          <Channel icon="📍" title="Google Maps" text="Seja encontrado. Seja reservado." />
+          <Channel icon="📸" title="Instagram" text="Link na bio, stories e destaques." />
+          <Channel icon="🎵" title="TikTok & Facebook" text="Partilhe e receba reservas 24h/dia." />
+          <Channel icon="▦" title="Website & QR" text="Reserve direto do site ou QR." />
         </div>
+
+        <OrbitLine />
       </section>
 
-      <Section eyebrow="Canais" title="Um link. Todos os canais. Zero fricção.">
-        <ChannelCard
-          number="01"
-          title="Google Maps"
-          text="O canal principal para transformar intenção em reserva."
-        />
-        <ChannelCard
-          number="02"
-          title="Instagram & TikTok"
-          text="Bio, stories, reels e campanhas com reserva direta."
-        />
-        <ChannelCard
-          number="03"
-          title="Website"
-          text="Reservas próprias sem depender de plataformas com comissão."
-        />
-        <ChannelCard
-          number="04"
-          title="QR Codes"
-          text="Menus, montra, cartões e mesas passam a gerar reservas."
-        />
-      </Section>
+      <section className="relative z-10 px-5 py-12">
+        <div className="relative overflow-hidden rounded-[34px] border border-blue-400/20 bg-[#080b1a] p-6 shadow-[0_0_80px_rgba(59,130,246,0.18)]">
+          <div className="absolute -right-16 top-10 h-52 w-52 rounded-full bg-blue-500/25 blur-[70px]" />
+          <div className="absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-purple-500/20 blur-[70px]" />
 
-      <section className="relative bg-[#080604] px-5 py-16">
-        <GlowTitle
-          eyebrow="Brevemente"
-          title="IA para ajudar o restaurante a vender mais."
-        />
+          <Badge purple>Brevemente</Badge>
 
-        <div className="grid gap-4">
-          <FeatureCard
-            icon="🤖"
-            title="Sugestões com IA"
-            text="Brevemente: recomendações automáticas para melhorar horários, capacidade e reservas."
-          />
-          <FeatureCard
-            icon="📈"
-            title="Previsão de procura"
-            text="Brevemente: perceber dias fortes, dias fracos e horários com maior potencial."
-          />
-          <FeatureCard
-            icon="💬"
-            title="Assistente inteligente"
-            text="Brevemente: ajuda para responder, organizar e otimizar reservas."
-          />
-        </div>
-      </section>
-
-      <section className="relative px-5 py-16">
-        <GlowTitle
-          eyebrow="Automação"
-          title="O cliente reserva. O sistema organiza."
-        />
-
-        <div className="grid gap-4">
-          <ProcessCard
-            step="1"
-            title="Cliente toca no link"
-            text="Vem do Google Maps, Instagram, website, QR Code ou anúncio."
-          />
-          <ProcessCard
-            step="2"
-            title="Escolhe data e hora"
-            text="Sem mensagens, sem telefonemas, sem idas e voltas."
-          />
-          <ProcessCard
-            step="3"
-            title="MesaLink centraliza tudo"
-            text="Reservas, clientes, horários, serviço do dia e histórico."
-          />
-        </div>
-      </section>
-
-      <Section eyebrow="Painel" title="Uma sala de controlo para o restaurante.">
-        <FeatureCard
-          icon="⚡"
-          title="Serviço do dia"
-          text="Almoço, jantar, pendentes, confirmadas, check-ins e no-shows."
-        />
-        <FeatureCard
-          icon="👁️"
-          title="Visão em tempo real"
-          text="Saiba quantas pessoas entram em cada horário."
-        />
-        <FeatureCard
-          icon="🧠"
-          title="Clientes automáticos"
-          text="Histórico, contactos e observações guardados sem esforço."
-        />
-        <FeatureCard
-          icon="🛡️"
-          title="Controlo total"
-          text="Aprovação manual para grupos grandes ou pedidos especiais."
-        />
-      </Section>
-
-      <section className="px-5 pb-16">
-        <div className="relative overflow-hidden rounded-[36px] border border-[#f0c36a]/20 bg-[#f0c36a] p-7 text-black shadow-[0_0_80px_rgba(240,195,106,0.35)]">
-          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/40 blur-3xl" />
-
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.3em] text-black/55">
-            Pronto para ligar?
-          </p>
-
-          <h2 className="mb-4 text-[40px] font-black leading-[0.92] tracking-[-0.04em]">
-            O seu restaurante a receber reservas enquanto dorme.
+          <h2 className="relative mt-5 text-[38px] font-black leading-[0.95] tracking-[-0.04em]">
+            O futuro das reservas tem{" "}
+            <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">
+              IA.
+            </span>
           </h2>
 
-          <p className="mb-7 text-base leading-relaxed text-black/70">
-            Sem comissões. Sem perder clientes. Sem depender de mensagens.
+          <p className="relative mt-5 text-base leading-relaxed text-[#b8bed6]">
+            Estamos a construir uma nova geração de ferramentas com Inteligência
+            Artificial para levar o seu restaurante ainda mais longe.
+          </p>
+
+          <div className="relative mt-8 grid gap-3">
+            <AiItem title="Sugestão inteligente de horários" text="Mais reservas, menos vazios." />
+            <AiItem title="Previsão de movimento" text="Saiba o que esperar antes de acontecer." />
+            <AiItem title="Mensagens automáticas" text="Confirmações, lembretes e follow-ups." />
+            <AiItem title="Insights que geram resultados" text="Dados que ajudam a tomar decisões." />
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-10 px-5 pb-16">
+        <div className="relative overflow-hidden rounded-[34px] border border-[#f0c36a]/20 bg-[#0b0805] p-6">
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#f0c36a]/25 blur-[60px]" />
+
+          <h2 className="relative text-[36px] font-black leading-[0.95] tracking-[-0.04em]">
+            Pronto para entrar no{" "}
+            <span className="text-[#f0c36a]">futuro das reservas?</span>
+          </h2>
+
+          <p className="relative mt-4 text-base text-[#a99a82]">
+            Ative o MesaLink e nunca mais perca um cliente.
           </p>
 
           <Button
             asChild
-            className="h-14 w-full rounded-full bg-black text-base font-black text-white hover:bg-black/90"
+            className="relative mt-7 h-14 w-full rounded-full bg-[#f0c36a] text-base font-black text-black hover:bg-[#ffd982]"
           >
-            <Link href="/register">Criar conta grátis</Link>
+            <Link href="/register">Criar conta grátis →</Link>
           </Button>
+
+          <div className="relative mt-6 grid grid-cols-2 gap-4 text-sm text-[#d6c7ad]">
+            <p>💳 Sem cartão de crédito</p>
+            <p>⏱️ Cancele quando quiser</p>
+          </div>
         </div>
       </section>
     </main>
   );
 }
 
-function AmbientGlow() {
+function Background() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0">
       <motion.div
-        animate={{ y: [0, 35, 0], scale: [1, 1.08, 1] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[-120px] h-[360px] w-[360px] -translate-x-1/2 rounded-full bg-[#f0c36a]/25 blur-[90px]"
+        animate={{ scale: [1, 1.12, 1], y: [0, 35, 0] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute left-1/2 top-[-140px] h-[380px] w-[380px] -translate-x-1/2 rounded-full bg-[#f0c36a]/25 blur-[90px]"
       />
 
       <motion.div
-        animate={{ x: [0, -25, 0], y: [0, 30, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute right-[-120px] top-[360px] h-[260px] w-[260px] rounded-full bg-orange-500/15 blur-[80px]"
+        animate={{ x: [0, -30, 0], y: [0, 40, 0] }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute right-[-140px] top-[420px] h-[300px] w-[300px] rounded-full bg-orange-500/15 blur-[90px]"
       />
 
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(240,195,106,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(240,195,106,0.04)_1px,transparent_1px)] bg-[size:42px_42px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(240,195,106,0.14),transparent_35%),linear-gradient(to_bottom,#020201,#070504_35%,#020201)]" />
+      <div className="absolute inset-0 opacity-30 bg-[linear-gradient(rgba(240,195,106,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(240,195,106,0.08)_1px,transparent_1px)] bg-[size:44px_44px]" />
     </div>
   );
 }
 
-function FuturePhone() {
-  return (
-    <motion.div
-      initial={{ y: 30, opacity: 0, scale: 0.96 }}
-      whileInView={{ y: 0, opacity: 1, scale: 1 }}
-      transition={{ duration: 0.7 }}
-      viewport={{ once: true }}
-      className="relative mx-auto max-w-[360px]"
-    >
-      <div className="absolute inset-0 translate-y-8 scale-95 rounded-[3rem] bg-[#f0c36a]/25 blur-[70px]" />
-
-      <div className="relative rounded-[42px] border border-[#f0c36a]/25 bg-gradient-to-b from-[#1c1308] to-[#070504] p-4 shadow-2xl">
-        <div className="mx-auto mb-4 h-1.5 w-20 rounded-full bg-[#f0c36a]/50" />
-
-        <div className="rounded-[32px] border border-white/10 bg-black/35 p-4 backdrop-blur-xl">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-[#a99a82]">MesaLink OS</p>
-              <h3 className="text-2xl font-black">Live Service</h3>
-            </div>
-
-            <div className="flex items-center gap-2 rounded-full bg-green-500/15 px-3 py-1">
-              <span className="h-2 w-2 rounded-full bg-green-400" />
-              <span className="text-xs font-black text-green-300">ON</span>
-            </div>
-          </div>
-
-          <div className="mb-4 grid grid-cols-3 gap-2">
-            <Dash value="18" label="res." />
-            <Dash value="64" label="pax" />
-            <Dash value="3" label="pend." />
-          </div>
-
-          <div className="mb-4 rounded-2xl border border-[#f0c36a]/10 bg-[#f0c36a]/10 p-4">
-            <p className="mb-1 text-xs font-bold text-[#f0c36a]">Próxima entrada</p>
-            <p className="text-2xl font-black">20:00 · 4 pessoas</p>
-          </div>
-
-          <ReservationLine time="20:00" name="João Silva" />
-          <ReservationLine time="20:30" name="Ana Costa" />
-          <ReservationLine time="21:00" name="Pedro Santos" pending />
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function Section({
-  eyebrow,
-  title,
+function Badge({
   children,
+  purple,
 }: {
-  eyebrow: string;
-  title: string;
   children: React.ReactNode;
+  purple?: boolean;
 }) {
   return (
-    <section className="relative px-5 py-16">
-      <GlowTitle eyebrow={eyebrow} title={title} />
-      <div className="grid gap-4">{children}</div>
-    </section>
+    <span
+      className={
+        purple
+          ? "relative inline-flex rounded-full border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-purple-200"
+          : "relative inline-flex rounded-full border border-[#f0c36a]/30 bg-[#f0c36a]/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#f0c36a]"
+      }
+    >
+      {children}
+    </span>
   );
 }
 
-function PulseStat({ value, label }: { value: string; label: string }) {
+function PhoneHero() {
   return (
-    <div className="rounded-2xl border border-[#f0c36a]/10 bg-white/[0.04] p-4 text-center backdrop-blur">
-      <p className="text-2xl font-black text-[#f0c36a]">{value}</p>
-      <p className="text-[10px] uppercase tracking-widest text-[#a99a82]">{label}</p>
+    <motion.div
+      initial={{ opacity: 0, y: 35, rotate: 0 }}
+      animate={{ opacity: 1, y: 0, rotate: -4 }}
+      transition={{ duration: 0.8, delay: 0.15 }}
+      className="relative mx-auto mt-12 max-w-[330px]"
+    >
+      <div className="absolute inset-0 translate-y-10 rounded-[48px] bg-[#f0c36a]/30 blur-[70px]" />
+
+      <motion.div
+        animate={{ y: [0, -10, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="relative rounded-[44px] border border-[#f0c36a]/40 bg-gradient-to-b from-[#1b1308] to-[#050302] p-3 shadow-2xl"
+      >
+        <div className="mx-auto mb-3 h-1.5 w-20 rounded-full bg-[#f0c36a]/50" />
+
+        <div className="rounded-[34px] border border-white/10 bg-black/50 p-4 backdrop-blur-xl">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-[#a99a82]">Hoje, 24 Maio</p>
+              <h3 className="text-2xl font-black">Serviço do dia</h3>
+            </div>
+
+            <span className="rounded-full border border-[#f0c36a]/20 bg-white/5 px-3 py-1 text-xs font-black">
+              Jantar
+            </span>
+          </div>
+
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#a99a82]">
+            Resumo
+          </p>
+
+          <div className="mb-5 grid grid-cols-3 gap-2">
+            <Dash value="18" label="Reservas" />
+            <Dash value="64" label="Pessoas" />
+            <Dash value="3" label="Pendentes" />
+          </div>
+
+          <div className="mb-5 rounded-2xl border border-[#f0c36a]/20 bg-[#f0c36a]/10 p-4 shadow-[0_0_35px_rgba(240,195,106,0.18)]">
+            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#f0c36a]">
+              Próxima entrada
+            </p>
+            <p className="text-2xl font-black text-[#f0c36a]">
+              20:00 <span className="text-white">· 4 pessoas</span>
+            </p>
+            <p className="mt-1 text-sm text-[#d6c7ad]">João Silva</p>
+          </div>
+
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#a99a82]">
+            Próximas reservas
+          </p>
+
+          <Reservation time="20:00" name="João Silva" status="Confirmada" />
+          <Reservation time="20:30" name="Ana Costa" status="Confirmada" />
+          <Reservation time="21:00" name="Pedro Santos" status="Pendente" danger />
+        </div>
+      </motion.div>
+
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+        className="absolute -bottom-8 left-1/2 h-28 w-80 -translate-x-1/2 rounded-[50%] border border-[#f0c36a]/30"
+      />
+    </motion.div>
+  );
+}
+
+function HeroStat({
+  icon,
+  value,
+  label,
+}: {
+  icon: string;
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur">
+      <p className="text-lg">{icon}</p>
+      <p className="mt-1 text-sm font-black text-[#f0c36a]">{value}</p>
+      <p className="text-[10px] text-[#a99a82]">{label}</p>
     </div>
   );
 }
 
-function GlowTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
+function Rating({
+  icon,
+  name,
+  score,
+}: {
+  icon: string;
+  name: string;
+  score: string;
+}) {
   return (
-    <div className="mb-8">
-      <p className="mb-3 text-[10px] font-black uppercase tracking-[0.3em] text-[#f0c36a]">
-        {eyebrow}
-      </p>
-      <h2 className="text-[36px] font-black leading-[0.96] tracking-[-0.04em]">
-        {title}
-      </h2>
+    <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+      <p className="text-2xl">{icon}</p>
+      <p className="mt-2 text-sm font-black">{name}</p>
+      <p className="text-xs text-[#f0c36a]">★★★★★ {score}</p>
     </div>
   );
 }
 
-function ChannelCard({ number, title, text }: { number: string; title: string; text: string }) {
+function Channel({
+  icon,
+  title,
+  text,
+}: {
+  icon: string;
+  title: string;
+  text: string;
+}) {
   return (
     <motion.div
-      initial={{ y: 28, opacity: 0 }}
-      whileInView={{ y: 0, opacity: 1 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 24 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.45 }}
-      viewport={{ once: true, margin: "-80px" }}
-      className="relative overflow-hidden rounded-[28px] border border-[#f0c36a]/10 bg-[#120d08] p-5"
+      className="rounded-[28px] border border-[#f0c36a]/20 bg-[#120d08] p-5 shadow-[0_0_40px_rgba(240,195,106,0.08)]"
     >
-      <div className="absolute right-4 top-4 text-5xl font-black text-[#f0c36a]/10">{number}</div>
-      <p className="mb-3 text-xs font-black text-[#f0c36a]">{number}</p>
-      <h3 className="mb-2 text-2xl font-black">{title}</h3>
-      <p className="text-sm leading-relaxed text-[#a99a82]">{text}</p>
+      <p className="text-4xl">{icon}</p>
+      <h3 className="mt-4 text-xl font-black">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-[#a99a82]">{text}</p>
     </motion.div>
   );
 }
 
-function ProcessCard({ step, title, text }: { step: string; title: string; text: string }) {
+function OrbitLine() {
   return (
-    <motion.div
-      initial={{ x: -24, opacity: 0 }}
-      whileInView={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.45 }}
-      viewport={{ once: true, margin: "-80px" }}
-      className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl"
-    >
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f0c36a] text-xl font-black text-black">
-        {step}
-      </div>
-      <h3 className="mb-2 text-2xl font-black">{title}</h3>
-      <p className="text-sm leading-relaxed text-[#a99a82]">{text}</p>
-    </motion.div>
+    <div className="relative mt-8 h-16">
+      <div className="absolute left-0 right-0 top-8 h-px bg-gradient-to-r from-transparent via-[#f0c36a]/60 to-transparent" />
+      {[15, 38, 62, 85].map((left) => (
+        <motion.div
+          key={left}
+          animate={{ scale: [1, 1.4, 1] }}
+          transition={{ duration: 2, repeat: Infinity, delay: left / 30 }}
+          className="absolute top-[25px] h-4 w-4 rounded-full bg-[#f0c36a] shadow-[0_0_25px_rgba(240,195,106,0.9)]"
+          style={{ left: `${left}%` }}
+        />
+      ))}
+    </div>
   );
 }
 
-function FeatureCard({ icon, title, text }: { icon: string; title: string; text: string }) {
+function AiItem({ title, text }: { title: string; text: string }) {
   return (
-    <motion.div
-      initial={{ scale: 0.96, opacity: 0 }}
-      whileInView={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.45 }}
-      viewport={{ once: true, margin: "-80px" }}
-      className="rounded-[28px] border border-[#f0c36a]/10 bg-[#120d08] p-5"
-    >
-      <div className="mb-4 text-3xl">{icon}</div>
-      <h3 className="mb-2 text-2xl font-black">{title}</h3>
-      <p className="text-sm leading-relaxed text-[#a99a82]">{text}</p>
-    </motion.div>
+    <div className="rounded-2xl border border-blue-300/10 bg-white/[0.04] p-4">
+      <h3 className="text-base font-black text-white">{title}</h3>
+      <p className="mt-1 text-sm text-[#9fa8c8]">{text}</p>
+    </div>
   );
 }
 
 function Dash({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-3">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
       <p className="text-2xl font-black">{value}</p>
-      <p className="text-[10px] uppercase text-[#a99a82]">{label}</p>
+      <p className="text-[10px] text-[#f0c36a]">{label}</p>
     </div>
   );
 }
 
-function ReservationLine({ time, name, pending }: { time: string; name: string; pending?: boolean }) {
+function Reservation({
+  time,
+  name,
+  status,
+  danger,
+}: {
+  time: string;
+  name: string;
+  status: string;
+  danger?: boolean;
+}) {
   return (
-    <div className="mb-3 flex items-center justify-between rounded-2xl bg-white/[0.04] p-3">
+    <div className="mb-3 flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.04] p-3">
       <div>
         <p className="text-sm font-black text-[#f0c36a]">{time}</p>
         <p className="text-sm font-bold">{name}</p>
       </div>
 
-      <span className={pending ? "rounded-full bg-red-500/15 px-2 py-1 text-[10px] font-black text-red-300" : "rounded-full bg-green-500/15 px-2 py-1 text-[10px] font-black text-green-300"}>
-        {pending ? "Pendente" : "OK"}
+      <span
+        className={
+          danger
+            ? "rounded-full bg-red-500/15 px-2 py-1 text-[10px] font-black text-red-300"
+            : "rounded-full bg-green-500/15 px-2 py-1 text-[10px] font-black text-green-300"
+        }
+      >
+        {status}
       </span>
     </div>
   );
