@@ -1,141 +1,154 @@
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
 
-export default function HomePage() {
-  return (
-    <>
-      <div className="block lg:hidden">
-        <HomeMobile />
-      </div>
+export default async function HomePage() {
+  const headersList = await headers();
+  const userAgent = headersList.get("user-agent") || "";
 
-      <div className="hidden lg:block">
-        <HomeDesktop />
-      </div>
-    </>
-  );
+  const isMobileOrTablet =
+    /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(userAgent);
+
+  if (isMobileOrTablet) {
+    return <MobileHome />;
+  }
+
+  return <HomeDesktop />;
 }
 
-function HomeMobile() {
+function MobileHome() {
   return (
-    <main className="min-h-screen bg-[#070504] text-[#fff7ea]">
-      <section className="px-5 pb-14 pt-5">
-        <nav className="mb-12 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black">
-            Mesa<span className="text-[#f0c36a]">Link</span>
-          </Link>
+    <main className="min-h-screen bg-[#070504] px-5 py-5 text-[#fff7ea]">
+      <nav className="mb-10 flex items-center justify-between">
+        <Link href="/" className="text-2xl font-black">
+          Mesa<span className="text-[#f0c36a]">Link</span>
+        </Link>
 
-          <Link
-            href="/login"
-            className="rounded-full bg-[#f0c36a] px-4 py-2 text-sm font-bold text-black"
-          >
-            Entrar
-          </Link>
-        </nav>
+        <Link
+          href="/login"
+          className="rounded-full bg-[#f0c36a] px-4 py-2 text-sm font-bold text-black"
+        >
+          Entrar
+        </Link>
+      </nav>
 
-        <div className="rounded-[2rem] border border-[#f0c36a]/15 bg-[#120d08] p-6 shadow-2xl">
-          <p className="mb-4 text-xs font-black uppercase tracking-[0.25em] text-[#f0c36a]">
-            Reservas online
-          </p>
+      <section className="rounded-[28px] border border-[#f0c36a]/20 bg-[#120d08] p-6">
+        <p className="mb-4 text-xs font-black uppercase tracking-[0.25em] text-[#f0c36a]">
+          Reservas online
+        </p>
 
-          <h1 className="mb-5 text-4xl font-black leading-[1.02] tracking-tight">
-            Receba reservas pelo{" "}
-            <span className="text-[#f0c36a]">Google Maps.</span>
-          </h1>
+        <h1 className="mb-5 text-4xl font-black leading-tight">
+          Receba reservas pelo{" "}
+          <span className="text-[#f0c36a]">Google Maps.</span>
+        </h1>
 
-          <p className="mb-7 text-base leading-relaxed text-[#d6c7ad]">
-            Um link simples para os clientes reservarem mesa online. Sem chamadas,
-            sem mensagens perdidas e sem comissões.
-          </p>
+        <p className="mb-7 text-base leading-relaxed text-[#d6c7ad]">
+          O MesaLink dá ao seu restaurante um link simples para receber reservas
+          online, sem chamadas, sem mensagens perdidas e sem comissões.
+        </p>
 
-          <div className="grid gap-3">
-            <Button
-              asChild
-              className="h-14 rounded-full bg-[#f0c36a] text-base font-bold text-black hover:bg-[#ffd982]"
-            >
-              <Link href="/register">Começar teste gratuito</Link>
-            </Button>
-
-            <Button
-              asChild
-              variant="outline"
-              className="h-14 rounded-full border-[#f0c36a]/40 bg-white/5 text-base text-white hover:bg-white/10"
-            >
-              <Link href="/pricing">Ver preços</Link>
-            </Button>
-          </div>
-
-          <p className="mt-5 text-sm text-[#a99a82]">
-            Desde <strong className="text-[#f0c36a]">17,50€ + IVA/mês</strong>.
-          </p>
-        </div>
-      </section>
-
-      <section className="px-5 py-10">
         <div className="grid gap-3">
-          <MiniStat value="24h" label="Reservas online" />
-          <MiniStat value="0%" label="Comissões por reserva" />
-          <MiniStat value="10 min" label="Para configurar" />
+          <Button
+            asChild
+            className="h-14 rounded-full bg-[#f0c36a] text-base font-bold text-black hover:bg-[#ffd982]"
+          >
+            <Link href="/register">Começar teste gratuito</Link>
+          </Button>
+
+          <Button
+            asChild
+            variant="outline"
+            className="h-14 rounded-full border-[#f0c36a]/40 bg-white/5 text-base text-white hover:bg-white/10"
+          >
+            <Link href="/pricing">Ver preços</Link>
+          </Button>
         </div>
+
+        <p className="mt-5 text-sm text-[#a99a82]">
+          Desde <strong className="text-[#f0c36a]">17,50€ + IVA/mês</strong>
+        </p>
       </section>
 
-      <section className="border-y border-[#f0c36a]/10 bg-[#0d0a07] px-5 py-14">
+      <section className="mt-8 grid gap-3">
+        <MobileStat value="24h" label="Reservas online" />
+        <MobileStat value="0%" label="Comissões por reserva" />
+        <MobileStat value="10 min" label="Para configurar" />
+      </section>
+
+      <section className="mt-12">
         <p className="mb-3 text-xs font-black uppercase tracking-[0.25em] text-[#f0c36a]">
           Como funciona
         </p>
 
-        <h2 className="mb-8 text-3xl font-black">
-          Comece em minutos.
-        </h2>
+        <h2 className="mb-6 text-3xl font-black">Comece em minutos.</h2>
 
-        <div className="grid gap-5">
-          <MobileStep number="1" title="Adicione o link" text="Coloque o link no Google Maps, Instagram ou website." />
-          <MobileStep number="2" title="O cliente reserva" text="Escolhe data, hora e número de pessoas online." />
-          <MobileStep number="3" title="Recebe no painel" text="Organize reservas, clientes e serviço do dia." />
+        <div className="grid gap-4">
+          <MobileCard
+            title="1. Adicione o link"
+            text="Coloque no Google Maps, Instagram ou website."
+          />
+          <MobileCard
+            title="2. Cliente reserva"
+            text="Escolhe data, hora e número de pessoas online."
+          />
+          <MobileCard
+            title="3. Gere no painel"
+            text="Veja reservas, clientes e serviço do dia."
+          />
         </div>
       </section>
 
-      <section id="features" className="px-5 py-14">
+      <section className="mt-12">
         <p className="mb-3 text-xs font-black uppercase tracking-[0.25em] text-[#f0c36a]">
           Funcionalidades
         </p>
 
-        <h2 className="mb-8 text-3xl font-black">
-          Tudo para gerir reservas.
-        </h2>
+        <h2 className="mb-6 text-3xl font-black">Tudo para gerir reservas.</h2>
 
         <div className="grid gap-4">
-          <Feature title="Link para Google Maps" text="Receba reservas diretamente do perfil Google do restaurante." />
-          <Feature title="QR Code" text="Partilhe em menus, montra, cartões e Instagram." />
-          <Feature title="Serviço do dia" text="Veja almoço, jantar, pendentes, check-ins e no-shows." />
-          <Feature title="Clientes" text="Guarde histórico, visitas e contactos automaticamente." />
+          <MobileCard
+            title="Link para Google Maps"
+            text="Receba reservas diretamente do perfil Google do restaurante."
+          />
+          <MobileCard
+            title="QR Code"
+            text="Partilhe em menus, montra, cartões e Instagram."
+          />
+          <MobileCard
+            title="Serviço do dia"
+            text="Veja almoço, jantar, pendentes, check-ins e no-shows."
+          />
+          <MobileCard
+            title="Clientes"
+            text="Guarde histórico, visitas e contactos automaticamente."
+          />
         </div>
       </section>
 
-      <section className="bg-[#f0c36a] px-5 py-12 text-black">
-        <h2 className="mb-3 text-3xl font-black">
-          Pronto para receber reservas?
-        </h2>
+      <section className="mt-12 rounded-[28px] bg-[#f0c36a] p-6 text-black">
+        <h2 className="mb-3 text-3xl font-black">Pronto para começar?</h2>
 
         <p className="mb-6 text-black/70">
-          Comece hoje. Sem comissões. Sem complicações.
+          Sem comissões. Sem complicações.
         </p>
 
-        <Button asChild className="h-14 w-full rounded-full bg-black text-white hover:bg-black/90">
+        <Button
+          asChild
+          className="h-14 w-full rounded-full bg-black text-white hover:bg-black/90"
+        >
           <Link href="/register">Começar agora</Link>
         </Button>
       </section>
-
-      <Footer />
     </main>
   );
 }
 
 function HomeDesktop() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#070504] text-[#fff7ea]">
+    <main className="min-h-screen bg-[#070504] text-[#fff7ea]">
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_10%,rgba(240,195,106,0.18),transparent_30%),linear-gradient(to_bottom,#070504,#120d08)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_15%,rgba(240,195,106,0.22),transparent_32%),linear-gradient(to_bottom,#070504,#120d08)]" />
 
         <div className="relative mx-auto max-w-7xl px-8 py-8">
           <nav className="flex items-center justify-between">
@@ -160,13 +173,13 @@ function HomeDesktop() {
             </div>
           </nav>
 
-          <div className="grid min-h-[740px] grid-cols-2 items-center gap-16">
+          <div className="grid min-h-[760px] grid-cols-1 items-center gap-16 md:grid-cols-2">
             <div>
               <div className="mb-6 inline-flex rounded-full border border-[#f0c36a]/30 bg-[#f0c36a]/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#f0c36a]">
                 Reservas online para restaurantes
               </div>
 
-              <h1 className="mb-7 max-w-2xl text-7xl font-black leading-[0.92] tracking-tight">
+              <h1 className="mb-7 max-w-2xl text-6xl font-black leading-[0.92] tracking-tight md:text-7xl">
                 Transforme visitas no Google em{" "}
                 <span className="text-[#f0c36a]">reservas confirmadas.</span>
               </h1>
@@ -183,11 +196,20 @@ function HomeDesktop() {
               </div>
 
               <div className="flex flex-wrap gap-4">
-                <Button asChild size="lg" className="h-14 rounded-full bg-[#f0c36a] px-8 text-base font-bold text-black shadow-2xl hover:bg-[#ffd982]">
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-14 rounded-full bg-[#f0c36a] px-8 text-base font-bold text-black shadow-2xl hover:bg-[#ffd982]"
+                >
                   <Link href="/register">Começar teste gratuito</Link>
                 </Button>
 
-                <Button asChild size="lg" variant="outline" className="h-14 rounded-full border-[#f0c36a]/40 bg-white/5 px-8 text-base text-white hover:bg-white/10">
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="h-14 rounded-full border-[#f0c36a]/40 bg-white/5 px-8 text-base text-white hover:bg-white/10"
+                >
                   <Link href="/pricing">Ver preços</Link>
                 </Button>
               </div>
@@ -209,6 +231,7 @@ function HomeDesktop() {
             <p className="mb-3 text-sm font-black uppercase tracking-[0.3em] text-[#f0c36a]">
               Como funciona
             </p>
+
             <h2 className="text-5xl font-black">
               Comece a receber reservas em minutos.
             </h2>
@@ -224,11 +247,12 @@ function HomeDesktop() {
 
       <section id="features" className="bg-[#070504]">
         <div className="mx-auto max-w-7xl px-8 py-24">
-          <div className="mb-14 grid grid-cols-2 gap-10">
+          <div className="mb-14 grid grid-cols-1 gap-10 md:grid-cols-2">
             <div>
               <p className="mb-3 text-sm font-black uppercase tracking-widest text-[#f0c36a]">
                 Tudo o que precisa
               </p>
+
               <h2 className="text-5xl font-black leading-tight">
                 Um sistema completo para receber mais reservas.
               </h2>
@@ -240,7 +264,7 @@ function HomeDesktop() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <Feature title="Link para Google Maps" text="Coloque o link no perfil Google do restaurante e receba reservas 24h por dia." />
             <Feature title="QR Code de reservas" text="Partilhe o QR Code na montra, Instagram, menus ou cartões." />
             <Feature title="Serviço do dia" text="Veja almoço, jantar, pendentes, check-ins, no-shows e reservas finalizadas." />
@@ -249,7 +273,7 @@ function HomeDesktop() {
             <Feature title="Clientes e histórico" text="Guarde clientes automaticamente e acompanhe visitas e no-shows." />
           </div>
 
-          <div className="mt-20 grid grid-cols-4 gap-8 border-t border-[#f0c36a]/10 pt-12 text-center">
+          <div className="mt-20 grid grid-cols-2 gap-8 border-t border-[#f0c36a]/10 pt-12 text-center md:grid-cols-4">
             <Stat value="24h" label="reservas online" />
             <Stat value="0%" label="comissões por reserva" />
             <Stat value="10 min" label="para configurar" />
@@ -259,7 +283,7 @@ function HomeDesktop() {
       </section>
 
       <section className="bg-[#f0c36a] text-black">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-8 px-8 py-16">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-8 py-16 text-center md:flex-row md:text-left">
           <div>
             <h2 className="text-4xl font-black">
               Pronto para receber reservas pelo Google Maps?
@@ -280,7 +304,7 @@ function HomeDesktop() {
   );
 }
 
-function MiniStat({ value, label }: { value: string; label: string }) {
+function MobileStat({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-2xl border border-[#f0c36a]/10 bg-[#15100b] p-5">
       <p className="text-3xl font-black text-[#f0c36a]">{value}</p>
@@ -289,13 +313,10 @@ function MiniStat({ value, label }: { value: string; label: string }) {
   );
 }
 
-function MobileStep({ number, title, text }: { number: string; title: string; text: string }) {
+function MobileCard({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-2xl border border-[#f0c36a]/10 bg-[#15100b] p-5">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f0c36a] text-lg font-black text-black">
-        {number}
-      </div>
-      <h3 className="mb-2 text-xl font-black">{title}</h3>
+      <h3 className="mb-2 text-lg font-black">{title}</h3>
       <p className="text-sm leading-relaxed text-[#a99a82]">{text}</p>
     </div>
   );
@@ -369,14 +390,30 @@ function ProductMockup() {
 function Step({ number, title, text }: { number: string; title: string; text: string }) {
   return (
     <div className="text-center">
-      <div className="mb-6 text-7xl font-black text-[#f0c36a]">{number}</div>
-      <h3 className="mb-4 text-2xl font-black">{title}</h3>
-      <p className="leading-relaxed text-[#a99a82]">{text}</p>
+      <div className="mb-6 text-7xl font-black text-[#f0c36a]">
+        {number}
+      </div>
+
+      <h3 className="mb-4 text-2xl font-black">
+        {title}
+      </h3>
+
+      <p className="leading-relaxed text-[#a99a82]">
+        {text}
+      </p>
     </div>
   );
 }
 
-function MockCard({ label, value, danger }: { label: string; value: string; danger?: boolean }) {
+function MockCard({
+  label,
+  value,
+  danger,
+}: {
+  label: string;
+  value: string;
+  danger?: boolean;
+}) {
   return (
     <div className={danger ? "rounded-2xl border border-red-400/30 bg-red-500/10 p-4" : "rounded-2xl border border-[#f0c36a]/10 bg-black/20 p-4"}>
       <p className={danger ? "text-3xl font-black text-red-300" : "text-3xl font-black"}>
@@ -387,7 +424,19 @@ function MockCard({ label, value, danger }: { label: string; value: string; dang
   );
 }
 
-function Reservation({ time, name, people, status, danger }: { time: string; name: string; people: string; status: string; danger?: boolean }) {
+function Reservation({
+  time,
+  name,
+  people,
+  status,
+  danger,
+}: {
+  time: string;
+  name: string;
+  people: string;
+  status: string;
+  danger?: boolean;
+}) {
   return (
     <div className="mb-3 flex items-center justify-between rounded-xl bg-[#15100b] p-3">
       <div className="flex gap-4">
@@ -407,11 +456,11 @@ function Reservation({ time, name, people, status, danger }: { time: string; nam
 
 function Feature({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-3xl border border-[#f0c36a]/10 bg-[#15100b] p-6 transition hover:-translate-y-1 hover:border-[#f0c36a]/30 lg:p-7">
-      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#f0c36a]/15 text-[#f0c36a] lg:mb-6">
+    <div className="rounded-3xl border border-[#f0c36a]/10 bg-[#15100b] p-7 transition hover:-translate-y-1 hover:border-[#f0c36a]/30">
+      <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#f0c36a]/15 text-[#f0c36a]">
         ✓
       </div>
-      <h3 className="mb-3 text-lg font-black lg:text-xl">{title}</h3>
+      <h3 className="mb-3 text-xl font-black">{title}</h3>
       <p className="leading-relaxed text-[#a99a82]">{text}</p>
     </div>
   );
