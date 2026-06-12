@@ -51,21 +51,20 @@ async function saveFloorPlan(formData: FormData) {
   }[];
 
   await prisma.$transaction(
-    tables.map((table) =>
-      prisma.table.updateMany({
-        where: {
-          id: table.id,
-          restaurantId,
-        },
-        data: {
-  x: Math.round(table.x),
-  y: Math.round(table.y),
-  shape: table.shape === "round" ? "round" : "square",
-  mergeGroupId: table.mergeGroupId,
-} as any,
-      })
-    )
-  );
+  tables.map((table) =>
+    prisma.$executeRaw`
+      UPDATE "Table"
+      SET
+        "x" = ${Math.round(table.x)},
+        "y" = ${Math.round(table.y)},
+        "shape" = ${table.shape === "round" ? "round" : "square"},
+        "mergeGroupId" = ${table.mergeGroupId}
+      WHERE
+        "id" = ${table.id}
+        AND "restaurantId" = ${restaurantId}
+    `
+  )
+);
 
   redirect(`/restaurants/${restaurantId}/tables`);
 }
