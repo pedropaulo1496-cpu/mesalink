@@ -381,7 +381,7 @@ export default function FloorPlanEditor({
       <div className="relative w-full max-w-full overflow-hidden rounded-[28px] border border-cyan-300/10 bg-[#020617]/80">
         <div
           ref={viewportRef}
-          className="h-[62vh] max-h-[680px] min-h-[420px] w-full overflow-auto overscroll-contain"
+          className="floor-scroll h-[62vh] max-h-[680px] min-h-[420px] w-full overflow-auto overscroll-contain"
         >
           <div
             ref={stageRef}

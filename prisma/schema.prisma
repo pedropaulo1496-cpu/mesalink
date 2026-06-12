@@ -100,6 +100,12 @@ model Table {
   number   Int
   capacity Int
 
+  x     Int    @default(80)
+  y     Int    @default(80)
+  shape String @default("square")
+
+  mergeGroupId String?
+
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
 

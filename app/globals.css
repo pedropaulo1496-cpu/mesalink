@@ -182,3 +182,14 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.floor-scroll {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.floor-scroll::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}

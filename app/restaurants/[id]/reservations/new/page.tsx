@@ -62,7 +62,6 @@ async function createReservation(formData: FormData) {
   }
 }
 
-
   await prisma.reservation.create({
     data: {
       restaurantId,
