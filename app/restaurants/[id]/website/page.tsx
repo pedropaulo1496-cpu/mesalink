@@ -8,7 +8,7 @@ export default async function RestaurantWebsitePage({
   params: { id: string };
 }) {
   const restaurant = await prisma.restaurant.findUnique({
-    where: { id: params.id },
+    where: { id: id },
   });
 
   if (!restaurant) notFound();
