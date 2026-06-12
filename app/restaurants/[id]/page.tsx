@@ -17,7 +17,6 @@ export default async function RestaurantPage({
   if (!session?.user?.email) redirect("/login");
 
   const hasAccess = await canAccessApp(session.user.email);
-
   if (!hasAccess) redirect("/trial-expired");
 
   const { id } = await params;
@@ -26,9 +25,7 @@ export default async function RestaurantPage({
     where: { id },
     include: {
       tables: {
-        include: {
-          reservations: true,
-        },
+        include: { reservations: true },
       },
       reservations: true,
     },
@@ -42,27 +39,27 @@ export default async function RestaurantPage({
     );
   }
 
-const hasConfiguredHours = [
-  restaurant.mondayLunch,
-  restaurant.mondayDinner,
-  restaurant.tuesdayLunch,
-  restaurant.tuesdayDinner,
-  restaurant.wednesdayLunch,
-  restaurant.wednesdayDinner,
-  restaurant.thursdayLunch,
-  restaurant.thursdayDinner,
-  restaurant.fridayLunch,
-  restaurant.fridayDinner,
-  restaurant.saturdayLunch,
-  restaurant.saturdayDinner,
-  restaurant.sundayLunch,
-  restaurant.sundayDinner,
-].some(Boolean);
+  const hasConfiguredHours = [
+    restaurant.mondayLunch,
+    restaurant.mondayDinner,
+    restaurant.tuesdayLunch,
+    restaurant.tuesdayDinner,
+    restaurant.wednesdayLunch,
+    restaurant.wednesdayDinner,
+    restaurant.thursdayLunch,
+    restaurant.thursdayDinner,
+    restaurant.fridayLunch,
+    restaurant.fridayDinner,
+    restaurant.saturdayLunch,
+    restaurant.saturdayDinner,
+    restaurant.sundayLunch,
+    restaurant.sundayDinner,
+  ].some(Boolean);
 
-if (!hasConfiguredHours) {
-  redirect(`/restaurants/${id}/settings?setup=true`);
-}
-  
+  if (!hasConfiguredHours) {
+    redirect(`/restaurants/${id}/settings?setup=true`);
+  }
+
   const tableReservations = restaurant.tables.flatMap((table) =>
     table.reservations.map((reservation) => ({
       ...reservation,
@@ -115,18 +112,22 @@ if (!hasConfiguredHours) {
     0
   );
 
-  const nextReservation = activeReservations
-    .filter((reservation) => new Date(reservation.date) >= new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+  const totalCapacity =
+    restaurant.reservationMode === "CAPACITY" && restaurant.totalCapacity
+      ? restaurant.totalCapacity
+      : restaurant.tables.reduce((total, table) => total + table.capacity, 0);
+
+  const occupancyRate =
+    totalCapacity > 0 ? Math.round((guestsToday / totalCapacity) * 100) : 0;
 
   const todayReservationsList = reservationsToday
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 6);
+    .slice(0, 8);
 
   const nextReservations = activeReservations
     .filter((reservation) => new Date(reservation.date) >= new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 6);
+    .slice(0, 8);
 
   const listToShow =
     todayReservationsList.length > 0 ? todayReservationsList : nextReservations;
@@ -154,7 +155,7 @@ if (!hasConfiguredHours) {
                 </h1>
 
                 <span
-                  className={`rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.18em] ${
+                  className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${
                     restaurant.onlineReservationsEnabled
                       ? "border-green-300/20 bg-green-400/10 text-green-300"
                       : "border-red-300/20 bg-red-400/10 text-red-300"
@@ -187,7 +188,13 @@ if (!hasConfiguredHours) {
           </div>
         </header>
 
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1.3fr]">
+        <section
+          className={`grid gap-3 ${
+            pendingToday.length > 0
+              ? "sm:grid-cols-2 lg:grid-cols-4"
+              : "sm:grid-cols-3"
+          }`}
+        >
           <SmartStat
             label="Reservas hoje"
             value={reservationsToday.length}
@@ -203,13 +210,21 @@ if (!hasConfiguredHours) {
           />
 
           <SmartStat
-            label="Pendentes"
-            value={pendingToday.length}
-            sub={pendingToday.length > 0 ? "Precisa atenção" : "Tudo ok"}
-            tone={pendingToday.length > 0 ? "yellow" : "green"}
+            label="Ocupação"
+            value={occupancyRate}
+            suffix="%"
+            sub={totalCapacity > 0 ? `${guestsToday}/${totalCapacity} lugares` : "Sem capacidade"}
+            tone="violet"
           />
 
-          <NextReservationCard reservation={nextReservation} />
+          {pendingToday.length > 0 && (
+            <SmartStat
+              label="Pendentes"
+              value={pendingToday.length}
+              sub="Precisa atenção"
+              tone="yellow"
+            />
+          )}
         </section>
 
         <section className="grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -220,7 +235,7 @@ if (!hasConfiguredHours) {
                   {todayReservationsList.length > 0 ? "Hoje" : "Agenda"}
                 </p>
 
-                <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">
+                <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
                   {todayReservationsList.length > 0
                     ? "Reservas de hoje"
                     : "Próximas reservas"}
@@ -235,17 +250,20 @@ if (!hasConfiguredHours) {
               </Link>
             </div>
 
-            <div className="mt-5 space-y-2">
-              {listToShow.map((reservation) => (
-                <CompactReservationRow
+            <div className="mt-5 overflow-hidden rounded-[22px] border border-cyan-300/10 bg-[#020617]/50">
+              {listToShow.map((reservation, index) => (
+                <ReservationLine
                   key={reservation.id}
                   reservation={reservation}
+                  isNext={todayReservationsList.length > 0 && index === 0}
+                  showDate={todayReservationsList.length === 0}
                 />
               ))}
 
               {listToShow.length === 0 && (
-                <div className="rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-5 text-sm text-slate-400">
-                  Ainda não há reservas.
+                <div className="p-5 text-sm text-slate-400">
+                  Ainda não há reservas. Partilhe o link público para começar a
+                  receber reservas online.
                 </div>
               )}
             </div>
@@ -261,6 +279,10 @@ if (!hasConfiguredHours) {
                 Reservas 24/7
               </h2>
 
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Use este link no Google Maps, Instagram, website e QR Code.
+              </p>
+
               <div className="mt-4 space-y-3">
                 <div className="overflow-hidden rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-3 text-sm text-slate-300">
                   <p className="truncate">{publicUrl}</p>
@@ -270,11 +292,11 @@ if (!hasConfiguredHours) {
               </div>
 
               <p className="mt-3 text-xs leading-5 text-slate-500">
-                Escreva{" "}
+                Procure por{" "}
                 <span className="font-semibold text-cyan-300">
-                  "Google Business Profile"
+                  Google Business Profile
                 </span>{" "}
-                no Google e cole este link no botão de reservas.
+                e cole este link no botão de reservas.
               </p>
             </div>
 
@@ -284,14 +306,14 @@ if (!hasConfiguredHours) {
               </p>
 
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <ActionLink href={`/restaurants/${id}/customers`}>
-                  Clientes
-                </ActionLink>
                 <ActionLink href={`/restaurants/${id}/tables`}>
-                  Mesas
+                  Sala
                 </ActionLink>
                 <ActionLink href={`/restaurants/${id}/qr`}>
                   QR Code
+                </ActionLink>
+                <ActionLink href={`/restaurants/${id}/customers`}>
+                  Clientes
                 </ActionLink>
                 <ActionLink href={`/restaurants/${id}/settings`}>
                   Definições
@@ -339,9 +361,9 @@ function BottomNav({ id }: { id: string }) {
           <p className="text-xl">📅</p>
           Reservas
         </Link>
-        <Link href={`/restaurants/${id}/customers`}>
-          <p className="text-xl">👥</p>
-          Clientes
+        <Link href={`/restaurants/${id}/tables`}>
+          <p className="text-xl">▦</p>
+          Sala
         </Link>
         <Link href={`/restaurants/${id}/settings`}>
           <p className="text-xl">☰</p>
@@ -389,13 +411,15 @@ function DashboardLink({
 function SmartStat({
   label,
   value,
+  suffix,
   sub,
   tone,
 }: {
   label: string;
   value: number;
+  suffix?: string;
   sub: string;
-  tone: "cyan" | "blue" | "green" | "yellow";
+  tone: "cyan" | "blue" | "green" | "yellow" | "violet";
 }) {
   const toneClass =
     tone === "yellow"
@@ -404,76 +428,34 @@ function SmartStat({
       ? "border-green-300/20 bg-green-400/10 text-green-300"
       : tone === "blue"
       ? "border-blue-300/20 bg-blue-400/10 text-blue-300"
+      : tone === "violet"
+      ? "border-violet-300/20 bg-violet-400/10 text-violet-300"
       : "border-cyan-300/10 bg-white/[0.04] text-cyan-300";
 
   return (
-  <div className={`rounded-[22px] border p-5 backdrop-blur-xl ${toneClass}`}>
-    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-      {label}
-    </p>
+    <div className={`rounded-[22px] border p-4 backdrop-blur-xl ${toneClass}`}>
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+        {label}
+      </p>
 
-    <div className="mt-4 flex items-center justify-between">
-      <span className="text-5xl font-black leading-none">
-        {value}
-      </span>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <span className="text-4xl font-black leading-none">
+          {value}
+          {suffix && <span className="text-2xl">{suffix}</span>}
+        </span>
 
-      <span className="text-xs font-semibold text-slate-500 text-right">
-        {sub}
-      </span>
-    </div>
-  </div>
-);
-}
-
-function NextReservationCard({
-  reservation,
-}: {
-  reservation:
-    | {
-        customerName: string;
-        guests: number;
-        date: Date | string;
-        status: string | null;
-        tableNumber: number | null;
-      }
-    | undefined;
-}) {
-  if (!reservation) {
-    return (
-      <div className="rounded-[22px] border border-cyan-300/10 bg-white/[0.04] p-4 backdrop-blur-xl">
-        <p className="text-xs font-bold text-slate-400">Próxima reserva</p>
-       <p className="mt-3 text-2xl font-black text-white">Sem reservas</p>
-        <p className="mt-1 text-xs text-slate-500">Agenda livre por agora</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-[22px] border border-violet-300/20 bg-violet-400/10 p-4 backdrop-blur-xl">
-      <p className="text-xs font-bold text-slate-400">Próxima reserva</p>
-      <div className="mt-2 flex items-end justify-between gap-3">
-        <div>
-          <p className="text-lg font-black text-white">
-            {reservation.customerName}
-          </p>
-          <p className="mt-2 text-sm text-slate-400">
-            {reservation.guests} pessoas
-            {reservation.tableNumber ? ` · Mesa ${reservation.tableNumber}` : ""}
-          </p>
-        </div>
-        <p className="text-right text-2xl font-black text-violet-300">
-          {new Date(reservation.date).toLocaleTimeString("pt-PT", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </p>
+        <span className="pb-1 text-right text-[11px] font-semibold text-slate-500">
+          {sub}
+        </span>
       </div>
     </div>
   );
 }
 
-function CompactReservationRow({
+function ReservationLine({
   reservation,
+  isNext,
+  showDate,
 }: {
   reservation: {
     customerName: string;
@@ -482,52 +464,68 @@ function CompactReservationRow({
     status: string | null;
     tableNumber: number | null;
   };
+  isNext: boolean;
+  showDate: boolean;
 }) {
   const status = String(reservation.status);
 
-  const statusClass =
+  const statusLabel =
     status === "PENDING"
-      ? "border-yellow-300/20 bg-yellow-400/10 text-yellow-300"
+      ? "Pendente"
       : status === "CONFIRMED"
-      ? "border-green-300/20 bg-green-400/10 text-green-300"
-      : "border-cyan-300/20 bg-cyan-400/10 text-cyan-200";
+      ? "Confirmada"
+      : status === "SEATED"
+      ? "Sentada"
+      : status;
+
+  const dotClass =
+    status === "PENDING"
+      ? "bg-yellow-300"
+      : status === "CONFIRMED"
+      ? "bg-green-300"
+      : status === "SEATED"
+      ? "bg-cyan-300"
+      : "bg-slate-400";
 
   return (
-    <div className="rounded-[20px] border border-cyan-300/10 bg-[#020617]/70 p-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
+    <div className="grid grid-cols-[72px_1fr_auto] items-center gap-3 border-b border-cyan-300/10 px-4 py-3 last:border-b-0">
+      <div>
+        <p className="text-lg font-black text-cyan-300">
+          {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </p>
+
+        {showDate && (
+          <p className="mt-0.5 text-[10px] font-bold text-slate-500">
+            {new Date(reservation.date).toLocaleDateString("pt-PT")}
+          </p>
+        )}
+      </div>
+
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          {isNext && (
+            <span className="rounded-full border border-orange-300/20 bg-orange-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.16em] text-orange-300">
+              Próxima
+            </span>
+          )}
+
           <p className="truncate font-black text-white">
             {reservation.customerName}
           </p>
-
-          <p className="mt-1 text-sm text-slate-400">
-            {reservation.tableNumber
-              ? `Mesa ${reservation.tableNumber}`
-              : "Sem mesa"}{" "}
-            · {reservation.guests} pessoas
-          </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
-          <span
-            className={`hidden rounded-full border px-3 py-1 text-xs font-black sm:inline-flex ${statusClass}`}
-          >
-            {status}
-          </span>
+        <p className="mt-1 text-xs text-slate-400">
+          {reservation.tableNumber ? `Mesa ${reservation.tableNumber}` : "Sem mesa"} ·{" "}
+          {reservation.guests} pessoas
+        </p>
+      </div>
 
-          <div className="text-right">
-            <p className="text-xs text-slate-500">
-              {new Date(reservation.date).toLocaleDateString("pt-PT")}
-            </p>
-
-            <p className="text-xl font-black text-cyan-300">
-              {new Date(reservation.date).toLocaleTimeString("pt-PT", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-        </div>
+      <div className="hidden items-center gap-2 text-right sm:flex">
+        <span className={`h-2 w-2 rounded-full ${dotClass}`} />
+        <span className="text-xs font-bold text-slate-400">{statusLabel}</span>
       </div>
     </div>
   );
