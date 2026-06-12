@@ -2,13 +2,17 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { updateRestaurantWebsite } from "./actions";
 
-export default async function RestaurantWebsitePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+type PageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export default async function RestaurantWebsitePage({ params }: PageProps) {
+  const { id } = await params;
+
   const restaurant = await prisma.restaurant.findUnique({
-    where: { id: id },
+    where: { id },
   });
 
   if (!restaurant) notFound();
@@ -22,7 +26,10 @@ export default async function RestaurantWebsitePage({
         </p>
       </div>
 
-      <form action={updateRestaurantWebsite} className="space-y-5 rounded-2xl border bg-white p-6 shadow-sm">
+      <form
+        action={updateRestaurantWebsite}
+        className="space-y-5 rounded-2xl border bg-white p-6 shadow-sm"
+      >
         <input type="hidden" name="restaurantId" value={restaurant.id} />
 
         <label className="flex items-center gap-3">
@@ -117,6 +124,7 @@ export default async function RestaurantWebsitePage({
         <a
           href={`/s/${restaurant.slug}`}
           target="_blank"
+          rel="noreferrer"
           className="inline-flex text-sm font-medium text-zinc-700 underline"
         >
           Ver site público
