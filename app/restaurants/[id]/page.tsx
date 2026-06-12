@@ -42,6 +42,27 @@ export default async function RestaurantPage({
     );
   }
 
+const hasConfiguredHours = [
+  restaurant.mondayLunch,
+  restaurant.mondayDinner,
+  restaurant.tuesdayLunch,
+  restaurant.tuesdayDinner,
+  restaurant.wednesdayLunch,
+  restaurant.wednesdayDinner,
+  restaurant.thursdayLunch,
+  restaurant.thursdayDinner,
+  restaurant.fridayLunch,
+  restaurant.fridayDinner,
+  restaurant.saturdayLunch,
+  restaurant.saturdayDinner,
+  restaurant.sundayLunch,
+  restaurant.sundayDinner,
+].some(Boolean);
+
+if (!hasConfiguredHours) {
+  redirect(`/restaurants/${id}/settings?setup=true`);
+}
+  
   const tableReservations = restaurant.tables.flatMap((table) =>
     table.reservations.map((reservation) => ({
       ...reservation,

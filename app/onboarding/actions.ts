@@ -57,5 +57,5 @@ export async function createRestaurant(formData: FormData) {
     },
   });
 
-  redirect(`/restaurants/${restaurant.id}`);
+  redirect(`/restaurants/${restaurant.id}/settings`);
 }

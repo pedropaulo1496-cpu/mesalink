@@ -1,21 +1,71 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import FloorPlanEditor from "./FloorPlanEditor";
 
-async function createTable(formData: FormData) {
+async function createTables(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
-  const number = Number(formData.get("number"));
-  const capacity = Number(formData.get("capacity"));
+  const startNumber = Number(formData.get("startNumber") || 1);
+  const quantity = Number(formData.get("quantity") || 1);
+  const capacity = Number(formData.get("capacity") || 2);
+  const shape = String(formData.get("shape") || "square");
 
-  await prisma.table.create({
-    data: {
-      restaurantId,
-      number,
-      capacity,
-    },
+  const safeQuantity = Math.max(1, Math.min(quantity, 60));
+  const safeCapacity = Math.max(1, Math.min(capacity, 30));
+
+  await prisma.table.createMany({
+    data: Array.from({ length: safeQuantity }).map((_, index) => {
+      const number = startNumber + index;
+      const column = index % 6;
+      const row = Math.floor(index / 6);
+
+      return {
+        restaurantId,
+        number,
+        capacity: safeCapacity,
+        shape,
+        x: 70 + column * 120,
+        y: 80 + row * 110,
+      };
+    }),
+    skipDuplicates: true,
   });
+
+  redirect(`/restaurants/${restaurantId}/tables`);
+}
+
+async function saveFloorPlan(formData: FormData) {
+  "use server";
+
+  const restaurantId = String(formData.get("restaurantId"));
+  const layout = String(formData.get("layout") || "[]");
+
+  const tables = JSON.parse(layout) as {
+    id: string;
+    x: number;
+    y: number;
+    shape: string;
+    mergeGroupId: string | null;
+  }[];
+
+  await prisma.$transaction(
+    tables.map((table) =>
+      prisma.table.updateMany({
+        where: {
+          id: table.id,
+          restaurantId,
+        },
+        data: {
+          x: Math.round(table.x),
+          y: Math.round(table.y),
+          shape: table.shape === "round" ? "round" : "square",
+          mergeGroupId: table.mergeGroupId,
+        },
+      })
+    )
+  );
 
   redirect(`/restaurants/${restaurantId}/tables`);
 }
@@ -51,7 +101,7 @@ export default async function TablesPage({
 
   const now = new Date();
 
-  const tablesWithStatus = restaurant.tables.map((table) => {
+  const tablesWithStatus = restaurant.tables.map((table, index) => {
     const activeReservation = table.reservations.find((reservation) => {
       const start = new Date(reservation.date);
       const end = new Date(start);
@@ -67,18 +117,22 @@ export default async function TablesPage({
       );
     });
 
-    if (!activeReservation) {
-      return {
-        ...table,
-        currentStatus: "FREE",
-        currentReservation: null,
-      };
-    }
-
     return {
-      ...table,
-      currentStatus: activeReservation.status,
-      currentReservation: activeReservation,
+      id: table.id,
+      number: table.number,
+      capacity: table.capacity,
+      x: table.x ?? 70 + (index % 6) * 120,
+      y: table.y ?? 80 + Math.floor(index / 6) * 110,
+      shape: table.shape ?? "square",
+      mergeGroupId: table.mergeGroupId ?? null,
+      currentStatus: activeReservation?.status ?? "FREE",
+      currentReservation: activeReservation
+        ? {
+            customerName: activeReservation.customerName,
+            guests: activeReservation.guests,
+            date: activeReservation.date,
+          }
+        : null,
     };
   });
 
@@ -99,15 +153,14 @@ export default async function TablesPage({
     0
   );
 
+  const nextTableNumber =
+    restaurant.tables.length > 0
+      ? Math.max(...restaurant.tables.map((table) => table.number)) + 1
+      : 1;
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] p-4 text-white lg:p-8">
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute left-1/2 top-[-180px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px]" />
-        <div className="absolute right-[-160px] top-[360px] h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px]" />
-        <div className="absolute bottom-[-160px] left-[-160px] h-[320px] w-[320px] rounded-full bg-blue-500/20 blur-[100px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.06)_1px,transparent_1px)] bg-[size:44px_44px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.14),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
-      </div>
+      <Background />
 
       <div className="relative z-10 mx-auto max-w-7xl space-y-6">
         <header className="rounded-[32px] border border-cyan-300/10 bg-white/[0.04] p-6 shadow-[0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:p-8">
@@ -125,14 +178,14 @@ export default async function TablesPage({
               </p>
 
               <h1 className="mt-3 text-5xl font-black tracking-[-0.05em]">
-                Mesas
+                Mapa da sala
               </h1>
 
               <p className="mt-3 text-slate-400">{restaurant.name}</p>
             </div>
 
             <div className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-5 py-3 text-sm font-black text-cyan-200">
-              Gestão da sala
+              Arraste · Clique para redonda · Aproxime para juntar
             </div>
           </div>
         </header>
@@ -145,150 +198,125 @@ export default async function TablesPage({
           <StatCard label="Sentadas" value={seatedTables} tone="blue" />
         </section>
 
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
-          <form
-            action={createTable}
-            className="rounded-[32px] border border-cyan-300/10 bg-white/[0.04] p-6 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl"
-          >
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-              Nova mesa
-            </p>
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]">
+          <aside className="space-y-6">
+            <form
+              action={createTables}
+              className="rounded-[32px] border border-cyan-300/10 bg-white/[0.04] p-6 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+                Criar em massa
+              </p>
 
-            <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">
-              Adicionar mesa
-            </h2>
+              <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">
+                Adicionar mesas
+              </h2>
 
-            <p className="mt-2 text-sm text-slate-400">
-              Crie mesas com número e capacidade para o sistema atribuir
-              reservas automaticamente.
-            </p>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Crie várias mesas de uma vez e organize-as depois no mapa.
+              </p>
 
-            <input type="hidden" name="restaurantId" value={restaurant.id} />
+              <input type="hidden" name="restaurantId" value={restaurant.id} />
 
-            <div className="mt-6 space-y-4">
-              <label className="block">
-                <span className="mb-2 block text-sm font-bold text-slate-300">
-                  Número da mesa
-                </span>
+              <div className="mt-6 space-y-4">
+                <Field label="Primeiro número">
+                  <input
+                    name="startNumber"
+                    type="number"
+                    defaultValue={nextTableNumber}
+                    className="input-ai h-12"
+                    required
+                  />
+                </Field>
 
-                <input
-                  name="number"
-                  type="number"
-                  placeholder="Ex: 1"
-                  className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40"
-                  required
-                />
-              </label>
+                <Field label="Quantidade de mesas">
+                  <input
+                    name="quantity"
+                    type="number"
+                    min="1"
+                    max="60"
+                    defaultValue={6}
+                    className="input-ai h-12"
+                    required
+                  />
+                </Field>
 
-              <label className="block">
-                <span className="mb-2 block text-sm font-bold text-slate-300">
-                  Capacidade
-                </span>
+                <Field label="Capacidade por mesa">
+                  <input
+                    name="capacity"
+                    type="number"
+                    min="1"
+                    max="30"
+                    defaultValue={2}
+                    className="input-ai h-12"
+                    required
+                  />
+                </Field>
 
-                <input
-                  name="capacity"
-                  type="number"
-                  placeholder="Ex: 4"
-                  className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40"
-                  required
-                />
-              </label>
+                <Field label="Formato inicial">
+                  <select name="shape" defaultValue="square" className="input-ai h-12">
+                    <option value="square">Quadrada</option>
+                    <option value="round">Redonda</option>
+                  </select>
+                </Field>
 
-              <button className="h-12 w-full rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 font-black text-white shadow-[0_0_35px_rgba(34,211,238,0.22)] transition hover:scale-[1.02]">
-                Adicionar Mesa
-              </button>
-            </div>
-          </form>
-
-          <section className="rounded-[32px] border border-cyan-300/10 bg-white/[0.04] p-6 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl">
-            <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-                  Sala
-                </p>
-
-                <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">
-                  Mapa de mesas
-                </h2>
+                <button className="h-12 w-full rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 font-black text-black shadow-[0_0_40px_rgba(96,165,250,0.3)] transition hover:opacity-90">
+                  Criar mesas
+                </button>
               </div>
+            </form>
 
-              <div className="flex flex-wrap gap-3 text-xs font-bold">
-                <Legend color="green" label="Livre" />
-                <Legend color="yellow" label="Reservada" />
-                <Legend color="blue" label="Sentado" />
+            <div className="rounded-[32px] border border-cyan-300/10 bg-white/[0.04] p-6 backdrop-blur-xl">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+                Como usar
+              </p>
+
+              <div className="mt-4 space-y-3 text-sm leading-6 text-slate-400">
+                <p>• Arraste uma mesa para mudar a posição.</p>
+                <p>• Clique numa mesa para alternar entre quadrada e redonda.</p>
+                <p>• Aproxime duas mesas para elas colarem em grupo.</p>
+                <p>• Clique em guardar para gravar o mapa da sala.</p>
               </div>
             </div>
+          </aside>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {tablesWithStatus.map((table) => {
-                const status = table.currentStatus;
-
-                return (
-                  <div
-                    key={table.id}
-                    className={`group relative overflow-hidden rounded-[30px] border p-5 transition duration-300 hover:-translate-y-1 ${
-                      status === "FREE"
-                        ? "border-green-400/20 bg-green-400/10"
-                        : status === "CONFIRMED"
-                        ? "border-yellow-400/20 bg-yellow-400/10"
-                        : status === "SEATED"
-                        ? "border-cyan-400/20 bg-cyan-400/10"
-                        : "border-slate-400/20 bg-white/[0.04]"
-                    }`}
-                  >
-                    <div className="absolute inset-0 opacity-0 transition group-hover:opacity-100">
-                      <div className="absolute left-0 top-0 h-full w-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-                    </div>
-
-                    <div className="relative flex items-start justify-between">
-                      <div>
-                        <p className="text-5xl font-black tracking-[-0.05em]">
-                          Mesa {table.number}
-                        </p>
-
-                        <p className="mt-2 text-sm text-slate-400">
-                          {table.capacity} lugares
-                        </p>
-                      </div>
-
-                      <StatusDot status={status} />
-                    </div>
-
-                    <div className="relative mt-5">
-                      <StatusLabel status={status} />
-
-                      {table.currentReservation && (
-                        <div className="mt-4 rounded-2xl border border-white/10 bg-[#020617]/60 p-4">
-                          <p className="font-black">
-                            {table.currentReservation.customerName}
-                          </p>
-
-                          <p className="mt-1 text-sm text-slate-400">
-                            {table.currentReservation.guests} pessoas ·{" "}
-                            {new Date(
-                              table.currentReservation.date
-                            ).toLocaleTimeString("pt-PT", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {restaurant.tables.length === 0 && (
-                <p className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] p-5 text-slate-400">
-                  Ainda não há mesas.
-                </p>
-              )}
-            </div>
-          </section>
+          <FloorPlanEditor
+            restaurantId={restaurant.id}
+            tables={tablesWithStatus}
+            saveFloorPlan={saveFloorPlan}
+          />
         </section>
       </div>
     </main>
+  );
+}
+
+function Background() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0">
+      <div className="absolute left-1/2 top-[-180px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px]" />
+      <div className="absolute right-[-160px] top-[360px] h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px]" />
+      <div className="absolute bottom-[-160px] left-[-160px] h-[320px] w-[320px] rounded-full bg-blue-500/20 blur-[100px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.06)_1px,transparent_1px)] bg-[size:44px_44px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.14),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
+    </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-bold text-slate-300">
+        {label}
+      </span>
+      {children}
+    </label>
   );
 }
 
@@ -314,67 +342,6 @@ function StatCard({
     <div className="rounded-[24px] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl">
       <p className="text-xs font-bold text-slate-400">{label}</p>
       <p className={`mt-2 text-3xl font-black ${color}`}>{value}</p>
-    </div>
-  );
-}
-
-function StatusDot({ status }: { status: string }) {
-  const color =
-    status === "FREE"
-      ? "bg-green-400 shadow-[0_0_20px_rgba(74,222,128,0.9)]"
-      : status === "CONFIRMED"
-      ? "bg-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.9)]"
-      : status === "SEATED"
-      ? "bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.9)]"
-      : "bg-slate-400";
-
-  return <span className={`h-5 w-5 rounded-full ${color}`} />;
-}
-
-function StatusLabel({ status }: { status: string }) {
-  const label =
-    status === "FREE"
-      ? "Livre"
-      : status === "CONFIRMED"
-      ? "Reservada"
-      : status === "SEATED"
-      ? "Cliente sentado"
-      : status;
-
-  const className =
-    status === "FREE"
-      ? "border-green-400/20 bg-green-400/10 text-green-300"
-      : status === "CONFIRMED"
-      ? "border-yellow-400/20 bg-yellow-400/10 text-yellow-300"
-      : status === "SEATED"
-      ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
-      : "border-slate-400/20 bg-slate-400/10 text-slate-300";
-
-  return (
-    <span className={`rounded-full border px-3 py-1 text-sm font-black ${className}`}>
-      {label}
-    </span>
-  );
-}
-
-function Legend({
-  color,
-  label,
-}: {
-  color: "green" | "yellow" | "blue";
-  label: string;
-}) {
-  const bg =
-    color === "green"
-      ? "bg-green-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]"
-      : color === "yellow"
-      ? "bg-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.8)]"
-      : "bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)]";
-
-  return (
-    <div className="flex items-center gap-2 text-slate-400">
-      <span className={`h-2.5 w-2.5 rounded-full ${bg}`} />
-      {label}
     </div>
   );
 }
