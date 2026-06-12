@@ -14,24 +14,31 @@ async function createTables(formData: FormData) {
 
   const safeQuantity = Math.max(1, Math.min(quantity, 60));
   const safeCapacity = Math.max(1, Math.min(capacity, 30));
+  const safeShape = shape === "round" ? "round" : "square";
 
-  await prisma.table.createMany({
-    data: Array.from({ length: safeQuantity }).map((_, index) => {
+  await prisma.$transaction(
+    Array.from({ length: safeQuantity }).map((_, index) => {
       const number = startNumber + index;
       const column = index % 6;
       const row = Math.floor(index / 6);
 
-      return {
-        restaurantId,
-        number,
-        capacity: safeCapacity,
-        shape,
-        x: 70 + column * 120,
-        y: 80 + row * 110,
-      };
-    }),
-    skipDuplicates: true,
-  });
+      return prisma.$executeRaw`
+        INSERT INTO "Table"
+          ("id", "number", "capacity", "restaurantId", "shape", "x", "y", "createdAt")
+        VALUES
+          (
+            gen_random_uuid()::text,
+            ${number},
+            ${safeCapacity},
+            ${restaurantId},
+            ${safeShape},
+            ${70 + column * 120},
+            ${80 + row * 110},
+            NOW()
+          )
+      `;
+    })
+  );
 
   redirect(`/restaurants/${restaurantId}/tables`);
 }
@@ -51,20 +58,20 @@ async function saveFloorPlan(formData: FormData) {
   }[];
 
   await prisma.$transaction(
-  tables.map((table) =>
-    prisma.$executeRaw`
-      UPDATE "Table"
-      SET
-        "x" = ${Math.round(table.x)},
-        "y" = ${Math.round(table.y)},
-        "shape" = ${table.shape === "round" ? "round" : "square"},
-        "mergeGroupId" = ${table.mergeGroupId}
-      WHERE
-        "id" = ${table.id}
-        AND "restaurantId" = ${restaurantId}
-    `
-  )
-);
+    tables.map((table) =>
+      prisma.$executeRaw`
+        UPDATE "Table"
+        SET
+          "x" = ${Math.round(table.x)},
+          "y" = ${Math.round(table.y)},
+          "shape" = ${table.shape === "round" ? "round" : "square"},
+          "mergeGroupId" = ${table.mergeGroupId}
+        WHERE
+          "id" = ${table.id}
+          AND "restaurantId" = ${restaurantId}
+      `
+    )
+  );
 
   redirect(`/restaurants/${restaurantId}/tables`);
 }
@@ -116,14 +123,21 @@ export default async function TablesPage({
       );
     });
 
+    const tableWithFloorPlan = table as typeof table & {
+      x?: number | null;
+      y?: number | null;
+      shape?: string | null;
+      mergeGroupId?: string | null;
+    };
+
     return {
       id: table.id,
       number: table.number,
       capacity: table.capacity,
-      x: table.x ?? 70 + (index % 6) * 120,
-      y: table.y ?? 80 + Math.floor(index / 6) * 110,
-      shape: table.shape ?? "square",
-      mergeGroupId: table.mergeGroupId ?? null,
+      x: tableWithFloorPlan.x ?? 70 + (index % 6) * 120,
+      y: tableWithFloorPlan.y ?? 80 + Math.floor(index / 6) * 110,
+      shape: tableWithFloorPlan.shape ?? "square",
+      mergeGroupId: tableWithFloorPlan.mergeGroupId ?? null,
       currentStatus: activeReservation?.status ?? "FREE",
       currentReservation: activeReservation
         ? {
@@ -253,7 +267,11 @@ export default async function TablesPage({
                 </Field>
 
                 <Field label="Formato inicial">
-                  <select name="shape" defaultValue="square" className="input-ai h-12">
+                  <select
+                    name="shape"
+                    defaultValue="square"
+                    className="input-ai h-12"
+                  >
                     <option value="square">Quadrada</option>
                     <option value="round">Redonda</option>
                   </select>
