@@ -20,7 +20,7 @@ export default async function PublicRestaurantWebsitePage({
     where: { slug },
   });
 
-  if (!restaurant || !restaurant.websiteEnabled) notFound();
+  if (!restaurant) notFound();
 
   const primaryColor = restaurant.websitePrimaryColor || "#111827";
 
