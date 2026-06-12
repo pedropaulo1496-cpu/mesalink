@@ -44,18 +44,28 @@ export default async function CustomersPage({
   });
 
   const totalReservations = customers.reduce(
-    (total, customer) => total + customer.reservations.length,
-    0
-  );
+  (
+    total: number,
+    customer: { reservations: unknown[] }
+  ) => total + customer.reservations.length,
+  0
+);
 
   const totalNoShows = customers.reduce(
-    (total, customer) =>
-      total +
-      customer.reservations.filter(
-        (reservation) => reservation.status === "NO_SHOW"
-      ).length,
-    0
-  );
+  (
+    total: number,
+    customer: {
+      reservations: {
+        status: string;
+      }[];
+    }
+  ) =>
+    total +
+    customer.reservations.filter(
+      (reservation) => reservation.status === "NO_SHOW"
+    ).length,
+  0
+);
 
   const totalGuests = customers.reduce(
     (total, customer) =>

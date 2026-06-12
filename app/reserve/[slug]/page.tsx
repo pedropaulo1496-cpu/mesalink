@@ -85,9 +85,10 @@ async function createPublicReservation(formData: FormData) {
     });
 
     const bookedGuests = reservationsInPeriod.reduce(
-      (total, reservation) => total + reservation.guests,
-      0
-    );
+  (total: number, reservation: { guests: number }) =>
+    total + reservation.guests,
+  0
+);
 
     const totalCapacity = restaurant.totalCapacity ?? 0;
 

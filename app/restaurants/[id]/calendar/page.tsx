@@ -61,17 +61,49 @@ export default async function CalendarPage({
     return <div className="p-10">Restaurante não encontrado</div>;
   }
 
-  const tableReservations = restaurant.tables.flatMap((table) =>
+  const tableReservations = restaurant.tables.flatMap(
+  (table: {
+    number: number;
+    reservations: {
+      id: string;
+      customerName: string;
+      phone: string;
+      email: string | null;
+      date: Date;
+      guests: number;
+      status: string;
+      approvalReason: string | null;
+      restaurantId: string | null;
+      tableId: string | null;
+      customerId: string | null;
+      createdAt: Date;
+    }[];
+  }) =>
     table.reservations.map((reservation) => ({
       ...reservation,
       tableNumber: table.number,
     }))
-  );
+);
 
-  const directReservations = restaurant.reservations.map((reservation) => ({
+  const directReservations = restaurant.reservations.map(
+  (reservation: {
+    id: string;
+    customerName: string;
+    phone: string;
+    email: string | null;
+    date: Date;
+    guests: number;
+    status: string;
+    approvalReason: string | null;
+    restaurantId: string | null;
+    tableId: string | null;
+    customerId: string | null;
+    createdAt: Date;
+  }) => ({
     ...reservation,
     tableNumber: null as number | null,
-  }));
+  })
+);
 
   const allReservations = [...tableReservations, ...directReservations].filter(
     (reservation, index, array) =>

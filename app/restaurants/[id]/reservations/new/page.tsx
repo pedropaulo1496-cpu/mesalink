@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 async function createReservation(formData: FormData) {
