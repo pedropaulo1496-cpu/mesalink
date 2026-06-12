@@ -18,6 +18,10 @@ type FloorTable = {
   } | null;
 };
 
+const MAP_WIDTH = 1600;
+const MAP_HEIGHT = 1000;
+const TABLE_SIZE = 72;
+
 export default function FloorPlanEditor({
   restaurantId,
   tables,
@@ -28,6 +32,7 @@ export default function FloorPlanEditor({
   saveFloorPlan: (formData: FormData) => void;
 }) {
   const [items, setItems] = useState(tables);
+  const [zoom, setZoom] = useState(0.75);
   const [dragging, setDragging] = useState<{
     id: string;
     offsetX: number;
@@ -37,6 +42,7 @@ export default function FloorPlanEditor({
     moved: boolean;
   } | null>(null);
 
+  const viewportRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
 
   const groupedTables = useMemo(() => {
@@ -51,8 +57,8 @@ export default function FloorPlanEditor({
     }
 
     return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
+      x: (event.clientX - rect.left) / zoom,
+      y: (event.clientY - rect.top) / zoom,
     };
   }
 
@@ -78,14 +84,23 @@ export default function FloorPlanEditor({
     if (!dragging) return;
 
     const point = getRelativePoint(event);
-    const distance = Math.hypot(point.x - dragging.startX, point.y - dragging.startY);
+    const distance = Math.hypot(
+      point.x - dragging.startX,
+      point.y - dragging.startY
+    );
 
     setDragging((current) =>
       current ? { ...current, moved: current.moved || distance > 6 } : current
     );
 
-    const nextX = Math.max(20, Math.min(point.x - dragging.offsetX, 790));
-    const nextY = Math.max(20, Math.min(point.y - dragging.offsetY, 470));
+    const nextX = Math.max(
+      20,
+      Math.min(point.x - dragging.offsetX, MAP_WIDTH - TABLE_SIZE - 20)
+    );
+    const nextY = Math.max(
+      20,
+      Math.min(point.y - dragging.offsetY, MAP_HEIGHT - TABLE_SIZE - 20)
+    );
 
     setItems((current) =>
       current.map((table) =>
@@ -94,7 +109,7 @@ export default function FloorPlanEditor({
     );
   }
 
-  function handlePointerUp(event: React.PointerEvent<HTMLDivElement>) {
+  function handlePointerUp() {
     if (!dragging) return;
 
     const active = items.find((table) => table.id === dragging.id);
@@ -128,9 +143,11 @@ export default function FloorPlanEditor({
       }))
       .sort((a, b) => a.distance - b.distance)[0];
 
-    if (nearest && nearest.distance < 85) {
+    if (nearest && nearest.distance < 90) {
       const groupId =
-        nearest.table.mergeGroupId || active.mergeGroupId || `group-${nearest.table.id}`;
+        nearest.table.mergeGroupId ||
+        active.mergeGroupId ||
+        `group-${nearest.table.id}`;
 
       setItems((current) =>
         current.map((table) => {
@@ -141,7 +158,7 @@ export default function FloorPlanEditor({
           if (table.id === active.id) {
             return {
               ...table,
-              x: nearest.table.x + 72,
+              x: Math.min(nearest.table.x + TABLE_SIZE + 8, MAP_WIDTH - 120),
               y: nearest.table.y,
               mergeGroupId: groupId,
             };
@@ -162,6 +179,18 @@ export default function FloorPlanEditor({
         mergeGroupId: null,
       }))
     );
+  }
+
+  function centerMap() {
+    const viewport = viewportRef.current;
+
+    if (!viewport) return;
+
+    viewport.scrollTo({
+      left: (MAP_WIDTH * zoom - viewport.clientWidth) / 2,
+      top: (MAP_HEIGHT * zoom - viewport.clientHeight) / 2,
+      behavior: "smooth",
+    });
   }
 
   const layoutValue = JSON.stringify(
@@ -192,6 +221,31 @@ export default function FloorPlanEditor({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <div className="flex rounded-full border border-cyan-300/20 bg-white/[0.04] p-1">
+            {[0.5, 0.75, 1].map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setZoom(value)}
+                className={`rounded-full px-3 py-1 text-xs font-black transition ${
+                  zoom === value
+                    ? "bg-cyan-300 text-black"
+                    : "text-slate-300 hover:bg-white/10"
+                }`}
+              >
+                {Math.round(value * 100)}%
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={centerMap}
+            className="rounded-full border border-cyan-300/20 bg-white/[0.04] px-4 py-2 text-xs font-black text-slate-200 hover:border-cyan-300/50"
+          >
+            Centrar
+          </button>
+
           <button
             type="button"
             onClick={separateGroups}
@@ -212,69 +266,94 @@ export default function FloorPlanEditor({
       </div>
 
       <div
-        ref={stageRef}
-        onPointerMove={handlePointerMove}
-        className="relative h-[560px] overflow-hidden rounded-[28px] border border-cyan-300/10 bg-[#020617]/80"
+        ref={viewportRef}
+        className="relative h-[620px] overflow-auto rounded-[28px] border border-cyan-300/10 bg-[#020617]/80"
       >
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.05)_1px,transparent_1px)] bg-[size:40px_40px]" />
-
-        <div className="absolute left-5 top-5 rounded-full border border-cyan-300/10 bg-black/30 px-3 py-1 text-xs font-bold text-slate-500">
-          Entrada
-        </div>
-
-        <div className="absolute bottom-5 right-5 rounded-full border border-cyan-300/10 bg-black/30 px-3 py-1 text-xs font-bold text-slate-500">
-          Bar / Cozinha
-        </div>
-
-        {items.map((table) => (
+        <div
+          ref={stageRef}
+          onPointerMove={handlePointerMove}
+          className="relative"
+          style={{
+            width: MAP_WIDTH * zoom,
+            height: MAP_HEIGHT * zoom,
+          }}
+        >
           <div
-            key={table.id}
-            onPointerDown={(event) => handlePointerDown(event, table)}
-            onPointerUp={handlePointerUp}
-            className={`absolute flex h-[72px] w-[72px] touch-none select-none flex-col items-center justify-center border text-center shadow-[0_0_28px_rgba(34,211,238,0.12)] transition ${
-              table.shape === "round" ? "rounded-full" : "rounded-2xl"
-            } ${
-              table.currentStatus === "FREE"
-                ? "border-green-300/25 bg-green-400/15"
-                : table.currentStatus === "CONFIRMED"
-                ? "border-yellow-300/25 bg-yellow-400/15"
-                : table.currentStatus === "SEATED"
-                ? "border-cyan-300/25 bg-cyan-400/15"
-                : "border-slate-300/20 bg-white/10"
-            } ${
-              table.mergeGroupId
-                ? "ring-2 ring-violet-300/50"
-                : ""
-            }`}
+            className="absolute left-0 top-0 origin-top-left overflow-hidden rounded-[28px]"
             style={{
-              left: table.x,
-              top: table.y,
+              width: MAP_WIDTH,
+              height: MAP_HEIGHT,
+              transform: `scale(${zoom})`,
             }}
           >
-            <p className="text-base font-black text-white">M{table.number}</p>
-            <p className="text-[10px] font-bold text-slate-300">
-              {table.capacity} pax
-            </p>
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.05)_1px,transparent_1px)] bg-[size:40px_40px]" />
 
-            {table.currentReservation && (
-              <div className="absolute -bottom-8 left-1/2 w-32 -translate-x-1/2 rounded-full border border-cyan-300/20 bg-[#020617] px-2 py-1 text-[10px] font-bold text-cyan-200">
-                {table.currentReservation.customerName}
+            <div className="absolute left-8 top-8 rounded-full border border-cyan-300/10 bg-black/30 px-3 py-1 text-xs font-bold text-slate-500">
+              Entrada
+            </div>
+
+            <div className="absolute bottom-8 right-8 rounded-full border border-cyan-300/10 bg-black/30 px-3 py-1 text-xs font-bold text-slate-500">
+              Bar / Cozinha
+            </div>
+
+            <div className="absolute left-[120px] top-[160px] h-[680px] w-[1px] bg-cyan-300/10" />
+            <div className="absolute right-[220px] top-[120px] h-[760px] w-[1px] bg-violet-300/10" />
+            <div className="absolute bottom-[180px] left-[160px] h-[1px] w-[1150px] bg-cyan-300/10" />
+
+            {items.map((table) => (
+              <div
+                key={table.id}
+                onPointerDown={(event) => handlePointerDown(event, table)}
+                onPointerUp={handlePointerUp}
+                className={`absolute flex h-[72px] w-[72px] touch-none select-none flex-col items-center justify-center border text-center shadow-[0_0_28px_rgba(34,211,238,0.12)] transition ${
+                  table.shape === "round" ? "rounded-full" : "rounded-2xl"
+                } ${
+                  table.currentStatus === "FREE"
+                    ? "border-green-300/25 bg-green-400/15"
+                    : table.currentStatus === "CONFIRMED"
+                    ? "border-yellow-300/25 bg-yellow-400/15"
+                    : table.currentStatus === "SEATED"
+                    ? "border-cyan-300/25 bg-cyan-400/15"
+                    : "border-slate-300/20 bg-white/10"
+                } ${table.mergeGroupId ? "ring-2 ring-violet-300/50" : ""}`}
+                style={{
+                  left: table.x,
+                  top: table.y,
+                }}
+              >
+                <p className="text-base font-black text-white">
+                  M{table.number}
+                </p>
+                <p className="text-[10px] font-bold text-slate-300">
+                  {table.capacity} pax
+                </p>
+
+                {table.currentReservation && (
+                  <div className="absolute -bottom-8 left-1/2 w-32 -translate-x-1/2 rounded-full border border-cyan-300/20 bg-[#020617] px-2 py-1 text-[10px] font-bold text-cyan-200">
+                    {table.currentReservation.customerName}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {items.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
+                <div>
+                  <p className="text-2xl font-black text-white">Sem mesas</p>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Crie mesas em massa e comece a desenhar a sala.
+                  </p>
+                </div>
               </div>
             )}
           </div>
-        ))}
-
-        {items.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
-            <div>
-              <p className="text-2xl font-black text-white">Sem mesas</p>
-              <p className="mt-2 text-sm text-slate-400">
-                Crie mesas em massa e comece a desenhar a sala.
-              </p>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
+
+      <p className="mt-3 text-xs text-slate-500">
+        Use scroll para navegar no mapa. Escolha 50%, 75% ou 100% para ver mais
+        ou menos sala.
+      </p>
     </section>
   );
 }
