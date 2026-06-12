@@ -49,6 +49,14 @@ model Restaurant {
   phone   String?
   address String?
 
+  websiteEnabled      Boolean @default(false)
+websiteHeadline     String?
+websiteDescription  String?
+websiteCuisine      String?
+websiteInstagram    String?
+websiteHeroImage    String?
+websitePrimaryColor String? @default("#111827")
+
   plan String @default("STARTER")
 
   userId String?
