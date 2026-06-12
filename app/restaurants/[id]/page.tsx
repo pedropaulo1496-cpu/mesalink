@@ -122,12 +122,12 @@ export default async function RestaurantPage({
 
   const todayReservationsList = reservationsToday
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 8);
+    .slice(0, 10);
 
   const nextReservations = activeReservations
     .filter((reservation) => new Date(reservation.date) >= new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 8);
+    .slice(0, 10);
 
   const listToShow =
     todayReservationsList.length > 0 ? todayReservationsList : nextReservations;
@@ -188,48 +188,9 @@ export default async function RestaurantPage({
           </div>
         </header>
 
-        <section
-          className={`grid gap-3 ${
-            pendingToday.length > 0
-              ? "sm:grid-cols-2 lg:grid-cols-4"
-              : "sm:grid-cols-3"
-          }`}
-        >
-          <SmartStat
-            label="Reservas hoje"
-            value={reservationsToday.length}
-            sub={`${confirmedToday.length} confirmadas`}
-            tone="cyan"
-          />
-
-          <SmartStat
-            label="Pessoas hoje"
-            value={guestsToday}
-            sub="Total previsto"
-            tone="blue"
-          />
-
-          <SmartStat
-            label="Ocupação"
-            value={occupancyRate}
-            suffix="%"
-            sub={totalCapacity > 0 ? `${guestsToday}/${totalCapacity} lugares` : "Sem capacidade"}
-            tone="violet"
-          />
-
-          {pendingToday.length > 0 && (
-            <SmartStat
-              label="Pendentes"
-              value={pendingToday.length}
-              sub="Precisa atenção"
-              tone="yellow"
-            />
-          )}
-        </section>
-
         <section className="grid gap-5 lg:grid-cols-[1fr_320px]">
           <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
                   {todayReservationsList.length > 0 ? "Hoje" : "Agenda"}
@@ -250,7 +211,39 @@ export default async function RestaurantPage({
               </Link>
             </div>
 
-            <div className="mt-5 overflow-hidden rounded-[22px] border border-cyan-300/10 bg-[#020617]/50">
+            <div className="mt-5 grid gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              <MiniMetric
+                label="Reservas"
+                value={reservationsToday.length}
+                sub={`${confirmedToday.length} confirmadas`}
+                tone="cyan"
+              />
+
+              <MiniMetric
+                label="Pessoas"
+                value={guestsToday}
+                sub="previstas"
+                tone="blue"
+              />
+
+              <MiniMetric
+                label="Ocupação"
+                value={`${occupancyRate}%`}
+                sub={totalCapacity > 0 ? `${guestsToday}/${totalCapacity} lugares` : "sem capacidade"}
+                tone="violet"
+              />
+
+              {pendingToday.length > 0 && (
+                <MiniMetric
+                  label="Pendentes"
+                  value={pendingToday.length}
+                  sub="precisa atenção"
+                  tone="yellow"
+                />
+              )}
+            </div>
+
+            <div className="mt-4 overflow-hidden rounded-[22px] border border-cyan-300/10 bg-[#020617]/50">
               {listToShow.map((reservation, index) => (
                 <ReservationLine
                   key={reservation.id}
@@ -408,45 +401,39 @@ function DashboardLink({
   );
 }
 
-function SmartStat({
+function MiniMetric({
   label,
   value,
-  suffix,
   sub,
   tone,
 }: {
   label: string;
-  value: number;
-  suffix?: string;
+  value: number | string;
   sub: string;
-  tone: "cyan" | "blue" | "green" | "yellow" | "violet";
+  tone: "cyan" | "blue" | "violet" | "yellow";
 }) {
   const toneClass =
     tone === "yellow"
       ? "border-yellow-300/20 bg-yellow-400/10 text-yellow-300"
-      : tone === "green"
-      ? "border-green-300/20 bg-green-400/10 text-green-300"
       : tone === "blue"
       ? "border-blue-300/20 bg-blue-400/10 text-blue-300"
       : tone === "violet"
       ? "border-violet-300/20 bg-violet-400/10 text-violet-300"
-      : "border-cyan-300/10 bg-white/[0.04] text-cyan-300";
+      : "border-cyan-300/20 bg-cyan-400/10 text-cyan-300";
 
   return (
-    <div className={`rounded-[22px] border p-4 backdrop-blur-xl ${toneClass}`}>
-      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-        {label}
-      </p>
+    <div className={`rounded-2xl border px-4 py-3 ${toneClass}`}>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+            {label}
+          </p>
+          <p className="mt-1 text-2xl font-black leading-none">{value}</p>
+        </div>
 
-      <div className="mt-3 flex items-end justify-between gap-3">
-        <span className="text-4xl font-black leading-none">
-          {value}
-          {suffix && <span className="text-2xl">{suffix}</span>}
-        </span>
-
-        <span className="pb-1 text-right text-[11px] font-semibold text-slate-500">
+        <p className="pb-0.5 text-right text-[10px] font-bold text-slate-500">
           {sub}
-        </span>
+        </p>
       </div>
     </div>
   );
@@ -488,7 +475,7 @@ function ReservationLine({
       : "bg-slate-400";
 
   return (
-    <div className="grid grid-cols-[72px_1fr_auto] items-center gap-3 border-b border-cyan-300/10 px-4 py-3 last:border-b-0">
+    <div className="grid grid-cols-[64px_1fr_auto] items-center gap-3 border-b border-cyan-300/10 px-4 py-3 last:border-b-0">
       <div>
         <p className="text-lg font-black text-cyan-300">
           {new Date(reservation.date).toLocaleTimeString("pt-PT", {
