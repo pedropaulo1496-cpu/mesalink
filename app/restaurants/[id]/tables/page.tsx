@@ -58,11 +58,11 @@ async function saveFloorPlan(formData: FormData) {
           restaurantId,
         },
         data: {
-          x: Math.round(table.x),
-          y: Math.round(table.y),
-          shape: table.shape === "round" ? "round" : "square",
-          mergeGroupId: table.mergeGroupId,
-        },
+  x: Math.round(table.x),
+  y: Math.round(table.y),
+  shape: table.shape === "round" ? "round" : "square",
+  mergeGroupId: table.mergeGroupId,
+} as any,
       })
     )
   );
