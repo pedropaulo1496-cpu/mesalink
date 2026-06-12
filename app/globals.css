@@ -173,3 +173,12 @@
 .input-ai:focus {
   border-color: rgba(103, 232, 249, 0.5);
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
