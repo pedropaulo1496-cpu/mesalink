@@ -127,8 +127,8 @@ export default async function RestaurantPage({
                 </span>
               </Link>
 
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                <h1 className="text-4xl font-black leading-none tracking-[-0.05em] sm:text-5xl">
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <h1 className="text-3xl font-black leading-none tracking-[-0.04em] sm:text-4xl">
                   {restaurant.name}
                 </h1>
 
@@ -191,7 +191,7 @@ export default async function RestaurantPage({
           <NextReservationCard reservation={nextReservation} />
         </section>
 
-        <section className="grid gap-5 lg:grid-cols-[1fr_360px]">
+        <section className="grid gap-5 lg:grid-cols-[1fr_320px]">
           <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -386,14 +386,22 @@ function SmartStat({
       : "border-cyan-300/10 bg-white/[0.04] text-cyan-300";
 
   return (
-    <div className={`rounded-[22px] border p-4 backdrop-blur-xl ${toneClass}`}>
-      <p className="text-xs font-bold text-slate-400">{label}</p>
-      <div className="mt-2 flex items-end justify-between gap-3">
-        <p className="text-3xl font-black leading-none">{value}</p>
-        <p className="text-right text-[11px] font-bold text-slate-500">{sub}</p>
-      </div>
+  <div className={`rounded-[22px] border p-5 backdrop-blur-xl ${toneClass}`}>
+    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+      {label}
+    </p>
+
+    <div className="mt-4 flex items-center justify-between">
+      <span className="text-5xl font-black leading-none">
+        {value}
+      </span>
+
+      <span className="text-xs font-semibold text-slate-500 text-right">
+        {sub}
+      </span>
     </div>
-  );
+  </div>
+);
 }
 
 function NextReservationCard({
@@ -413,7 +421,7 @@ function NextReservationCard({
     return (
       <div className="rounded-[22px] border border-cyan-300/10 bg-white/[0.04] p-4 backdrop-blur-xl">
         <p className="text-xs font-bold text-slate-400">Próxima reserva</p>
-        <p className="mt-2 text-lg font-black text-white">Sem reservas</p>
+       <p className="mt-3 text-2xl font-black text-white">Sem reservas</p>
         <p className="mt-1 text-xs text-slate-500">Agenda livre por agora</p>
       </div>
     );
@@ -427,7 +435,7 @@ function NextReservationCard({
           <p className="text-lg font-black text-white">
             {reservation.customerName}
           </p>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-2 text-sm text-slate-400">
             {reservation.guests} pessoas
             {reservation.tableNumber ? ` · Mesa ${reservation.tableNumber}` : ""}
           </p>
