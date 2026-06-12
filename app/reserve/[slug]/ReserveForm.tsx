@@ -107,16 +107,24 @@ function generateTimesFromRange(range: string | null) {
 }
 
 function getAvailableHoursForDay(restaurant: Restaurant, selectedDay: string) {
-  const date = new Date(`${selectedDay}T12:00:00`);
+  const [year, month, day] = selectedDay.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
   const weekdayKey = weekdayKeys[date.getDay()];
 
-  const open = restaurant[`${weekdayKey}Open`];
+  const open = Boolean(restaurant[`${weekdayKey}Open`]);
   const lunch = restaurant[`${weekdayKey}Lunch`];
   const dinner = restaurant[`${weekdayKey}Dinner`];
 
-  if (!open) return [];
+  const hours = [
+    ...generateTimesFromRange(lunch),
+    ...generateTimesFromRange(dinner),
+  ];
 
-  return [...generateTimesFromRange(lunch), ...generateTimesFromRange(dinner)];
+  if (!open && hours.length === 0) {
+    return [];
+  }
+
+  return hours;
 }
 
 function isTableAvailable(date: Date, reservations: Reservation[]) {

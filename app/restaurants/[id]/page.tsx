@@ -71,10 +71,10 @@ export default async function RestaurantPage({
     );
   };
 
-  const activeStatuses = ["CANCELLED", "REJECTED", "NO_SHOW"];
+  const inactiveStatuses = ["CANCELLED", "REJECTED", "NO_SHOW"];
 
   const activeReservations = allReservations.filter(
-    (reservation) => !activeStatuses.includes(String(reservation.status))
+    (reservation) => !inactiveStatuses.includes(String(reservation.status))
   );
 
   const reservationsToday = activeReservations.filter((reservation) =>
@@ -94,10 +94,21 @@ export default async function RestaurantPage({
     0
   );
 
+  const nextReservation = activeReservations
+    .filter((reservation) => new Date(reservation.date) >= new Date())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+
+  const todayReservationsList = reservationsToday
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 6);
+
   const nextReservations = activeReservations
     .filter((reservation) => new Date(reservation.date) >= new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 6);
+
+  const listToShow =
+    todayReservationsList.length > 0 ? todayReservationsList : nextReservations;
 
   const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reserve/${restaurant.slug}`;
 
@@ -105,8 +116,8 @@ export default async function RestaurantPage({
     <main className="relative min-h-screen overflow-hidden bg-[#020617] pb-24 text-white">
       <Background />
 
-      <div className="relative z-10 mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <header className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:p-7">
+      <div className="relative z-10 mx-auto max-w-7xl space-y-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <header className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <Link href="/" className="text-2xl font-black">
@@ -116,7 +127,7 @@ export default async function RestaurantPage({
                 </span>
               </Link>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+              <div className="mt-5 flex flex-wrap items-center gap-3">
                 <h1 className="text-4xl font-black leading-none tracking-[-0.05em] sm:text-5xl">
                   {restaurant.name}
                 </h1>
@@ -138,11 +149,11 @@ export default async function RestaurantPage({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <DashboardLink href={`/restaurants/${id}/reservations/new`}>
-                Nova reserva
-              </DashboardLink>
+              <PrimaryLink href={`/restaurants/${id}/reservations/new`}>
+                + Nova reserva
+              </PrimaryLink>
               <DashboardLink href={`/restaurants/${id}/day`}>
-                Serviço do dia
+                Serviço
               </DashboardLink>
               <DashboardLink href={`/restaurants/${id}/reservations`}>
                 Reservas
@@ -155,23 +166,43 @@ export default async function RestaurantPage({
           </div>
         </header>
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard label="Reservas hoje" value={reservationsToday.length} />
-          <StatCard label="Pessoas hoje" value={guestsToday} />
-          <StatCard label="Confirmadas" value={confirmedToday.length} />
-          <StatCard label="Pendentes" value={pendingToday.length} urgent={pendingToday.length > 0} />
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1.3fr]">
+          <SmartStat
+            label="Reservas hoje"
+            value={reservationsToday.length}
+            sub={`${confirmedToday.length} confirmadas`}
+            tone="cyan"
+          />
+
+          <SmartStat
+            label="Pessoas hoje"
+            value={guestsToday}
+            sub="Total previsto"
+            tone="blue"
+          />
+
+          <SmartStat
+            label="Pendentes"
+            value={pendingToday.length}
+            sub={pendingToday.length > 0 ? "Precisa atenção" : "Tudo ok"}
+            tone={pendingToday.length > 0 ? "yellow" : "green"}
+          />
+
+          <NextReservationCard reservation={nextReservation} />
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_380px]">
-          <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-7">
+        <section className="grid gap-5 lg:grid-cols-[1fr_360px]">
+          <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-                  Hoje
+                  {todayReservationsList.length > 0 ? "Hoje" : "Agenda"}
                 </p>
 
                 <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">
-                  Próximas reservas
+                  {todayReservationsList.length > 0
+                    ? "Reservas de hoje"
+                    : "Próximas reservas"}
                 </h2>
               </div>
 
@@ -183,35 +214,34 @@ export default async function RestaurantPage({
               </Link>
             </div>
 
-            <div className="mt-6 space-y-3">
-              {nextReservations.map((reservation) => (
-                <ReservationRow key={reservation.id} reservation={reservation} />
+            <div className="mt-5 space-y-2">
+              {listToShow.map((reservation) => (
+                <CompactReservationRow
+                  key={reservation.id}
+                  reservation={reservation}
+                />
               ))}
 
-              {nextReservations.length === 0 && (
+              {listToShow.length === 0 && (
                 <div className="rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-5 text-sm text-slate-400">
-                  Ainda não há próximas reservas.
+                  Ainda não há reservas.
                 </div>
               )}
             </div>
           </div>
 
-          <aside className="space-y-6">
-            <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-7">
+          <aside className="space-y-5">
+            <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
                 Link público
               </p>
 
               <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
-                Receba reservas 24/7
+                Reservas 24/7
               </h2>
 
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                Use este link no Google Maps, Instagram, website e QR Code.
-              </p>
-
-              <div className="mt-5 space-y-3">
-                <div className="overflow-hidden rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-4 text-sm text-slate-300">
+              <div className="mt-4 space-y-3">
+                <div className="overflow-hidden rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-3 text-sm text-slate-300">
                   <p className="truncate">{publicUrl}</p>
                 </div>
 
@@ -223,17 +253,16 @@ export default async function RestaurantPage({
                 <span className="font-semibold text-cyan-300">
                   "Google Business Profile"
                 </span>{" "}
-                no Google, entre no perfil do restaurante e cole este link no
-                botão de reservas.
+                no Google e cole este link no botão de reservas.
               </p>
             </div>
 
-            <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl lg:p-7">
+            <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl lg:p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
                 Ações rápidas
               </p>
 
-              <div className="mt-5 grid gap-3">
+              <div className="mt-4 grid grid-cols-2 gap-3">
                 <ActionLink href={`/restaurants/${id}/customers`}>
                   Clientes
                 </ActionLink>
@@ -244,9 +273,12 @@ export default async function RestaurantPage({
                   QR Code
                 </ActionLink>
                 <ActionLink href={`/restaurants/${id}/settings`}>
-                  Configurações
+                  Definições
                 </ActionLink>
                 <ActionLink href="/billing">Billing</ActionLink>
+                <ActionLink href={`/reserve/${restaurant.slug}`}>
+                  Público
+                </ActionLink>
               </div>
             </div>
           </aside>
@@ -261,11 +293,11 @@ export default async function RestaurantPage({
 function Background() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0">
-      <div className="absolute left-1/2 top-[-180px] h-[430px] w-[430px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px]" />
-      <div className="absolute right-[-160px] top-[360px] h-[330px] w-[330px] rounded-full bg-violet-500/20 blur-[100px]" />
-      <div className="absolute bottom-[-160px] left-[-160px] h-[330px] w-[330px] rounded-full bg-blue-500/16 blur-[100px]" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.05)_1px,transparent_1px)] bg-[size:44px_44px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.13),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
+      <div className="absolute left-1/2 top-[-180px] h-[430px] w-[430px] -translate-x-1/2 rounded-full bg-cyan-500/18 blur-[110px]" />
+      <div className="absolute right-[-160px] top-[360px] h-[330px] w-[330px] rounded-full bg-violet-500/16 blur-[100px]" />
+      <div className="absolute bottom-[-160px] left-[-160px] h-[330px] w-[330px] rounded-full bg-blue-500/12 blur-[100px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.12),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
     </div>
   );
 }
@@ -299,6 +331,23 @@ function BottomNav({ id }: { id: string }) {
   );
 }
 
+function PrimaryLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 py-2.5 text-sm font-black text-black shadow-[0_0_40px_rgba(96,165,250,0.3)] transition hover:opacity-90"
+    >
+      {children}
+    </Link>
+  );
+}
+
 function DashboardLink({
   href,
   children,
@@ -316,36 +365,85 @@ function DashboardLink({
   );
 }
 
-function StatCard({
+function SmartStat({
   label,
   value,
-  urgent,
+  sub,
+  tone,
 }: {
   label: string;
   value: number;
-  urgent?: boolean;
+  sub: string;
+  tone: "cyan" | "blue" | "green" | "yellow";
 }) {
+  const toneClass =
+    tone === "yellow"
+      ? "border-yellow-300/20 bg-yellow-400/10 text-yellow-300"
+      : tone === "green"
+      ? "border-green-300/20 bg-green-400/10 text-green-300"
+      : tone === "blue"
+      ? "border-blue-300/20 bg-blue-400/10 text-blue-300"
+      : "border-cyan-300/10 bg-white/[0.04] text-cyan-300";
+
   return (
-    <div
-      className={`rounded-[24px] border p-5 backdrop-blur-xl ${
-        urgent
-          ? "border-yellow-300/20 bg-yellow-400/10"
-          : "border-cyan-300/10 bg-white/[0.04]"
-      }`}
-    >
-      <p className="text-sm font-bold text-slate-400">{label}</p>
-      <p
-        className={`mt-3 text-4xl font-black ${
-          urgent ? "text-yellow-300" : "text-cyan-300"
-        }`}
-      >
-        {value}
-      </p>
+    <div className={`rounded-[22px] border p-4 backdrop-blur-xl ${toneClass}`}>
+      <p className="text-xs font-bold text-slate-400">{label}</p>
+      <div className="mt-2 flex items-end justify-between gap-3">
+        <p className="text-3xl font-black leading-none">{value}</p>
+        <p className="text-right text-[11px] font-bold text-slate-500">{sub}</p>
+      </div>
     </div>
   );
 }
 
-function ReservationRow({
+function NextReservationCard({
+  reservation,
+}: {
+  reservation:
+    | {
+        customerName: string;
+        guests: number;
+        date: Date | string;
+        status: string | null;
+        tableNumber: number | null;
+      }
+    | undefined;
+}) {
+  if (!reservation) {
+    return (
+      <div className="rounded-[22px] border border-cyan-300/10 bg-white/[0.04] p-4 backdrop-blur-xl">
+        <p className="text-xs font-bold text-slate-400">Próxima reserva</p>
+        <p className="mt-2 text-lg font-black text-white">Sem reservas</p>
+        <p className="mt-1 text-xs text-slate-500">Agenda livre por agora</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-[22px] border border-violet-300/20 bg-violet-400/10 p-4 backdrop-blur-xl">
+      <p className="text-xs font-bold text-slate-400">Próxima reserva</p>
+      <div className="mt-2 flex items-end justify-between gap-3">
+        <div>
+          <p className="text-lg font-black text-white">
+            {reservation.customerName}
+          </p>
+          <p className="mt-1 text-xs text-slate-400">
+            {reservation.guests} pessoas
+            {reservation.tableNumber ? ` · Mesa ${reservation.tableNumber}` : ""}
+          </p>
+        </div>
+        <p className="text-right text-2xl font-black text-violet-300">
+          {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CompactReservationRow({
   reservation,
 }: {
   reservation: {
@@ -356,11 +454,22 @@ function ReservationRow({
     tableNumber: number | null;
   };
 }) {
+  const status = String(reservation.status);
+
+  const statusClass =
+    status === "PENDING"
+      ? "border-yellow-300/20 bg-yellow-400/10 text-yellow-300"
+      : status === "CONFIRMED"
+      ? "border-green-300/20 bg-green-400/10 text-green-300"
+      : "border-cyan-300/20 bg-cyan-400/10 text-cyan-200";
+
   return (
-    <div className="rounded-[24px] border border-cyan-300/10 bg-[#020617]/70 p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="font-black text-white">{reservation.customerName}</p>
+    <div className="rounded-[20px] border border-cyan-300/10 bg-[#020617]/70 p-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="truncate font-black text-white">
+            {reservation.customerName}
+          </p>
 
           <p className="mt-1 text-sm text-slate-400">
             {reservation.tableNumber
@@ -368,23 +477,27 @@ function ReservationRow({
               : "Sem mesa"}{" "}
             · {reservation.guests} pessoas
           </p>
-
-          <span className="mt-3 inline-block rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-200">
-            {reservation.status}
-          </span>
         </div>
 
-        <div className="text-right">
-          <p className="text-sm text-slate-400">
-            {new Date(reservation.date).toLocaleDateString("pt-PT")}
-          </p>
+        <div className="flex shrink-0 items-center gap-3">
+          <span
+            className={`hidden rounded-full border px-3 py-1 text-xs font-black sm:inline-flex ${statusClass}`}
+          >
+            {status}
+          </span>
 
-          <p className="mt-1 text-xl font-black text-cyan-300">
-            {new Date(reservation.date).toLocaleTimeString("pt-PT", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
+          <div className="text-right">
+            <p className="text-xs text-slate-500">
+              {new Date(reservation.date).toLocaleDateString("pt-PT")}
+            </p>
+
+            <p className="text-xl font-black text-cyan-300">
+              {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -401,7 +514,7 @@ function ActionLink({
   return (
     <Link
       href={href}
-      className="flex items-center justify-between rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-4 font-black text-white transition hover:border-cyan-300/40 hover:bg-cyan-400/10"
+      className="flex items-center justify-between rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-3.5 text-sm font-black text-white transition hover:border-cyan-300/40 hover:bg-cyan-400/10"
     >
       <span>{children}</span>
       <span className="text-cyan-300">→</span>
