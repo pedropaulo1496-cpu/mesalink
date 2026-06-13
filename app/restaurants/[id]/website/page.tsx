@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { updateRestaurantWebsite } from "./actions";
 
 type PageProps = {
   params: Promise<{
@@ -27,9 +26,10 @@ export default async function RestaurantWebsitePage({ params }: PageProps) {
       </div>
 
       <form
-        action={updateRestaurantWebsite}
-        className="space-y-5 rounded-2xl border bg-white p-6 shadow-sm"
-      >
+  action={`/api/restaurants/${restaurant.id}/website`}
+  method="POST"
+  className="space-y-5 rounded-2xl border bg-white p-6 shadow-sm"
+>
         <input type="hidden" name="restaurantId" value={restaurant.id} />
 
         <label className="flex items-center gap-3">
@@ -115,9 +115,12 @@ export default async function RestaurantWebsitePage({ params }: PageProps) {
           />
         </div>
 
-        <button className="rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white hover:bg-zinc-800">
-          Guardar mini-site
-        </button>
+        <button
+  type="submit"
+  className="rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white hover:bg-zinc-800"
+>
+  Guardar mini-site
+</button>
       </form>
 
       {restaurant.slug && (
