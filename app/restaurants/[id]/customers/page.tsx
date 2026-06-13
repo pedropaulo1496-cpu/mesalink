@@ -68,14 +68,14 @@ export default async function CustomersPage({
 );
 
   const totalGuests = customers.reduce(
-    (total, customer) =>
-      total +
-      customer.reservations.reduce(
-        (sum, reservation) => sum + reservation.guests,
-        0
-      ),
-    0
-  );
+  (total: number, customer: any) =>
+    total +
+    customer.reservations.reduce(
+      (sum: number, reservation: any) => sum + reservation.guests,
+      0
+    ),
+  0
+);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
@@ -130,9 +130,9 @@ export default async function CustomersPage({
             ).length;
 
             const customerGuests = customer.reservations.reduce(
-              (total, reservation) => total + reservation.guests,
-              0
-            );
+  (total: number, reservation: any) => total + reservation.guests,
+  0
+);
 
             const lastReservation = customer.reservations[0];
 
@@ -177,9 +177,9 @@ export default async function CustomersPage({
               ).length;
 
               const customerGuests = customer.reservations.reduce(
-                (total, reservation) => total + reservation.guests,
-                0
-              );
+  (total: number, reservation: any) => total + reservation.guests,
+  0
+);
 
               const lastReservation = customer.reservations[0];
 
