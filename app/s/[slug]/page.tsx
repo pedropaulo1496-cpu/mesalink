@@ -65,6 +65,13 @@ export default async function PublicRestaurantWebsitePage({
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { slug },
+    include: {
+      websiteMenus: {
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+    },
   });
 
   if (!restaurant) notFound();

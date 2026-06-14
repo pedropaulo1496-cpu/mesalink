@@ -3,8 +3,8 @@ import {
   formatOpeningHour,
   getGalleryItems,
   getMapsUrl,
+  getWebsiteMenus,
   getReserveUrl,
-  normalizeInstagramUrl,
   type OpeningHour,
   type PublicRestaurant,
 } from "./utils";
@@ -15,12 +15,13 @@ function hasText(value: string | null | undefined) {
 
 export function MenuSection({
   restaurant,
-  primaryColor,
 }: {
   restaurant: PublicRestaurant;
   primaryColor: string;
 }) {
-  if (!restaurant.websiteMenuPdf) return null;
+  const menus = getWebsiteMenus(restaurant);
+
+  if (menus.length === 0) return null;
 
   const hasTitle = hasText(restaurant.websiteMenuTitle);
   const hasDescription = hasText(restaurant.websiteMenuDescription);
@@ -43,34 +44,37 @@ export function MenuSection({
                 </p>
               )}
 
-              <div className={hasTitle || hasDescription ? "mt-9 flex flex-col gap-3 sm:flex-row" : "flex flex-col gap-3 sm:flex-row"}>
-                <a
-                  href={restaurant.websiteMenuPdf}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center rounded-full bg-[#1d120b] px-8 py-4 text-sm font-black text-white shadow-lg hover:opacity-90"
-                >
-                  Ver menu
-                </a>
-
+              <div
+                className={
+                  hasTitle || hasDescription
+                    ? "mt-9 flex flex-wrap gap-3"
+                    : "flex flex-wrap gap-3"
+                }
+              >
+                {menus.map((menu, index) => (
+                  <a
+                    key={`${menu.pdf}-${index}`}
+                    href={menu.pdf}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center rounded-full bg-[#1d120b] px-8 py-4 text-sm font-black text-white shadow-lg hover:opacity-90"
+                  >
+                    {menu.title || `Menu ${index + 1}`}
+                  </a>
+                ))}
               </div>
             </div>
 
-            <a
-              href={restaurant.websiteMenuPdf}
-              target="_blank"
-              rel="noreferrer"
-              className="flex min-h-[320px] items-center justify-center bg-[#1d120b] p-8 text-center text-white"
-            >
+            <div className="flex min-h-[320px] items-center justify-center bg-[#1d120b] p-8 text-center text-white">
               <div>
                 <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-white/10 text-5xl">
                   📄
                 </div>
                 <p className="mt-5 text-xs font-black uppercase tracking-[0.35em] text-white/35">
-                  Abrir PDF
+                  {menus.length === 1 ? "Menu disponível" : `${menus.length} menus disponíveis`}
                 </p>
               </div>
-            </a>
+            </div>
           </div>
         </div>
       </div>
@@ -87,7 +91,6 @@ export function ReservationAndHoursSection({
   hours: OpeningHour[];
   primaryColor: string;
 }) {
-  const reserveUrl = getReserveUrl(restaurant);
   const hasIntro =
     hasText(restaurant.websiteAboutTitle) ||
     hasText(restaurant.websiteFeatureTitle) ||
@@ -126,14 +129,6 @@ export function ReservationAndHoursSection({
             )}
 
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <a
-                href={reserveUrl}
-                className="inline-flex items-center justify-center rounded-full px-8 py-4 text-sm font-black text-white"
-                style={{ backgroundColor: primaryColor }}
-              >
-                Reservar
-              </a>
-
               {restaurant.phone && (
                 <a
                   href={`tel:${restaurant.phone}`}
@@ -242,8 +237,6 @@ export function LocationSection({
   primaryColor: string;
 }) {
   const mapsUrl = getMapsUrl(restaurant);
-  const reserveUrl = getReserveUrl(restaurant);
-
   if (!mapsUrl || !restaurant.address) return null;
 
   const hasTitle = hasText(restaurant.websiteLocationTitle);

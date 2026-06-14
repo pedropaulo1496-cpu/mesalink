@@ -6,6 +6,13 @@ export type OpeningHour = {
   dinner: string | null;
 };
 
+export type PublicWebsiteMenu = {
+  id?: string;
+  title: string;
+  pdf: string;
+  sortOrder?: number;
+};
+
 export type PublicRestaurant = {
   id: string;
   name: string;
@@ -36,6 +43,7 @@ export type PublicRestaurant = {
   websiteMenuTitle: string | null;
   websiteMenuDescription: string | null;
   websiteMenuPdf: string | null;
+  websiteMenus?: PublicWebsiteMenu[];
 
   websiteAboutTitle: string | null;
   websiteAboutText: string | null;
@@ -120,6 +128,33 @@ export function getGalleryItems(restaurant: PublicRestaurant) {
   );
 }
 
+export function getWebsiteMenus(restaurant: PublicRestaurant) {
+  const dynamicMenus =
+    restaurant.websiteMenus
+      ?.slice()
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      .filter((menu) => menu.pdf?.startsWith("http"))
+      .map((menu, index) => ({
+        title: menu.title?.trim() || `Menu ${index + 1}`,
+        pdf: menu.pdf,
+      })) || [];
+
+  if (dynamicMenus.length > 0) {
+    return dynamicMenus;
+  }
+
+  if (restaurant.websiteMenuPdf?.startsWith("http")) {
+    return [
+      {
+        title: restaurant.websiteMenuTitle?.trim() || "Menu",
+        pdf: restaurant.websiteMenuPdf,
+      },
+    ];
+  }
+
+  return [];
+}
+
 export function getMapsUrl(restaurant: PublicRestaurant) {
   if (!restaurant.address) return null;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -161,4 +196,52 @@ export function getDisplayTitle(restaurant: PublicRestaurant) {
 
 export function getDisplayDescription(restaurant: PublicRestaurant) {
   return restaurant.websiteDescription || "";
+}
+
+export function getAboutTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteAboutTitle || "";
+}
+
+export function getAboutText(restaurant: PublicRestaurant) {
+  return restaurant.websiteAboutText || "";
+}
+
+export function getFeatureTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteFeatureTitle || "";
+}
+
+export function getFeatureText(restaurant: PublicRestaurant) {
+  return restaurant.websiteFeatureText || "";
+}
+
+export function getSectionTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteSectionTitle || "";
+}
+
+export function getSectionText(restaurant: PublicRestaurant) {
+  return restaurant.websiteSectionText || "";
+}
+
+export function getGalleryTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteGalleryTitle || "";
+}
+
+export function getGalleryDescription(restaurant: PublicRestaurant) {
+  return restaurant.websiteGalleryDescription || "";
+}
+
+export function getLocationTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteLocationTitle || "";
+}
+
+export function getLocationDescription(restaurant: PublicRestaurant) {
+  return restaurant.websiteLocationDescription || "";
+}
+
+export function getFinalCtaTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteFinalCtaTitle || "";
+}
+
+export function getFinalCtaText(restaurant: PublicRestaurant) {
+  return restaurant.websiteFinalCtaText || "";
 }

@@ -4,6 +4,13 @@ import { FileUploadField } from "@/components/FileUploadField";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { useMemo, useState } from "react";
 
+type WebsiteMenuItem = {
+  id?: string;
+  title: string;
+  pdf: string;
+  sortOrder?: number;
+};
+
 type RestaurantWebsiteData = {
   id: string;
   name: string;
@@ -30,6 +37,7 @@ type RestaurantWebsiteData = {
   websiteMenuTitle: string | null;
   websiteMenuDescription: string | null;
   websiteMenuPdf: string | null;
+  websiteMenus?: WebsiteMenuItem[];
   websiteAboutTitle: string | null;
   websiteAboutText: string | null;
   websiteFeatureTitle: string | null;
@@ -74,7 +82,31 @@ export function WebsiteEditorClient({
   const [galleryTitle4, setGalleryTitle4] = useState(restaurant.websiteGalleryTitle4 || "");
   const [menuTitle, setMenuTitle] = useState(restaurant.websiteMenuTitle || "");
   const [menuDescription, setMenuDescription] = useState(restaurant.websiteMenuDescription || "");
-  const [menuPdf, setMenuPdf] = useState(restaurant.websiteMenuPdf || "");
+  const [menuItems, setMenuItems] = useState<WebsiteMenuItem[]>(() => {
+    if (restaurant.websiteMenus?.length) {
+      return restaurant.websiteMenus
+        .slice()
+        .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+        .map((item) => ({
+          id: item.id,
+          title: item.title || "",
+          pdf: item.pdf || "",
+          sortOrder: item.sortOrder || 0,
+        }));
+    }
+
+    if (restaurant.websiteMenuPdf) {
+      return [
+        {
+          title: restaurant.websiteMenuTitle || "Menu",
+          pdf: restaurant.websiteMenuPdf,
+          sortOrder: 0,
+        },
+      ];
+    }
+
+    return [];
+  });
   const [aboutTitle, setAboutTitle] = useState(restaurant.websiteAboutTitle || "");
   const [aboutText, setAboutText] = useState(restaurant.websiteAboutText || "");
   const [featureTitle, setFeatureTitle] = useState(restaurant.websiteFeatureTitle || "");
@@ -102,11 +134,12 @@ export function WebsiteEditorClient({
   const gallery = [gallery1, gallery2, gallery3, gallery4];
   const galleryTitles = [galleryTitle1, galleryTitle2, galleryTitle3, galleryTitle4];
   const galleryCount = gallery.filter((item) => item.startsWith("http")).length;
+  const menuCount = menuItems.filter((item) => item.pdf.startsWith("http")).length;
 
   const score = useMemo(() => {
-    const items = [enabled, headline, description, cuisine, heroImage, aboutText, menuPdf, restaurant.phone || restaurant.email];
+    const items = [enabled, headline, description, cuisine, heroImage, aboutText, menuCount > 0, phone || email];
     return Math.round((items.filter(Boolean).length / items.length) * 100);
-  }, [enabled, headline, description, cuisine, heroImage, aboutText, menuPdf, restaurant.phone, restaurant.email]);
+  }, [enabled, headline, description, cuisine, heroImage, aboutText, menuCount, phone, email]);
 
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
@@ -162,6 +195,33 @@ export function WebsiteEditorClient({
     } finally {
       setIsGeneratingAi(false);
     }
+  }
+
+  function addMenuItem() {
+    setMenuItems((items) => [
+      ...items,
+      {
+        title: "",
+        pdf: "",
+        sortOrder: items.length,
+      },
+    ]);
+  }
+
+  function updateMenuItem(index: number, field: "title" | "pdf", value: string) {
+    setMenuItems((items) =>
+      items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item
+      )
+    );
+  }
+
+  function removeMenuItem(index: number) {
+    setMenuItems((items) =>
+      items
+        .filter((_, itemIndex) => itemIndex !== index)
+        .map((item, itemIndex) => ({ ...item, sortOrder: itemIndex }))
+    );
   }
 
   function improveText() {
@@ -293,12 +353,92 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="07" title="Menu" description="Menus digitais e PDFs.">
+            <EditorBlock number="07" title="Menus" description="Adiciona um ou vários menus em PDF, com o nome que quiseres.">
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Título do menu"><input name="websiteMenuTitle" value={menuTitle} onChange={(event) => setMenuTitle(event.target.value)} placeholder="Menu" className="input-dark h-12" /></Field>
-                <Field label="Descrição do menu"><input name="websiteMenuDescription" value={menuDescription} onChange={(event) => setMenuDescription(event.target.value)} placeholder="Consulta a nossa carta completa." className="input-dark h-12" /></Field>
+                <Field label="Título da secção">
+                  <input
+                    name="websiteMenuTitle"
+                    value={menuTitle}
+                    onChange={(event) => setMenuTitle(event.target.value)}
+                    placeholder="Menu"
+                    className="input-dark h-12"
+                  />
+                </Field>
+
+                <Field label="Descrição da secção">
+                  <input
+                    name="websiteMenuDescription"
+                    value={menuDescription}
+                    onChange={(event) => setMenuDescription(event.target.value)}
+                    placeholder="Consulta os nossos menus."
+                    className="input-dark h-12"
+                  />
+                </Field>
               </div>
-              <Field label="Menu em PDF"><FileUploadField value={menuPdf} onChange={setMenuPdf} /><input type="hidden" name="websiteMenuPdf" value={menuPdf} /></Field>
+
+              <div className="space-y-4">
+                {menuItems.length === 0 && (
+                  <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-sm text-white/45">
+                    Ainda não adicionaste nenhum menu.
+                  </div>
+                )}
+
+                {menuItems.map((item, index) => (
+                  <div
+                    key={`${item.id || "new"}-${index}`}
+                    className="rounded-3xl border border-white/10 bg-black/20 p-4"
+                  >
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <p className="text-sm font-black text-white">
+                        Menu {index + 1}
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={() => removeMenuItem(index)}
+                        className="rounded-full border border-red-300/20 bg-red-400/10 px-3 py-1 text-xs font-black text-red-200 hover:bg-red-400/15"
+                      >
+                        Remover
+                      </button>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Field label="Nome do menu">
+                        <input
+                          name="websiteMenuItemTitle[]"
+                          value={item.title}
+                          onChange={(event) =>
+                            updateMenuItem(index, "title", event.target.value)
+                          }
+                          placeholder="Ex: Carta, Cocktails, Vinhos, Brunch..."
+                          className="input-dark h-12"
+                        />
+                      </Field>
+
+                      <input
+                        type="hidden"
+                        name="websiteMenuItemPdf[]"
+                        value={item.pdf}
+                      />
+
+                      <Field label="PDF do menu">
+                        <FileUploadField
+                          value={item.pdf}
+                          onChange={(url) => updateMenuItem(index, "pdf", url)}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={addMenuItem}
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 text-sm font-black text-white hover:bg-white/15"
+                >
+                  + Adicionar menu
+                </button>
+              </div>
             </EditorBlock>
 
             <EditorBlock number="08" title="Estilo" description="Ajusta a identidade visual do site.">
@@ -397,8 +537,8 @@ export function WebsiteEditorClient({
           </section>
 
           <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
-            <LivePreview restaurantName={restaurant.name} logoImage={logoImage} headline={headline} description={description} cuisine={cuisine} heroImage={heroImage} gallery={gallery} galleryTitles={galleryTitles} primaryColor={primaryColor} template={template} theme={previewTheme} menuTitle={menuTitle} menuPdf={menuPdf} />
-            <QualityCard score={score} enabled={enabled} galleryCount={galleryCount} hasMenu={Boolean(menuPdf)} />
+            <LivePreview restaurantName={restaurant.name} logoImage={logoImage} headline={headline} description={description} cuisine={cuisine} heroImage={heroImage} gallery={gallery} galleryTitles={galleryTitles} primaryColor={primaryColor} template={template} theme={previewTheme} menuTitle={menuTitle} menuItems={menuItems} />
+            <QualityCard score={score} enabled={enabled} galleryCount={galleryCount} hasMenu={menuCount > 0} />
             <button type="submit" className="hidden h-14 w-full rounded-full bg-white text-sm font-black text-black hover:bg-white/90 lg:block">Guardar alterações</button>
           </aside>
         </form>
@@ -407,8 +547,9 @@ export function WebsiteEditorClient({
   );
 }
 
-function LivePreview({ restaurantName, logoImage, headline, description, cuisine, heroImage, gallery, galleryTitles, primaryColor, template, theme, menuTitle, menuPdf }: { restaurantName: string; logoImage: string; headline: string; description: string; cuisine: string; heroImage: string; gallery: string[]; galleryTitles: string[]; primaryColor: string; template: string; theme: ReturnType<typeof getPreviewTheme>; menuTitle: string; menuPdf: string; }) {
+function LivePreview({ restaurantName, logoImage, headline, description, cuisine, heroImage, gallery, galleryTitles, primaryColor, template, theme, menuTitle, menuItems }: { restaurantName: string; logoImage: string; headline: string; description: string; cuisine: string; heroImage: string; gallery: string[]; galleryTitles: string[]; primaryColor: string; template: string; theme: ReturnType<typeof getPreviewTheme>; menuTitle: string; menuItems: WebsiteMenuItem[]; }) {
   const validGallery = gallery.filter((item) => item.startsWith("http"));
+  const validMenus = menuItems.filter((item) => item.pdf.startsWith("http"));
 
   return (
     <div className={`overflow-hidden rounded-[2rem] border shadow-2xl ${theme.shell}`}>
@@ -431,7 +572,7 @@ function LivePreview({ restaurantName, logoImage, headline, description, cuisine
       <div className={theme.body}>
         <div className="grid grid-cols-3 gap-2">
           <PreviewPill label="Template" value={template} />
-          <PreviewPill label="Menu" value={menuPdf ? "PDF" : "—"} />
+          <PreviewPill label="Menus" value={validMenus.length ? String(validMenus.length) : "—"} />
           <PreviewPill label="Fotos" value={String(validGallery.length + (heroImage ? 1 : 0))} />
         </div>
         <div className="mt-4 grid grid-cols-4 gap-2">
@@ -448,8 +589,8 @@ function LivePreview({ restaurantName, logoImage, headline, description, cuisine
         </div>
         <div className="mt-4 rounded-2xl border border-current/10 p-4">
           <p className="text-xs font-black uppercase tracking-[0.25em] opacity-40">Menu</p>
-          <p className="mt-2 text-lg font-black">{menuTitle || "Menu"}</p>
-          <p className="mt-1 text-sm opacity-55">{menuPdf ? "PDF carregado e pronto para o site." : "Carrega o menu em PDF para aparecer no site."}</p>
+          <p className="mt-2 text-lg font-black">{menuTitle || "Menus"}</p>
+          <p className="mt-1 text-sm opacity-55">{validMenus.length ? `${validMenus.length} menu(s) carregado(s).` : "Adiciona um ou mais menus em PDF."}</p>
         </div>
       </div>
     </div>

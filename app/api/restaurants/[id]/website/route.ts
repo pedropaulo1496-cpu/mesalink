@@ -22,56 +22,89 @@ export async function POST(
   const { id } = await params;
   const formData = await request.formData();
 
-  await prisma.restaurant.update({
-    where: { id },
-    data: {
-      name: getText(formData, "name") || undefined,
-      email: getText(formData, "email"),
-      phone: getText(formData, "phone"),
-      address: getText(formData, "address"),
+  const menuTitles = formData.getAll("websiteMenuItemTitle[]").map(String);
+  const menuPdfs = formData.getAll("websiteMenuItemPdf[]").map(String);
 
-      websiteEnabled: formData.get("websiteEnabled") === "on",
-      websiteTemplate: getText(formData, "websiteTemplate") || "PREMIUM",
-      websitePrimaryColor: getText(formData, "websitePrimaryColor") || "#111827",
-      slug: normalizeSlug(getText(formData, "slug")),
+  const menus = menuPdfs
+    .map((pdf, index) => ({
+      title: (menuTitles[index] || `Menu ${index + 1}`).trim(),
+      pdf: pdf.trim(),
+      sortOrder: index,
+    }))
+    .filter((menu) => menu.pdf.startsWith("http"));
 
-      websiteHeadline: getText(formData, "websiteHeadline"),
-      websiteDescription: getText(formData, "websiteDescription"),
-      websiteCuisine: getText(formData, "websiteCuisine"),
-      websiteInstagram: getText(formData, "websiteInstagram"),
-      websiteHeroImage: getText(formData, "websiteHeroImage"),
-      websiteLogoImage: getText(formData, "websiteLogoImage"),
+  await prisma.$transaction(async (tx) => {
+    await tx.restaurant.update({
+      where: { id },
+      data: {
+        name: getText(formData, "name") || undefined,
+        email: getText(formData, "email"),
+        phone: getText(formData, "phone"),
+        address: getText(formData, "address"),
 
-      websiteAboutTitle: getText(formData, "websiteAboutTitle"),
-      websiteAboutText: getText(formData, "websiteAboutText"),
-      websiteFeatureTitle: getText(formData, "websiteFeatureTitle"),
-      websiteFeatureText: getText(formData, "websiteFeatureText"),
+        websiteEnabled: formData.get("websiteEnabled") === "on",
+        websiteTemplate: getText(formData, "websiteTemplate") || "PREMIUM",
+        websitePrimaryColor: getText(formData, "websitePrimaryColor") || "#111827",
+        slug: normalizeSlug(getText(formData, "slug")),
 
-      websiteSectionTitle: getText(formData, "websiteSectionTitle"),
-      websiteSectionText: getText(formData, "websiteSectionText"),
-      websiteGalleryTitle: getText(formData, "websiteGalleryTitle"),
-      websiteGalleryDescription: getText(formData, "websiteGalleryDescription"),
-      websiteLocationTitle: getText(formData, "websiteLocationTitle"),
-      websiteLocationDescription: getText(formData, "websiteLocationDescription"),
-      websiteFinalCtaTitle: getText(formData, "websiteFinalCtaTitle"),
-      websiteFinalCtaText: getText(formData, "websiteFinalCtaText"),
+        websiteHeadline: getText(formData, "websiteHeadline"),
+        websiteDescription: getText(formData, "websiteDescription"),
+        websiteCuisine: getText(formData, "websiteCuisine"),
+        websiteInstagram: getText(formData, "websiteInstagram"),
+        websiteHeroImage: getText(formData, "websiteHeroImage"),
+        websiteLogoImage: getText(formData, "websiteLogoImage"),
 
-      websiteGalleryImage1: getText(formData, "websiteGalleryImage1"),
-      websiteGalleryImage2: getText(formData, "websiteGalleryImage2"),
-      websiteGalleryImage3: getText(formData, "websiteGalleryImage3"),
-      websiteGalleryImage4: getText(formData, "websiteGalleryImage4"),
-      websiteGalleryTitle1: getText(formData, "websiteGalleryTitle1"),
-      websiteGalleryTitle2: getText(formData, "websiteGalleryTitle2"),
-      websiteGalleryTitle3: getText(formData, "websiteGalleryTitle3"),
-      websiteGalleryTitle4: getText(formData, "websiteGalleryTitle4"),
+        websiteAboutTitle: getText(formData, "websiteAboutTitle"),
+        websiteAboutText: getText(formData, "websiteAboutText"),
+        websiteFeatureTitle: getText(formData, "websiteFeatureTitle"),
+        websiteFeatureText: getText(formData, "websiteFeatureText"),
 
-      websiteMenuTitle: getText(formData, "websiteMenuTitle"),
-      websiteMenuDescription: getText(formData, "websiteMenuDescription"),
+        websiteSectionTitle: getText(formData, "websiteSectionTitle"),
+        websiteSectionText: getText(formData, "websiteSectionText"),
+        websiteGalleryTitle: getText(formData, "websiteGalleryTitle"),
+        websiteGalleryDescription: getText(formData, "websiteGalleryDescription"),
+        websiteLocationTitle: getText(formData, "websiteLocationTitle"),
+        websiteLocationDescription: getText(formData, "websiteLocationDescription"),
+        websiteFinalCtaTitle: getText(formData, "websiteFinalCtaTitle"),
+        websiteFinalCtaText: getText(formData, "websiteFinalCtaText"),
 
-      websiteSeoTitle: getText(formData, "websiteSeoTitle"),
-      websiteSeoDescription: getText(formData, "websiteSeoDescription"),
-      customDomain: getText(formData, "customDomain"),
-    },
+        websiteGalleryImage1: getText(formData, "websiteGalleryImage1"),
+        websiteGalleryImage2: getText(formData, "websiteGalleryImage2"),
+        websiteGalleryImage3: getText(formData, "websiteGalleryImage3"),
+        websiteGalleryImage4: getText(formData, "websiteGalleryImage4"),
+        websiteGalleryTitle1: getText(formData, "websiteGalleryTitle1"),
+        websiteGalleryTitle2: getText(formData, "websiteGalleryTitle2"),
+        websiteGalleryTitle3: getText(formData, "websiteGalleryTitle3"),
+        websiteGalleryTitle4: getText(formData, "websiteGalleryTitle4"),
+
+        websiteMenuTitle: getText(formData, "websiteMenuTitle"),
+        websiteMenuDescription: getText(formData, "websiteMenuDescription"),
+
+        // Mantém compatibilidade com sites antigos enquanto migramos para WebsiteMenu[]
+        websiteMenuPdf: menus[0]?.pdf || "",
+
+        websiteSeoTitle: getText(formData, "websiteSeoTitle"),
+        websiteSeoDescription: getText(formData, "websiteSeoDescription"),
+        customDomain: getText(formData, "customDomain"),
+      },
+    });
+
+    await tx.websiteMenu.deleteMany({
+      where: {
+        restaurantId: id,
+      },
+    });
+
+    if (menus.length > 0) {
+      await tx.websiteMenu.createMany({
+        data: menus.map((menu) => ({
+          title: menu.title,
+          pdf: menu.pdf,
+          sortOrder: menu.sortOrder,
+          restaurantId: id,
+        })),
+      });
+    }
   });
 
   return NextResponse.redirect(
