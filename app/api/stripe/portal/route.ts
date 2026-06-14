@@ -25,7 +25,10 @@ export async function POST() {
 
   if (!user?.subscription?.stripeCustomerId) {
     return NextResponse.json(
-      { error: "Cliente Stripe não encontrado" },
+      {
+        error:
+          "Ainda não existe uma subscrição ativa para gerir. Ative primeiro o Pro ou o Website.",
+      },
       { status: 400 }
     );
   }

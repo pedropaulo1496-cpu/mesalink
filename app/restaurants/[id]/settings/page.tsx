@@ -61,22 +61,25 @@ async function updateSettings(formData: FormData) {
       sundayDinner: String(formData.get("sundayDinner") || ""),
 
       ...(canUseAdvancedReservations
-        ? {
-            reservationMode:
-              reservationMode === "CAPACITY" ? "CAPACITY" : "TABLES",
+  ? {
+      reservationMode:
+        reservationMode === "CAPACITY" ? "CAPACITY" : "TABLES",
 
-            totalCapacity:
-              reservationMode === "CAPACITY" && totalCapacity > 0
-                ? totalCapacity
-                : null,
+      totalCapacity:
+        totalCapacity > 0 ? totalCapacity : null,
 
-            manualApprovalGuests:
-              manualApprovalGuests > 0 ? manualApprovalGuests : null,
+      manualApprovalGuests:
+        manualApprovalGuests > 0 ? manualApprovalGuests : null,
 
-            approvalOnTableMerge:
-              formData.get("approvalOnTableMerge") === "on",
-          }
-        : {}),
+      approvalOnTableMerge:
+        formData.get("approvalOnTableMerge") === "on",
+    }
+  : {
+      reservationMode: "CAPACITY",
+      totalCapacity: totalCapacity > 0 ? totalCapacity : null,
+      manualApprovalGuests: null,
+      approvalOnTableMerge: false,
+    }),
     },
   });
 
@@ -233,35 +236,49 @@ export default async function SettingsPage({
                     />
                   </>
                 ) : (
-                  <div className="rounded-3xl border border-cyan-300/20 bg-cyan-500/5 p-5">
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
-                      Funcionalidade Pro
-                    </p>
+  <>
+    <input type="hidden" name="reservationMode" value="CAPACITY" />
 
-                    <h3 className="mt-3 text-xl font-black">
-                      Gestão avançada de reservas
-                    </h3>
+    <Field label="Capacidade total">
+      <input
+        type="number"
+        name="totalCapacity"
+        defaultValue={restaurant.totalCapacity ?? ""}
+        placeholder="Ex: 60"
+        className="input-ai"
+        required
+      />
 
-                    <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                      No plano gratuito, o MesaLink funciona como sistema simples
-                      de reservas online, calendário e clientes.
-                    </p>
+      <p className="mt-2 text-xs text-slate-500">
+        Número máximo de pessoas que pode aceitar por horário.
+      </p>
+    </Field>
 
-                    <ul className="mt-4 space-y-2 text-sm text-slate-300">
-                      <li>✓ Gestão de mesas</li>
-                      <li>✓ Reservas por capacidade</li>
-                      <li>✓ Aprovação ao juntar mesas</li>
-                      <li>✓ Reservas ilimitadas</li>
-                    </ul>
+    <div className="rounded-3xl border border-cyan-300/20 bg-cyan-500/5 p-5">
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
+        Funcionalidade Pro
+      </p>
 
-                    <Link
-                      href="/billing?feature=tables"
-                      className="mt-5 inline-flex rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 py-3 font-black text-black"
-                    >
-                      Upgrade para Pro
-                    </Link>
-                  </div>
-                )}
+      <h3 className="mt-3 text-xl font-black">
+        Gestão de mesas disponível no Pro
+      </h3>
+
+      <ul className="mt-4 space-y-2 text-sm text-slate-300">
+        <li>✓ Mapa da sala</li>
+        <li>✓ Reservas por mesa</li>
+        <li>✓ Junção de mesas</li>
+        <li>✓ Reservas ilimitadas</li>
+      </ul>
+
+      <Link
+        href="/billing?feature=tables"
+        className="mt-5 inline-flex rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 py-3 font-black text-black"
+      >
+        Upgrade para Pro
+      </Link>
+    </div>
+  </>
+)}
 
                 <ToggleBox
                   name="onlineReservationsEnabled"
