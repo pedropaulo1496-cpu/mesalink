@@ -79,6 +79,53 @@ export default async function RestaurantPage({
 
   const today = new Date();
 
+  const FREE_RESERVATION_LIMIT = 100;
+
+const subscription = await prisma.subscription.findUnique({
+  where: {
+    userId: restaurant.userId || "",
+  },
+});
+
+const trialActive =
+  subscription?.status === "TRIAL" &&
+  subscription.trialEndsAt &&
+  new Date() <= subscription.trialEndsAt;
+
+const isPro =
+  subscription?.status === "ACTIVE" &&
+  subscription.plan === "PRO";
+
+const hasUnlimitedReservations = trialActive || isPro;
+
+const startOfMonth = new Date();
+startOfMonth.setDate(1);
+startOfMonth.setHours(0, 0, 0, 0);
+
+const nextMonth = new Date(startOfMonth);
+nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+const publicReservationsThisMonthResult = await prisma.$queryRaw<
+  { count: bigint }[]
+>`
+  SELECT COUNT(*)::bigint as count
+  FROM "Reservation"
+  WHERE "restaurantId" = ${restaurant.id}
+    AND "source" = 'PUBLIC'
+    AND "createdAt" >= ${startOfMonth}
+    AND "createdAt" < ${nextMonth}
+    AND "status" NOT IN ('CANCELLED', 'REJECTED', 'NO_SHOW', 'FINISHED')
+`;
+
+const publicReservationsThisMonth = Number(
+  publicReservationsThisMonthResult[0]?.count || 0
+);
+
+const remainingFreeReservations = Math.max(
+  0,
+  FREE_RESERVATION_LIMIT - publicReservationsThisMonth
+);
+
   const isToday = (date: Date | string) => {
     const reservationDate = new Date(date);
 
@@ -214,7 +261,7 @@ export default async function RestaurantPage({
               </Link>
             </div>
 
-            <div className="mt-5 grid gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
               <MiniMetric
                 label="Reservas"
                 value={reservationsToday.length}
@@ -235,6 +282,23 @@ export default async function RestaurantPage({
                 sub={totalCapacity > 0 ? `${guestsToday}/${totalCapacity} lugares` : "sem capacidade"}
                 tone="violet"
               />
+
+              <MiniMetric
+  label={hasUnlimitedReservations ? "Plano" : "Free"}
+  value={hasUnlimitedReservations ? "∞" : remainingFreeReservations}
+  sub={
+    hasUnlimitedReservations
+      ? "reservas ilimitadas"
+      : `${publicReservationsThisMonth}/100 usadas`
+  }
+  tone={
+    hasUnlimitedReservations
+      ? "cyan"
+      : remainingFreeReservations <= 20
+      ? "yellow"
+      : "blue"
+  }
+/>
 
               {pendingToday.length > 0 && (
                 <MiniMetric

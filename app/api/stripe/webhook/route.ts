@@ -29,16 +29,32 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
 
     const userId = session.metadata?.userId;
+    const product = session.metadata?.product;
 
-    if (userId) {
+    if (!userId) {
+      return new Response("Missing userId", { status: 400 });
+    }
+
+    if (product === "PRO") {
       await prisma.subscription.update({
-        where: {
-          userId,
-        },
+        where: { userId },
         data: {
+          plan: "PRO",
           status: "ACTIVE",
+          priceMonthly: 10,
           stripeCustomerId: session.customer?.toString(),
-          stripeSubscriptionId: session.subscription?.toString(),
+          stripeProSubscriptionId: session.subscription?.toString(),
+        },
+      });
+    }
+
+    if (product === "WEBSITE") {
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          websiteAddon: true,
+          stripeCustomerId: session.customer?.toString(),
+          stripeWebsiteSubscriptionId: session.subscription?.toString(),
         },
       });
     }

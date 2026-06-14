@@ -25,12 +25,54 @@ async function createPublicReservation(formData: FormData) {
   }
 
   const restaurant = await prisma.restaurant.findUnique({
-    where: { id: restaurantId },
-  });
+  where: { id: restaurantId },
+  include: {
+    user: {
+      include: {
+        subscription: true,
+      },
+    },
+  },
+});
 
   if (!restaurant) {
     notFound();
   }
+
+  const subscription = restaurant.user?.subscription;
+
+const isTrialActive =
+  subscription?.status === "TRIAL" &&
+  subscription.trialEndsAt &&
+  new Date() <= subscription.trialEndsAt;
+
+const isPro =
+  subscription?.status === "ACTIVE" &&
+  subscription.plan === "PRO";
+
+const isUnlimited = isTrialActive || isPro;
+
+if (!isUnlimited) {
+  const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  const startOfNextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+
+  const monthlyReservations = await prisma.reservation.count({
+    where: {
+      restaurantId: restaurant.id,
+      createdAt: {
+        gte: startOfMonth,
+        lt: startOfNextMonth,
+      },
+      status: {
+        notIn: ["CANCELLED", "REJECTED", "NO_SHOW"],
+      },
+    },
+  });
+
+  if (monthlyReservations >= 100) {
+    redirect(`/reserve/${slug}?error=free_limit`);
+  }
+}
 
   let status = String(formData.get("status") ?? "CONFIRMED");
   let approvalReason: string | null = null;
@@ -113,20 +155,40 @@ async function createPublicReservation(formData: FormData) {
     },
   });
 
-  await prisma.reservation.create({
-    data: {
-      restaurantId: restaurant.id,
-      customerId: customer.id,
-      customerName,
-      phone,
-      email: email || null,
-      guests,
-      date,
-      status,
-      approvalReason,
-      tableId: tableIdValue || null,
-    },
-  });
+  await prisma.$executeRaw`
+  INSERT INTO "Reservation"
+    (
+      "id",
+      "restaurantId",
+      "customerId",
+      "customerName",
+      "phone",
+      "email",
+      "guests",
+      "date",
+      "status",
+      "approvalReason",
+      "tableId",
+      "source",
+      "createdAt"
+    )
+  VALUES
+    (
+      gen_random_uuid()::text,
+      ${restaurant.id},
+      ${customer.id},
+      ${customerName},
+      ${phone},
+      ${email || null},
+      ${guests},
+      ${date},
+      ${status},
+      ${approvalReason},
+      ${tableIdValue || null},
+      'PUBLIC',
+      NOW()
+    )
+`;
 
   const shouldSendEmail =
     restaurant.plan === "PRO" &&
@@ -223,6 +285,52 @@ export default async function PublicReservePage({
   if (!restaurant) {
     notFound();
   }
+
+  const subscription = await prisma.subscription.findUnique({
+  where: {
+    userId: restaurant.userId || "",
+  },
+});
+
+const trialActive =
+  subscription?.status === "TRIAL" &&
+  subscription.trialEndsAt &&
+  new Date() <= subscription.trialEndsAt;
+
+const isPro =
+  subscription?.status === "ACTIVE" &&
+  subscription.plan === "PRO";
+
+const unlimitedReservations = trialActive || isPro;
+
+if (!unlimitedReservations) {
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const nextMonth = new Date(startOfMonth);
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+  const reservationsThisMonthResult = await prisma.$queryRaw<
+  { count: bigint }[]
+>`
+  SELECT COUNT(*)::bigint as count
+  FROM "Reservation"
+  WHERE "restaurantId" = ${restaurant.id}
+    AND "source" = 'PUBLIC'
+    AND "createdAt" >= ${startOfMonth}
+    AND "createdAt" < ${nextMonth}
+    AND "status" NOT IN ('CANCELLED', 'REJECTED', 'NO_SHOW', 'FINISHED')
+`;
+
+const reservationsThisMonth = Number(
+  reservationsThisMonthResult[0]?.count || 0
+);
+
+  if (reservationsThisMonth >= 100) {
+    redirect(`/reserve/${slug}?error=free_limit`);
+  }
+}
 
   return (
     <ReserveForm

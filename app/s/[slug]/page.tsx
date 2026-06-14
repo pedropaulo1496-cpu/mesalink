@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { hasTrialExpired } from "@/lib/subscription";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PublicWebsite } from "./PublicWebsite";
@@ -66,6 +67,11 @@ export default async function PublicRestaurantWebsitePage({
   const restaurant = await prisma.restaurant.findUnique({
     where: { slug },
     include: {
+      user: {
+        include: {
+          subscription: true,
+        },
+      },
       websiteMenus: {
         orderBy: {
           sortOrder: "asc",
@@ -75,6 +81,20 @@ export default async function PublicRestaurantWebsitePage({
   });
 
   if (!restaurant) notFound();
+
+  const subscription = restaurant.user?.subscription;
+
+  const trialActive =
+    subscription?.status === "TRIAL" &&
+    !hasTrialExpired(subscription.trialEndsAt);
+
+  const websiteActive =
+    subscription?.status === "ACTIVE" &&
+    subscription.websiteAddon === true;
+
+  if (!restaurant.websiteEnabled || (!trialActive && !websiteActive)) {
+    notFound();
+  }
 
   return <PublicWebsite restaurant={restaurant} />;
 }

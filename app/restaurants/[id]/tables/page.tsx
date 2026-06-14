@@ -2,6 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import FloorPlanEditor from "./FloorPlanEditor";
+import { authOptions } from "@/lib/auth";
+import { canUseTables } from "@/lib/check-subscription";
+import { getServerSession } from "next-auth";
 
 async function createTables(formData: FormData) {
   "use server";
@@ -124,6 +127,20 @@ export default async function TablesPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await getServerSession(authOptions);
+
+if (!session?.user?.email) {
+  redirect("/login");
+}
+
+const hasTablesAccess = await canUseTables(
+  session.user.email
+);
+
+if (!hasTablesAccess) {
+  redirect("/billing?feature=tables");
+}
+
   const { id } = await params;
 
   const restaurant = await prisma.restaurant.findUnique({

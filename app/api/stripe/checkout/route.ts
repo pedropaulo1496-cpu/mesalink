@@ -4,6 +4,8 @@ import { stripe } from "@/lib/stripe";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
+type Product = "PRO" | "WEBSITE";
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -27,29 +29,33 @@ export async function POST(request: Request) {
       );
     }
 
+    const body = await request.json().catch(() => ({}));
+
+    const product: Product =
+      body.product === "WEBSITE" ? "WEBSITE" : "PRO";
+
     const subscription =
       user.subscription ??
       (await prisma.subscription.create({
         data: {
           userId: user.id,
-          plan: "STARTER",
+          plan: "FREE",
           status: "TRIAL",
           trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           restaurantLimit: 1,
-          priceMonthly: 1750,
+          priceMonthly: 0,
+          websiteAddon: false,
         },
       }));
 
-    const { billing } = await request.json();
-
     const priceId =
-      billing === "yearly"
-        ? process.env.STRIPE_PRICE_STARTER_YEARLY
-        : process.env.STRIPE_PRICE_STARTER_MONTHLY;
+      product === "WEBSITE"
+        ? process.env.STRIPE_PRICE_WEBSITE_MONTHLY
+        : process.env.STRIPE_PRICE_PRO_MONTHLY;
 
     if (!priceId) {
       return NextResponse.json(
-        { error: "Price ID em falta no .env." },
+        { error: `Price ID em falta no .env para ${product}.` },
         { status: 400 }
       );
     }
@@ -61,19 +67,17 @@ export async function POST(request: Request) {
       metadata: {
         userId: user.id,
         subscriptionId: subscription.id,
-        plan: "STARTER",
-        billing,
+        product,
       },
       subscription_data: {
         metadata: {
           userId: user.id,
           subscriptionId: subscription.id,
-          plan: "STARTER",
-          billing,
+          product,
         },
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success?product=${product}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing`,
     });
 
     return NextResponse.json({ url: checkoutSession.url });

@@ -59,11 +59,6 @@ export function PublicWebsite({
       />
 
       <PublicFooter />
-
-      <MobileStickyReserve
-        restaurant={restaurant}
-        primaryColor={theme.accent}
-      />
     </main>
   );
 }

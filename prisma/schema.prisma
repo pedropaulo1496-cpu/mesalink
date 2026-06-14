@@ -23,16 +23,19 @@ model User {
 model Subscription {
   id String @id @default(cuid())
 
-  plan   String @default("STARTER")
-  status String @default("ACTIVE")
+  plan   String @default("FREE") // FREE, PRO
+  status String @default("TRIAL") // TRIAL, ACTIVE, CANCELLED, PAST_DUE
 
   trialEndsAt DateTime?
 
   restaurantLimit Int @default(1)
-  priceMonthly    Int @default(29)
+  priceMonthly    Int @default(0)
 
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
+  websiteAddon Boolean @default(false)
+
+  stripeCustomerId            String?
+  stripeProSubscriptionId     String?
+  stripeWebsiteSubscriptionId String?
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])

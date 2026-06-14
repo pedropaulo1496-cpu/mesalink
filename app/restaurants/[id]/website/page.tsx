@@ -1,5 +1,8 @@
+import { authOptions } from "@/lib/auth";
+import { canUseWebsite } from "@/lib/check-subscription";
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { notFound, redirect } from "next/navigation";
 import { WebsiteEditorClient } from "./WebsiteEditorClient";
 
 type PageProps = {
@@ -11,19 +14,31 @@ export default async function RestaurantWebsitePage({
   params,
   searchParams,
 }: PageProps) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    redirect("/login");
+  }
+
+  const hasWebsiteAccess = await canUseWebsite(session.user.email);
+
+  if (!hasWebsiteAccess) {
+    redirect("/billing?addon=website");
+  }
+
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
 
-const restaurant = await prisma.restaurant.findUnique({
-  where: { id },
-  include: {
-    websiteMenus: {
-      orderBy: {
-        sortOrder: "asc",
+  const restaurant = await prisma.restaurant.findUnique({
+    where: { id },
+    include: {
+      websiteMenus: {
+        orderBy: {
+          sortOrder: "asc",
+        },
       },
     },
-  },
-});
+  });
 
   if (!restaurant) notFound();
 
