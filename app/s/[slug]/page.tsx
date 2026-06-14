@@ -21,9 +21,55 @@ export default async function PublicRestaurantWebsitePage({
   if (!restaurant) notFound();
 
   const primaryColor = restaurant.websitePrimaryColor || "#111827";
+
   const hasImage =
     restaurant.websiteHeroImage &&
     restaurant.websiteHeroImage.startsWith("http");
+
+  const openingHours = [
+    {
+      day: "Segunda",
+      open: restaurant.mondayOpen,
+      lunch: restaurant.mondayLunch,
+      dinner: restaurant.mondayDinner,
+    },
+    {
+      day: "Terça",
+      open: restaurant.tuesdayOpen,
+      lunch: restaurant.tuesdayLunch,
+      dinner: restaurant.tuesdayDinner,
+    },
+    {
+      day: "Quarta",
+      open: restaurant.wednesdayOpen,
+      lunch: restaurant.wednesdayLunch,
+      dinner: restaurant.wednesdayDinner,
+    },
+    {
+      day: "Quinta",
+      open: restaurant.thursdayOpen,
+      lunch: restaurant.thursdayLunch,
+      dinner: restaurant.thursdayDinner,
+    },
+    {
+      day: "Sexta",
+      open: restaurant.fridayOpen,
+      lunch: restaurant.fridayLunch,
+      dinner: restaurant.fridayDinner,
+    },
+    {
+      day: "Sábado",
+      open: restaurant.saturdayOpen,
+      lunch: restaurant.saturdayLunch,
+      dinner: restaurant.saturdayDinner,
+    },
+    {
+      day: "Domingo",
+      open: restaurant.sundayOpen,
+      lunch: restaurant.sundayLunch,
+      dinner: restaurant.sundayDinner,
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-950">
@@ -114,6 +160,39 @@ export default async function PublicRestaurantWebsitePage({
             >
               Fazer reserva
             </a>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 pb-14">
+        <div className="rounded-[2rem] border bg-white p-7 shadow-sm">
+          <p className="text-sm font-medium text-zinc-500">Horário</p>
+
+          <h2 className="mt-2 text-2xl font-black tracking-tight">
+            Quando estamos abertos
+          </h2>
+
+          <div className="mt-6 grid gap-3">
+            {openingHours.map((item) => (
+              <div
+                key={item.day}
+                className="flex flex-col gap-2 rounded-2xl border bg-zinc-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <p className="font-bold text-zinc-900">{item.day}</p>
+
+                {item.open ? (
+                  <div className="flex flex-wrap gap-3 text-sm font-semibold text-zinc-600">
+                    {item.lunch && <span>{item.lunch}</span>}
+                    {item.dinner && <span>{item.dinner}</span>}
+                    {!item.lunch && !item.dinner && <span>Aberto</span>}
+                  </div>
+                ) : (
+                  <span className="text-sm font-semibold text-zinc-400">
+                    Fechado
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
