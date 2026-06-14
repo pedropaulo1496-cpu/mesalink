@@ -42,6 +42,15 @@ export type PublicRestaurant = {
   websiteFeatureTitle: string | null;
   websiteFeatureText: string | null;
 
+  websiteSectionTitle: string | null;
+  websiteSectionText: string | null;
+  websiteGalleryTitle: string | null;
+  websiteGalleryDescription: string | null;
+  websiteLocationTitle: string | null;
+  websiteLocationDescription: string | null;
+  websiteFinalCtaTitle: string | null;
+  websiteFinalCtaText: string | null;
+
   websiteSeoTitle: string | null;
   websiteSeoDescription: string | null;
 
@@ -178,4 +187,36 @@ export function getFeatureText(restaurant: PublicRestaurant) {
     restaurant.websiteFeatureText ||
     "Boa comida, bom ambiente e reservas online sem complicações."
   );
+}
+
+export function getSectionTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteSectionTitle || getAboutTitle(restaurant);
+}
+
+export function getSectionText(restaurant: PublicRestaurant) {
+  return restaurant.websiteSectionText || getAboutText(restaurant);
+}
+
+export function getGalleryTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteGalleryTitle || "Galeria";
+}
+
+export function getGalleryDescription(restaurant: PublicRestaurant) {
+  return restaurant.websiteGalleryDescription || "";
+}
+
+export function getLocationTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteLocationTitle || "Localização";
+}
+
+export function getLocationDescription(restaurant: PublicRestaurant) {
+  return restaurant.websiteLocationDescription || restaurant.address || "";
+}
+
+export function getFinalCtaTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteFinalCtaTitle || `Reserva em ${restaurant.name}`;
+}
+
+export function getFinalCtaText(restaurant: PublicRestaurant) {
+  return restaurant.websiteFinalCtaText || "Escolhe o dia, a hora e garante o teu lugar em poucos segundos.";
 }

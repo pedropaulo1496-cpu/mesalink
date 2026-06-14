@@ -30,7 +30,7 @@ function Brand({ restaurant, light = true }: { restaurant: PublicRestaurant; lig
         <img
           src={restaurant.websiteLogoImage!}
           alt={restaurant.name}
-          className="h-9 max-w-[130px] object-contain"
+          className="h-20 max-w-[260px] object-contain"
         />
       )}
       {!hasLogo && (
@@ -182,7 +182,7 @@ export function WebsiteHero({
               {getDisplayTitle(restaurant)}
             </h1>
 
-            <p className="mt-8 max-w-2xl text-lg leading-8 text-white/80 md:text-xl md:leading-9">
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-white/85 md:text-xl md:leading-9">
               {getDisplayDescription(restaurant)}
             </p>
 
@@ -220,7 +220,7 @@ export function WebsiteHero({
           </div>
         </div>
 
-        <div className="grid gap-3 border-t border-white/15 pt-5 text-sm text-white/70 md:grid-cols-3">
+        <div className="grid gap-3 border-t border-white/15 pt-5 text-sm text-white/70 md:grid-cols-4">
           {restaurant.address && (
             <div>
               <p className="text-xs font-black uppercase tracking-[0.25em] text-white/35">Morada</p>
@@ -230,7 +230,13 @@ export function WebsiteHero({
           {restaurant.phone && (
             <div>
               <p className="text-xs font-black uppercase tracking-[0.25em] text-white/35">Telefone</p>
-              <p className="mt-2 font-semibold">{restaurant.phone}</p>
+              <a href={`tel:${restaurant.phone}`} className="mt-2 block font-semibold hover:text-white">{restaurant.phone}</a>
+            </div>
+          )}
+          {restaurant.email && (
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-white/35">Email</p>
+              <a href={`mailto:${restaurant.email}`} className="mt-2 block break-words font-semibold hover:text-white">{restaurant.email}</a>
             </div>
           )}
           <div>

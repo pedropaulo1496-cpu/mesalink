@@ -1,6 +1,5 @@
 import { WebsiteHero } from "./WebsiteHero";
 import {
-  ExperienceSection,
   FinalCtaSection,
   GallerySection,
   InstagramSection,
@@ -45,7 +44,6 @@ export function PublicWebsite({
 
       <MenuSection restaurant={restaurant} primaryColor={theme.accent} />
 
-      <ExperienceSection restaurant={restaurant} primaryColor={theme.accent} />
 
       <GallerySection restaurant={restaurant} />
 

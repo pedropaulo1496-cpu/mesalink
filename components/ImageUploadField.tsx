@@ -48,7 +48,7 @@ export function ImageUploadField({
           label: "text-white font-bold text-sm text-center",
           allowedContent: "text-white/35 text-xs text-center",
           button:
-            "bg-white text-black font-black rounded-full px-5 py-2 hover:bg-zinc-200 [color:#000!important]",
+            "bg-white text-black font-black shadow-lg rounded-full px-5 py-2 hover:bg-zinc-200 [color:#000!important]",
         }}
         content={{
           label() {

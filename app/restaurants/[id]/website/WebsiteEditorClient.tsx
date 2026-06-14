@@ -34,6 +34,14 @@ type RestaurantWebsiteData = {
   websiteAboutText: string | null;
   websiteFeatureTitle: string | null;
   websiteFeatureText: string | null;
+  websiteSectionTitle: string | null;
+  websiteSectionText: string | null;
+  websiteGalleryTitle: string | null;
+  websiteGalleryDescription: string | null;
+  websiteLocationTitle: string | null;
+  websiteLocationDescription: string | null;
+  websiteFinalCtaTitle: string | null;
+  websiteFinalCtaText: string | null;
   websiteSeoTitle: string | null;
   websiteSeoDescription: string | null;
   customDomain: string | null;
@@ -71,6 +79,14 @@ export function WebsiteEditorClient({
   const [aboutText, setAboutText] = useState(restaurant.websiteAboutText || "");
   const [featureTitle, setFeatureTitle] = useState(restaurant.websiteFeatureTitle || "");
   const [featureText, setFeatureText] = useState(restaurant.websiteFeatureText || "");
+  const [sectionTitle, setSectionTitle] = useState(restaurant.websiteSectionTitle || "");
+  const [sectionText, setSectionText] = useState(restaurant.websiteSectionText || "");
+  const [galleryTitle, setGalleryTitle] = useState(restaurant.websiteGalleryTitle || "");
+  const [galleryDescription, setGalleryDescription] = useState(restaurant.websiteGalleryDescription || "");
+  const [locationTitle, setLocationTitle] = useState(restaurant.websiteLocationTitle || "");
+  const [locationDescription, setLocationDescription] = useState(restaurant.websiteLocationDescription || "");
+  const [finalCtaTitle, setFinalCtaTitle] = useState(restaurant.websiteFinalCtaTitle || "");
+  const [finalCtaText, setFinalCtaText] = useState(restaurant.websiteFinalCtaText || "");
   const [seoTitle, setSeoTitle] = useState(restaurant.websiteSeoTitle || "");
   const [seoDescription, setSeoDescription] = useState(restaurant.websiteSeoDescription || "");
   const [customDomain, setCustomDomain] = useState(restaurant.customDomain || "");
@@ -119,6 +135,14 @@ export function WebsiteEditorClient({
       seoDescription ||
         `Reserva online no ${name}. Consulta menu, localização, contactos e informações essenciais do restaurante${location ? ` em ${location}` : ""}.`
     );
+    if (!sectionTitle) setSectionTitle("Sobre nós");
+    if (!sectionText) setSectionText(`Conhece melhor o ${name}, o conceito e aquilo que torna este espaço especial.`);
+    if (!galleryTitle) setGalleryTitle("Galeria");
+    if (!galleryDescription) setGalleryDescription("Alguns momentos e detalhes do espaço.");
+    if (!locationTitle) setLocationTitle("Onde estamos");
+    if (!locationDescription) setLocationDescription(restaurant.address || "Encontra-nos facilmente e faz a tua reserva online.");
+    if (!finalCtaTitle) setFinalCtaTitle(`Reserva em ${name}`);
+    if (!finalCtaText) setFinalCtaText("Escolhe o dia, a hora e garante o teu lugar em poucos segundos.");
     if (!galleryTitle1) setGalleryTitle1("Ambiente");
     if (!galleryTitle2) setGalleryTitle2("Pratos");
     if (!galleryTitle3) setGalleryTitle3("Sala");
@@ -131,6 +155,10 @@ export function WebsiteEditorClient({
     if (aboutText) setAboutText(polishText(aboutText, restaurant.name));
     if (featureText) setFeatureText(polishText(featureText, restaurant.name));
     if (menuDescription) setMenuDescription(polishText(menuDescription, restaurant.name));
+    if (sectionText) setSectionText(polishText(sectionText, restaurant.name));
+    if (galleryDescription) setGalleryDescription(polishText(galleryDescription, restaurant.name));
+    if (locationDescription) setLocationDescription(polishText(locationDescription, restaurant.name));
+    if (finalCtaText) setFinalCtaText(polishText(finalCtaText, restaurant.name));
     if (seoDescription) setSeoDescription(toSeoDescription(seoDescription, restaurant.name));
   }
 
@@ -211,7 +239,20 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="05" title="Imagens" description="Upload rápido. Máximo de 4 fotos na galeria para manter o site elegante e rápido.">
+            <EditorBlock number="05" title="Textos do website" description="Tudo o que aparece no site público deve ser editável e adaptável a restaurante, bar, café ou brunch.">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Título da secção principal"><input name="websiteSectionTitle" value={sectionTitle} onChange={(event) => setSectionTitle(event.target.value)} placeholder="Sobre nós" className="input-dark h-12" /></Field>
+                <Field label="Texto da secção principal"><input name="websiteSectionText" value={sectionText} onChange={(event) => setSectionText(event.target.value)} placeholder="Texto livre sobre o espaço." className="input-dark h-12" /></Field>
+                <Field label="Título da galeria"><input name="websiteGalleryTitle" value={galleryTitle} onChange={(event) => setGalleryTitle(event.target.value)} placeholder="Galeria" className="input-dark h-12" /></Field>
+                <Field label="Descrição da galeria"><input name="websiteGalleryDescription" value={galleryDescription} onChange={(event) => setGalleryDescription(event.target.value)} placeholder="Descrição curta da galeria." className="input-dark h-12" /></Field>
+                <Field label="Título da localização"><input name="websiteLocationTitle" value={locationTitle} onChange={(event) => setLocationTitle(event.target.value)} placeholder="Onde estamos" className="input-dark h-12" /></Field>
+                <Field label="Texto da localização"><input name="websiteLocationDescription" value={locationDescription} onChange={(event) => setLocationDescription(event.target.value)} placeholder="Morada, zona ou indicação útil." className="input-dark h-12" /></Field>
+                <Field label="Título final"><input name="websiteFinalCtaTitle" value={finalCtaTitle} onChange={(event) => setFinalCtaTitle(event.target.value)} placeholder={`Reserva em ${restaurant.name}`} className="input-dark h-12" /></Field>
+                <Field label="Texto final"><input name="websiteFinalCtaText" value={finalCtaText} onChange={(event) => setFinalCtaText(event.target.value)} placeholder="Chamada final para reservar, visitar ou contactar." className="input-dark h-12" /></Field>
+              </div>
+            </EditorBlock>
+
+            <EditorBlock number="06" title="Imagens" description="Upload rápido. Máximo de 4 fotos na galeria para manter o site elegante e rápido.">
               <Field label="Logo"><ImageUploadField value={logoImage} onChange={setLogoImage} compact /><input type="hidden" name="websiteLogoImage" value={logoImage} /></Field>
               <Field label="Foto principal"><ImageUploadField value={heroImage} onChange={setHeroImage} /><input type="hidden" name="websiteHeroImage" value={heroImage} /></Field>
               <div className="grid gap-4 md:grid-cols-2">
@@ -222,7 +263,7 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="06" title="Menu" description="Carrega o menu completo em PDF. Simples, rápido e profissional.">
+            <EditorBlock number="07" title="Menu" description="Carrega o menu completo em PDF. Simples, rápido e profissional.">
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Título do menu"><input name="websiteMenuTitle" value={menuTitle} onChange={(event) => setMenuTitle(event.target.value)} placeholder="Menu" className="input-dark h-12" /></Field>
                 <Field label="Descrição do menu"><input name="websiteMenuDescription" value={menuDescription} onChange={(event) => setMenuDescription(event.target.value)} placeholder="Consulta a nossa carta completa." className="input-dark h-12" /></Field>
@@ -230,14 +271,14 @@ export function WebsiteEditorClient({
               <Field label="Menu em PDF"><FileUploadField value={menuPdf} onChange={setMenuPdf} /><input type="hidden" name="websiteMenuPdf" value={menuPdf} /></Field>
             </EditorBlock>
 
-            <EditorBlock number="07" title="Estilo" description="Ajusta a identidade visual do site.">
+            <EditorBlock number="08" title="Estilo" description="Ajusta a identidade visual do site.">
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Instagram"><input name="websiteInstagram" value={instagram} onChange={(event) => setInstagram(event.target.value)} placeholder="@restaurante" className="input-dark h-12" /></Field>
                 <Field label="Cor principal"><input type="color" name="websitePrimaryColor" value={primaryColor} onChange={(event) => setPrimaryColor(event.target.value)} className="h-12 w-full rounded-2xl border border-white/10 bg-black/35 p-2" /></Field>
               </div>
             </EditorBlock>
 
-            <EditorBlock number="08" title="SEO e domínio" description="Preparado para crescer: Google, domínio próprio e presença profissional.">
+            <EditorBlock number="09" title="SEO e domínio" description="Preparado para crescer: Google, domínio próprio e presença profissional.">
               <Field label="Título SEO"><input name="websiteSeoTitle" value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} placeholder={`${restaurant.name} | Reservas online`} className="input-dark h-12" /></Field>
               <Field label="Descrição SEO"><textarea name="websiteSeoDescription" value={seoDescription} onChange={(event) => setSeoDescription(event.target.value)} rows={3} placeholder="Descrição para Google e partilhas." className="input-dark min-h-24 py-3" /></Field>
               <Field label="Domínio próprio"><input name="customDomain" value={customDomain} onChange={(event) => setCustomDomain(event.target.value)} placeholder="tabernatuga.pt" className="input-dark h-12" /></Field>
@@ -265,7 +306,7 @@ function LivePreview({ restaurantName, logoImage, headline, description, cuisine
         <div className={theme.overlay} />
         <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5">
           <div className="flex items-center gap-3">
-            {logoImage.startsWith("http") && <img src={logoImage} alt="Logo" className="h-8 max-w-[110px] object-contain" />}
+            {logoImage.startsWith("http") && <img src={logoImage} alt="Logo" className="h-14 max-w-[190px] object-contain" />}
             {!logoImage.startsWith("http") && <p className="text-sm font-black">{restaurantName}</p>}
           </div>
           <span className="rounded-full px-3 py-1.5 text-xs font-black text-white" style={{ backgroundColor: primaryColor }}>Reservar</span>

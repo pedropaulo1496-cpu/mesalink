@@ -6,7 +6,13 @@ import {
   getDisplayCuisine,
   getFeatureText,
   getFeatureTitle,
+  getFinalCtaText,
+  getFinalCtaTitle,
+  getGalleryDescription,
   getGalleryItems,
+  getGalleryTitle,
+  getLocationDescription,
+  getLocationTitle,
   getMapsUrl,
   getReserveUrl,
   normalizeInstagramUrl,
@@ -47,7 +53,7 @@ export function MenuSection({
                   href={restaurant.websiteMenuPdf}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center rounded-full bg-[#1d120b] px-8 py-4 text-sm font-black text-white"
+                  className="inline-flex items-center justify-center rounded-full bg-[#1d120b] px-8 py-4 text-sm font-black text-white shadow-lg hover:opacity-90"
                 >
                   Ver menu
                 </a>
@@ -240,13 +246,15 @@ export function GallerySection({
             </p>
 
             <h2 className="mt-5 max-w-4xl text-5xl font-black leading-[0.9] tracking-[-0.07em] md:text-7xl">
-              O ambiente antes da primeira visita.
+              {getGalleryTitle(restaurant)}
             </h2>
           </div>
 
-          <p className="max-w-md text-sm leading-7 text-white/50">
-            Uma seleção curta, forte e elegante. Quatro fotos chegam para criar desejo sem pesar o site.
-          </p>
+          {getGalleryDescription(restaurant) && (
+            <p className="max-w-md text-sm leading-7 text-white/50">
+              {getGalleryDescription(restaurant)}
+            </p>
+          )}
         </div>
 
         <div className="grid gap-5 lg:grid-cols-4">
@@ -286,11 +294,11 @@ export function LocationSection({
           </p>
 
           <h2 className="mt-5 text-5xl font-black leading-[0.9] tracking-[-0.07em] md:text-7xl">
-            Estamos à tua espera.
+            {getLocationTitle(restaurant)}
           </h2>
 
           <p className="mt-7 max-w-xl text-lg leading-8 text-[#4a3325]/75">
-            {restaurant.address}
+            {getLocationDescription(restaurant)}
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -368,8 +376,8 @@ export function FinalCtaSection({ restaurant, primaryColor }: { restaurant: Publ
     <section className="bg-[#120b07] px-6 py-24 text-white">
       <div className="mx-auto max-w-7xl text-center">
         <p className="text-xs font-black uppercase tracking-[0.4em] text-amber-200/55">Reserva</p>
-        <h2 className="mx-auto mt-5 max-w-4xl text-6xl font-black leading-[0.85] tracking-[-0.08em] md:text-8xl">A tua mesa está à espera.</h2>
-        <p className="mx-auto mt-7 max-w-xl text-lg leading-8 text-white/60">Reserva em poucos segundos e garante o teu lugar em <span className="font-bold text-white">{restaurant.name}</span>.</p>
+        <h2 className="mx-auto mt-5 max-w-4xl text-6xl font-black leading-[0.85] tracking-[-0.08em] md:text-8xl">{getFinalCtaTitle(restaurant)}</h2>
+        <p className="mx-auto mt-7 max-w-xl text-lg leading-8 text-white/60">{getFinalCtaText(restaurant)}</p>
         <a href={reserveUrl} className="mt-10 inline-flex rounded-full px-10 py-5 text-sm font-black text-white" style={{ backgroundColor: primaryColor }}>Reservar agora</a>
       </div>
     </section>

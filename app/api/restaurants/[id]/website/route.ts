@@ -42,6 +42,15 @@ export async function POST(
       websiteFeatureTitle: getText(formData, "websiteFeatureTitle"),
       websiteFeatureText: getText(formData, "websiteFeatureText"),
 
+      websiteSectionTitle: getText(formData, "websiteSectionTitle"),
+      websiteSectionText: getText(formData, "websiteSectionText"),
+      websiteGalleryTitle: getText(formData, "websiteGalleryTitle"),
+      websiteGalleryDescription: getText(formData, "websiteGalleryDescription"),
+      websiteLocationTitle: getText(formData, "websiteLocationTitle"),
+      websiteLocationDescription: getText(formData, "websiteLocationDescription"),
+      websiteFinalCtaTitle: getText(formData, "websiteFinalCtaTitle"),
+      websiteFinalCtaText: getText(formData, "websiteFinalCtaText"),
+
       websiteGalleryImage1: getText(formData, "websiteGalleryImage1"),
       websiteGalleryImage2: getText(formData, "websiteGalleryImage2"),
       websiteGalleryImage3: getText(formData, "websiteGalleryImage3"),

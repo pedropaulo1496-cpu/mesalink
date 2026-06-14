@@ -68,6 +68,19 @@ model Restaurant {
   websiteFeatureTitle  String?
   websiteFeatureText   String?
 
+    // Mini-site — textos editáveis
+  websiteSectionTitle       String?
+  websiteSectionText        String?
+
+  websiteGalleryTitle       String?
+  websiteGalleryDescription String?
+
+  websiteLocationTitle       String?
+  websiteLocationDescription String?
+
+  websiteFinalCtaTitle String?
+  websiteFinalCtaText  String?
+
 // Mini-site — galeria
   websiteGalleryImage1 String?
   websiteGalleryImage2 String?
