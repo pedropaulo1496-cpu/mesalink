@@ -91,6 +91,9 @@ export function WebsiteEditorClient({
   const [seoDescription, setSeoDescription] = useState(restaurant.websiteSeoDescription || "");
   const [customDomain, setCustomDomain] = useState(restaurant.customDomain || "");
   const [primaryColor, setPrimaryColor] = useState(restaurant.websitePrimaryColor || "#111827");
+  const [email, setEmail] = useState(restaurant.email || "");
+  const [phone, setPhone] = useState(restaurant.phone || "");
+  const [address, setAddress] = useState(restaurant.address || "");
   const [aiBrief, setAiBrief] = useState("");
 
   const publicUrl = `/s/${slug || restaurant.slug}`;
@@ -105,48 +108,60 @@ export function WebsiteEditorClient({
     return Math.round((items.filter(Boolean).length / items.length) * 100);
   }, [enabled, headline, description, cuisine, heroImage, aboutText, menuPdf, restaurant.phone, restaurant.email]);
 
-  function fillWithAi() {
-    const name = restaurant.name;
-    const type = (cuisine || extractCuisine(aiBrief) || "cozinha portuguesa").trim();
-    const location = extractLocation(restaurant.address, aiBrief);
-    const concept = aiBrief.trim() || `${type} num ambiente acolhedor`;
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
-    setHeadline(headline || `${name}: ${type} com alma`);
-    setDescription(
-      description ||
-        `${name} recebe-te com ${type.toLowerCase()}, serviço próximo e um ambiente pensado para reservas em família, jantares entre amigos e momentos especiais${location ? ` em ${location}` : ""}.`
-    );
-    setAboutTitle(aboutTitle || "A nossa casa");
-    setAboutText(
-      aboutText ||
-        `No ${name}, a experiência começa antes da mesa. A cozinha, o ambiente e o atendimento foram pensados para criar uma visita simples, saborosa e memorável. ${concept}`
-    );
-    setFeatureTitle(featureTitle || "Uma experiência para voltar");
-    setFeatureText(
-      featureText ||
-        "Uma sala acolhedora, pratos bem preparados e reservas online sem complicações — tudo para transformar curiosidade em vontade de voltar."
-    );
-    setMenuTitle(menuTitle || "Menu");
-    setMenuDescription(
-      menuDescription || "Consulta a carta completa em PDF e escolhe, com calma, o que vais querer provar na tua próxima visita."
-    );
-    setSeoTitle(seoTitle || `${name} | Reservas online${location ? ` em ${location}` : ""}`);
-    setSeoDescription(
-      seoDescription ||
-        `Reserva online no ${name}. Consulta menu, localização, contactos e informações essenciais do restaurante${location ? ` em ${location}` : ""}.`
-    );
-    if (!sectionTitle) setSectionTitle("Sobre nós");
-    if (!sectionText) setSectionText(`Conhece melhor o ${name}, o conceito e aquilo que torna este espaço especial.`);
-    if (!galleryTitle) setGalleryTitle("Galeria");
-    if (!galleryDescription) setGalleryDescription("Alguns momentos e detalhes do espaço.");
-    if (!locationTitle) setLocationTitle("Onde estamos");
-    if (!locationDescription) setLocationDescription(restaurant.address || "Encontra-nos facilmente e faz a tua reserva online.");
-    if (!finalCtaTitle) setFinalCtaTitle(`Reserva em ${name}`);
-    if (!finalCtaText) setFinalCtaText("Escolhe o dia, a hora e garante o teu lugar em poucos segundos.");
-    if (!galleryTitle1) setGalleryTitle1("Ambiente");
-    if (!galleryTitle2) setGalleryTitle2("Pratos");
-    if (!galleryTitle3) setGalleryTitle3("Sala");
-    if (!galleryTitle4) setGalleryTitle4("Momentos");
+  async function generateWebsiteWithAi() {
+    if (isGeneratingAi) return;
+
+    setIsGeneratingAi(true);
+
+    try {
+      const res = await fetch("/api/ai/website", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: restaurant.name,
+          cuisine,
+          address,
+          instagram,
+          brief: aiBrief || aboutText || description,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Erro ao gerar conteúdo com IA");
+      }
+
+      setHeadline(data.headline || "");
+      setDescription(data.description || "");
+
+      setAboutTitle(data.aboutTitle || "");
+      setAboutText(data.aboutText || "");
+
+      setFeatureTitle(data.featureTitle || "");
+      setFeatureText(data.featureText || "");
+
+      setGalleryTitle(data.galleryTitle || "");
+      setGalleryDescription(data.galleryDescription || "");
+
+      setLocationTitle(data.locationTitle || "");
+      setLocationDescription(data.locationDescription || "");
+
+      setFinalCtaTitle(data.ctaTitle || "");
+      setFinalCtaText(data.ctaText || "");
+
+      setSeoTitle(data.seoTitle || "");
+      setSeoDescription(data.seoDescription || "");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao gerar conteúdo com IA. Confirma a OPENAI_API_KEY e tenta novamente.");
+    } finally {
+      setIsGeneratingAi(false);
+    }
   }
 
   function improveText() {
@@ -178,7 +193,7 @@ export function WebsiteEditorClient({
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row">
-              <button type="button" onClick={fillWithAi} className="inline-flex h-11 items-center justify-center rounded-full border border-purple-300/20 bg-purple-400/10 px-5 text-sm font-black text-purple-100 hover:bg-purple-400/15">✨ Preencher com IA</button>
+              <button type="button" onClick={generateWebsiteWithAi} disabled={isGeneratingAi} className="inline-flex h-11 items-center justify-center rounded-full border border-purple-300/20 bg-purple-400/10 px-5 text-sm font-black text-purple-100 hover:bg-purple-400/15 disabled:cursor-not-allowed disabled:opacity-50">{isGeneratingAi ? "A gerar..." : "✨ Gerar Website com IA"}</button>
               <button type="button" onClick={improveText} className="inline-flex h-11 items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 text-sm font-black text-white hover:bg-white/15">Melhorar textos</button>
               <a href={publicUrl} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 text-sm font-black text-white hover:bg-white/15">Ver site</a>
               <button form="website-editor-form" type="submit" className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-black text-black hover:bg-white/90">Guardar alterações</button>
@@ -216,10 +231,19 @@ export function WebsiteEditorClient({
 
             <EditorBlock number="02" title="IA — preencher rapidamente" description="Um assistente simples para acelerar a criação do site. A versão API paga fica para o plano PRO.">
               <div className="grid gap-3 md:grid-cols-2">
-                <button type="button" onClick={fillWithAi} className="rounded-2xl border border-purple-300/20 bg-purple-400/10 px-5 py-4 text-left text-sm font-black text-purple-100 hover:bg-purple-400/15">✨ Preencher campos vazios com IA</button>
+                <button type="button" onClick={generateWebsiteWithAi} disabled={isGeneratingAi} className="rounded-2xl border border-purple-300/20 bg-purple-400/10 px-5 py-4 text-left text-sm font-black text-purple-100 hover:bg-purple-400/15 disabled:cursor-not-allowed disabled:opacity-50">{isGeneratingAi ? "A gerar conteúdo..." : "✨ Gerar Website com IA"}</button>
                 <button type="button" onClick={improveText} className="rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 text-left text-sm font-black text-white hover:bg-white/[0.09]">Melhorar textos existentes</button>
               </div>
-              <p className="text-xs leading-6 text-white/35">Nesta versão é uma IA local simples. Depois ligamos OpenAI e bloqueamos por plano PRO.</p>
+              <Field label="Brief para a IA" hint="Opcional">
+                <textarea
+                  value={aiBrief}
+                  onChange={(event) => setAiBrief(event.target.value)}
+                  rows={3}
+                  placeholder="Ex: bar de cocktails no centro do Porto, ambiente jovem, música ao vivo ao fim de semana..."
+                  className="input-dark min-h-24 py-3"
+                />
+              </Field>
+              <p className="text-xs leading-6 text-white/35">Gera automaticamente textos profissionais para o website com IA.</p>
             </EditorBlock>
 
             <EditorBlock number="03" title="Primeira impressão" description="O que o cliente vê nos primeiros 3 segundos.">
@@ -239,7 +263,7 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="05" title="Textos do website" description="Tudo o que aparece no site público deve ser editável e adaptável a restaurante, bar, café ou brunch.">
+            <EditorBlock number="05" title="Textos do website" description="Personaliza os textos principais do site.">
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Título da secção principal"><input name="websiteSectionTitle" value={sectionTitle} onChange={(event) => setSectionTitle(event.target.value)} placeholder="Sobre nós" className="input-dark h-12" /></Field>
                 <Field label="Texto da secção principal"><input name="websiteSectionText" value={sectionText} onChange={(event) => setSectionText(event.target.value)} placeholder="Texto livre sobre o espaço." className="input-dark h-12" /></Field>
@@ -278,7 +302,41 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="09" title="SEO e domínio" description="Preparado para crescer: Google, domínio próprio e presença profissional.">
+            <EditorBlock number="09" title="Contactos" description="Edita os contactos que aparecem no website público.">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Email">
+                  <input
+                    name="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="info@restaurante.pt"
+                    className="input-dark h-12"
+                  />
+                </Field>
+
+                <Field label="Telefone">
+                  <input
+                    name="phone"
+                    value={phone}
+                    onChange={(event) => setPhone(event.target.value)}
+                    placeholder="+351 912 345 678"
+                    className="input-dark h-12"
+                  />
+                </Field>
+              </div>
+
+              <Field label="Morada">
+                <input
+                  name="address"
+                  value={address}
+                  onChange={(event) => setAddress(event.target.value)}
+                  placeholder="Rua, número, cidade"
+                  className="input-dark h-12"
+                />
+              </Field>
+            </EditorBlock>
+
+            <EditorBlock number="10" title="SEO e domínio" description="Preparado para crescer: Google, domínio próprio e presença profissional.">
               <Field label="Título SEO"><input name="websiteSeoTitle" value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} placeholder={`${restaurant.name} | Reservas online`} className="input-dark h-12" /></Field>
               <Field label="Descrição SEO"><textarea name="websiteSeoDescription" value={seoDescription} onChange={(event) => setSeoDescription(event.target.value)} rows={3} placeholder="Descrição para Google e partilhas." className="input-dark min-h-24 py-3" /></Field>
               <Field label="Domínio próprio"><input name="customDomain" value={customDomain} onChange={(event) => setCustomDomain(event.target.value)} placeholder="tabernatuga.pt" className="input-dark h-12" /></Field>
@@ -414,18 +472,21 @@ function polishText(value: string, restaurantName: string) {
 
   if (!clean) return clean;
 
-  const withoutCliches = clean
+  const improved = clean
     .replace(/lolitos/gi, "")
     .replace(/\btop\b/gi, "excelente")
     .replace(/\bfixe\b/gi, "acolhedor")
+    .replace(/\bmuito bom\b/gi, "de qualidade")
     .replace(/\s+/g, " ")
     .trim();
 
-  const sentence = withoutCliches.endsWith(".") ? withoutCliches : `${withoutCliches}.`;
+  const sentence = improved.endsWith(".") ? improved : `${improved}.`;
 
-  if (sentence.length > 260) return sentence.slice(0, 257).trimEnd() + "...";
+  if (sentence.length > 260) {
+    return sentence.slice(0, 257).trimEnd() + "...";
+  }
 
-  return `${sentence} No ${restaurantName}, cada detalhe foi pensado para tornar a visita simples, saborosa e memorável.`;
+  return sentence;
 }
 
 function toSeoDescription(value: string, restaurantName: string) {

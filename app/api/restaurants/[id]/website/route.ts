@@ -25,6 +25,11 @@ export async function POST(
   await prisma.restaurant.update({
     where: { id },
     data: {
+      name: getText(formData, "name") || undefined,
+      email: getText(formData, "email"),
+      phone: getText(formData, "phone"),
+      address: getText(formData, "address"),
+
       websiteEnabled: formData.get("websiteEnabled") === "on",
       websiteTemplate: getText(formData, "websiteTemplate") || "PREMIUM",
       websitePrimaryColor: getText(formData, "websitePrimaryColor") || "#111827",
