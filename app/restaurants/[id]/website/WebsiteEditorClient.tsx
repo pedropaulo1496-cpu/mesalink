@@ -1,5 +1,6 @@
 "use client";
 
+import { ImageUploadField } from "@/components/ImageUploadField";
 import { useMemo, useState } from "react";
 
 type RestaurantWebsiteData = {
@@ -415,14 +416,10 @@ export function WebsiteEditorClient({
 </Field>
 
               <Field label="Foto principal">
-                <input
-                  name="websiteHeroImage"
-                  value={heroImage}
-                  onChange={(e) => setHeroImage(e.target.value)}
-                  placeholder="https://..."
-                  className="input-dark h-12"
-                />
-              </Field>
+  <ImageUploadField value={heroImage} onChange={setHeroImage} />
+
+  <input type="hidden" name="websiteHeroImage" value={heroImage} />
+</Field>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Galeria 1">
