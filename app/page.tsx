@@ -369,7 +369,7 @@ export default function HomePage() {
           </motion.div>
 
           <motion.div style={{ rotate: phoneRotate }} className="lg:mt-8">
-            <FlowNetwork t={t} hero />
+            <PhoneHero t={t} />
           </motion.div>
         </div>
       </section>
@@ -564,6 +564,88 @@ function Badge({ children, purple }: { children: ReactNode; purple?: boolean }) 
   return <span className={purple ? "relative inline-flex rounded-full border border-violet-300/30 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-violet-200" : "relative inline-flex rounded-full border border-cyan-300/30 bg-cyan-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-cyan-200"}>{children}</span>;
 }
 
+function PhoneHero({ t }: { t: Copy }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 45, scale: 0.94 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.85, delay: 0.15 }}
+      className="relative mx-auto max-w-[340px] lg:max-w-[430px]"
+    >
+      <div className="absolute inset-0 translate-y-10 rounded-[48px] bg-cyan-500/25 blur-[80px]" />
+      <div className="absolute inset-0 translate-y-16 rounded-[48px] bg-violet-500/20 blur-[100px]" />
+
+      <motion.div
+        animate={{ y: [0, -12, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="relative rounded-[44px] border border-cyan-300/35 bg-gradient-to-b from-[#0b1b2c] via-[#071426] to-[#020617] p-3 shadow-2xl"
+      >
+        <div className="mx-auto mb-3 h-1.5 w-20 rounded-full bg-cyan-300/50" />
+
+        <div className="rounded-[34px] border border-white/10 bg-black/45 p-4 backdrop-blur-xl lg:p-5">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-400">MesaLink OS</p>
+              <h3 className="text-2xl font-black lg:text-3xl">Live Control</h3>
+            </div>
+            <span className="rounded-full bg-cyan-500/15 px-3 py-1 text-xs font-black text-cyan-300">
+              {t.phone.status}
+            </span>
+          </div>
+
+          <div className="mb-5 grid grid-cols-3 gap-2">
+            <Dash value="18" label={t.phone.reservations} />
+            <Dash value="64" label={t.phone.people} />
+            <Dash value="91%" label={t.phone.occupancy} />
+          </div>
+
+          <div className="mb-5 rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-4 shadow-[0_0_35px_rgba(34,211,238,0.18)]">
+            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
+              {t.phone.websiteActive}
+            </p>
+            <p className="text-2xl font-black text-cyan-200">{t.phone.websiteLine}</p>
+            <p className="mt-1 text-sm text-slate-300">{t.phone.websiteText}</p>
+          </div>
+
+          <div className="mb-5 rounded-2xl border border-violet-300/20 bg-violet-400/10 p-4">
+            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-violet-200">
+              {t.phone.platform}
+            </p>
+            <p className="text-sm font-bold text-white">{t.phone.platformText}</p>
+          </div>
+
+          <Reservation time="20:00" name="João Silva" status={t.phone.bookingConfirmed} />
+          <Reservation time="20:30" name="Ana Costa" status={t.phone.bookingConfirmed} />
+          <Reservation time="21:00" name="Pedro Santos" status={t.phone.pending} danger />
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function Dash({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+      <p className="text-2xl font-black">{value}</p>
+      <p className="text-[10px] text-cyan-300">{label}</p>
+    </div>
+  );
+}
+
+function Reservation({ time, name, status, danger }: { time: string; name: string; status: string; danger?: boolean }) {
+  return (
+    <div className="mb-3 flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.04] p-3">
+      <div>
+        <p className="text-sm font-black text-cyan-300">{time}</p>
+        <p className="text-sm font-bold">{name}</p>
+      </div>
+      <span className={danger ? "rounded-full bg-red-500/15 px-2 py-1 text-[10px] font-black text-red-300" : "rounded-full bg-green-500/15 px-2 py-1 text-[10px] font-black text-green-300"}>
+        {status}
+      </span>
+    </div>
+  );
+}
+
 function FlowNetwork({ t, hero }: { t: Copy; hero?: boolean }) {
   const [qr, website, pos, reservations, marketing] = t.flow.nodes;
   return (
@@ -634,7 +716,82 @@ function Feature({ icon, title, text }: { icon: string; title: string; text: str
 }
 
 function TemplateCard({ name, text }: { name: string; text: string }) {
-  return <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} viewport={{ once: true }} className="overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.04] p-3"><div className="h-52 rounded-[22px] bg-gradient-to-br from-slate-950 via-slate-800 to-cyan-900 p-4"><div className="mb-4 h-20 rounded-2xl bg-white/10" /><div className="mb-2 h-3 w-3/4 rounded-full bg-white/30" /><div className="mb-5 h-3 w-1/2 rounded-full bg-white/20" /><div className="inline-flex rounded-full bg-cyan-300 px-4 py-2 text-xs font-black text-black">Book</div></div><div className="p-3"><h3 className="text-xl font-black">{name}</h3><p className="mt-2 text-sm leading-relaxed text-slate-400">{text}</p></div></motion.div>;
+  const style = name.toLowerCase();
+
+  const theme = {
+    premium: {
+      bg: "from-[#15110d] via-[#2a1b13] to-[#b7791f]",
+      accent: "bg-amber-300 text-black",
+      label: "Fine Dining",
+      title: "Aurora",
+      dish: "Signature Menu",
+    },
+    luxury: {
+      bg: "from-[#050505] via-[#151515] to-[#6f4e37]",
+      accent: "bg-white text-black",
+      label: "Luxury Bistro",
+      title: "Maison Noir",
+      dish: "Chef Experience",
+    },
+    minimal: {
+      bg: "from-[#f8fafc] via-[#e2e8f0] to-[#0f766e]",
+      accent: "bg-slate-950 text-white",
+      label: "Minimal Kitchen",
+      title: "Noma Verde",
+      dish: "Seasonal Plates",
+    },
+    social: {
+      bg: "from-[#111827] via-[#7c3aed] to-[#ec4899]",
+      accent: "bg-pink-300 text-black",
+      label: "Social Bar",
+      title: "Luna Club",
+      dish: "Cocktails & Food",
+    },
+  }[style] ?? {
+    bg: "from-slate-950 via-slate-800 to-cyan-900",
+    accent: "bg-cyan-300 text-black",
+    label: "Restaurant",
+    title: name,
+    dish: "Menu",
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+      viewport={{ once: true }}
+      className="group overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.04] p-3 transition hover:-translate-y-1 hover:border-cyan-300/30 hover:bg-white/[0.07]"
+    >
+      <div className={`relative h-56 overflow-hidden rounded-[22px] bg-gradient-to-br ${theme.bg} p-4`}>
+        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-black/70 to-transparent" />
+
+        <div className="relative flex items-center justify-between text-[10px] font-black uppercase tracking-[0.22em] text-white/70">
+          <span>{theme.label}</span>
+          <span>Menu</span>
+        </div>
+
+        <div className="relative mt-10 max-w-[190px]">
+          <h3 className="text-3xl font-black leading-none text-white drop-shadow-lg">{theme.title}</h3>
+          <p className="mt-3 text-xs leading-relaxed text-white/75">{theme.dish}</p>
+        </div>
+
+        <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+          <button className={`rounded-full px-4 py-2 text-xs font-black ${theme.accent}`}>Book</button>
+          <div className="rounded-2xl border border-white/15 bg-black/35 px-3 py-2 text-right backdrop-blur">
+            <p className="text-[10px] text-white/50">Today</p>
+            <p className="text-xs font-black text-white">19:30 · 21:00</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-3">
+        <h3 className="text-xl font-black">{name}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-slate-400">{text}</p>
+      </div>
+    </motion.div>
+  );
 }
 
 function PriceCard({ title, price, text, items, cta, href, highlighted, popular }: { title: string; price: string; text: string; items: string[]; cta: string; href: string; highlighted?: boolean; popular: string }) {
