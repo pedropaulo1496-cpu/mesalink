@@ -98,6 +98,16 @@ const isPro =
 
 const hasUnlimitedReservations = trialActive || isPro;
 
+const trialDaysLeft = subscription?.trialEndsAt
+  ? Math.max(
+      0,
+      Math.ceil(
+        (subscription.trialEndsAt.getTime() - Date.now()) /
+          (1000 * 60 * 60 * 24)
+      )
+    )
+  : 0;
+
 const startOfMonth = new Date();
 startOfMonth.setDate(1);
 startOfMonth.setHours(0, 0, 0, 0);
@@ -284,15 +294,25 @@ const remainingFreeReservations = Math.max(
               />
 
               <MiniMetric
-  label={hasUnlimitedReservations ? "Plano" : "Free"}
-  value={hasUnlimitedReservations ? "∞" : remainingFreeReservations}
+  label={trialActive ? "Trial" : isPro ? "Pro" : "Free"}
+  value={
+    trialActive
+      ? trialDaysLeft
+      : isPro
+      ? "∞"
+      : remainingFreeReservations
+  }
   sub={
-    hasUnlimitedReservations
+    trialActive
+      ? `${trialDaysLeft} dias restantes`
+      : isPro
       ? "reservas ilimitadas"
       : `${publicReservationsThisMonth}/100 usadas`
   }
   tone={
-    hasUnlimitedReservations
+    trialActive
+      ? "violet"
+      : isPro
       ? "cyan"
       : remainingFreeReservations <= 20
       ? "yellow"
