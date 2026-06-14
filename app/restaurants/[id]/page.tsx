@@ -17,7 +17,7 @@ export default async function RestaurantPage({
   if (!session?.user?.email) redirect("/login");
 
   const hasAccess = await canAccessApp(session.user.email);
-  if (!hasAccess) redirect("/trial-expired");
+  if (!hasAccess) redirect("/billing");
 
   const { id } = await params;
 

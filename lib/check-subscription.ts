@@ -15,16 +15,9 @@ export async function canAccessApp(email: string) {
 
   if (!subscription) return false;
 
-  if (subscription.status === "ACTIVE") return true;
+  if (subscription.status === "CANCELLED") return false;
 
-  if (
-    subscription.status === "TRIAL" &&
-    !hasTrialExpired(subscription.trialEndsAt)
-  ) {
-    return true;
-  }
-
-  return false;
+  return true;
 }
 
 export async function canUsePro(email: string) {

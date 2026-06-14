@@ -7,7 +7,20 @@ async function updateSettings(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
-  const reservationMode = String(formData.get("reservationMode"));
+
+  const currentRestaurant = await prisma.restaurant.findUnique({
+    where: { id: restaurantId },
+    select: { userId: true },
+  });
+
+  if (!currentRestaurant) {
+    redirect("/dashboard");
+  }
+
+  const canUseAdvancedReservations =
+    await canUseAdvancedReservationSettings(currentRestaurant.userId);
+
+  const reservationMode = String(formData.get("reservationMode") || "TABLES");
   const totalCapacity = Number(formData.get("totalCapacity"));
   const manualApprovalGuests = Number(formData.get("manualApprovalGuests"));
 
@@ -16,18 +29,6 @@ async function updateSettings(formData: FormData) {
       id: restaurantId,
     },
     data: {
-      reservationMode,
-
-      totalCapacity:
-        reservationMode === "CAPACITY" && totalCapacity > 0
-          ? totalCapacity
-          : null,
-
-      manualApprovalGuests:
-        manualApprovalGuests > 0 ? manualApprovalGuests : null,
-
-      approvalOnTableMerge: formData.get("approvalOnTableMerge") === "on",
-
       onlineReservationsEnabled:
         formData.get("onlineReservationsEnabled") === "on",
 
@@ -58,6 +59,24 @@ async function updateSettings(formData: FormData) {
       sundayOpen: formData.get("sundayOpen") === "on",
       sundayLunch: String(formData.get("sundayLunch") || ""),
       sundayDinner: String(formData.get("sundayDinner") || ""),
+
+      ...(canUseAdvancedReservations
+        ? {
+            reservationMode:
+              reservationMode === "CAPACITY" ? "CAPACITY" : "TABLES",
+
+            totalCapacity:
+              reservationMode === "CAPACITY" && totalCapacity > 0
+                ? totalCapacity
+                : null,
+
+            manualApprovalGuests:
+              manualApprovalGuests > 0 ? manualApprovalGuests : null,
+
+            approvalOnTableMerge:
+              formData.get("approvalOnTableMerge") === "on",
+          }
+        : {}),
     },
   });
 
@@ -73,6 +92,26 @@ const weekdays = [
   { label: "Sábado", key: "saturday" },
   { label: "Domingo", key: "sunday" },
 ] as const;
+
+async function canUseAdvancedReservationSettings(userId?: string | null) {
+  if (!userId) return false;
+
+  const subscription = await prisma.subscription.findUnique({
+    where: { userId },
+  });
+
+  const trialActive =
+    subscription?.status === "TRIAL" &&
+    subscription.trialEndsAt &&
+    new Date() <= subscription.trialEndsAt;
+
+  const isPro =
+    subscription?.status === "ACTIVE" &&
+    subscription.plan === "PRO";
+
+  return Boolean(trialActive || isPro);
+}
+
 
 export default async function SettingsPage({
   params,
@@ -92,6 +131,9 @@ export default async function SettingsPage({
       </main>
     );
   }
+
+  const canUseAdvancedReservations =
+    await canUseAdvancedReservationSettings(restaurant.userId);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
@@ -142,51 +184,84 @@ export default async function SettingsPage({
               </p>
 
               <div className="mt-6 space-y-5">
-                <Field label="Modo de reservas">
-                  <select
-                    name="reservationMode"
-                    defaultValue={restaurant.reservationMode}
-                    className="input-ai"
-                  >
-                    <option value="TABLES">Por Mesas</option>
-                    <option value="CAPACITY">Por Capacidade</option>
-                  </select>
-                </Field>
+                {canUseAdvancedReservations ? (
+                  <>
+                    <Field label="Modo de reservas">
+                      <select
+                        name="reservationMode"
+                        defaultValue={restaurant.reservationMode}
+                        className="input-ai"
+                      >
+                        <option value="TABLES">Por Mesas</option>
+                        <option value="CAPACITY">Por Capacidade</option>
+                      </select>
+                    </Field>
 
-                <Field label="Capacidade total">
-                  <input
-                    type="number"
-                    name="totalCapacity"
-                    defaultValue={restaurant.totalCapacity ?? ""}
-                    placeholder="Ex: 60"
-                    className="input-ai"
-                  />
+                    <Field label="Capacidade total">
+                      <input
+                        type="number"
+                        name="totalCapacity"
+                        defaultValue={restaurant.totalCapacity ?? ""}
+                        placeholder="Ex: 60"
+                        className="input-ai"
+                      />
 
-                  <p className="mt-2 text-xs text-slate-500">
-                    Usado apenas quando o modo é Por Capacidade.
-                  </p>
-                </Field>
+                      <p className="mt-2 text-xs text-slate-500">
+                        Usado apenas quando o modo é Por Capacidade.
+                      </p>
+                    </Field>
 
-                <Field label="Aprovação manual a partir de">
-                  <input
-                    type="number"
-                    name="manualApprovalGuests"
-                    defaultValue={restaurant.manualApprovalGuests ?? ""}
-                    placeholder="Ex: 8"
-                    className="input-ai"
-                  />
+                    <Field label="Aprovação manual a partir de">
+                      <input
+                        type="number"
+                        name="manualApprovalGuests"
+                        defaultValue={restaurant.manualApprovalGuests ?? ""}
+                        placeholder="Ex: 8"
+                        className="input-ai"
+                      />
 
-                  <p className="mt-2 text-xs text-slate-500">
-                    Reservas com este número de pessoas ou mais ficam pendentes.
-                  </p>
-                </Field>
+                      <p className="mt-2 text-xs text-slate-500">
+                        Reservas com este número de pessoas ou mais ficam pendentes.
+                      </p>
+                    </Field>
 
-                <ToggleBox
-                  name="approvalOnTableMerge"
-                  defaultChecked={restaurant.approvalOnTableMerge}
-                  title="Aprovação ao juntar mesas"
-                  text="Pedidos que exijam junção de mesas ficam pendentes."
-                />
+                    <ToggleBox
+                      name="approvalOnTableMerge"
+                      defaultChecked={restaurant.approvalOnTableMerge}
+                      title="Aprovação ao juntar mesas"
+                      text="Pedidos que exijam junção de mesas ficam pendentes."
+                    />
+                  </>
+                ) : (
+                  <div className="rounded-3xl border border-cyan-300/20 bg-cyan-500/5 p-5">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
+                      Funcionalidade Pro
+                    </p>
+
+                    <h3 className="mt-3 text-xl font-black">
+                      Gestão avançada de reservas
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                      No plano gratuito, o MesaLink funciona como sistema simples
+                      de reservas online, calendário e clientes.
+                    </p>
+
+                    <ul className="mt-4 space-y-2 text-sm text-slate-300">
+                      <li>✓ Gestão de mesas</li>
+                      <li>✓ Reservas por capacidade</li>
+                      <li>✓ Aprovação ao juntar mesas</li>
+                      <li>✓ Reservas ilimitadas</li>
+                    </ul>
+
+                    <Link
+                      href="/billing?feature=tables"
+                      className="mt-5 inline-flex rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 py-3 font-black text-black"
+                    >
+                      Upgrade para Pro
+                    </Link>
+                  </div>
+                )}
 
                 <ToggleBox
                   name="onlineReservationsEnabled"
