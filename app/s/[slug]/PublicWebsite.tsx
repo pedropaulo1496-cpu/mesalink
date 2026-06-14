@@ -8,7 +8,6 @@ import {
   MenuSection,
   MobileStickyReserve,
   PublicFooter,
-  QuickInfoSection,
   ReservationAndHoursSection,
 } from "./WebsiteSections";
 import {
@@ -38,47 +37,27 @@ export function PublicWebsite({
         template={template}
       />
 
-      <QuickInfoSection restaurant={restaurant} />
-
       <ReservationAndHoursSection
         restaurant={restaurant}
         hours={hours}
         primaryColor={theme.accent}
       />
 
-      <ExperienceSection
-        restaurant={restaurant}
-        primaryColor={theme.accent}
-      />
+      <MenuSection restaurant={restaurant} primaryColor={theme.accent} />
 
-      <MenuSection
-        restaurant={restaurant}
-        primaryColor={theme.accent}
-      />
+      <ExperienceSection restaurant={restaurant} primaryColor={theme.accent} />
 
       <GallerySection restaurant={restaurant} />
 
-      <LocationSection
-        restaurant={restaurant}
-        primaryColor={theme.accent}
-      />
+      <LocationSection restaurant={restaurant} primaryColor={theme.accent} />
 
-      <InstagramSection
-        restaurant={restaurant}
-        primaryColor={theme.accent}
-      />
+      <InstagramSection restaurant={restaurant} primaryColor={theme.accent} />
 
-      <FinalCtaSection
-        restaurant={restaurant}
-        primaryColor={theme.accent}
-      />
+      <FinalCtaSection restaurant={restaurant} primaryColor={theme.accent} />
 
       <PublicFooter />
 
-      <MobileStickyReserve
-        restaurant={restaurant}
-        primaryColor={theme.accent}
-      />
+      <MobileStickyReserve restaurant={restaurant} primaryColor={theme.accent} />
     </main>
   );
 }

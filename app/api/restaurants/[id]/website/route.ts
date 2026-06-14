@@ -26,9 +26,8 @@ export async function POST(
     where: { id },
     data: {
       websiteEnabled: formData.get("websiteEnabled") === "on",
-      websiteTemplate: getText(formData, "websiteTemplate"),
+      websiteTemplate: getText(formData, "websiteTemplate") || "PREMIUM",
       websitePrimaryColor: getText(formData, "websitePrimaryColor") || "#111827",
-
       slug: normalizeSlug(getText(formData, "slug")),
 
       websiteHeadline: getText(formData, "websiteHeadline"),
@@ -47,45 +46,13 @@ export async function POST(
       websiteGalleryImage2: getText(formData, "websiteGalleryImage2"),
       websiteGalleryImage3: getText(formData, "websiteGalleryImage3"),
       websiteGalleryImage4: getText(formData, "websiteGalleryImage4"),
-      websiteGalleryImage5: getText(formData, "websiteGalleryImage5"),
-      websiteGalleryImage6: getText(formData, "websiteGalleryImage6"),
 
       websiteMenuTitle: getText(formData, "websiteMenuTitle"),
       websiteMenuDescription: getText(formData, "websiteMenuDescription"),
-
-      websiteDish1Name: getText(formData, "websiteDish1Name"),
-      websiteDish1Description: getText(formData, "websiteDish1Description"),
-      websiteDish1Price: getText(formData, "websiteDish1Price"),
-      websiteDish1Image: getText(formData, "websiteDish1Image"),
-
-      websiteDish2Name: getText(formData, "websiteDish2Name"),
-      websiteDish2Description: getText(formData, "websiteDish2Description"),
-      websiteDish2Price: getText(formData, "websiteDish2Price"),
-      websiteDish2Image: getText(formData, "websiteDish2Image"),
-
-      websiteDish3Name: getText(formData, "websiteDish3Name"),
-      websiteDish3Description: getText(formData, "websiteDish3Description"),
-      websiteDish3Price: getText(formData, "websiteDish3Price"),
-      websiteDish3Image: getText(formData, "websiteDish3Image"),
-
-      websiteDish4Name: getText(formData, "websiteDish4Name"),
-      websiteDish4Description: getText(formData, "websiteDish4Description"),
-      websiteDish4Price: getText(formData, "websiteDish4Price"),
-      websiteDish4Image: getText(formData, "websiteDish4Image"),
-
-      websiteDish5Name: getText(formData, "websiteDish5Name"),
-      websiteDish5Description: getText(formData, "websiteDish5Description"),
-      websiteDish5Price: getText(formData, "websiteDish5Price"),
-      websiteDish5Image: getText(formData, "websiteDish5Image"),
-
-      websiteDish6Name: getText(formData, "websiteDish6Name"),
-      websiteDish6Description: getText(formData, "websiteDish6Description"),
-      websiteDish6Price: getText(formData, "websiteDish6Price"),
-      websiteDish6Image: getText(formData, "websiteDish6Image"),
+      websiteMenuPdf: getText(formData, "websiteMenuPdf"),
 
       websiteSeoTitle: getText(formData, "websiteSeoTitle"),
       websiteSeoDescription: getText(formData, "websiteSeoDescription"),
-
       customDomain: getText(formData, "customDomain"),
     },
   });

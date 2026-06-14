@@ -79,6 +79,7 @@ model Restaurant {
   // Mini-site — menu
   websiteMenuTitle       String?
   websiteMenuDescription String?
+  websiteMenuPdf String?
 
   websiteDish1Name        String?
   websiteDish1Description String?

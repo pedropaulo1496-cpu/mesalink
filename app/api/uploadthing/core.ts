@@ -9,9 +9,16 @@ export const ourFileRouter = {
       maxFileCount: 1,
     },
   }).onUploadComplete(async ({ file }) => {
-    return {
-      url: file.ufsUrl,
-    };
+    return { url: file.ufsUrl };
+  }),
+
+  websiteMenuPdf: f({
+    pdf: {
+      maxFileSize: "16MB",
+      maxFileCount: 1,
+    },
+  }).onUploadComplete(async ({ file }) => {
+    return { url: file.ufsUrl };
   }),
 } satisfies FileRouter;
 

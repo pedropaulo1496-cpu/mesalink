@@ -1,16 +1,14 @@
-import {
-  GalleryTile,
-  PremiumCard,
-  SectionTitle,
-} from "./WebsiteCards";
+import { GalleryTile } from "./WebsiteCards";
 import {
   formatOpeningHour,
+  getAboutText,
+  getAboutTitle,
   getDisplayCuisine,
+  getFeatureText,
+  getFeatureTitle,
   getGalleryImages,
   getMapsUrl,
-  getMenuItems,
   getReserveUrl,
-  hasValidHeroImage,
   normalizeInstagramUrl,
   type OpeningHour,
   type PublicRestaurant,
@@ -23,88 +21,67 @@ export function MenuSection({
   restaurant: PublicRestaurant;
   primaryColor: string;
 }) {
-  const menuItems = getMenuItems(restaurant);
-  const reserveUrl = getReserveUrl(restaurant);
-
-  if (menuItems.length === 0) return null;
+  if (!restaurant.websiteMenuPdf) return null;
 
   return (
     <section id="menu" className="bg-[#f4eadf] px-6 py-24 text-[#1d120b]">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-12 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.4em] text-[#8a5a32]/70">
-              Menu
-            </p>
+        <div className="overflow-hidden rounded-[2.5rem] border border-[#1d120b]/10 bg-white/65 shadow-sm">
+          <div className="grid gap-0 lg:grid-cols-[1fr_0.75fr]">
+            <div className="p-8 md:p-12">
+              <p className="text-xs font-black uppercase tracking-[0.4em] text-[#8a5a32]/70">
+                Menu
+              </p>
 
-            <h2 className="mt-5 max-w-4xl text-5xl font-black leading-[0.9] tracking-[-0.07em] md:text-7xl">
-              {restaurant.websiteMenuTitle || "Pratos em destaque"}
-            </h2>
+              <h2 className="mt-5 max-w-4xl text-5xl font-black leading-[0.9] tracking-[-0.07em] md:text-7xl">
+                {restaurant.websiteMenuTitle || "Consulta o nosso menu"}
+              </h2>
 
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-[#4a3325]/75">
-              {restaurant.websiteMenuDescription ||
-                "Uma seleção pensada para abrir o apetite antes da reserva."}
-            </p>
-          </div>
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-[#4a3325]/75">
+                {restaurant.websiteMenuDescription ||
+                  "Vê a carta completa do restaurante antes de fazer a tua reserva."}
+              </p>
 
-          <a
-            href={reserveUrl}
-            className="inline-flex shrink-0 rounded-full px-8 py-4 text-sm font-black text-white"
-            style={{ backgroundColor: primaryColor }}
-          >
-            Reservar mesa
-          </a>
-        </div>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <a
+                  href={restaurant.websiteMenuPdf}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center rounded-full bg-[#1d120b] px-8 py-4 text-sm font-black text-white"
+                >
+                  Ver menu
+                </a>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          {menuItems.map((item, index) => (
-            <article
-              key={index}
-              className="overflow-hidden rounded-[2rem] border border-[#1d120b]/10 bg-white/55 shadow-sm"
-            >
-              {item.image && item.image.startsWith("http") && (
-                <div className="relative h-56 overflow-hidden bg-[#1d120b]">
-                  <img
-                    src={item.image}
-                    alt={item.name || "Prato"}
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                </div>
-              )}
-
-              <div className="p-6">
-                <div className="flex items-start justify-between gap-5">
-                  <h3 className="text-2xl font-black tracking-[-0.04em]">
-                    {item.name || `Prato ${index + 1}`}
-                  </h3>
-
-                  {item.price && (
-                    <p className="shrink-0 rounded-full bg-[#1d120b] px-4 py-2 text-sm font-black text-white">
-                      {item.price}
-                    </p>
-                  )}
-                </div>
-
-                {item.description && (
-                  <p className="mt-4 text-sm leading-7 text-[#4a3325]/75">
-                    {item.description}
-                  </p>
-                )}
+                <a
+                  href={getReserveUrl(restaurant)}
+                  className="inline-flex items-center justify-center rounded-full px-8 py-4 text-sm font-black text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  Reservar mesa
+                </a>
               </div>
-            </article>
-          ))}
+            </div>
+
+            <a
+              href={restaurant.websiteMenuPdf}
+              target="_blank"
+              rel="noreferrer"
+              className="flex min-h-[320px] items-center justify-center bg-[#1d120b] p-8 text-center text-white"
+            >
+              <div>
+                <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-white/10 text-5xl">
+                  📄
+                </div>
+                <p className="mt-5 text-xs font-black uppercase tracking-[0.35em] text-white/35">
+                  Abrir PDF
+                </p>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
     </section>
   );
-}
-
-export function QuickInfoSection({
-  restaurant,
-}: {
-  restaurant: PublicRestaurant;
-}) {
-  return null;
 }
 
 export function ReservationAndHoursSection({
@@ -123,16 +100,19 @@ export function ReservationAndHoursSection({
       <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.4em] text-amber-200/60">
-            A casa
+            {getAboutTitle(restaurant)}
           </p>
 
           <h2 className="mt-5 max-w-4xl text-5xl font-black leading-[0.9] tracking-[-0.07em] md:text-7xl">
-            Um espaço pensado para comer bem, ficar mais um pouco e voltar.
+            {getFeatureTitle(restaurant)}
           </h2>
 
           <p className="mt-7 max-w-2xl text-lg leading-8 text-white/65">
-            {restaurant.websiteDescription ||
-              "Uma experiência simples, quente e memorável. Boa comida, bom ambiente e reservas online sem complicações."}
+            {getAboutText(restaurant)}
+          </p>
+
+          <p className="mt-5 max-w-2xl text-sm leading-7 text-white/45">
+            {getFeatureText(restaurant)}
           </p>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
@@ -197,8 +177,6 @@ export function ExperienceSection({
   restaurant: PublicRestaurant;
   primaryColor: string;
 }) {
-  const reserveUrl = getReserveUrl(restaurant);
-
   return (
     <section
       id="experiencia"
@@ -224,28 +202,14 @@ export function ExperienceSection({
         </div>
 
         <div className="mt-14 grid gap-5 md:grid-cols-3">
-          <RestaurantMoment
-            number="01"
-            title="Chegar"
-            text="Morada, contacto e reserva visíveis logo no início."
-          />
-
-          <RestaurantMoment
-            number="02"
-            title="Escolher"
-            text="O cliente entende o conceito, o ambiente e a experiência."
-          />
-
-          <RestaurantMoment
-            number="03"
-            title="Reservar"
-            text="O botão de reserva acompanha a página inteira, sem fricção."
-          />
+          <RestaurantMoment number="01" title="Chegar" text="Morada, contacto e reserva visíveis logo no início." />
+          <RestaurantMoment number="02" title="Escolher" text="O cliente entende o conceito, o ambiente e a experiência." />
+          <RestaurantMoment number="03" title="Reservar" text="O botão de reserva acompanha a página inteira, sem fricção." />
         </div>
 
         <div className="mt-12">
           <a
-            href={reserveUrl}
+            href={getReserveUrl(restaurant)}
             className="inline-flex rounded-full px-8 py-4 text-sm font-black text-white"
             style={{ backgroundColor: primaryColor }}
           >
@@ -262,9 +226,9 @@ export function GallerySection({
 }: {
   restaurant: PublicRestaurant;
 }) {
-  const image = hasValidHeroImage(restaurant)
-    ? restaurant.websiteHeroImage!
-    : null;
+  const gallery = getGalleryImages(restaurant);
+
+  if (gallery.length === 0) return null;
 
   return (
     <section className="bg-[#120b07] px-6 py-24 text-white">
@@ -281,21 +245,20 @@ export function GallerySection({
           </div>
 
           <p className="max-w-md text-sm leading-7 text-white/50">
-            Fotos, pratos e atmosfera fazem o cliente decidir antes sequer de
-            abrir a página de reserva.
+            Uma seleção curta, forte e elegante. Quatro fotos chegam para criar desejo sem pesar o site.
           </p>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-4">
-          <GalleryTile
-            large
-            title={getDisplayCuisine(restaurant)}
-            subtitle="Ambiente"
-            image={image}
-          />
-          <GalleryTile title="Comida" subtitle="Mesa" image={null} />
-          <GalleryTile title="Momentos" subtitle="Sala" image={null} />
-          <GalleryTile title="Reservas" subtitle="Online" image={null} />
+          {gallery.map((image, index) => (
+            <GalleryTile
+              key={image}
+              large={index === 0}
+              title={index === 0 ? getDisplayCuisine(restaurant) : `Foto ${index + 1}`}
+              subtitle={index === 0 ? "Ambiente" : "Galeria"}
+              image={image}
+            />
+          ))}
         </div>
       </div>
     </section>
@@ -357,12 +320,8 @@ export function LocationSection({
           className="flex min-h-[420px] items-center justify-center rounded-[2.5rem] bg-[#1d120b] text-center text-white shadow-2xl"
         >
           <div>
-            <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-white/10 text-6xl">
-              📍
-            </div>
-            <p className="mt-6 text-xs font-black uppercase tracking-[0.35em] text-white/35">
-              Ver mapa
-            </p>
+            <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-white/10 text-6xl">📍</div>
+            <p className="mt-6 text-xs font-black uppercase tracking-[0.35em] text-white/35">Ver mapa</p>
           </div>
         </a>
       </div>
@@ -387,79 +346,31 @@ export function InstagramSection({
       <div className="mx-auto max-w-7xl rounded-[2.5rem] border border-white/10 bg-white/[0.06] p-8 md:p-12">
         <div className="grid gap-10 lg:grid-cols-[1fr_0.7fr] lg:items-center">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.4em] text-amber-200/55">
-              Instagram
-            </p>
-
-            <h2 className="mt-5 max-w-3xl text-5xl font-black leading-[0.9] tracking-[-0.07em] md:text-7xl">
-              Acompanha o restaurante fora da mesa.
-            </h2>
-
-            <p className="mt-7 max-w-xl text-lg leading-8 text-white/60">
-              Novidades, pratos, eventos e momentos do dia a dia.
-            </p>
-
+            <p className="text-xs font-black uppercase tracking-[0.4em] text-amber-200/55">Instagram</p>
+            <h2 className="mt-5 max-w-3xl text-5xl font-black leading-[0.9] tracking-[-0.07em] md:text-7xl">Acompanha o restaurante fora da mesa.</h2>
+            <p className="mt-7 max-w-xl text-lg leading-8 text-white/60">Novidades, pratos, eventos e momentos do dia a dia.</p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <a
-                href={instagramUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex rounded-full border border-white/20 px-8 py-4 text-sm font-black text-white hover:bg-white/10"
-              >
-                Abrir Instagram
-              </a>
-
-              <a
-                href={reserveUrl}
-                className="inline-flex rounded-full px-8 py-4 text-sm font-black text-white"
-                style={{ backgroundColor: primaryColor }}
-              >
-                Reservar mesa
-              </a>
+              <a href={instagramUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-white/20 px-8 py-4 text-sm font-black text-white hover:bg-white/10">Abrir Instagram</a>
+              <a href={reserveUrl} className="inline-flex rounded-full px-8 py-4 text-sm font-black text-white" style={{ backgroundColor: primaryColor }}>Reservar mesa</a>
             </div>
           </div>
-
-          <div className="flex min-h-[280px] items-center justify-center rounded-[2rem] bg-white/10">
-            <p className="text-7xl">📸</p>
-          </div>
+          <div className="flex min-h-[280px] items-center justify-center rounded-[2rem] bg-white/10"><p className="text-7xl">📸</p></div>
         </div>
       </div>
     </section>
   );
 }
 
-export function FinalCtaSection({
-  restaurant,
-  primaryColor,
-}: {
-  restaurant: PublicRestaurant;
-  primaryColor: string;
-}) {
+export function FinalCtaSection({ restaurant, primaryColor }: { restaurant: PublicRestaurant; primaryColor: string }) {
   const reserveUrl = getReserveUrl(restaurant);
 
   return (
     <section className="bg-[#120b07] px-6 py-24 text-white">
       <div className="mx-auto max-w-7xl text-center">
-        <p className="text-xs font-black uppercase tracking-[0.4em] text-amber-200/55">
-          Reserva
-        </p>
-
-        <h2 className="mx-auto mt-5 max-w-4xl text-6xl font-black leading-[0.85] tracking-[-0.08em] md:text-8xl">
-          A tua mesa está à espera.
-        </h2>
-
-        <p className="mx-auto mt-7 max-w-xl text-lg leading-8 text-white/60">
-          Reserva em poucos segundos e garante o teu lugar em{" "}
-          <span className="font-bold text-white">{restaurant.name}</span>.
-        </p>
-
-        <a
-          href={reserveUrl}
-          className="mt-10 inline-flex rounded-full px-10 py-5 text-sm font-black text-white"
-          style={{ backgroundColor: primaryColor }}
-        >
-          Reservar agora
-        </a>
+        <p className="text-xs font-black uppercase tracking-[0.4em] text-amber-200/55">Reserva</p>
+        <h2 className="mx-auto mt-5 max-w-4xl text-6xl font-black leading-[0.85] tracking-[-0.08em] md:text-8xl">A tua mesa está à espera.</h2>
+        <p className="mx-auto mt-7 max-w-xl text-lg leading-8 text-white/60">Reserva em poucos segundos e garante o teu lugar em <span className="font-bold text-white">{restaurant.name}</span>.</p>
+        <a href={reserveUrl} className="mt-10 inline-flex rounded-full px-10 py-5 text-sm font-black text-white" style={{ backgroundColor: primaryColor }}>Reservar agora</a>
       </div>
     </section>
   );
@@ -469,50 +380,22 @@ export function PublicFooter() {
   return (
     <footer className="bg-[#120b07] px-6 pb-24 text-white md:pb-10">
       <div className="mx-auto flex max-w-7xl flex-col gap-5 border-t border-white/10 pt-8 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-white/30">
-            Powered by
-          </p>
-          <p className="mt-2 text-xl font-black">MesaLink</p>
-        </div>
-
-        <p className="max-w-md text-sm leading-6 text-white/35 md:text-right">
-          Reservas online e mini-sites para restaurantes.
-        </p>
+        <div><p className="text-xs font-black uppercase tracking-[0.3em] text-white/30">Powered by</p><p className="mt-2 text-xl font-black">MesaLink</p></div>
+        <p className="max-w-md text-sm leading-6 text-white/35 md:text-right">Reservas online e mini-sites para restaurantes.</p>
       </div>
     </footer>
   );
 }
 
-export function MobileStickyReserve({
-  restaurant,
-  primaryColor,
-}: {
-  restaurant: PublicRestaurant;
-  primaryColor: string;
-}) {
+export function MobileStickyReserve({ restaurant, primaryColor }: { restaurant: PublicRestaurant; primaryColor: string }) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#120b07]/90 p-3 backdrop-blur-xl md:hidden">
-      <a
-        href={getReserveUrl(restaurant)}
-        className="flex h-14 items-center justify-center rounded-full text-sm font-black text-white"
-        style={{ backgroundColor: primaryColor }}
-      >
-        Reservar mesa
-      </a>
+      <a href={getReserveUrl(restaurant)} className="flex h-14 items-center justify-center rounded-full text-sm font-black text-white" style={{ backgroundColor: primaryColor }}>Reservar mesa</a>
     </div>
   );
 }
 
-function RestaurantMoment({
-  number,
-  title,
-  text,
-}: {
-  number: string;
-  title: string;
-  text: string;
-}) {
+function RestaurantMoment({ number, title, text }: { number: string; title: string; text: string }) {
   return (
     <div className="rounded-[2rem] border border-[#1d120b]/10 bg-white/40 p-6">
       <p className="text-xs font-black text-[#8a5a32]/60">{number}</p>
