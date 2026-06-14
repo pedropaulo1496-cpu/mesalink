@@ -10,21 +10,29 @@ type RestaurantWebsiteData = {
   email: string | null;
   phone: string | null;
   address: string | null;
+
   websiteEnabled: boolean;
   websiteTemplate: string;
+  websitePrimaryColor: string | null;
+
   websiteHeadline: string | null;
   websiteDescription: string | null;
   websiteCuisine: string | null;
   websiteInstagram: string | null;
   websiteHeroImage: string | null;
+  websiteLogoImage: string | null;
+
+  websiteAboutTitle: string | null;
+  websiteAboutText: string | null;
+  websiteFeatureTitle: string | null;
+  websiteFeatureText: string | null;
+
   websiteGalleryImage1: string | null;
   websiteGalleryImage2: string | null;
   websiteGalleryImage3: string | null;
   websiteGalleryImage4: string | null;
-    websiteGalleryImage5: string | null;
+  websiteGalleryImage5: string | null;
   websiteGalleryImage6: string | null;
-
-  websiteLogoImage: string | null;
 
   websiteMenuTitle: string | null;
   websiteMenuDescription: string | null;
@@ -62,11 +70,18 @@ type RestaurantWebsiteData = {
   websiteSeoTitle: string | null;
   websiteSeoDescription: string | null;
   customDomain: string | null;
-  websiteAboutTitle: string | null;
-  websiteAboutText: string | null;
-  websiteFeatureTitle: string | null;
-  websiteFeatureText: string | null;
-  websitePrimaryColor: string | null;
+};
+
+type DishState = {
+  number: string;
+  name: string;
+  setName: (value: string) => void;
+  description: string;
+  setDescription: (value: string) => void;
+  price: string;
+  setPrice: (value: string) => void;
+  image: string;
+  setImage: (value: string) => void;
 };
 
 export function WebsiteEditorClient({
@@ -77,77 +92,39 @@ export function WebsiteEditorClient({
   saved: boolean;
 }) {
   const [enabled, setEnabled] = useState(restaurant.websiteEnabled);
-  const [template, setTemplate] = useState(restaurant.websiteTemplate || "PREMIUM");
+  const [template, setTemplate] = useState(
+    restaurant.websiteTemplate || "PREMIUM"
+  );
   const [slug, setSlug] = useState(restaurant.slug);
+
   const [headline, setHeadline] = useState(restaurant.websiteHeadline || "");
   const [description, setDescription] = useState(
     restaurant.websiteDescription || ""
   );
   const [cuisine, setCuisine] = useState(restaurant.websiteCuisine || "");
   const [instagram, setInstagram] = useState(restaurant.websiteInstagram || "");
+
   const [heroImage, setHeroImage] = useState(restaurant.websiteHeroImage || "");
-  const [gallery1, setGallery1] = useState(restaurant.websiteGalleryImage1 || "");
-  const [gallery2, setGallery2] = useState(restaurant.websiteGalleryImage2 || "");
-  const [gallery3, setGallery3] = useState(restaurant.websiteGalleryImage3 || "");
-  const [gallery4, setGallery4] = useState(restaurant.websiteGalleryImage4 || "");
-    const [gallery5, setGallery5] = useState(restaurant.websiteGalleryImage5 || "");
-  const [gallery6, setGallery6] = useState(restaurant.websiteGalleryImage6 || "");
   const [logoImage, setLogoImage] = useState(restaurant.websiteLogoImage || "");
-
-  const [menuTitle, setMenuTitle] = useState(restaurant.websiteMenuTitle || "");
-  const [menuDescription, setMenuDescription] = useState(
-    restaurant.websiteMenuDescription || ""
+  const [gallery1, setGallery1] = useState(
+    restaurant.websiteGalleryImage1 || ""
+  );
+  const [gallery2, setGallery2] = useState(
+    restaurant.websiteGalleryImage2 || ""
+  );
+  const [gallery3, setGallery3] = useState(
+    restaurant.websiteGalleryImage3 || ""
+  );
+  const [gallery4, setGallery4] = useState(
+    restaurant.websiteGalleryImage4 || ""
+  );
+  const [gallery5, setGallery5] = useState(
+    restaurant.websiteGalleryImage5 || ""
+  );
+  const [gallery6, setGallery6] = useState(
+    restaurant.websiteGalleryImage6 || ""
   );
 
-  const [dish1Name, setDish1Name] = useState(restaurant.websiteDish1Name || "");
-  const [dish1Description, setDish1Description] = useState(
-    restaurant.websiteDish1Description || ""
-  );
-  const [dish1Price, setDish1Price] = useState(restaurant.websiteDish1Price || "");
-  const [dish1Image, setDish1Image] = useState(restaurant.websiteDish1Image || "");
-
-  const [dish2Name, setDish2Name] = useState(restaurant.websiteDish2Name || "");
-  const [dish2Description, setDish2Description] = useState(
-    restaurant.websiteDish2Description || ""
-  );
-  const [dish2Price, setDish2Price] = useState(restaurant.websiteDish2Price || "");
-  const [dish2Image, setDish2Image] = useState(restaurant.websiteDish2Image || "");
-
-  const [dish3Name, setDish3Name] = useState(restaurant.websiteDish3Name || "");
-  const [dish3Description, setDish3Description] = useState(
-    restaurant.websiteDish3Description || ""
-  );
-  const [dish3Price, setDish3Price] = useState(restaurant.websiteDish3Price || "");
-  const [dish3Image, setDish3Image] = useState(restaurant.websiteDish3Image || "");
-
-  const [dish4Name, setDish4Name] = useState(restaurant.websiteDish4Name || "");
-  const [dish4Description, setDish4Description] = useState(
-    restaurant.websiteDish4Description || ""
-  );
-  const [dish4Price, setDish4Price] = useState(restaurant.websiteDish4Price || "");
-  const [dish4Image, setDish4Image] = useState(restaurant.websiteDish4Image || "");
-
-  const [dish5Name, setDish5Name] = useState(restaurant.websiteDish5Name || "");
-  const [dish5Description, setDish5Description] = useState(
-    restaurant.websiteDish5Description || ""
-  );
-  const [dish5Price, setDish5Price] = useState(restaurant.websiteDish5Price || "");
-  const [dish5Image, setDish5Image] = useState(restaurant.websiteDish5Image || "");
-
-  const [dish6Name, setDish6Name] = useState(restaurant.websiteDish6Name || "");
-  const [dish6Description, setDish6Description] = useState(
-    restaurant.websiteDish6Description || ""
-  );
-  const [dish6Price, setDish6Price] = useState(restaurant.websiteDish6Price || "");
-  const [dish6Image, setDish6Image] = useState(restaurant.websiteDish6Image || "");
-
-  const [seoTitle, setSeoTitle] = useState(restaurant.websiteSeoTitle || "");
-  const [seoDescription, setSeoDescription] = useState(
-    restaurant.websiteSeoDescription || ""
-  );
-  const [customDomain, setCustomDomain] = useState(
-    restaurant.customDomain || ""
-  );
   const [aboutTitle, setAboutTitle] = useState(
     restaurant.websiteAboutTitle || ""
   );
@@ -158,12 +135,111 @@ export function WebsiteEditorClient({
   const [featureText, setFeatureText] = useState(
     restaurant.websiteFeatureText || ""
   );
+
+  const [menuTitle, setMenuTitle] = useState(restaurant.websiteMenuTitle || "");
+  const [menuDescription, setMenuDescription] = useState(
+    restaurant.websiteMenuDescription || ""
+  );
+
+  const [dish1Name, setDish1Name] = useState(restaurant.websiteDish1Name || "");
+  const [dish1Description, setDish1Description] = useState(
+    restaurant.websiteDish1Description || ""
+  );
+  const [dish1Price, setDish1Price] = useState(
+    restaurant.websiteDish1Price || ""
+  );
+  const [dish1Image, setDish1Image] = useState(
+    restaurant.websiteDish1Image || ""
+  );
+
+  const [dish2Name, setDish2Name] = useState(restaurant.websiteDish2Name || "");
+  const [dish2Description, setDish2Description] = useState(
+    restaurant.websiteDish2Description || ""
+  );
+  const [dish2Price, setDish2Price] = useState(
+    restaurant.websiteDish2Price || ""
+  );
+  const [dish2Image, setDish2Image] = useState(
+    restaurant.websiteDish2Image || ""
+  );
+
+  const [dish3Name, setDish3Name] = useState(restaurant.websiteDish3Name || "");
+  const [dish3Description, setDish3Description] = useState(
+    restaurant.websiteDish3Description || ""
+  );
+  const [dish3Price, setDish3Price] = useState(
+    restaurant.websiteDish3Price || ""
+  );
+  const [dish3Image, setDish3Image] = useState(
+    restaurant.websiteDish3Image || ""
+  );
+
+  const [dish4Name, setDish4Name] = useState(restaurant.websiteDish4Name || "");
+  const [dish4Description, setDish4Description] = useState(
+    restaurant.websiteDish4Description || ""
+  );
+  const [dish4Price, setDish4Price] = useState(
+    restaurant.websiteDish4Price || ""
+  );
+  const [dish4Image, setDish4Image] = useState(
+    restaurant.websiteDish4Image || ""
+  );
+
+  const [dish5Name, setDish5Name] = useState(restaurant.websiteDish5Name || "");
+  const [dish5Description, setDish5Description] = useState(
+    restaurant.websiteDish5Description || ""
+  );
+  const [dish5Price, setDish5Price] = useState(
+    restaurant.websiteDish5Price || ""
+  );
+  const [dish5Image, setDish5Image] = useState(
+    restaurant.websiteDish5Image || ""
+  );
+
+  const [dish6Name, setDish6Name] = useState(restaurant.websiteDish6Name || "");
+  const [dish6Description, setDish6Description] = useState(
+    restaurant.websiteDish6Description || ""
+  );
+  const [dish6Price, setDish6Price] = useState(
+    restaurant.websiteDish6Price || ""
+  );
+  const [dish6Image, setDish6Image] = useState(
+    restaurant.websiteDish6Image || ""
+  );
+
+  const [seoTitle, setSeoTitle] = useState(restaurant.websiteSeoTitle || "");
+  const [seoDescription, setSeoDescription] = useState(
+    restaurant.websiteSeoDescription || ""
+  );
+  const [customDomain, setCustomDomain] = useState(
+    restaurant.customDomain || ""
+  );
   const [primaryColor, setPrimaryColor] = useState(
     restaurant.websitePrimaryColor || "#111827"
   );
 
-  const publicUrl = `/s/${slug || restaurant.slug}`;
+  const publicUrl = `https://${slug || restaurant.slug}.mesalink.pt`;
   const fullPublicUrl = `${slug || restaurant.slug}.mesalink.pt`;
+
+  const dishes = [
+    dish1Name,
+    dish2Name,
+    dish3Name,
+    dish4Name,
+    dish5Name,
+    dish6Name,
+  ];
+
+  const dishImages = [
+    dish1Image,
+    dish2Image,
+    dish3Image,
+    dish4Image,
+    dish5Image,
+    dish6Image,
+  ];
+
+  const gallery = [gallery1, gallery2, gallery3, gallery4, gallery5, gallery6];
 
   const score = useMemo(() => {
     const items = [
@@ -173,6 +249,8 @@ export function WebsiteEditorClient({
       cuisine,
       heroImage,
       aboutText,
+      menuTitle || dishes.some(Boolean),
+      gallery.some(Boolean),
       restaurant.phone || restaurant.email,
     ];
 
@@ -184,6 +262,9 @@ export function WebsiteEditorClient({
     cuisine,
     heroImage,
     aboutText,
+    menuTitle,
+    dishes,
+    gallery,
     restaurant.phone,
     restaurant.email,
   ]);
@@ -268,7 +349,7 @@ export function WebsiteEditorClient({
                   type="checkbox"
                   name="websiteEnabled"
                   checked={enabled}
-                  onChange={(e) => setEnabled(e.target.checked)}
+                  onChange={(event) => setEnabled(event.target.checked)}
                   className="mt-1 h-5 w-5 rounded"
                 />
 
@@ -282,25 +363,25 @@ export function WebsiteEditorClient({
               </label>
 
               <Field label="Link público">
-  <div className="grid gap-3 md:grid-cols-[1fr_150px]">
-    <input
-      name="slug"
-      value={slug}
-      onChange={(e) => setSlug(e.target.value)}
-      className="input-dark h-12"
-      required
-    />
-    <div className="flex h-12 items-center rounded-2xl border border-white/10 bg-black/35 px-4 text-sm font-bold text-white/35">
-      .mesalink.pt
-    </div>
-  </div>
-</Field>
+                <div className="grid gap-3 md:grid-cols-[1fr_150px]">
+                  <input
+                    name="slug"
+                    value={slug}
+                    onChange={(event) => setSlug(event.target.value)}
+                    className="input-dark h-12"
+                    required
+                  />
+                  <div className="flex h-12 items-center rounded-2xl border border-white/10 bg-black/35 px-4 text-sm font-bold text-white/35">
+                    .mesalink.pt
+                  </div>
+                </div>
+              </Field>
 
               <Field label="Template">
                 <select
                   name="websiteTemplate"
                   value={template}
-                  onChange={(e) => setTemplate(e.target.value)}
+                  onChange={(event) => setTemplate(event.target.value)}
                   className="input-dark h-12"
                 >
                   <option value="PREMIUM">Premium Restaurant</option>
@@ -321,7 +402,7 @@ export function WebsiteEditorClient({
                   <input
                     name="websiteHeadline"
                     value={headline}
-                    onChange={(e) => setHeadline(e.target.value)}
+                    onChange={(event) => setHeadline(event.target.value)}
                     placeholder={restaurant.name}
                     className="input-dark h-12"
                   />
@@ -331,7 +412,7 @@ export function WebsiteEditorClient({
                   <input
                     name="websiteCuisine"
                     value={cuisine}
-                    onChange={(e) => setCuisine(e.target.value)}
+                    onChange={(event) => setCuisine(event.target.value)}
                     placeholder="Portuguesa, Japonesa, Brunch..."
                     className="input-dark h-12"
                   />
@@ -342,7 +423,7 @@ export function WebsiteEditorClient({
                 <textarea
                   name="websiteDescription"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(event) => setDescription(event.target.value)}
                   rows={4}
                   placeholder="Um espaço acolhedor para comer bem, ficar mais um pouco e voltar."
                   className="input-dark min-h-32 py-3"
@@ -359,7 +440,7 @@ export function WebsiteEditorClient({
                 <input
                   name="websiteAboutTitle"
                   value={aboutTitle}
-                  onChange={(e) => setAboutTitle(e.target.value)}
+                  onChange={(event) => setAboutTitle(event.target.value)}
                   placeholder="A nossa casa"
                   className="input-dark h-12"
                 />
@@ -369,7 +450,7 @@ export function WebsiteEditorClient({
                 <textarea
                   name="websiteAboutText"
                   value={aboutText}
-                  onChange={(e) => setAboutText(e.target.value)}
+                  onChange={(event) => setAboutText(event.target.value)}
                   rows={5}
                   placeholder="Conta a história, o conceito e o ambiente."
                   className="input-dark min-h-36 py-3"
@@ -381,7 +462,7 @@ export function WebsiteEditorClient({
                   <input
                     name="websiteFeatureTitle"
                     value={featureTitle}
-                    onChange={(e) => setFeatureTitle(e.target.value)}
+                    onChange={(event) => setFeatureTitle(event.target.value)}
                     placeholder="Pratos para partilhar"
                     className="input-dark h-12"
                   />
@@ -391,7 +472,7 @@ export function WebsiteEditorClient({
                   <input
                     name="websiteFeatureText"
                     value={featureText}
-                    onChange={(e) => setFeatureText(e.target.value)}
+                    onChange={(event) => setFeatureText(event.target.value)}
                     placeholder="Uma experiência pensada para reunir pessoas."
                     className="input-dark h-12"
                   />
@@ -402,237 +483,169 @@ export function WebsiteEditorClient({
             <EditorBlock
               number="04"
               title="Imagens"
-              description="Por agora usa URLs. A seguir fazemos upload real."
+              description="Arrasta imagens ou escolhe ficheiros para criar o website."
             >
-
-                <Field label="Logo">
-  <input
-    name="websiteLogoImage"
-    value={logoImage}
-    onChange={(e) => setLogoImage(e.target.value)}
-    placeholder="https://..."
-    className="input-dark h-12"
-  />
-</Field>
+              <Field label="Logo">
+                <ImageUploadField value={logoImage} onChange={setLogoImage} />
+                <input type="hidden" name="websiteLogoImage" value={logoImage} />
+              </Field>
 
               <Field label="Foto principal">
-  <ImageUploadField value={heroImage} onChange={setHeroImage} />
-
-  <input type="hidden" name="websiteHeroImage" value={heroImage} />
-</Field>
+                <ImageUploadField value={heroImage} onChange={setHeroImage} />
+                <input type="hidden" name="websiteHeroImage" value={heroImage} />
+              </Field>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Galeria 1">
-                  <input
-                    name="websiteGalleryImage1"
-                    value={gallery1}
-                    onChange={(e) => setGallery1(e.target.value)}
-                    placeholder="https://..."
-                    className="input-dark h-12"
-                  />
-                </Field>
-
-                <Field label="Galeria 2">
-                  <input
-                    name="websiteGalleryImage2"
-                    value={gallery2}
-                    onChange={(e) => setGallery2(e.target.value)}
-                    placeholder="https://..."
-                    className="input-dark h-12"
-                  />
-                </Field>
-
-                <Field label="Galeria 3">
-                  <input
-                    name="websiteGalleryImage3"
-                    value={gallery3}
-                    onChange={(e) => setGallery3(e.target.value)}
-                    placeholder="https://..."
-                    className="input-dark h-12"
-                  />
-                </Field>
-
-                <Field label="Galeria 4">
-                  <input
-                    name="websiteGalleryImage4"
-                    value={gallery4}
-                    onChange={(e) => setGallery4(e.target.value)}
-                    placeholder="https://..."
-                    className="input-dark h-12"
-                  />
-                </Field>
-
-                <Field label="Galeria 5">
-  <input
-    name="websiteGalleryImage5"
-    value={gallery5}
-    onChange={(e) => setGallery5(e.target.value)}
-    placeholder="https://..."
-    className="input-dark h-12"
-  />
-</Field>
-
-<Field label="Galeria 6">
-  <input
-    name="websiteGalleryImage6"
-    value={gallery6}
-    onChange={(e) => setGallery6(e.target.value)}
-    placeholder="https://..."
-    className="input-dark h-12"
-  />
-</Field>
-
+                <GalleryUploadField
+                  label="Galeria 1"
+                  name="websiteGalleryImage1"
+                  value={gallery1}
+                  onChange={setGallery1}
+                />
+                <GalleryUploadField
+                  label="Galeria 2"
+                  name="websiteGalleryImage2"
+                  value={gallery2}
+                  onChange={setGallery2}
+                />
+                <GalleryUploadField
+                  label="Galeria 3"
+                  name="websiteGalleryImage3"
+                  value={gallery3}
+                  onChange={setGallery3}
+                />
+                <GalleryUploadField
+                  label="Galeria 4"
+                  name="websiteGalleryImage4"
+                  value={gallery4}
+                  onChange={setGallery4}
+                />
+                <GalleryUploadField
+                  label="Galeria 5"
+                  name="websiteGalleryImage5"
+                  value={gallery5}
+                  onChange={setGallery5}
+                />
+                <GalleryUploadField
+                  label="Galeria 6"
+                  name="websiteGalleryImage6"
+                  value={gallery6}
+                  onChange={setGallery6}
+                />
               </div>
             </EditorBlock>
 
             <EditorBlock
-  number="05"
-  title="Menu"
-  description="Mostra pratos em destaque. Isto é essencial para um site de restaurante."
->
-  <div className="grid gap-4 md:grid-cols-2">
-    <Field label="Título do menu">
-      <input
-        name="websiteMenuTitle"
-        value={menuTitle}
-        onChange={(e) => setMenuTitle(e.target.value)}
-        placeholder="Pratos em destaque"
-        className="input-dark h-12"
-      />
-    </Field>
+              number="05"
+              title="Menu"
+              description="Mostra pratos em destaque. Isto é essencial para um site de restaurante."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Título do menu">
+                  <input
+                    name="websiteMenuTitle"
+                    value={menuTitle}
+                    onChange={(event) => setMenuTitle(event.target.value)}
+                    placeholder="Pratos em destaque"
+                    className="input-dark h-12"
+                  />
+                </Field>
 
-    <Field label="Descrição do menu">
-      <input
-        name="websiteMenuDescription"
-        value={menuDescription}
-        onChange={(e) => setMenuDescription(e.target.value)}
-        placeholder="Uma seleção pensada para abrir o apetite."
-        className="input-dark h-12"
-      />
-    </Field>
-  </div>
+                <Field label="Descrição do menu">
+                  <input
+                    name="websiteMenuDescription"
+                    value={menuDescription}
+                    onChange={(event) => setMenuDescription(event.target.value)}
+                    placeholder="Uma seleção pensada para abrir o apetite."
+                    className="input-dark h-12"
+                  />
+                </Field>
+              </div>
 
-  <DishFields
-    number="1"
-    name={dish1Name}
-    setName={setDish1Name}
-    description={dish1Description}
-    setDescription={setDish1Description}
-    price={dish1Price}
-    setPrice={setDish1Price}
-    image={dish1Image}
-    setImage={setDish1Image}
-  />
+              <DishFields
+                number="1"
+                name={dish1Name}
+                setName={setDish1Name}
+                description={dish1Description}
+                setDescription={setDish1Description}
+                price={dish1Price}
+                setPrice={setDish1Price}
+                image={dish1Image}
+                setImage={setDish1Image}
+              />
 
-  <DishFields
-    number="2"
-    name={dish2Name}
-    setName={setDish2Name}
-    description={dish2Description}
-    setDescription={setDish2Description}
-    price={dish2Price}
-    setPrice={setDish2Price}
-    image={dish2Image}
-    setImage={setDish2Image}
-  />
+              <DishFields
+                number="2"
+                name={dish2Name}
+                setName={setDish2Name}
+                description={dish2Description}
+                setDescription={setDish2Description}
+                price={dish2Price}
+                setPrice={setDish2Price}
+                image={dish2Image}
+                setImage={setDish2Image}
+              />
 
-  <DishFields
-    number="3"
-    name={dish3Name}
-    setName={setDish3Name}
-    description={dish3Description}
-    setDescription={setDish3Description}
-    price={dish3Price}
-    setPrice={setDish3Price}
-    image={dish3Image}
-    setImage={setDish3Image}
-  />
+              <DishFields
+                number="3"
+                name={dish3Name}
+                setName={setDish3Name}
+                description={dish3Description}
+                setDescription={setDish3Description}
+                price={dish3Price}
+                setPrice={setDish3Price}
+                image={dish3Image}
+                setImage={setDish3Image}
+              />
 
-  <DishFields
-    number="4"
-    name={dish4Name}
-    setName={setDish4Name}
-    description={dish4Description}
-    setDescription={setDish4Description}
-    price={dish4Price}
-    setPrice={setDish4Price}
-    image={dish4Image}
-    setImage={setDish4Image}
-  />
+              <DishFields
+                number="4"
+                name={dish4Name}
+                setName={setDish4Name}
+                description={dish4Description}
+                setDescription={setDish4Description}
+                price={dish4Price}
+                setPrice={setDish4Price}
+                image={dish4Image}
+                setImage={setDish4Image}
+              />
 
-  <DishFields
-    number="5"
-    name={dish5Name}
-    setName={setDish5Name}
-    description={dish5Description}
-    setDescription={setDish5Description}
-    price={dish5Price}
-    setPrice={setDish5Price}
-    image={dish5Image}
-    setImage={setDish5Image}
-  />
+              <DishFields
+                number="5"
+                name={dish5Name}
+                setName={setDish5Name}
+                description={dish5Description}
+                setDescription={setDish5Description}
+                price={dish5Price}
+                setPrice={setDish5Price}
+                image={dish5Image}
+                setImage={setDish5Image}
+              />
 
-  <DishFields
-    number="6"
-    name={dish6Name}
-    setName={setDish6Name}
-    description={dish6Description}
-    setDescription={setDish6Description}
-    price={dish6Price}
-    setPrice={setDish6Price}
-    image={dish6Image}
-    setImage={setDish6Image}
-  />
-</EditorBlock>
-
-<EditorBlock
-  number="07"
-  title="SEO e domínio"
-  description="Preparado para crescer: Google, domínio próprio e presença profissional."
->
-  <Field label="Título SEO">
-    <input
-      name="websiteSeoTitle"
-      value={seoTitle}
-      onChange={(e) => setSeoTitle(e.target.value)}
-      placeholder={`${restaurant.name} | Reservas online`}
-      className="input-dark h-12"
-    />
-  </Field>
-
-  <Field label="Descrição SEO">
-    <textarea
-      name="websiteSeoDescription"
-      value={seoDescription}
-      onChange={(e) => setSeoDescription(e.target.value)}
-      rows={3}
-      placeholder="Descrição para Google e partilhas."
-      className="input-dark min-h-24 py-3"
-    />
-  </Field>
-
-  <Field label="Domínio próprio">
-    <input
-      name="customDomain"
-      value={customDomain}
-      onChange={(e) => setCustomDomain(e.target.value)}
-      placeholder="tabernatuga.pt"
-      className="input-dark h-12"
-    />
-  </Field>
-</EditorBlock>
+              <DishFields
+                number="6"
+                name={dish6Name}
+                setName={setDish6Name}
+                description={dish6Description}
+                setDescription={setDish6Description}
+                price={dish6Price}
+                setPrice={setDish6Price}
+                image={dish6Image}
+                setImage={setDish6Image}
+              />
+            </EditorBlock>
 
             <EditorBlock
               number="06"
               title="Estilo"
-              description="A cor já muda o preview todo e prepara o tema."
+              description="A cor muda a identidade visual do site."
             >
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Instagram">
                   <input
                     name="websiteInstagram"
                     value={instagram}
-                    onChange={(e) => setInstagram(e.target.value)}
+                    onChange={(event) => setInstagram(event.target.value)}
                     placeholder="@restaurante"
                     className="input-dark h-12"
                   />
@@ -643,35 +656,67 @@ export function WebsiteEditorClient({
                     type="color"
                     name="websitePrimaryColor"
                     value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    onChange={(event) => setPrimaryColor(event.target.value)}
                     className="h-12 w-full rounded-2xl border border-white/10 bg-black/35 p-2"
                   />
                 </Field>
               </div>
             </EditorBlock>
+
+            <EditorBlock
+              number="07"
+              title="SEO e domínio"
+              description="Preparado para crescer: Google, domínio próprio e presença profissional."
+            >
+              <Field label="Título SEO">
+                <input
+                  name="websiteSeoTitle"
+                  value={seoTitle}
+                  onChange={(event) => setSeoTitle(event.target.value)}
+                  placeholder={`${restaurant.name} | Reservas online`}
+                  className="input-dark h-12"
+                />
+              </Field>
+
+              <Field label="Descrição SEO">
+                <textarea
+                  name="websiteSeoDescription"
+                  value={seoDescription}
+                  onChange={(event) => setSeoDescription(event.target.value)}
+                  rows={3}
+                  placeholder="Descrição para Google e partilhas."
+                  className="input-dark min-h-24 py-3"
+                />
+              </Field>
+
+              <Field label="Domínio próprio">
+                <input
+                  name="customDomain"
+                  value={customDomain}
+                  onChange={(event) => setCustomDomain(event.target.value)}
+                  placeholder="tabernatuga.pt"
+                  className="input-dark h-12"
+                />
+              </Field>
+            </EditorBlock>
           </section>
 
           <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
             <LivePreview
-  restaurantName={restaurant.name}
-  headline={headline}
-  description={description}
-  cuisine={cuisine}
-  heroImage={heroImage}
-  gallery={[gallery1, gallery2, gallery3, gallery4, gallery5, gallery6]}
-  primaryColor={primaryColor}
-  template={template}
-  theme={previewTheme}
-  menuTitle={menuTitle}
-  dishes={[
-    dish1Name,
-    dish2Name,
-    dish3Name,
-    dish4Name,
-    dish5Name,
-    dish6Name,
-  ]}
-/>
+              restaurantName={restaurant.name}
+              headline={headline}
+              description={description}
+              cuisine={cuisine}
+              heroImage={heroImage}
+              logoImage={logoImage}
+              gallery={gallery}
+              primaryColor={primaryColor}
+              template={template}
+              theme={previewTheme}
+              menuTitle={menuTitle}
+              dishes={dishes}
+              dishImages={dishImages}
+            />
 
             <QualityCard score={score} enabled={enabled} />
 
@@ -694,42 +739,59 @@ function LivePreview({
   description,
   cuisine,
   heroImage,
+  logoImage,
   gallery,
   primaryColor,
   template,
   theme,
   menuTitle,
   dishes,
+  dishImages,
 }: {
   restaurantName: string;
   headline: string;
   description: string;
   cuisine: string;
   heroImage: string;
+  logoImage: string;
   gallery: string[];
   primaryColor: string;
   template: string;
   theme: ReturnType<typeof getPreviewTheme>;
   menuTitle: string;
   dishes: string[];
+  dishImages: string[];
 }) {
   const validGallery = gallery.filter((item) => item.startsWith("http"));
+  const validDishImages = dishImages.filter((item) => item.startsWith("http"));
 
   return (
-    <div className={`overflow-hidden rounded-[2rem] border shadow-2xl ${theme.shell}`}>
+    <div
+      className={`overflow-hidden rounded-[2rem] border shadow-2xl ${theme.shell}`}
+    >
       <div className={`relative min-h-[340px] ${theme.hero}`}>
         {heroImage.startsWith("http") && (
           <img
             src={heroImage}
             alt={headline || restaurantName}
-            className="absolute inset-0 h-full w-full object-cover opacity-65"
+            className="absolute inset-0 h-full w-full object-cover opacity-45 blur-[1px] scale-105"
           />
         )}
 
         <div className={theme.overlay} />
 
         <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5">
-          <p className="text-sm font-black">{restaurantName}</p>
+          <div className="flex items-center gap-3">
+            {logoImage.startsWith("http") && (
+              <img
+                src={logoImage}
+                alt={restaurantName}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            )}
+            <p className="text-sm font-black">{restaurantName}</p>
+          </div>
+
           <span
             className="rounded-full px-3 py-1.5 text-xs font-black text-white"
             style={{ backgroundColor: primaryColor }}
@@ -753,7 +815,15 @@ function LivePreview({
         <div className="grid grid-cols-3 gap-2">
           <PreviewPill label="Template" value={template} />
           <PreviewPill label="Reserva" value="Online" />
-          <PreviewPill label="Fotos" value={String(validGallery.length + (heroImage ? 1 : 0))} />
+          <PreviewPill
+            label="Fotos"
+            value={String(
+              validGallery.length +
+                validDishImages.length +
+                (heroImage.startsWith("http") ? 1 : 0) +
+                (logoImage.startsWith("http") ? 1 : 0)
+            )}
+          />
         </div>
 
         <div className="mt-4 grid grid-cols-4 gap-2">
@@ -786,32 +856,52 @@ function LivePreview({
             Design, história, galeria, horário e reserva num só site.
           </p>
         </div>
+
         <div className="mt-4 rounded-2xl border border-current/10 p-4">
-  <p className="text-xs font-black uppercase tracking-[0.25em] opacity-40">
-    Menu
-  </p>
+          <p className="text-xs font-black uppercase tracking-[0.25em] opacity-40">
+            Menu
+          </p>
 
-  <p className="mt-2 text-lg font-black">
-    {menuTitle || "Pratos em destaque"}
-  </p>
+          <p className="mt-2 text-lg font-black">
+            {menuTitle || "Pratos em destaque"}
+          </p>
 
-  <div className="mt-3 grid gap-2">
-    {dishes
-      .filter(Boolean)
-      .slice(0, 3)
-      .map((dish, index) => (
-        <div
-          key={index}
-          className="flex items-center justify-between rounded-xl border border-current/10 px-3 py-2 text-sm"
-        >
-          <span className="font-bold">{dish}</span>
-          <span className="opacity-40">Prato</span>
+          <div className="mt-3 grid gap-2">
+            {dishes
+              .filter(Boolean)
+              .slice(0, 3)
+              .map((dish, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between rounded-xl border border-current/10 px-3 py-2 text-sm"
+                >
+                  <span className="font-bold">{dish}</span>
+                  <span className="opacity-40">Prato</span>
+                </div>
+              ))}
+          </div>
         </div>
-      ))}
-  </div>
-</div>
       </div>
     </div>
+  );
+}
+
+function GalleryUploadField({
+  label,
+  name,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Field label={label}>
+      <ImageUploadField value={value} onChange={onChange} />
+      <input type="hidden" name={name} value={value} />
+    </Field>
   );
 }
 
@@ -917,29 +1007,17 @@ function DishFields({
   setPrice,
   image,
   setImage,
-}: {
-  number: string;
-  name: string;
-  setName: (value: string) => void;
-  description: string;
-  setDescription: (value: string) => void;
-  price: string;
-  setPrice: (value: string) => void;
-  image: string;
-  setImage: (value: string) => void;
-}) {
+}: DishState) {
   return (
     <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
-      <p className="mb-4 text-sm font-black text-white/60">
-        Prato {number}
-      </p>
+      <p className="mb-4 text-sm font-black text-white/60">Prato {number}</p>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Nome">
           <input
             name={`websiteDish${number}Name`}
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(event) => setName(event.target.value)}
             placeholder="Bacalhau à Brás"
             className="input-dark h-12"
           />
@@ -949,7 +1027,7 @@ function DishFields({
           <input
             name={`websiteDish${number}Price`}
             value={price}
-            onChange={(e) => setPrice(e.target.value)}
+            onChange={(event) => setPrice(event.target.value)}
             placeholder="14€"
             className="input-dark h-12"
           />
@@ -959,20 +1037,15 @@ function DishFields({
           <input
             name={`websiteDish${number}Description`}
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(event) => setDescription(event.target.value)}
             placeholder="Descrição curta do prato."
             className="input-dark h-12"
           />
         </Field>
 
-        <Field label="Imagem">
-          <input
-            name={`websiteDish${number}Image`}
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
-            placeholder="https://..."
-            className="input-dark h-12"
-          />
+        <Field label="Imagem do prato">
+          <ImageUploadField value={image} onChange={setImage} />
+          <input type="hidden" name={`websiteDish${number}Image`} value={image} />
         </Field>
       </div>
     </div>
@@ -986,8 +1059,7 @@ function getPreviewTheme(template: string, primaryColor: string) {
       hero: "bg-zinc-100",
       overlay: "absolute inset-0 bg-gradient-to-b from-transparent to-white/95",
       body: "bg-white p-5 text-zinc-950",
-      eyebrow:
-        "text-xs font-black uppercase tracking-[0.3em] text-zinc-400",
+      eyebrow: "text-xs font-black uppercase tracking-[0.3em] text-zinc-400",
       text: "mt-3 text-sm leading-6 text-zinc-500",
       accent: primaryColor,
     };
@@ -1009,7 +1081,8 @@ function getPreviewTheme(template: string, primaryColor: string) {
   if (template === "SOCIAL") {
     return {
       shell: "border-pink-300/20 bg-[#0f0715] text-white",
-      hero: "bg-[radial-gradient(circle_at_top,rgba(236,72,153,0.35),transparent_50%),#0f0715]",
+      hero:
+        "bg-[radial-gradient(circle_at_top,rgba(236,72,153,0.35),transparent_50%),#0f0715]",
       overlay:
         "absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-[#0f0715]",
       body: "bg-[#0f0715] p-5 text-white",
