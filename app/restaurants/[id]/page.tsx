@@ -183,6 +183,9 @@ export default async function RestaurantPage({
               <DashboardLink href={`/restaurants/${id}/calendar`}>
                 Calendário
               </DashboardLink>
+              <DashboardLink href={`/restaurants/${id}/website`}>
+                Website
+              </DashboardLink>
               <SignOutButton />
             </div>
           </div>
@@ -293,6 +296,8 @@ export default async function RestaurantPage({
               </p>
             </div>
 
+            <WebsiteCard id={id} slug={restaurant.slug} />
+
             <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl lg:p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
                 Ações rápidas
@@ -308,6 +313,9 @@ export default async function RestaurantPage({
                 <ActionLink href={`/restaurants/${id}/customers`}>
                   Clientes
                 </ActionLink>
+                <ActionLink href={`/restaurants/${id}/website`}>
+                  Website
+                </ActionLink>
                 <ActionLink href={`/restaurants/${id}/settings`}>
                   Definições
                 </ActionLink>
@@ -319,6 +327,8 @@ export default async function RestaurantPage({
             </div>
           </aside>
         </section>
+
+        <AddonsSection id={id} slug={restaurant.slug} />
       </div>
 
       <BottomNav id={id} />
@@ -358,9 +368,9 @@ function BottomNav({ id }: { id: string }) {
           <p className="text-xl">▦</p>
           Sala
         </Link>
-        <Link href={`/restaurants/${id}/settings`}>
-          <p className="text-xl">☰</p>
-          Mais
+        <Link href={`/restaurants/${id}/website`}>
+          <p className="text-xl">🌐</p>
+          Website
         </Link>
       </div>
     </nav>
@@ -513,6 +523,208 @@ function ReservationLine({
       <div className="hidden items-center gap-2 text-right sm:flex">
         <span className={`h-2 w-2 rounded-full ${dotClass}`} />
         <span className="text-xs font-bold text-slate-400">{statusLabel}</span>
+      </div>
+    </div>
+  );
+}
+
+
+function WebsiteCard({ id, slug }: { id: string; slug: string }) {
+  const websiteUrl = `https://${slug}.mesalink.pt`;
+
+  return (
+    <div className="relative overflow-hidden rounded-[28px] border border-violet-300/20 bg-gradient-to-br from-violet-500/15 via-cyan-500/10 to-white/[0.04] p-5 shadow-[0_0_55px_rgba(167,139,250,0.08)] backdrop-blur-xl lg:p-6">
+      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-violet-500/25 blur-3xl" />
+
+      <div className="relative">
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-violet-200">
+          Website
+        </p>
+
+        <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
+          Website do restaurante
+        </h2>
+
+        <p className="mt-2 text-sm leading-6 text-slate-400">
+          Crie, edite e publique o website profissional do restaurante com reservas integradas.
+        </p>
+
+        <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-[#020617]/70 p-3 text-sm text-slate-300">
+          <p className="truncate">{websiteUrl}</p>
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          <Link
+            href={`/restaurants/${id}/website`}
+            className="flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-4 text-sm font-black text-black shadow-[0_0_35px_rgba(96,165,250,0.25)] transition hover:opacity-90"
+          >
+            Criar / editar
+          </Link>
+
+          <Link
+            href={websiteUrl}
+            target="_blank"
+            className="flex h-12 items-center justify-center rounded-full border border-cyan-300/20 bg-white/[0.04] px-4 text-sm font-black text-white transition hover:border-cyan-300/50 hover:bg-cyan-400/10"
+          >
+            Ver website
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddonsSection({ id, slug }: { id: string; slug: string }) {
+  return (
+    <section className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+            Add-ons
+          </p>
+
+          <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
+            Expanda o MesaLink
+          </h2>
+
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+            Transforme o MesaLink no centro da operação do restaurante: website, IA,
+            marketing, pedidos por QR Code e POS.
+          </p>
+        </div>
+
+        <Link
+          href="/billing"
+          className="rounded-full border border-cyan-300/20 bg-white/[0.04] px-5 py-2.5 text-sm font-black text-slate-200 transition hover:border-cyan-300/50 hover:bg-cyan-400/10 hover:text-white"
+        >
+          Gerir subscrição →
+        </Link>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <AddonCard
+          title="Website"
+          icon="🌐"
+          description="Website profissional com templates, menus, galeria, SEO e reservas integradas."
+          price="+10€/mês"
+          status="Disponível"
+          href={`/restaurants/${id}/website`}
+          cta="Criar / editar"
+          featured
+        />
+
+        <AddonCard
+          title="IA"
+          icon="🤖"
+          description="Assistente para marketing, descrições de pratos, respostas e sugestões operacionais."
+          price="Brevemente"
+          status="Coming soon"
+          disabled
+        />
+
+        <AddonCard
+          title="Marketing"
+          icon="📣"
+          description="Campanhas, mensagens, promoções e ferramentas para trazer clientes de volta."
+          price="Brevemente"
+          status="Coming soon"
+          disabled
+        />
+
+        <AddonCard
+          title="QR Ordering + POS"
+          icon="📲"
+          description="Pedidos por QR Code, conta da mesa e sistema de vendas integrado."
+          price="Brevemente"
+          status="Coming soon"
+          disabled
+        />
+      </div>
+
+      <div className="mt-5 rounded-[24px] border border-violet-300/15 bg-violet-500/10 p-5">
+        <p className="text-sm font-bold leading-6 text-violet-100">
+          O objetivo é simples: uma app para gerir todo o restaurante — do website às
+          reservas, dos pedidos por QR Code ao POS.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function AddonCard({
+  title,
+  icon,
+  description,
+  price,
+  status,
+  href,
+  cta,
+  disabled,
+  featured,
+}: {
+  title: string;
+  icon: string;
+  description: string;
+  price: string;
+  status: string;
+  href?: string;
+  cta?: string;
+  disabled?: boolean;
+  featured?: boolean;
+}) {
+  return (
+    <div
+      className={`relative overflow-hidden rounded-[26px] border p-5 ${
+        featured
+          ? "border-cyan-300/25 bg-cyan-400/10 shadow-[0_0_45px_rgba(34,211,238,0.08)]"
+          : "border-white/10 bg-[#020617]/55"
+      }`}
+    >
+      {featured && (
+        <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-500/20 blur-3xl" />
+      )}
+
+      <div className="relative">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-3xl">{icon}</p>
+            <h3 className="mt-3 text-xl font-black tracking-[-0.03em] text-white">
+              {title}
+            </h3>
+          </div>
+
+          <span
+            className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] ${
+              disabled
+                ? "border-slate-300/15 bg-white/[0.04] text-slate-400"
+                : "border-green-300/20 bg-green-400/10 text-green-300"
+            }`}
+          >
+            {status}
+          </span>
+        </div>
+
+        <p className="mt-3 min-h-[72px] text-sm leading-6 text-slate-400">
+          {description}
+        </p>
+
+        <p className="mt-4 text-2xl font-black text-cyan-300">{price}</p>
+
+        {disabled ? (
+          <button
+            disabled
+            className="mt-5 flex h-12 w-full cursor-not-allowed items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-sm font-black text-slate-500"
+          >
+            Coming soon
+          </button>
+        ) : (
+          <Link
+            href={href || "#"}
+            className="mt-5 flex h-12 w-full items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-sm font-black text-black transition hover:opacity-90"
+          >
+            {cta}
+          </Link>
+        )}
       </div>
     </div>
   );
