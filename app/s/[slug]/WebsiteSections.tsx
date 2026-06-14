@@ -101,6 +101,8 @@ export function ReservationAndHoursSection({
     hasText(restaurant.websiteAboutText) ||
     hasText(restaurant.websiteFeatureText);
 
+  if (!hasIntro && hours.length === 0) return null;
+
   return (
     <section id="sobre" className="bg-[#120b07] px-6 py-20 text-white">
       <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
@@ -168,10 +170,6 @@ export function ReservationAndHoursSection({
             <p className="text-xs font-black uppercase tracking-[0.35em] text-amber-200/50">
               Horário
             </p>
-
-            <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-white/45">
-              Semana
-            </span>
           </div>
 
           <div className="mt-6 grid gap-2">
@@ -292,6 +290,22 @@ export function LocationSection({
               Reservar
             </a>
           </div>
+
+          <div className="mt-10 grid gap-4 text-sm text-[#4a3325]/75">
+            <p className="font-bold text-[#1d120b]">{restaurant.address}</p>
+
+            {restaurant.phone && (
+              <a href={`tel:${restaurant.phone}`} className="font-bold text-[#1d120b] hover:opacity-70">
+                {restaurant.phone}
+              </a>
+            )}
+
+            {restaurant.email && (
+              <a href={`mailto:${restaurant.email}`} className="break-words font-bold text-[#1d120b] hover:opacity-70">
+                {restaurant.email}
+              </a>
+            )}
+          </div>
         </div>
 
         <a
@@ -379,7 +393,11 @@ export function FinalCtaSection({
           </p>
         )}
 
-        <a href={reserveUrl} className="mt-10 inline-flex rounded-full px-10 py-5 text-sm font-black text-white" style={{ backgroundColor: primaryColor }}>
+        <a
+          href={reserveUrl}
+          className="mt-10 inline-flex rounded-full px-10 py-5 text-sm font-black text-white"
+          style={{ backgroundColor: primaryColor }}
+        >
           Reservar
         </a>
       </div>
@@ -390,17 +408,31 @@ export function FinalCtaSection({
 export function PublicFooter() {
   return (
     <footer className="bg-[#120b07] px-6 pb-24 text-white md:pb-10">
-      <div className="mx-auto flex max-w-7xl flex-col gap-5 border-t border-white/10 pt-8 md:flex-row md:items-center md:justify-between">
-        <div><p className="text-xs font-black uppercase tracking-[0.3em] text-white/30">Powered by</p><p className="mt-2 text-xl font-black">MesaLink</p></div>
+      <div className="mx-auto flex max-w-7xl justify-center border-t border-white/10 pt-8">
+        <p className="text-xs font-bold text-white/35">
+          Reservas online by <span className="text-white/55">MesaLink</span>
+        </p>
       </div>
     </footer>
   );
 }
 
-export function MobileStickyReserve({ restaurant, primaryColor }: { restaurant: PublicRestaurant; primaryColor: string }) {
+export function MobileStickyReserve({
+  restaurant,
+  primaryColor,
+}: {
+  restaurant: PublicRestaurant;
+  primaryColor: string;
+}) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#120b07]/90 p-3 backdrop-blur-xl md:hidden">
-      <a href={getReserveUrl(restaurant)} className="flex h-14 items-center justify-center rounded-full text-sm font-black text-white" style={{ backgroundColor: primaryColor }}>Reservar</a>
+      <a
+        href={getReserveUrl(restaurant)}
+        className="flex h-14 items-center justify-center rounded-full text-sm font-black text-white"
+        style={{ backgroundColor: primaryColor }}
+      >
+        Reservar
+      </a>
     </div>
   );
 }

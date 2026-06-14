@@ -336,11 +336,58 @@ export function WebsiteEditorClient({
               </Field>
             </EditorBlock>
 
-            <EditorBlock number="10" title="SEO e domínio" description="Preparado para crescer: Google, domínio próprio e presença profissional.">
-              <Field label="Título SEO"><input name="websiteSeoTitle" value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} placeholder={`${restaurant.name} | Reservas online`} className="input-dark h-12" /></Field>
-              <Field label="Descrição SEO"><textarea name="websiteSeoDescription" value={seoDescription} onChange={(event) => setSeoDescription(event.target.value)} rows={3} placeholder="Descrição para Google e partilhas." className="input-dark min-h-24 py-3" /></Field>
-              <Field label="Domínio próprio"><input name="customDomain" value={customDomain} onChange={(event) => setCustomDomain(event.target.value)} placeholder="tabernatuga.pt" className="input-dark h-12" /></Field>
-            </EditorBlock>
+            <EditorBlock
+  number="10"
+  title="SEO e domínio"
+  description="Melhora a presença no Google e prepara o website para crescer."
+>
+  <Field label="Título SEO">
+    <input
+      name="websiteSeoTitle"
+      value={seoTitle}
+      onChange={(event) => setSeoTitle(event.target.value)}
+      placeholder={`${restaurant.name} | Reservas online`}
+      className="input-dark h-12"
+    />
+  </Field>
+
+  <Field label="Descrição SEO">
+    <textarea
+      name="websiteSeoDescription"
+      value={seoDescription}
+      onChange={(event) => setSeoDescription(event.target.value)}
+      rows={3}
+      placeholder="Descrição para Google e partilhas."
+      className="input-dark min-h-24 py-3"
+    />
+  </Field>
+
+  <Field label="Domínio próprio">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-black text-white">
+            Domínio próprio
+          </p>
+
+          <p className="mt-1 text-sm leading-6 text-white/45">
+            Em breve poderás utilizar um domínio próprio em vez de um subdomínio MesaLink.
+          </p>
+        </div>
+
+        <span className="rounded-full border border-amber-300/20 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">
+          Coming Soon
+        </span>
+      </div>
+    </div>
+
+    <input
+      type="hidden"
+      name="customDomain"
+      value={customDomain}
+    />
+  </Field>
+</EditorBlock>
           </section>
 
           <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
