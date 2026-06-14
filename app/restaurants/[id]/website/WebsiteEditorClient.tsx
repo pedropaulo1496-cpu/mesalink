@@ -23,6 +23,10 @@ type RestaurantWebsiteData = {
   websiteGalleryImage2: string | null;
   websiteGalleryImage3: string | null;
   websiteGalleryImage4: string | null;
+  websiteGalleryTitle1: string | null;
+  websiteGalleryTitle2: string | null;
+  websiteGalleryTitle3: string | null;
+  websiteGalleryTitle4: string | null;
   websiteMenuTitle: string | null;
   websiteMenuDescription: string | null;
   websiteMenuPdf: string | null;
@@ -56,6 +60,10 @@ export function WebsiteEditorClient({
   const [gallery2, setGallery2] = useState(restaurant.websiteGalleryImage2 || "");
   const [gallery3, setGallery3] = useState(restaurant.websiteGalleryImage3 || "");
   const [gallery4, setGallery4] = useState(restaurant.websiteGalleryImage4 || "");
+  const [galleryTitle1, setGalleryTitle1] = useState(restaurant.websiteGalleryTitle1 || "");
+  const [galleryTitle2, setGalleryTitle2] = useState(restaurant.websiteGalleryTitle2 || "");
+  const [galleryTitle3, setGalleryTitle3] = useState(restaurant.websiteGalleryTitle3 || "");
+  const [galleryTitle4, setGalleryTitle4] = useState(restaurant.websiteGalleryTitle4 || "");
   const [menuTitle, setMenuTitle] = useState(restaurant.websiteMenuTitle || "");
   const [menuDescription, setMenuDescription] = useState(restaurant.websiteMenuDescription || "");
   const [menuPdf, setMenuPdf] = useState(restaurant.websiteMenuPdf || "");
@@ -67,11 +75,13 @@ export function WebsiteEditorClient({
   const [seoDescription, setSeoDescription] = useState(restaurant.websiteSeoDescription || "");
   const [customDomain, setCustomDomain] = useState(restaurant.customDomain || "");
   const [primaryColor, setPrimaryColor] = useState(restaurant.websitePrimaryColor || "#111827");
+  const [aiBrief, setAiBrief] = useState("");
 
   const publicUrl = `/s/${slug || restaurant.slug}`;
   const fullPublicUrl = `${slug || restaurant.slug}.mesalink.pt`;
   const previewTheme = getPreviewTheme(template, primaryColor);
   const gallery = [gallery1, gallery2, gallery3, gallery4];
+  const galleryTitles = [galleryTitle1, galleryTitle2, galleryTitle3, galleryTitle4];
   const galleryCount = gallery.filter((item) => item.startsWith("http")).length;
 
   const score = useMemo(() => {
@@ -81,24 +91,47 @@ export function WebsiteEditorClient({
 
   function fillWithAi() {
     const name = restaurant.name;
-    const type = cuisine || "cozinha de autor";
-    if (!headline) setHeadline(name);
-    if (!description) setDescription(`${name} combina ${type.toLowerCase()}, ambiente acolhedor e uma experiência pensada para juntar pessoas à mesa.`);
-    if (!aboutTitle) setAboutTitle("A nossa casa");
-    if (!aboutText) setAboutText(`No ${name}, cada visita é pensada para ser simples, saborosa e memorável. Um espaço com identidade, atendimento próximo e uma carta criada para celebrar bons momentos.`);
-    if (!featureTitle) setFeatureTitle("Uma experiência para voltar");
-    if (!featureText) setFeatureText("Da primeira entrada ao último brinde, tudo foi pensado para que cada reserva se transforme numa boa memória.");
-    if (!menuTitle) setMenuTitle("Menu");
-    if (!menuDescription) setMenuDescription("Consulta a nossa carta completa e escolhe o que mais combina com a tua próxima visita.");
-    if (!seoTitle) setSeoTitle(`${name} | Reservas online`);
-    if (!seoDescription) setSeoDescription(`Reserva online no ${name}. Consulta menu, localização, contactos e informações do restaurante.`);
+    const type = (cuisine || extractCuisine(aiBrief) || "cozinha portuguesa").trim();
+    const location = extractLocation(restaurant.address, aiBrief);
+    const concept = aiBrief.trim() || `${type} num ambiente acolhedor`;
+
+    setHeadline(headline || `${name}: ${type} com alma`);
+    setDescription(
+      description ||
+        `${name} recebe-te com ${type.toLowerCase()}, serviço próximo e um ambiente pensado para reservas em família, jantares entre amigos e momentos especiais${location ? ` em ${location}` : ""}.`
+    );
+    setAboutTitle(aboutTitle || "A nossa casa");
+    setAboutText(
+      aboutText ||
+        `No ${name}, a experiência começa antes da mesa. A cozinha, o ambiente e o atendimento foram pensados para criar uma visita simples, saborosa e memorável. ${concept}`
+    );
+    setFeatureTitle(featureTitle || "Uma experiência para voltar");
+    setFeatureText(
+      featureText ||
+        "Uma sala acolhedora, pratos bem preparados e reservas online sem complicações — tudo para transformar curiosidade em vontade de voltar."
+    );
+    setMenuTitle(menuTitle || "Menu");
+    setMenuDescription(
+      menuDescription || "Consulta a carta completa em PDF e escolhe, com calma, o que vais querer provar na tua próxima visita."
+    );
+    setSeoTitle(seoTitle || `${name} | Reservas online${location ? ` em ${location}` : ""}`);
+    setSeoDescription(
+      seoDescription ||
+        `Reserva online no ${name}. Consulta menu, localização, contactos e informações essenciais do restaurante${location ? ` em ${location}` : ""}.`
+    );
+    if (!galleryTitle1) setGalleryTitle1("Ambiente");
+    if (!galleryTitle2) setGalleryTitle2("Pratos");
+    if (!galleryTitle3) setGalleryTitle3("Sala");
+    if (!galleryTitle4) setGalleryTitle4("Momentos");
   }
 
   function improveText() {
-    if (description) setDescription(makePremium(description));
-    if (aboutText) setAboutText(makePremium(aboutText));
-    if (featureText) setFeatureText(makePremium(featureText));
-    if (menuDescription) setMenuDescription(makePremium(menuDescription));
+    if (headline) setHeadline(cleanHeadline(headline));
+    if (description) setDescription(polishText(description, restaurant.name));
+    if (aboutText) setAboutText(polishText(aboutText, restaurant.name));
+    if (featureText) setFeatureText(polishText(featureText, restaurant.name));
+    if (menuDescription) setMenuDescription(polishText(menuDescription, restaurant.name));
+    if (seoDescription) setSeoDescription(toSeoDescription(seoDescription, restaurant.name));
   }
 
   return (
@@ -182,10 +215,10 @@ export function WebsiteEditorClient({
               <Field label="Logo"><ImageUploadField value={logoImage} onChange={setLogoImage} compact /><input type="hidden" name="websiteLogoImage" value={logoImage} /></Field>
               <Field label="Foto principal"><ImageUploadField value={heroImage} onChange={setHeroImage} /><input type="hidden" name="websiteHeroImage" value={heroImage} /></Field>
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Galeria 1"><ImageUploadField value={gallery1} onChange={setGallery1} compact /><input type="hidden" name="websiteGalleryImage1" value={gallery1} /></Field>
-                <Field label="Galeria 2"><ImageUploadField value={gallery2} onChange={setGallery2} compact /><input type="hidden" name="websiteGalleryImage2" value={gallery2} /></Field>
-                <Field label="Galeria 3"><ImageUploadField value={gallery3} onChange={setGallery3} compact /><input type="hidden" name="websiteGalleryImage3" value={gallery3} /></Field>
-                <Field label="Galeria 4"><ImageUploadField value={gallery4} onChange={setGallery4} compact /><input type="hidden" name="websiteGalleryImage4" value={gallery4} /></Field>
+                <GalleryUploadField number="1" value={gallery1} onChange={setGallery1} title={galleryTitle1} onTitleChange={setGalleryTitle1} />
+                <GalleryUploadField number="2" value={gallery2} onChange={setGallery2} title={galleryTitle2} onTitleChange={setGalleryTitle2} />
+                <GalleryUploadField number="3" value={gallery3} onChange={setGallery3} title={galleryTitle3} onTitleChange={setGalleryTitle3} />
+                <GalleryUploadField number="4" value={gallery4} onChange={setGallery4} title={galleryTitle4} onTitleChange={setGalleryTitle4} />
               </div>
             </EditorBlock>
 
@@ -212,7 +245,7 @@ export function WebsiteEditorClient({
           </section>
 
           <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
-            <LivePreview restaurantName={restaurant.name} logoImage={logoImage} headline={headline} description={description} cuisine={cuisine} heroImage={heroImage} gallery={gallery} primaryColor={primaryColor} template={template} theme={previewTheme} menuTitle={menuTitle} menuPdf={menuPdf} />
+            <LivePreview restaurantName={restaurant.name} logoImage={logoImage} headline={headline} description={description} cuisine={cuisine} heroImage={heroImage} gallery={gallery} galleryTitles={galleryTitles} primaryColor={primaryColor} template={template} theme={previewTheme} menuTitle={menuTitle} menuPdf={menuPdf} />
             <QualityCard score={score} enabled={enabled} galleryCount={galleryCount} hasMenu={Boolean(menuPdf)} />
             <button type="submit" className="hidden h-14 w-full rounded-full bg-white text-sm font-black text-black hover:bg-white/90 lg:block">Guardar alterações</button>
           </aside>
@@ -222,7 +255,7 @@ export function WebsiteEditorClient({
   );
 }
 
-function LivePreview({ restaurantName, logoImage, headline, description, cuisine, heroImage, gallery, primaryColor, template, theme, menuTitle, menuPdf }: { restaurantName: string; logoImage: string; headline: string; description: string; cuisine: string; heroImage: string; gallery: string[]; primaryColor: string; template: string; theme: ReturnType<typeof getPreviewTheme>; menuTitle: string; menuPdf: string; }) {
+function LivePreview({ restaurantName, logoImage, headline, description, cuisine, heroImage, gallery, galleryTitles, primaryColor, template, theme, menuTitle, menuPdf }: { restaurantName: string; logoImage: string; headline: string; description: string; cuisine: string; heroImage: string; gallery: string[]; galleryTitles: string[]; primaryColor: string; template: string; theme: ReturnType<typeof getPreviewTheme>; menuTitle: string; menuPdf: string; }) {
   const validGallery = gallery.filter((item) => item.startsWith("http"));
 
   return (
@@ -250,13 +283,54 @@ function LivePreview({ restaurantName, logoImage, headline, description, cuisine
           <PreviewPill label="Fotos" value={String(validGallery.length + (heroImage ? 1 : 0))} />
         </div>
         <div className="mt-4 grid grid-cols-4 gap-2">
-          {[heroImage, ...gallery].slice(0, 4).map((image, index) => <div key={index} className="relative h-20 overflow-hidden rounded-2xl bg-black/20">{image?.startsWith("http") ? <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-xs opacity-40">Foto</div>}</div>)}
+          {[heroImage, ...gallery].slice(0, 4).map((image, index) => <div key={index} className="relative h-20 overflow-hidden rounded-2xl bg-black/20">{image?.startsWith("http") ? (
+                <>
+                  <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  {index > 0 && (
+                    <div className="absolute inset-x-0 bottom-0 bg-black/55 px-2 py-1 text-[10px] font-black text-white">
+                      {galleryTitles[index - 1] || `Foto ${index}`}
+                    </div>
+                  )}
+                </>
+              ) : <div className="flex h-full items-center justify-center text-xs opacity-40">Foto</div>}</div>)}
         </div>
         <div className="mt-4 rounded-2xl border border-current/10 p-4">
           <p className="text-xs font-black uppercase tracking-[0.25em] opacity-40">Menu</p>
           <p className="mt-2 text-lg font-black">{menuTitle || "Menu"}</p>
           <p className="mt-1 text-sm opacity-55">{menuPdf ? "PDF carregado e pronto para o site." : "Carrega o menu em PDF para aparecer no site."}</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function GalleryUploadField({
+  number,
+  value,
+  onChange,
+  title,
+  onTitleChange,
+}: {
+  number: string;
+  value: string;
+  onChange: (url: string) => void;
+  title: string;
+  onTitleChange: (value: string) => void;
+}) {
+  return (
+    <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
+      <Field label={`Nome da foto ${number}`}>
+        <input
+          name={`websiteGalleryTitle${number}`}
+          value={title}
+          onChange={(event) => onTitleChange(event.target.value)}
+          placeholder={number === "1" ? "Ambiente" : `Foto ${number}`}
+          className="input-dark h-11"
+        />
+      </Field>
+      <div className="mt-4">
+        <ImageUploadField value={value} onChange={onChange} compact />
+        <input type="hidden" name={`websiteGalleryImage${number}`} value={value} />
       </div>
     </div>
   );
@@ -283,10 +357,60 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   return <label className="block"><div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"><span className="text-sm font-black text-white/80">{label}</span>{hint && <span className="text-xs text-white/35">{hint}</span>}</div>{children}</label>;
 }
 
-function makePremium(value: string) {
-  const clean = value.trim();
+function cleanHeadline(value: string) {
+  return value
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\.+$/g, "")
+    .slice(0, 90);
+}
+
+function polishText(value: string, restaurantName: string) {
+  const clean = value
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.!?])/g, "$1");
+
   if (!clean) return clean;
-  return `${clean} Uma experiência pensada para quem valoriza qualidade, ambiente e momentos bem passados à mesa.`;
+
+  const withoutCliches = clean
+    .replace(/lolitos/gi, "")
+    .replace(/\btop\b/gi, "excelente")
+    .replace(/\bfixe\b/gi, "acolhedor")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const sentence = withoutCliches.endsWith(".") ? withoutCliches : `${withoutCliches}.`;
+
+  if (sentence.length > 260) return sentence.slice(0, 257).trimEnd() + "...";
+
+  return `${sentence} No ${restaurantName}, cada detalhe foi pensado para tornar a visita simples, saborosa e memorável.`;
+}
+
+function toSeoDescription(value: string, restaurantName: string) {
+  const clean = value.trim().replace(/\s+/g, " ");
+  const base = clean || `Reserva online no ${restaurantName}. Consulta menu, localização e contactos.`;
+  return base.length > 155 ? base.slice(0, 152).trimEnd() + "..." : base;
+}
+
+function extractCuisine(value: string) {
+  const lower = value.toLowerCase();
+  if (lower.includes("portugu")) return "Portuguesa tradicional";
+  if (lower.includes("japon")) return "Japonesa";
+  if (lower.includes("corean")) return "Coreana";
+  if (lower.includes("italian")) return "Italiana";
+  if (lower.includes("brunch")) return "Brunch";
+  return "";
+}
+
+function extractLocation(address: string | null, brief: string) {
+  const source = `${address || ""} ${brief}`.toLowerCase();
+  if (source.includes("lisboa") || source.includes("lisbon")) return "Lisboa";
+  if (source.includes("porto")) return "Porto";
+  if (source.includes("algarve")) return "Algarve";
+  if (source.includes("cais do sodré")) return "Cais do Sodré";
+  if (source.includes("baixa")) return "Baixa";
+  return "";
 }
 
 function getPreviewTheme(template: string, primaryColor: string) {

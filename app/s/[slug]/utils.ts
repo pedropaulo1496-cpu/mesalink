@@ -28,6 +28,10 @@ export type PublicRestaurant = {
   websiteGalleryImage2: string | null;
   websiteGalleryImage3: string | null;
   websiteGalleryImage4: string | null;
+  websiteGalleryTitle1: string | null;
+  websiteGalleryTitle2: string | null;
+  websiteGalleryTitle3: string | null;
+  websiteGalleryTitle4: string | null;
 
   websiteMenuTitle: string | null;
   websiteMenuDescription: string | null;
@@ -94,6 +98,17 @@ export function getGalleryImages(restaurant: PublicRestaurant) {
     restaurant.websiteGalleryImage3,
     restaurant.websiteGalleryImage4,
   ].filter((image): image is string => Boolean(image?.startsWith("http")));
+}
+
+export function getGalleryItems(restaurant: PublicRestaurant) {
+  return [
+    { image: restaurant.websiteGalleryImage1, title: restaurant.websiteGalleryTitle1 },
+    { image: restaurant.websiteGalleryImage2, title: restaurant.websiteGalleryTitle2 },
+    { image: restaurant.websiteGalleryImage3, title: restaurant.websiteGalleryTitle3 },
+    { image: restaurant.websiteGalleryImage4, title: restaurant.websiteGalleryTitle4 },
+  ].filter((item): item is { image: string; title: string | null } =>
+    Boolean(item.image?.startsWith("http"))
+  );
 }
 
 export function getMapsUrl(restaurant: PublicRestaurant) {

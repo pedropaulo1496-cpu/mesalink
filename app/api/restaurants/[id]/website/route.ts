@@ -46,6 +46,10 @@ export async function POST(
       websiteGalleryImage2: getText(formData, "websiteGalleryImage2"),
       websiteGalleryImage3: getText(formData, "websiteGalleryImage3"),
       websiteGalleryImage4: getText(formData, "websiteGalleryImage4"),
+      websiteGalleryTitle1: getText(formData, "websiteGalleryTitle1"),
+      websiteGalleryTitle2: getText(formData, "websiteGalleryTitle2"),
+      websiteGalleryTitle3: getText(formData, "websiteGalleryTitle3"),
+      websiteGalleryTitle4: getText(formData, "websiteGalleryTitle4"),
 
       websiteMenuTitle: getText(formData, "websiteMenuTitle"),
       websiteMenuDescription: getText(formData, "websiteMenuDescription"),

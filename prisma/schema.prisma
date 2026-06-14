@@ -68,48 +68,21 @@ model Restaurant {
   websiteFeatureTitle  String?
   websiteFeatureText   String?
 
-  // Mini-site — galeria
+// Mini-site — galeria
   websiteGalleryImage1 String?
   websiteGalleryImage2 String?
   websiteGalleryImage3 String?
   websiteGalleryImage4 String?
-  websiteGalleryImage5 String?
-  websiteGalleryImage6 String?
+
+  websiteGalleryTitle1 String?
+  websiteGalleryTitle2 String?
+  websiteGalleryTitle3 String?
+  websiteGalleryTitle4 String?
 
   // Mini-site — menu
   websiteMenuTitle       String?
   websiteMenuDescription String?
   websiteMenuPdf String?
-
-  websiteDish1Name        String?
-  websiteDish1Description String?
-  websiteDish1Price       String?
-  websiteDish1Image       String?
-
-  websiteDish2Name        String?
-  websiteDish2Description String?
-  websiteDish2Price       String?
-  websiteDish2Image       String?
-
-  websiteDish3Name        String?
-  websiteDish3Description String?
-  websiteDish3Price       String?
-  websiteDish3Image       String?
-
-  websiteDish4Name        String?
-  websiteDish4Description String?
-  websiteDish4Price       String?
-  websiteDish4Image       String?
-
-  websiteDish5Name        String?
-  websiteDish5Description String?
-  websiteDish5Price       String?
-  websiteDish5Image       String?
-
-  websiteDish6Name        String?
-  websiteDish6Description String?
-  websiteDish6Price       String?
-  websiteDish6Image       String?
 
   // Mini-site — SEO/domínio
   websiteSeoTitle       String?

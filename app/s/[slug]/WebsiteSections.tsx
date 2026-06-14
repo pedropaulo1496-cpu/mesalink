@@ -6,7 +6,7 @@ import {
   getDisplayCuisine,
   getFeatureText,
   getFeatureTitle,
-  getGalleryImages,
+  getGalleryItems,
   getMapsUrl,
   getReserveUrl,
   normalizeInstagramUrl,
@@ -226,9 +226,9 @@ export function GallerySection({
 }: {
   restaurant: PublicRestaurant;
 }) {
-  const gallery = getGalleryImages(restaurant);
+  const items = getGalleryItems(restaurant);
 
-  if (gallery.length === 0) return null;
+  if (items.length === 0) return null;
 
   return (
     <section className="bg-[#120b07] px-6 py-24 text-white">
@@ -250,13 +250,13 @@ export function GallerySection({
         </div>
 
         <div className="grid gap-5 lg:grid-cols-4">
-          {gallery.map((image, index) => (
+          {items.map((item, index) => (
             <GalleryTile
-              key={image}
+              key={item.image}
               large={index === 0}
-              title={index === 0 ? getDisplayCuisine(restaurant) : `Foto ${index + 1}`}
+              title={item.title || (index === 0 ? getDisplayCuisine(restaurant) : `Foto ${index + 1}`)}
               subtitle={index === 0 ? "Ambiente" : "Galeria"}
-              image={image}
+              image={item.image}
             />
           ))}
         </div>
