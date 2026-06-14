@@ -1,6 +1,5 @@
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasTrialExpired } from "@/lib/subscription";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
@@ -28,15 +27,6 @@ export default async function DashboardPage() {
 
   if (!user) {
     redirect("/login");
-  }
-
-  const subscription = user.subscription;
-
-  if (
-    subscription?.status === "TRIAL" &&
-    hasTrialExpired(subscription.trialEndsAt)
-  ) {
-    redirect("/trial-expired");
   }
 
   const restaurant = user.restaurants[0];

@@ -17,7 +17,7 @@ export default async function RestaurantLayout({
   const hasAccess = await canAccessApp(session.user.email);
 
   if (!hasAccess) {
-    redirect("/trial-expired");
+    redirect("/billing");
   }
 
   return <>{children}</>;
