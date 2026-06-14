@@ -53,7 +53,7 @@ export async function createRestaurant(formData: FormData) {
       address,
       slug,
       userId: user.id,
-      plan: "STARTER",
+      plan: "FREE",
     },
   });
 

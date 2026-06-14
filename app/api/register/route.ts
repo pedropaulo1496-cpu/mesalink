@@ -36,11 +36,12 @@ export async function POST(request: Request) {
         passwordHash,
         subscription: {
           create: {
-            plan: "STARTER",
-            status: "TRIAL",
-            trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            restaurantLimit: 1,
-            priceMonthly: 1750,
+            plan: "FREE",
+status: "TRIAL",
+trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+restaurantLimit: 1,
+priceMonthly: 0,
+websiteAddon: false,
           },
         },
       },
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
             </h2>
 
             <p style="color:#d6c7ad; font-size:16px; line-height:1.6;">
-              A sua conta foi criada com sucesso. O seu trial Starter de 7 dias já está ativo.
+              A sua conta foi criada com sucesso. O seu trial gratuito de 7 dias já está ativo.
             </p>
 
             <p style="color:#d6c7ad; font-size:16px; line-height:1.6;">
