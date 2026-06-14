@@ -152,7 +152,7 @@ export function normalizeInstagramUrl(value: string | null) {
 }
 
 export function getDisplayCuisine(restaurant: PublicRestaurant) {
-  return restaurant.websiteCuisine || "Restaurante";
+  return restaurant.websiteCuisine || "";
 }
 
 export function getDisplayTitle(restaurant: PublicRestaurant) {
@@ -160,63 +160,5 @@ export function getDisplayTitle(restaurant: PublicRestaurant) {
 }
 
 export function getDisplayDescription(restaurant: PublicRestaurant) {
-  return (
-    restaurant.websiteDescription ||
-    "Reserva a tua mesa online de forma rápida, simples e segura."
-  );
-}
-
-export function getAboutTitle(restaurant: PublicRestaurant) {
-  return restaurant.websiteAboutTitle || "A nossa casa";
-}
-
-export function getAboutText(restaurant: PublicRestaurant) {
-  return (
-    restaurant.websiteAboutText ||
-    restaurant.websiteDescription ||
-    "Um espaço pensado para comer bem, ficar mais um pouco e voltar."
-  );
-}
-
-export function getFeatureTitle(restaurant: PublicRestaurant) {
-  return restaurant.websiteFeatureTitle || "Uma experiência à mesa";
-}
-
-export function getFeatureText(restaurant: PublicRestaurant) {
-  return (
-    restaurant.websiteFeatureText ||
-    "Boa comida, bom ambiente e reservas online sem complicações."
-  );
-}
-
-export function getSectionTitle(restaurant: PublicRestaurant) {
-  return restaurant.websiteSectionTitle || getAboutTitle(restaurant);
-}
-
-export function getSectionText(restaurant: PublicRestaurant) {
-  return restaurant.websiteSectionText || getAboutText(restaurant);
-}
-
-export function getGalleryTitle(restaurant: PublicRestaurant) {
-  return restaurant.websiteGalleryTitle || "Galeria";
-}
-
-export function getGalleryDescription(restaurant: PublicRestaurant) {
-  return restaurant.websiteGalleryDescription || "";
-}
-
-export function getLocationTitle(restaurant: PublicRestaurant) {
-  return restaurant.websiteLocationTitle || "Localização";
-}
-
-export function getLocationDescription(restaurant: PublicRestaurant) {
-  return restaurant.websiteLocationDescription || restaurant.address || "";
-}
-
-export function getFinalCtaTitle(restaurant: PublicRestaurant) {
-  return restaurant.websiteFinalCtaTitle || `Reserva em ${restaurant.name}`;
-}
-
-export function getFinalCtaText(restaurant: PublicRestaurant) {
-  return restaurant.websiteFinalCtaText || "Escolhe o dia, a hora e garante o teu lugar em poucos segundos.";
+  return restaurant.websiteDescription || "";
 }

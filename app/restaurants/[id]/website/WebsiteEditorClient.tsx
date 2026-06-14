@@ -189,11 +189,10 @@ export function WebsiteEditorClient({
                 <span className={enabled ? "rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-200" : "rounded-full border border-orange-300/20 bg-orange-400/10 px-3 py-1 text-xs font-black text-orange-200"}>{enabled ? "Online" : "Offline"}</span>
                 {saved && <span className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-200">Guardado</span>}
               </div>
-              <p className="mt-2 text-sm text-white/45">Upload, menu em PDF, preview ao vivo e ajuda por IA num só editor.</p>
+              <p className="mt-2 text-sm text-white/45">Cria um website profissional para o teu restaurante em poucos minutos.</p>
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row">
-              <button type="button" onClick={generateWebsiteWithAi} disabled={isGeneratingAi} className="inline-flex h-11 items-center justify-center rounded-full border border-purple-300/20 bg-purple-400/10 px-5 text-sm font-black text-purple-100 hover:bg-purple-400/15 disabled:cursor-not-allowed disabled:opacity-50">{isGeneratingAi ? "A gerar..." : "✨ Gerar Website com IA"}</button>
               <button type="button" onClick={improveText} className="inline-flex h-11 items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 text-sm font-black text-white hover:bg-white/15">Melhorar textos</button>
               <a href={publicUrl} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 text-sm font-black text-white hover:bg-white/15">Ver site</a>
               <button form="website-editor-form" type="submit" className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-black text-black hover:bg-white/90">Guardar alterações</button>
@@ -229,22 +228,29 @@ export function WebsiteEditorClient({
               </Field>
             </EditorBlock>
 
-            <EditorBlock number="02" title="IA — preencher rapidamente" description="Um assistente simples para acelerar a criação do site. A versão API paga fica para o plano PRO.">
-              <div className="grid gap-3 md:grid-cols-2">
-                <button type="button" onClick={generateWebsiteWithAi} disabled={isGeneratingAi} className="rounded-2xl border border-purple-300/20 bg-purple-400/10 px-5 py-4 text-left text-sm font-black text-purple-100 hover:bg-purple-400/15 disabled:cursor-not-allowed disabled:opacity-50">{isGeneratingAi ? "A gerar conteúdo..." : "✨ Gerar Website com IA"}</button>
-                <button type="button" onClick={improveText} className="rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 text-left text-sm font-black text-white hover:bg-white/[0.09]">Melhorar textos existentes</button>
-              </div>
-              <Field label="Brief para a IA" hint="Opcional">
-                <textarea
-                  value={aiBrief}
-                  onChange={(event) => setAiBrief(event.target.value)}
-                  rows={3}
-                  placeholder="Ex: bar de cocktails no centro do Porto, ambiente jovem, música ao vivo ao fim de semana..."
-                  className="input-dark min-h-24 py-3"
-                />
-              </Field>
-              <p className="text-xs leading-6 text-white/35">Gera automaticamente textos profissionais para o website com IA.</p>
-            </EditorBlock>
+            <EditorBlock
+  number="02"
+  title="IA Website Builder"
+  description="Funcionalidade em desenvolvimento."
+>
+  <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="text-lg font-black">
+          IA Website Builder
+        </h3>
+
+        <p className="mt-2 text-sm text-white/45">
+          Criação automática de conteúdo para websites.
+        </p>
+      </div>
+
+      <span className="rounded-full border border-amber-300/20 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">
+        Coming Soon
+      </span>
+    </div>
+  </div>
+</EditorBlock>
 
             <EditorBlock number="03" title="Primeira impressão" description="O que o cliente vê nos primeiros 3 segundos.">
               <div className="grid gap-4 md:grid-cols-2">
@@ -276,7 +282,7 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="06" title="Imagens" description="Upload rápido. Máximo de 4 fotos na galeria para manter o site elegante e rápido.">
+            <EditorBlock number="06" title="Imagens" description="As melhores fotografias do teu espaço.">
               <Field label="Logo"><ImageUploadField value={logoImage} onChange={setLogoImage} compact /><input type="hidden" name="websiteLogoImage" value={logoImage} /></Field>
               <Field label="Foto principal"><ImageUploadField value={heroImage} onChange={setHeroImage} /><input type="hidden" name="websiteHeroImage" value={heroImage} /></Field>
               <div className="grid gap-4 md:grid-cols-2">
@@ -287,7 +293,7 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="07" title="Menu" description="Carrega o menu completo em PDF. Simples, rápido e profissional.">
+            <EditorBlock number="07" title="Menu" description="Menus digitais e PDFs.">
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Título do menu"><input name="websiteMenuTitle" value={menuTitle} onChange={(event) => setMenuTitle(event.target.value)} placeholder="Menu" className="input-dark h-12" /></Field>
                 <Field label="Descrição do menu"><input name="websiteMenuDescription" value={menuDescription} onChange={(event) => setMenuDescription(event.target.value)} placeholder="Consulta a nossa carta completa." className="input-dark h-12" /></Field>
@@ -433,7 +439,7 @@ function LivePreview({ restaurantName, logoImage, headline, description, cuisine
                 <>
                   <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
                   {index > 0 && (
-                    <div className="absolute inset-x-0 bottom-0 bg-black/55 px-2 py-1 text-[10px] font-black text-white">
+                    <div className="absolute inset-x-0 bottom-0 bg-black/0 px-2 py-1 text-[10px] font-black text-white">
                       {galleryTitles[index - 1] || `Foto ${index}`}
                     </div>
                   )}
@@ -490,7 +496,7 @@ function QualityCard({ score, enabled, galleryCount, hasMenu }: { score: number;
   return (
     <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-5 shadow-2xl backdrop-blur-xl">
       <div className="flex items-center justify-between"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-white/30">Qualidade</p><p className="mt-2 text-3xl font-black">{score}%</p></div><div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/10 text-sm font-black">{enabled ? "ON" : "OFF"}</div></div>
-      <div className="mt-5 space-y-2 text-sm text-white/50"><p>Galeria: <span className="font-bold text-white">{galleryCount}/4</span></p><p>Menu PDF: <span className="font-bold text-white">{hasMenu ? "Sim" : "Não"}</span></p></div>
+      <div className="mt-5 space-y-2 text-sm text-white/50"><p>Galeria: <span className="font-bold text-white">{galleryCount}/4</span></p><p>Menu: <span className="font-bold text-white">{hasMenu ? "Sim" : "Não"}</span></p></div>
     </div>
   );
 }

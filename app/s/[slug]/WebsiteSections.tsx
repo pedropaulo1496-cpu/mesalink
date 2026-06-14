@@ -53,13 +53,6 @@ export function MenuSection({
                   Ver menu
                 </a>
 
-                <a
-                  href={getReserveUrl(restaurant)}
-                  className="inline-flex items-center justify-center rounded-full px-8 py-4 text-sm font-black text-white"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  Reservar
-                </a>
               </div>
             </div>
 
@@ -271,8 +264,8 @@ export function LocationSection({
               {restaurant.websiteLocationDescription}
             </p>
           )}
-
-          <div className={hasTitle || hasDescription ? "mt-9 flex flex-col gap-3 sm:flex-row" : "flex flex-col gap-3 sm:flex-row"}>
+<div className={hasTitle || hasDescription ? "mt-9" : ""}>
+          
             <a
               href={mapsUrl}
               target="_blank"
@@ -282,13 +275,6 @@ export function LocationSection({
               Google Maps
             </a>
 
-            <a
-              href={reserveUrl}
-              className="inline-flex rounded-full px-8 py-4 text-sm font-black text-white"
-              style={{ backgroundColor: primaryColor }}
-            >
-              Reservar
-            </a>
           </div>
 
           <div className="mt-10 grid gap-4 text-sm text-[#4a3325]/75">
@@ -308,55 +294,16 @@ export function LocationSection({
           </div>
         </div>
 
-        <a
-          href={mapsUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="flex min-h-[420px] items-center justify-center rounded-[2.5rem] bg-[#1d120b] text-center text-white shadow-2xl"
-        >
-          <div>
-            <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-white/10 text-6xl">📍</div>
-            <p className="mt-6 text-xs font-black uppercase tracking-[0.35em] text-white/35">Ver mapa</p>
-          </div>
-        </a>
-      </div>
-    </section>
-  );
-}
-
-export function InstagramSection({
-  restaurant,
-  primaryColor,
-}: {
-  restaurant: PublicRestaurant;
-  primaryColor: string;
-}) {
-  const instagramUrl = normalizeInstagramUrl(restaurant.websiteInstagram);
-  const reserveUrl = getReserveUrl(restaurant);
-
-  if (!instagramUrl) return null;
-
-  return (
-    <section className="bg-[#120b07] px-6 py-24 text-white">
-      <div className="mx-auto max-w-7xl rounded-[2.5rem] border border-white/10 bg-white/[0.06] p-8 md:p-12">
-        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-          <a
-            href={instagramUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex rounded-full border border-white/20 px-8 py-4 text-sm font-black text-white hover:bg-white/10"
-          >
-            Instagram
-          </a>
-
-          <a
-            href={reserveUrl}
-            className="inline-flex rounded-full px-8 py-4 text-sm font-black text-white"
-            style={{ backgroundColor: primaryColor }}
-          >
-            Reservar
-          </a>
-        </div>
+        <div className="overflow-hidden rounded-[2.5rem] shadow-2xl">
+  <iframe
+    src={`https://www.google.com/maps?q=${encodeURIComponent(
+      restaurant.address || ""
+    )}&output=embed`}
+    className="h-[420px] w-full border-0"
+    loading="lazy"
+    referrerPolicy="no-referrer-when-downgrade"
+  />
+</div>
       </div>
     </section>
   );

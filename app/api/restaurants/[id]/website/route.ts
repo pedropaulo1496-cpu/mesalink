@@ -67,7 +67,6 @@ export async function POST(
 
       websiteMenuTitle: getText(formData, "websiteMenuTitle"),
       websiteMenuDescription: getText(formData, "websiteMenuDescription"),
-      websiteMenuPdf: getText(formData, "websiteMenuPdf"),
 
       websiteSeoTitle: getText(formData, "websiteSeoTitle"),
       websiteSeoDescription: getText(formData, "websiteSeoDescription"),

@@ -50,38 +50,35 @@ model Restaurant {
   address String?
 
   // Mini-site — estado/base
-  websiteEnabled       Boolean @default(false)
-  websiteTemplate      String  @default("PREMIUM")
-  websitePrimaryColor  String? @default("#111827")
+  websiteEnabled      Boolean @default(false)
+  websiteTemplate     String  @default("PREMIUM")
+  websitePrimaryColor String? @default("#111827")
 
   // Mini-site — hero
-  websiteHeadline      String?
-  websiteDescription   String?
-  websiteCuisine       String?
-  websiteInstagram     String?
-  websiteHeroImage     String?
-  websiteLogoImage     String?
+  websiteHeadline    String?
+  websiteDescription String?
+  websiteCuisine     String?
+  websiteInstagram   String?
+  websiteHeroImage   String?
+  websiteLogoImage   String?
 
   // Mini-site — storytelling
-  websiteAboutTitle    String?
-  websiteAboutText     String?
-  websiteFeatureTitle  String?
-  websiteFeatureText   String?
+  websiteAboutTitle   String?
+  websiteAboutText    String?
+  websiteFeatureTitle String?
+  websiteFeatureText  String?
 
-    // Mini-site — textos editáveis
-  websiteSectionTitle       String?
-  websiteSectionText        String?
-
-  websiteGalleryTitle       String?
-  websiteGalleryDescription String?
-
+  // Mini-site — textos editáveis
+  websiteSectionTitle        String?
+  websiteSectionText         String?
+  websiteGalleryTitle        String?
+  websiteGalleryDescription  String?
   websiteLocationTitle       String?
   websiteLocationDescription String?
+  websiteFinalCtaTitle       String?
+  websiteFinalCtaText        String?
 
-  websiteFinalCtaTitle String?
-  websiteFinalCtaText  String?
-
-// Mini-site — galeria
+  // Mini-site — galeria
   websiteGalleryImage1 String?
   websiteGalleryImage2 String?
   websiteGalleryImage3 String?
@@ -95,7 +92,8 @@ model Restaurant {
   // Mini-site — menu
   websiteMenuTitle       String?
   websiteMenuDescription String?
-  websiteMenuPdf String?
+  websiteMenuPdf         String?
+  websiteMenus           WebsiteMenu[]
 
   // Mini-site — SEO/domínio
   websiteSeoTitle       String?
@@ -144,6 +142,20 @@ model Restaurant {
 
   tables       Table[]
   reservations Reservation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WebsiteMenu {
+  id    String @id @default(cuid())
+  title String
+  pdf   String
+
+  sortOrder Int @default(0)
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -206,7 +218,7 @@ model Reservation {
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
 
   tableId String?
-  table   Table? @relation(fields: [tableId], references: [id])
+  table   Table?  @relation(fields: [tableId], references: [id])
 
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id])
