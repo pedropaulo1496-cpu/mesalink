@@ -58,6 +58,50 @@ export type PublicRestaurant = {
   sundayOpen: boolean;
   sundayLunch: string | null;
   sundayDinner: string | null;
+
+    websiteLogoImage: string | null;
+
+  websiteGalleryImage5: string | null;
+  websiteGalleryImage6: string | null;
+
+  websiteMenuTitle: string | null;
+  websiteMenuDescription: string | null;
+
+  websiteDish1Name: string | null;
+  websiteDish1Description: string | null;
+  websiteDish1Price: string | null;
+  websiteDish1Image: string | null;
+
+  websiteDish2Name: string | null;
+  websiteDish2Description: string | null;
+  websiteDish2Price: string | null;
+  websiteDish2Image: string | null;
+
+  websiteDish3Name: string | null;
+  websiteDish3Description: string | null;
+  websiteDish3Price: string | null;
+  websiteDish3Image: string | null;
+
+  websiteDish4Name: string | null;
+  websiteDish4Description: string | null;
+  websiteDish4Price: string | null;
+  websiteDish4Image: string | null;
+
+  websiteDish5Name: string | null;
+  websiteDish5Description: string | null;
+  websiteDish5Price: string | null;
+  websiteDish5Image: string | null;
+
+  websiteDish6Name: string | null;
+  websiteDish6Description: string | null;
+  websiteDish6Price: string | null;
+  websiteDish6Image: string | null;
+
+  websiteSeoTitle: string | null;
+  websiteSeoDescription: string | null;
+
+  customDomain: string | null;
+  customDomainVerified: boolean;
 };
 
 export function getPrimaryColor(restaurant: PublicRestaurant) {
@@ -81,7 +125,11 @@ export function getGalleryImages(restaurant: PublicRestaurant) {
     restaurant.websiteGalleryImage2,
     restaurant.websiteGalleryImage3,
     restaurant.websiteGalleryImage4,
-  ].filter((image): image is string => Boolean(image && image.startsWith("http")));
+    restaurant.websiteGalleryImage5,
+    restaurant.websiteGalleryImage6,
+  ].filter((image): image is string =>
+    Boolean(image && image.startsWith("http"))
+  );
 }
 
 export function getMapsUrl(restaurant: PublicRestaurant) {
@@ -218,4 +266,44 @@ export function getFeatureText(restaurant: PublicRestaurant) {
     restaurant.websiteFeatureText ||
     "Boa comida, bom ambiente e reservas online sem complicações."
   );
+}
+export function getMenuItems(restaurant: PublicRestaurant) {
+  return [
+    {
+      name: restaurant.websiteDish1Name,
+      description: restaurant.websiteDish1Description,
+      price: restaurant.websiteDish1Price,
+      image: restaurant.websiteDish1Image,
+    },
+    {
+      name: restaurant.websiteDish2Name,
+      description: restaurant.websiteDish2Description,
+      price: restaurant.websiteDish2Price,
+      image: restaurant.websiteDish2Image,
+    },
+    {
+      name: restaurant.websiteDish3Name,
+      description: restaurant.websiteDish3Description,
+      price: restaurant.websiteDish3Price,
+      image: restaurant.websiteDish3Image,
+    },
+    {
+      name: restaurant.websiteDish4Name,
+      description: restaurant.websiteDish4Description,
+      price: restaurant.websiteDish4Price,
+      image: restaurant.websiteDish4Image,
+    },
+    {
+      name: restaurant.websiteDish5Name,
+      description: restaurant.websiteDish5Description,
+      price: restaurant.websiteDish5Price,
+      image: restaurant.websiteDish5Image,
+    },
+    {
+      name: restaurant.websiteDish6Name,
+      description: restaurant.websiteDish6Description,
+      price: restaurant.websiteDish6Price,
+      image: restaurant.websiteDish6Image,
+    },
+  ].filter((item) => item.name || item.description || item.price || item.image);
 }

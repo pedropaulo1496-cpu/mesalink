@@ -5,6 +5,7 @@ import {
   GallerySection,
   InstagramSection,
   LocationSection,
+  MenuSection,
   MobileStickyReserve,
   PublicFooter,
   QuickInfoSection,
@@ -46,6 +47,11 @@ export function PublicWebsite({
       />
 
       <ExperienceSection
+        restaurant={restaurant}
+        primaryColor={theme.accent}
+      />
+
+      <MenuSection
         restaurant={restaurant}
         primaryColor={theme.accent}
       />
