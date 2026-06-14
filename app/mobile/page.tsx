@@ -2,22 +2,357 @@
 
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import { useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
-export default function MobilePage() {
-  const { scrollYProgress } = useScroll();
+type Lang = "pt" | "en" | "es" | "fr" | "de";
 
-  const heroY = useTransform(scrollYProgress, [0, 0.25], [0, -70]);
-  const phoneRotate = useTransform(scrollYProgress, [0, 0.25], [-5, 5]);
-  const energyOpacity = useTransform(scrollYProgress, [0, 0.15, 0.8], [0.25, 0.75, 1]);
+const languages: { code: Lang; label: string; flag: string }[] = [
+  { code: "pt", label: "PT", flag: "🇵🇹" },
+  { code: "en", label: "EN", flag: "🇬🇧" },
+  { code: "es", label: "ES", flag: "🇪🇸" },
+  { code: "fr", label: "FR", flag: "🇫🇷" },
+  { code: "de", label: "DE", flag: "🇩🇪" },
+];
+
+const copy = {
+  pt: {
+    login: "Entrar",
+    start: "Começar grátis",
+    demo: "Ver demo",
+    badge: "Sistema Operativo para Restaurantes",
+    heroTitleA: "Tudo o que o seu restaurante precisa",
+    heroTitleB: "numa única app.",
+    heroText:
+      "Website, reservas, QR Code Ordering, POS, marketing e gestão. Tudo ligado para o seu restaurante funcionar melhor.",
+    proof1: "Até 100 reservas/mês grátis",
+    proof2: "Sem cartão de crédito",
+    proof3: "Configuração em minutos",
+    phoneKicker: "MesaLink OS",
+    phoneTitle: "Dashboard",
+    reservations: "Reservas",
+    people: "Pessoas",
+    occupancy: "Ocup.",
+    revenue: "Receita",
+    nextBooking: "Próxima reserva",
+    confirmed: "Confirmada",
+    websiteBadge: "Website profissional",
+    websiteTitleA: "O website que o seu",
+    websiteTitleB: "restaurante merece.",
+    websiteText:
+      "Escolha um template, adicione imagens, menus em PDF, galeria, contactos, SEO e reservas integradas. Sem programar. Sem agência.",
+    premium: "Premium",
+    luxury: "Luxury",
+    minimal: "Minimal",
+    social: "Social",
+    premiumText: "Para restaurantes modernos com presença forte.",
+    luxuryText: "Para conceitos premium, fine dining e experiências exclusivas.",
+    minimalText: "Para restaurantes que querem uma imagem limpa e direta.",
+    socialText: "Para marcas jovens, visuais e ligadas às redes sociais.",
+    book: "Reservar",
+    networkBadge: "Tudo ligado",
+    networkTitleA: "Uma plataforma.",
+    networkTitleB: "Todo o restaurante.",
+    networkText:
+      "O MesaLink liga o que realmente importa: website, reservas, QR Code Ordering, marketing, POS e dados.",
+    modules: [
+      ["🌐", "Website", "Online 24/7"],
+      ["📅", "Gestão de Reservas", "Todos os canais"],
+      ["📲", "QR Code Ordering", "Pedidos na mesa"],
+      ["📣", "Marketing", "Atrair e fidelizar"],
+      ["💳", "POS", "Vendas e operação"],
+      ["📊", "Dados e Relatórios", "Tudo num só lugar"],
+    ],
+    today: "Disponível hoje",
+    soon: "A caminho",
+    todayItems: ["Reservas online", "Gestão de mesas", "Clientes", "Website profissional"],
+    soonItems: ["QR Code Ordering", "Marketing", "POS integrado", "IA para restaurantes"],
+    pricingBadge: "Preços simples",
+    pricingTitle: "Comece grátis. Cresça quando precisar.",
+    free: "Free",
+    pro: "Pro",
+    website: "Website",
+    perMonth: "/mês",
+    freeDesc: "Até 100 reservas por mês.",
+    proDesc: "Reservas ilimitadas e gestão de mesas.",
+    websiteDesc: "Website profissional com reservas integradas.",
+    ctaTitle: "Comece gratuitamente hoje.",
+    ctaText:
+      "Receba reservas online e prepare o seu restaurante para uma plataforma completa de restauração.",
+  },
+  en: {
+    login: "Log in",
+    start: "Start for free",
+    demo: "View demo",
+    badge: "The Restaurant Operating System",
+    heroTitleA: "Everything your restaurant needs",
+    heroTitleB: "in one app.",
+    heroText:
+      "Website, reservations, QR Code Ordering, POS, marketing and management. All connected so your restaurant runs better.",
+    proof1: "Up to 100 reservations/month free",
+    proof2: "No credit card required",
+    proof3: "Set up in minutes",
+    phoneKicker: "MesaLink OS",
+    phoneTitle: "Dashboard",
+    reservations: "Reservations",
+    people: "People",
+    occupancy: "Occup.",
+    revenue: "Revenue",
+    nextBooking: "Next booking",
+    confirmed: "Confirmed",
+    websiteBadge: "Professional website",
+    websiteTitleA: "The website your",
+    websiteTitleB: "restaurant deserves.",
+    websiteText:
+      "Choose a template, add images, PDF menus, gallery, contacts, SEO and integrated reservations. No code. No agency.",
+    premium: "Premium",
+    luxury: "Luxury",
+    minimal: "Minimal",
+    social: "Social",
+    premiumText: "For modern restaurants with a strong presence.",
+    luxuryText: "For premium concepts, fine dining and exclusive experiences.",
+    minimalText: "For restaurants that want a clean and direct image.",
+    socialText: "For young, visual and social-first brands.",
+    book: "Book",
+    networkBadge: "All connected",
+    networkTitleA: "One platform.",
+    networkTitleB: "The whole restaurant.",
+    networkText:
+      "MesaLink connects what really matters: website, reservations, QR Code Ordering, marketing, POS and data.",
+    modules: [
+      ["🌐", "Website", "Online 24/7"],
+      ["📅", "Reservation Management", "All channels"],
+      ["📲", "QR Code Ordering", "Table ordering"],
+      ["📣", "Marketing", "Attract and retain"],
+      ["💳", "POS", "Sales and operations"],
+      ["📊", "Data & Reports", "All in one place"],
+    ],
+    today: "Available today",
+    soon: "Coming soon",
+    todayItems: ["Online reservations", "Table management", "Customers", "Professional website"],
+    soonItems: ["QR Code Ordering", "Marketing", "Integrated POS", "AI for restaurants"],
+    pricingBadge: "Simple pricing",
+    pricingTitle: "Start free. Upgrade when you need.",
+    free: "Free",
+    pro: "Pro",
+    website: "Website",
+    perMonth: "/month",
+    freeDesc: "Up to 100 reservations per month.",
+    proDesc: "Unlimited reservations and table management.",
+    websiteDesc: "Professional website with integrated reservations.",
+    ctaTitle: "Start for free today.",
+    ctaText:
+      "Receive online reservations and prepare your restaurant for a complete restaurant platform.",
+  },
+  es: {
+    login: "Entrar",
+    start: "Empezar gratis",
+    demo: "Ver demo",
+    badge: "El Sistema Operativo para Restaurantes",
+    heroTitleA: "Todo lo que tu restaurante necesita",
+    heroTitleB: "en una sola app.",
+    heroText:
+      "Web, reservas, QR Code Ordering, POS, marketing y gestión. Todo conectado para que tu restaurante funcione mejor.",
+    proof1: "Hasta 100 reservas/mes gratis",
+    proof2: "Sin tarjeta de crédito",
+    proof3: "Configuración en minutos",
+    phoneKicker: "MesaLink OS",
+    phoneTitle: "Dashboard",
+    reservations: "Reservas",
+    people: "Personas",
+    occupancy: "Ocup.",
+    revenue: "Ingresos",
+    nextBooking: "Próxima reserva",
+    confirmed: "Confirmada",
+    websiteBadge: "Web profesional",
+    websiteTitleA: "La web que tu",
+    websiteTitleB: "restaurante merece.",
+    websiteText:
+      "Elige una plantilla, añade imágenes, menús PDF, galería, contactos, SEO y reservas integradas. Sin código. Sin agencia.",
+    premium: "Premium",
+    luxury: "Luxury",
+    minimal: "Minimal",
+    social: "Social",
+    premiumText: "Para restaurantes modernos con una presencia fuerte.",
+    luxuryText: "Para conceptos premium, fine dining y experiencias exclusivas.",
+    minimalText: "Para restaurantes que quieren una imagen limpia y directa.",
+    socialText: "Para marcas jóvenes, visuales y conectadas a redes sociales.",
+    book: "Reservar",
+    networkBadge: "Todo conectado",
+    networkTitleA: "Una plataforma.",
+    networkTitleB: "Todo el restaurante.",
+    networkText:
+      "MesaLink conecta lo que realmente importa: web, reservas, QR Code Ordering, marketing, POS y datos.",
+    modules: [
+      ["🌐", "Web", "Online 24/7"],
+      ["📅", "Gestión de Reservas", "Todos los canales"],
+      ["📲", "QR Code Ordering", "Pedidos en mesa"],
+      ["📣", "Marketing", "Atraer y fidelizar"],
+      ["💳", "POS", "Ventas y operación"],
+      ["📊", "Datos e Informes", "Todo en un lugar"],
+    ],
+    today: "Disponible hoy",
+    soon: "Próximamente",
+    todayItems: ["Reservas online", "Gestión de mesas", "Clientes", "Web profesional"],
+    soonItems: ["QR Code Ordering", "Marketing", "POS integrado", "IA para restaurantes"],
+    pricingBadge: "Precios simples",
+    pricingTitle: "Empieza gratis. Crece cuando lo necesites.",
+    free: "Free",
+    pro: "Pro",
+    website: "Website",
+    perMonth: "/mes",
+    freeDesc: "Hasta 100 reservas por mes.",
+    proDesc: "Reservas ilimitadas y gestión de mesas.",
+    websiteDesc: "Web profesional con reservas integradas.",
+    ctaTitle: "Empieza gratis hoy.",
+    ctaText:
+      "Recibe reservas online y prepara tu restaurante para una plataforma completa de restauración.",
+  },
+  fr: {
+    login: "Connexion",
+    start: "Commencer gratuitement",
+    demo: "Voir la démo",
+    badge: "Le Système d’Exploitation pour Restaurants",
+    heroTitleA: "Tout ce dont votre restaurant a besoin",
+    heroTitleB: "dans une seule app.",
+    heroText:
+      "Site web, réservations, QR Code Ordering, POS, marketing et gestion. Tout connecté pour mieux faire fonctionner votre restaurant.",
+    proof1: "Jusqu’à 100 réservations/mois gratuites",
+    proof2: "Aucune carte bancaire requise",
+    proof3: "Configuration en quelques minutes",
+    phoneKicker: "MesaLink OS",
+    phoneTitle: "Dashboard",
+    reservations: "Réservations",
+    people: "Personnes",
+    occupancy: "Occup.",
+    revenue: "Revenus",
+    nextBooking: "Prochaine réservation",
+    confirmed: "Confirmée",
+    websiteBadge: "Site web professionnel",
+    websiteTitleA: "Le site web que votre",
+    websiteTitleB: "restaurant mérite.",
+    websiteText:
+      "Choisissez un modèle, ajoutez images, menus PDF, galerie, contacts, SEO et réservations intégrées. Sans code. Sans agence.",
+    premium: "Premium",
+    luxury: "Luxury",
+    minimal: "Minimal",
+    social: "Social",
+    premiumText: "Pour les restaurants modernes avec une forte présence.",
+    luxuryText: "Pour les concepts premium, fine dining et expériences exclusives.",
+    minimalText: "Pour les restaurants qui veulent une image claire et directe.",
+    socialText: "Pour les marques jeunes, visuelles et sociales.",
+    book: "Réserver",
+    networkBadge: "Tout connecté",
+    networkTitleA: "Une plateforme.",
+    networkTitleB: "Tout le restaurant.",
+    networkText:
+      "MesaLink connecte l’essentiel : site web, réservations, QR Code Ordering, marketing, POS et données.",
+    modules: [
+      ["🌐", "Site web", "Online 24/7"],
+      ["📅", "Gestion des Réservations", "Tous les canaux"],
+      ["📲", "QR Code Ordering", "Commandes à table"],
+      ["📣", "Marketing", "Attirer et fidéliser"],
+      ["💳", "POS", "Ventes et opérations"],
+      ["📊", "Données & Rapports", "Tout au même endroit"],
+    ],
+    today: "Disponible aujourd’hui",
+    soon: "Bientôt",
+    todayItems: ["Réservations en ligne", "Gestion des tables", "Clients", "Site web professionnel"],
+    soonItems: ["QR Code Ordering", "Marketing", "POS intégré", "IA pour restaurants"],
+    pricingBadge: "Prix simples",
+    pricingTitle: "Commencez gratuitement. Évoluez quand vous voulez.",
+    free: "Free",
+    pro: "Pro",
+    website: "Website",
+    perMonth: "/mois",
+    freeDesc: "Jusqu’à 100 réservations par mois.",
+    proDesc: "Réservations illimitées et gestion des tables.",
+    websiteDesc: "Site web professionnel avec réservations intégrées.",
+    ctaTitle: "Commencez gratuitement aujourd’hui.",
+    ctaText:
+      "Recevez des réservations en ligne et préparez votre restaurant à une plateforme complète.",
+  },
+  de: {
+    login: "Einloggen",
+    start: "Kostenlos starten",
+    demo: "Demo ansehen",
+    badge: "Das Betriebssystem für Restaurants",
+    heroTitleA: "Alles, was Ihr Restaurant braucht",
+    heroTitleB: "in einer einzigen App.",
+    heroText:
+      "Website, Reservierungen, QR Code Ordering, POS, Marketing und Management. Alles verbunden, damit Ihr Restaurant besser läuft.",
+    proof1: "Bis zu 100 Reservierungen/Monat kostenlos",
+    proof2: "Keine Kreditkarte erforderlich",
+    proof3: "Einrichtung in wenigen Minuten",
+    phoneKicker: "MesaLink OS",
+    phoneTitle: "Dashboard",
+    reservations: "Reservierungen",
+    people: "Gäste",
+    occupancy: "Auslast.",
+    revenue: "Umsatz",
+    nextBooking: "Nächste Reservierung",
+    confirmed: "Bestätigt",
+    websiteBadge: "Professionelle Website",
+    websiteTitleA: "Die Website, die Ihr",
+    websiteTitleB: "Restaurant verdient.",
+    websiteText:
+      "Wählen Sie eine Vorlage, fügen Sie Bilder, PDF-Menüs, Galerie, Kontakte, SEO und integrierte Reservierungen hinzu. Kein Code. Keine Agentur.",
+    premium: "Premium",
+    luxury: "Luxury",
+    minimal: "Minimal",
+    social: "Social",
+    premiumText: "Für moderne Restaurants mit starker Präsenz.",
+    luxuryText: "Für Premium-Konzepte, Fine Dining und exklusive Erlebnisse.",
+    minimalText: "Für Restaurants mit einem klaren, direkten Auftritt.",
+    socialText: "Für junge, visuelle und social-first Marken.",
+    book: "Reservieren",
+    networkBadge: "Alles verbunden",
+    networkTitleA: "Eine Plattform.",
+    networkTitleB: "Das ganze Restaurant.",
+    networkText:
+      "MesaLink verbindet, was wirklich wichtig ist: Website, Reservierungen, QR Code Ordering, Marketing, POS und Daten.",
+    modules: [
+      ["🌐", "Website", "Online 24/7"],
+      ["📅", "Reservierungsverwaltung", "Alle Kanäle"],
+      ["📲", "QR Code Ordering", "Bestellen am Tisch"],
+      ["📣", "Marketing", "Gewinnen & binden"],
+      ["💳", "POS", "Verkauf & Betrieb"],
+      ["📊", "Daten & Berichte", "Alles an einem Ort"],
+    ],
+    today: "Heute verfügbar",
+    soon: "Demnächst",
+    todayItems: ["Online-Reservierungen", "Tischverwaltung", "Kunden", "Professionelle Website"],
+    soonItems: ["QR Code Ordering", "Marketing", "Integrierter POS", "KI für Restaurants"],
+    pricingBadge: "Einfache Preise",
+    pricingTitle: "Kostenlos starten. Wachsen, wenn Sie bereit sind.",
+    free: "Free",
+    pro: "Pro",
+    website: "Website",
+    perMonth: "/Monat",
+    freeDesc: "Bis zu 100 Reservierungen pro Monat.",
+    proDesc: "Unbegrenzte Reservierungen und Tischverwaltung.",
+    websiteDesc: "Professionelle Website mit integrierten Reservierungen.",
+    ctaTitle: "Starten Sie heute kostenlos.",
+    ctaText:
+      "Erhalten Sie Online-Reservierungen und bereiten Sie Ihr Restaurant auf eine vollständige Plattform vor.",
+  },
+} as const;
+
+export default function MobilePage() {
+  const [lang, setLang] = useState<Lang>("pt");
+  const t = copy[lang];
+
+  const { scrollYProgress } = useScroll();
+  const heroY = useTransform(scrollYProgress, [0, 0.25], [0, -34]);
+  const phoneRotate = useTransform(scrollYProgress, [0, 0.25], [-2, 2]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
       <Background />
 
-      <section className="relative z-10 min-h-screen px-5 pb-14 pt-5">
-        <nav className="mb-12 flex items-center justify-between">
+      <section className="relative z-10 px-4 pb-12 pt-4 sm:px-5">
+        <nav className="mx-auto mb-10 flex max-w-md items-center justify-between">
           <Link href="/" className="text-2xl font-black">
             Mesa
             <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
@@ -27,33 +362,32 @@ export default function MobilePage() {
 
           <Link
             href="/login"
-            className="rounded-full border border-cyan-300/30 bg-white/5 px-5 py-2 text-sm font-black text-cyan-200 backdrop-blur"
+            className="rounded-full border border-cyan-300/30 bg-white/5 px-4 py-2 text-sm font-black text-cyan-200 backdrop-blur"
           >
-            Entrar
+            {t.login}
           </Link>
         </nav>
 
-        <motion.div style={{ y: heroY }}>
-          <Badge>AI Reservation OS</Badge>
+        <motion.div style={{ y: heroY }} className="mx-auto max-w-md">
+          <Badge>{t.badge}</Badge>
 
-          <h1 className="mt-5 text-[52px] font-black leading-[0.88] tracking-[-0.07em]">
-  A próxima geração das{" "}
-  <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-400 bg-clip-text text-transparent">
-    reservas para restaurantes.
-  </span>
-</h1>
+          <h1 className="mt-5 text-[44px] font-black leading-[0.9] tracking-[-0.06em] min-[390px]:text-[50px]">
+            {t.heroTitleA}{" "}
+            <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-400 bg-clip-text text-transparent">
+              {t.heroTitleB}
+            </span>
+          </h1>
 
-<p className="mt-6 text-[17px] leading-relaxed text-slate-300">
-  Transforme Google Maps, redes sociais e website
-  num sistema inteligente de reservas.
-</p>
+          <p className="mt-5 text-[16px] leading-relaxed text-slate-300">
+            {t.heroText}
+          </p>
 
-          <div className="mt-7 grid gap-3">
+          <div className="mt-6 grid gap-3">
             <Button
               asChild
-              className="h-14 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-base font-black text-black shadow-[0_0_70px_rgba(96,165,250,0.6)] hover:opacity-90"
+              className="h-14 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-base font-black text-black shadow-[0_0_70px_rgba(96,165,250,0.45)] hover:opacity-90"
             >
-              <Link href="/register">Ativar MesaLink AI →</Link>
+              <Link href="/register">{t.start} →</Link>
             </Button>
 
             <Button
@@ -61,145 +395,174 @@ export default function MobilePage() {
               variant="outline"
               className="h-14 rounded-full border-cyan-300/30 bg-white/5 text-base font-black text-white backdrop-blur hover:bg-white/10"
             >
-              <Link href="/pricing">Ver planos →</Link>
+              <Link href="#websites">{t.demo} →</Link>
             </Button>
           </div>
 
-          <div className="mt-8 grid grid-cols-3 gap-3">
-            <HeroStat icon="📍" value="Maps" label="ready" />
-            <HeroStat icon="⚡" value="24h" label="online" />
-            <HeroStat icon="🤖" value="IA" label="brevemente" />
+          <div className="mt-6 grid gap-2 text-sm text-slate-300">
+            <Proof>{t.proof1}</Proof>
+            <Proof>{t.proof2}</Proof>
+            <Proof>{t.proof3}</Proof>
           </div>
+
+          <LanguageSelector lang={lang} setLang={setLang} />
         </motion.div>
 
-        <motion.div style={{ rotate: phoneRotate }} className="mt-12">
-          <PhoneHero />
+        <motion.div style={{ rotate: phoneRotate }} className="mx-auto mt-10 max-w-[330px]">
+          <PhoneHero t={t} />
         </motion.div>
       </section>
 
-      <StickyBar />
+      <StickyBar t={t} />
 
-      <section className="relative z-10 px-5 py-16">
-        <Badge>Reservation Intelligence</Badge>
+      <section id="websites" className="relative z-10 px-4 py-14 sm:px-5">
+        <div className="mx-auto max-w-md">
+          <Badge>{t.websiteBadge}</Badge>
 
-        <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em]">
-          Todos os canais{" "}
-          <span className="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text text-transparent">
-            trabalham em conjunto.
-          </span>
-        </h2>
-
-        <p className="mt-5 text-base leading-relaxed text-slate-400">
-          Google Maps, redes sociais, website e QR Codes convergem para uma
-          central inteligente de reservas.
-        </p>
-
-        <FlowNetwork />
-      </section>
-
-      <section className="relative z-10 px-5 py-14">
-        <Badge>Google Maps first</Badge>
-
-        <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em]">
-          Quem encontra o restaurante no Google{" "}
-          <span className="text-cyan-300">reserva na hora.</span>
-        </h2>
-
-        <p className="mt-5 text-base leading-relaxed text-slate-400">
-          O perfil Google deixa de ser só uma montra. Passa a ser uma entrada
-          direta para reservas confirmadas.
-        </p>
-
-        <div className="mt-8 grid gap-4">
-          <BigCard
-            number="01"
-            title="Google Maps"
-            text="Transforme pesquisas locais em reservas reais."
-          />
-          <BigCard
-            number="02"
-            title="Redes sociais"
-            text="Bio, stories, reels, TikTok e Facebook com reserva direta."
-          />
-          <BigCard
-            number="03"
-            title="Website & QR"
-            text="Reserve direto do site, menus, montra e cartões."
-          />
-        </div>
-      </section>
-
-      <section className="relative z-10 px-5 py-14">
-        <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/20 bg-[#06111f] p-6 shadow-[0_0_100px_rgba(34,211,238,0.22)]">
-          <div className="absolute -right-16 top-10 h-52 w-52 rounded-full bg-cyan-500/25 blur-[70px]" />
-          <div className="absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-violet-500/25 blur-[70px]" />
-
-          <Badge purple>MesaLink Intelligence</Badge>
-
-          <h2 className="relative mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em]">
-            Brevemente, uma IA para{" "}
+          <h2 className="mt-5 text-[39px] font-black leading-[0.92] tracking-[-0.055em]">
+            {t.websiteTitleA}{" "}
             <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">
-              vender mais mesas.
+              {t.websiteTitleB}
             </span>
           </h2>
 
-          <p className="relative mt-5 text-base leading-relaxed text-slate-300">
-            Estamos a preparar uma camada inteligente para prever movimento,
-            reduzir no-shows e otimizar horários automaticamente.
+          <p className="mt-5 text-base leading-relaxed text-slate-400">
+            {t.websiteText}
           </p>
 
-          <div className="relative mt-8 grid gap-3">
-            <AiItem title="Previsão de ocupação" text="Antecipe dias fortes, dias fracos e picos de procura." />
-            <AiItem title="Sugestão de horários" text="Recomendações automáticas para melhorar ocupação." />
-            <AiItem title="Previsão de no-shows" text="Identifique reservas com maior risco de falha." />
-            <AiItem title="Assistente operacional" text="Ajuda inteligente para gerir o serviço do dia." />
+          <div className="mt-6 grid grid-cols-2 gap-3 text-sm text-slate-300">
+            <Proof>PDF menus</Proof>
+            <Proof>SEO</Proof>
+            <Proof>Google Maps</Proof>
+            <Proof>Gallery</Proof>
+            <Proof>Contacts</Proof>
+            <Proof>Reservations</Proof>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-8 flex max-w-md snap-x gap-4 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <TemplateCard
+            name={t.premium}
+            text={t.premiumText}
+            cta={t.book}
+            variant="premium"
+          />
+          <TemplateCard
+            name={t.luxury}
+            text={t.luxuryText}
+            cta={t.book}
+            variant="luxury"
+          />
+          <TemplateCard
+            name={t.minimal}
+            text={t.minimalText}
+            cta={t.book}
+            variant="minimal"
+          />
+          <TemplateCard
+            name={t.social}
+            text={t.socialText}
+            cta={t.book}
+            variant="social"
+          />
+        </div>
+      </section>
+
+      <section className="relative z-10 px-4 py-14 sm:px-5">
+        <div className="mx-auto max-w-md">
+          <Badge>{t.networkBadge}</Badge>
+
+          <h2 className="mt-5 text-[39px] font-black leading-[0.92] tracking-[-0.055em]">
+            {t.networkTitleA}{" "}
+            <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">
+              {t.networkTitleB}
+            </span>
+          </h2>
+
+          <p className="mt-5 text-base leading-relaxed text-slate-400">
+            {t.networkText}
+          </p>
+
+          <ModuleGrid modules={t.modules} />
+        </div>
+      </section>
+
+      <section className="relative z-10 px-4 py-14 sm:px-5">
+        <div className="mx-auto max-w-md rounded-[32px] border border-cyan-300/15 bg-[#06111f]/85 p-5 shadow-[0_0_80px_rgba(34,211,238,0.14)] backdrop-blur">
+          <div className="grid gap-4">
+            <Roadmap title={t.today} items={t.todayItems} />
+            <Roadmap title={t.soon} items={t.soonItems} upcoming />
           </div>
         </div>
       </section>
 
-      <section className="relative z-10 px-5 py-14">
-        <Badge>Restaurant AI OS</Badge>
+      <section className="relative z-10 px-4 py-14 sm:px-5">
+        <div className="mx-auto max-w-md">
+          <Badge>{t.pricingBadge}</Badge>
 
-        <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em]">
-          Uma sala de controlo inteligente para o restaurante.
-        </h2>
+          <h2 className="mt-5 text-[39px] font-black leading-[0.92] tracking-[-0.055em]">
+            {t.pricingTitle}
+          </h2>
 
-        <div className="mt-8 grid gap-4">
-          <Feature icon="⚡" title="Serviço do dia" text="Almoço, jantar, pendentes, confirmadas, check-ins e no-shows." />
-          <Feature icon="👁️" title="Visão em tempo real" text="Saiba quantas pessoas entram em cada horário." />
-          <Feature icon="🧠" title="Clientes automáticos" text="Histórico, contactos e observações guardados sem esforço." />
-          <Feature icon="🛡️" title="Controlo total" text="Aprovação manual para grupos grandes ou pedidos especiais." />
+          <div className="mt-8 grid gap-4">
+            <PriceCard title={t.free} price="0€" suffix={t.perMonth} text={t.freeDesc} />
+            <PriceCard title={t.pro} price="10€" suffix={t.perMonth} text={t.proDesc} highlight />
+            <PriceCard title={t.website} price="+10€" suffix={t.perMonth} text={t.websiteDesc} />
+          </div>
         </div>
       </section>
 
-      <section className="relative z-10 px-5 pb-16">
-        <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/20 bg-gradient-to-br from-cyan-300 via-blue-400 to-violet-500 p-7 text-black shadow-[0_0_100px_rgba(96,165,250,0.55)]">
-          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/40 blur-3xl" />
-
-          <h2 className="relative text-[42px] font-black leading-[0.88] tracking-[-0.06em]">
-            Entre agora no futuro inteligente das reservas.
+      <section className="relative z-10 px-4 pb-16 pt-8 sm:px-5">
+        <div className="mx-auto max-w-md overflow-hidden rounded-[32px] border border-cyan-300/20 bg-gradient-to-br from-cyan-300 via-blue-400 to-violet-500 p-6 text-black shadow-[0_0_100px_rgba(96,165,250,0.45)]">
+          <h2 className="text-[38px] font-black leading-[0.9] tracking-[-0.06em]">
+            {t.ctaTitle}
           </h2>
 
-          <p className="relative mt-5 text-base leading-relaxed text-black/70">
-            Ative o MesaLink e transforme cada canal online numa fonte de
-            reservas.
+          <p className="mt-5 text-base leading-relaxed text-black/70">
+            {t.ctaText}
           </p>
 
           <Button
             asChild
-            className="relative mt-7 h-14 w-full rounded-full bg-black text-base font-black text-white hover:bg-black/90"
+            className="mt-7 h-14 w-full rounded-full bg-black text-base font-black text-white hover:bg-black/90"
           >
-            <Link href="/register">Criar conta grátis →</Link>
+            <Link href="/register">{t.start} →</Link>
           </Button>
-
-          <div className="relative mt-6 grid grid-cols-2 gap-4 text-sm text-black/70">
-            <p>💳 Sem cartão de crédito</p>
-            <p>⏱️ Cancele quando quiser</p>
-          </div>
         </div>
       </section>
+
       <Footer />
     </main>
+  );
+}
+
+function LanguageSelector({
+  lang,
+  setLang,
+}: {
+  lang: Lang;
+  setLang: (lang: Lang) => void;
+}) {
+  return (
+    <div className="mt-6 rounded-3xl border border-cyan-300/15 bg-white/[0.035] p-2 backdrop-blur">
+      <div className="grid grid-cols-5 gap-1">
+        {languages.map((language) => (
+          <button
+            key={language.code}
+            type="button"
+            onClick={() => setLang(language.code)}
+            className={
+              lang === language.code
+                ? "rounded-2xl bg-cyan-300 px-2 py-2 text-xs font-black text-black"
+                : "rounded-2xl px-2 py-2 text-xs font-black text-slate-300 hover:bg-white/10"
+            }
+          >
+            <span className="mr-1">{language.flag}</span>
+            {language.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -207,27 +570,21 @@ function Background() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0">
       <motion.div
-        animate={{ scale: [1, 1.18, 1], y: [0, 42, 0] }}
+        animate={{ scale: [1, 1.16, 1], y: [0, 42, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[-140px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px]"
+        className="absolute left-1/2 top-[-160px] h-[380px] w-[380px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px]"
       />
 
       <motion.div
         animate={{ x: [0, -35, 0], y: [0, 50, 0] }}
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute right-[-140px] top-[420px] h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px]"
+        className="absolute right-[-190px] top-[520px] h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px]"
       />
 
       <motion.div
-        animate={{ x: [0, 22, 0], opacity: [0.12, 0.3, 0.12] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-[-120px] left-[-120px] h-[320px] w-[320px] rounded-full bg-blue-500/20 blur-[100px]"
-      />
-
-      <motion.div
-        animate={{ opacity: [0.12, 0.34, 0.12] }}
+        animate={{ opacity: [0.09, 0.22, 0.09] }}
         transition={{ duration: 4, repeat: Infinity }}
-        className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.08)_1px,transparent_1px)] bg-[size:44px_44px]"
+        className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.06)_1px,transparent_1px)] bg-[size:38px_38px]"
       />
 
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.16),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
@@ -235,289 +592,239 @@ function Background() {
   );
 }
 
-function StickyBar() {
+function StickyBar({ t }: { t: (typeof copy)[Lang] }) {
   return (
-    <section className="sticky top-0 z-30 border-y border-cyan-300/10 bg-[#020617]/80 px-5 py-4 backdrop-blur-2xl">
-      <div className="flex items-center justify-between gap-3">
+    <section className="sticky top-0 z-30 border-y border-cyan-300/10 bg-[#020617]/82 px-4 py-3 backdrop-blur-2xl">
+      <div className="mx-auto flex max-w-md items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-300">
-            Live system
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300">
+            MesaLink
           </p>
-          <p className="text-sm font-bold text-white">Google Maps → AI → Reserva</p>
+          <p className="text-sm font-bold text-white">
+            Website · Reservas · POS
+          </p>
         </div>
 
         <Link
           href="/register"
           className="rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 px-4 py-2 text-sm font-black text-black"
         >
-          Começar
+          {t.start}
         </Link>
       </div>
     </section>
   );
 }
 
-function Badge({ children, purple }: { children: React.ReactNode; purple?: boolean }) {
+function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span
-      className={
-        purple
-          ? "relative inline-flex rounded-full border border-violet-300/30 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-violet-200"
-          : "relative inline-flex rounded-full border border-cyan-300/30 bg-cyan-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-cyan-200"
-      }
-    >
+    <span className="relative inline-flex rounded-full border border-cyan-300/30 bg-cyan-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">
       {children}
     </span>
   );
 }
 
-function PhoneHero() {
+function Proof({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="flex items-start gap-2 leading-snug">
+      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-cyan-300 text-[10px] text-cyan-300">
+        ✓
+      </span>
+      <span>{children}</span>
+    </span>
+  );
+}
+
+function PhoneHero({ t }: { t: (typeof copy)[Lang] }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 45, scale: 0.94 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.85, delay: 0.15 }}
-      className="relative mx-auto max-w-[330px]"
+      className="relative"
     >
       <div className="absolute inset-0 translate-y-10 rounded-[48px] bg-cyan-500/25 blur-[80px]" />
       <div className="absolute inset-0 translate-y-16 rounded-[48px] bg-violet-500/20 blur-[100px]" />
 
       <motion.div
-        animate={{ y: [0, -12, 0] }}
+        animate={{ y: [0, -10, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="relative rounded-[44px] border border-cyan-300/35 bg-gradient-to-b from-[#0b1b2c] via-[#071426] to-[#020617] p-3 shadow-2xl"
+        className="relative rounded-[42px] border border-cyan-300/35 bg-gradient-to-b from-[#0b1b2c] via-[#071426] to-[#020617] p-3 shadow-2xl"
       >
         <div className="mx-auto mb-3 h-1.5 w-20 rounded-full bg-cyan-300/50" />
 
-        <div className="rounded-[34px] border border-white/10 bg-black/45 p-4 backdrop-blur-xl">
+        <div className="rounded-[32px] border border-white/10 bg-black/45 p-4 backdrop-blur-xl">
           <div className="mb-5 flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-400">MesaLink AI OS</p>
-              <h3 className="text-2xl font-black">Live Control</h3>
+              <p className="text-xs text-slate-400">{t.phoneKicker}</p>
+              <h3 className="text-2xl font-black">{t.phoneTitle}</h3>
             </div>
 
             <span className="rounded-full bg-cyan-500/15 px-3 py-1 text-xs font-black text-cyan-300">
-              AI ON
+              LIVE
             </span>
           </div>
 
-          <div className="mb-5 grid grid-cols-3 gap-2">
-            <Dash value="18" label="Reservas" />
-            <Dash value="64" label="Pessoas" />
-            <Dash value="91%" label="Ocup." />
+          <div className="mb-4 grid grid-cols-2 gap-2">
+            <Dash value="32" label={t.reservations} />
+            <Dash value="128" label={t.people} />
+            <Dash value="87%" label={t.occupancy} />
+            <Dash value="€2.450" label={t.revenue} />
           </div>
 
-          <div className="mb-5 rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-4 shadow-[0_0_35px_rgba(34,211,238,0.18)]">
+          <div className="mb-4 rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-4 shadow-[0_0_35px_rgba(34,211,238,0.18)]">
             <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
-              AI Prediction
+              {t.nextBooking}
             </p>
             <p className="text-2xl font-black text-cyan-200">
-              20:00 <span className="text-white">· Pico forte</span>
+              20:00 <span className="text-white">· 4 pax</span>
             </p>
-            <p className="mt-1 text-sm text-slate-300">
-              Sugestão: proteger mesas 2P
-            </p>
+            <p className="mt-1 text-sm text-slate-300">{t.confirmed}</p>
           </div>
 
-          <div className="mb-5 rounded-2xl border border-violet-300/20 bg-violet-400/10 p-4">
-            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-violet-200">
-              Source intelligence
-            </p>
-            <p className="text-sm font-bold text-white">Google Maps gerou 7 reservas hoje</p>
-          </div>
-
-          <Reservation time="20:00" name="João Silva" status="Confirmada" />
-          <Reservation time="20:30" name="Ana Costa" status="Confirmada" />
-          <Reservation time="21:00" name="Pedro Santos" status="Pendente" danger />
+          <Reservation time="20:00" name="João Silva" status={t.confirmed} />
+          <Reservation time="20:30" name="Ana Costa" status={t.confirmed} />
+          <Reservation time="21:00" name="Pedro Santos" status={t.confirmed} />
         </div>
       </motion.div>
     </motion.div>
   );
 }
 
-function FlowNetwork() {
+function TemplateCard({
+  name,
+  text,
+  cta,
+  variant,
+}: {
+  name: string;
+  text: string;
+  cta: string;
+  variant: "premium" | "luxury" | "minimal" | "social";
+}) {
+  const styles = {
+    premium: "from-amber-950 via-neutral-950 to-black",
+    luxury: "from-neutral-950 via-stone-900 to-amber-950",
+    minimal: "from-slate-100 via-white to-cyan-50 text-black",
+    social: "from-fuchsia-950 via-violet-950 to-cyan-950",
+  };
+
   return (
-    <div className="relative mx-auto mt-10 h-[520px] max-w-sm overflow-hidden rounded-[40px] border border-cyan-300/10 bg-white/[0.035] p-4 backdrop-blur-2xl">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(34,211,238,0.22),transparent_32%)]" />
+    <article className="min-w-[82%] snap-center rounded-[30px] border border-cyan-300/15 bg-white/[0.045] p-4 backdrop-blur">
+      <div className={`overflow-hidden rounded-[24px] bg-gradient-to-br ${styles[variant]} p-5`}>
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-black uppercase tracking-[0.18em] opacity-80">
+            {name}
+          </p>
+          <div className="space-y-1">
+            <span className="block h-0.5 w-4 bg-current opacity-70" />
+            <span className="block h-0.5 w-4 bg-current opacity-70" />
+          </div>
+        </div>
 
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 360 520" fill="none">
-        <path d="M85 85 C145 120 160 190 180 235" stroke="rgba(34,211,238,.22)" strokeWidth="2" />
-        <path d="M275 85 C215 120 200 190 180 235" stroke="rgba(167,139,250,.22)" strokeWidth="2" />
-        <path d="M85 335 C145 310 160 275 180 245" stroke="rgba(96,165,250,.22)" strokeWidth="2" />
-        <path d="M275 335 C215 310 200 275 180 245" stroke="rgba(34,211,238,.22)" strokeWidth="2" />
-        <path d="M180 285 C180 340 180 390 180 445" stroke="rgba(34,197,94,.25)" strokeWidth="2" />
-      </svg>
+        <div className="mt-12">
+          <h3 className="max-w-[12rem] text-3xl font-black leading-[0.95]">
+            {variant === "premium" && "Modern dining, made simple."}
+            {variant === "luxury" && "Fine dining, unforgettable nights."}
+            {variant === "minimal" && "Clean menu. Easy booking."}
+            {variant === "social" && "Made for social restaurants."}
+          </h3>
 
-      <FlowSource top={48} left={18} icon="📍" label="Google Maps" />
-      <FlowSource top={48} right={18} icon="📸" label="Instagram" />
-      <FlowSource top={306} left={18} icon="🎵" label="TikTok" />
-      <FlowSource top={306} right={18} icon="🌐" label="Website" />
+          <button className="mt-5 rounded-full bg-cyan-300 px-5 py-2 text-sm font-black text-black">
+            {cta}
+          </button>
+        </div>
 
-      <motion.div
-        animate={{
-          scale: [1, 1.06, 1],
-          boxShadow: [
-            "0 0 40px rgba(34,211,238,.25)",
-            "0 0 90px rgba(167,139,250,.55)",
-            "0 0 40px rgba(34,211,238,.25)",
-          ],
-        }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[190px] z-10 flex h-36 w-36 -translate-x-1/2 flex-col items-center justify-center rounded-[40px] border border-cyan-300/30 bg-[#06111f]/95 text-center"
-      >
-        <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-xl font-black text-transparent">
-          AI CORE
-        </span>
-        <motion.span
-          animate={{ opacity: [0.45, 1, 0.45] }}
-          transition={{ duration: 1.4, repeat: Infinity }}
-          className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400"
+        <div className="mt-8 grid grid-cols-3 gap-2">
+          <div className="h-16 rounded-2xl bg-white/20" />
+          <div className="h-16 rounded-2xl bg-white/20" />
+          <div className="h-16 rounded-2xl bg-white/20" />
+        </div>
+      </div>
+
+      <h3 className="mt-5 text-2xl font-black">{name}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-slate-400">{text}</p>
+    </article>
+  );
+}
+
+function ModuleGrid({
+  modules,
+}: {
+  modules: readonly (readonly [string, string, string])[];
+}) {
+  return (
+    <div className="mt-8 grid grid-cols-2 gap-3">
+      {modules.map(([icon, title, text]) => (
+        <motion.div
+          key={title}
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          viewport={{ once: true, margin: "-60px" }}
+          className="rounded-[26px] border border-cyan-300/12 bg-white/[0.045] p-4 backdrop-blur"
         >
-          Processing
-        </motion.span>
-      </motion.div>
-
-      <ConfirmedBooking />
-
-      <FlowParticle delay={0} fromX={85} fromY={85} />
-      <FlowParticle delay={0.9} fromX={275} fromY={85} />
-      <FlowParticle delay={1.8} fromX={85} fromY={335} />
-      <FlowParticle delay={2.7} fromX={275} fromY={335} />
-      <FlowParticleToBooking delay={1.2} />
-      <FlowParticleToBooking delay={2.8} />
+          <p className="text-3xl">{icon}</p>
+          <h3 className="mt-4 text-base font-black">{title}</h3>
+          <p className="mt-1 text-xs leading-relaxed text-slate-400">{text}</p>
+        </motion.div>
+      ))}
     </div>
   );
 }
 
-function FlowSource({
-  top,
-  left,
-  right,
-  icon,
-  label,
+function Roadmap({
+  title,
+  items,
+  upcoming,
 }: {
-  top: number;
-  left?: number;
-  right?: number;
-  icon: string;
-  label: string;
+  title: string;
+  items: readonly string[];
+  upcoming?: boolean;
 }) {
   return (
-    <motion.div
-      animate={{ y: [0, -5, 0] }}
-      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      style={{ top, left, right }}
-      className="absolute z-10 rounded-2xl border border-white/10 bg-[#020617]/90 px-4 py-3 backdrop-blur"
-    >
-      <p className="text-lg">{icon}</p>
-      <p className="text-xs font-black">{label}</p>
-    </motion.div>
-  );
-}
-
-function ConfirmedBooking() {
-  return (
-    <motion.div
-      animate={{ y: [0, -5, 0], opacity: [0.88, 1, 0.88] }}
-      transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-      className="absolute bottom-7 left-1/2 z-10 -translate-x-1/2 rounded-full border border-green-400/20 bg-green-500/15 px-5 py-3 text-sm font-black text-green-300 shadow-[0_0_35px_rgba(34,197,94,0.18)]"
-    >
-      🍽 Reserva Confirmada
-    </motion.div>
-  );
-}
-
-function FlowParticle({
-  delay,
-  fromX,
-  fromY,
-}: {
-  delay: number;
-  fromX: number;
-  fromY: number;
-}) {
-  return (
-    <motion.div
-      initial={{ x: fromX, y: fromY, opacity: 0 }}
-      animate={{ x: 180, y: 245, opacity: [0, 1, 1, 0] }}
-      transition={{ duration: 2.8, repeat: Infinity, delay, ease: "easeInOut" }}
-      className="absolute z-20 h-3 w-3 rounded-full bg-cyan-300 shadow-[0_0_22px_rgba(34,211,238,1)]"
-    />
-  );
-}
-
-function FlowParticleToBooking({ delay }: { delay: number }) {
-  return (
-    <motion.div
-      initial={{ x: 180, y: 285, opacity: 0 }}
-      animate={{ x: 180, y: 445, opacity: [0, 1, 1, 0] }}
-      transition={{ duration: 2.4, repeat: Infinity, delay, ease: "easeInOut" }}
-      className="absolute z-20 h-3 w-3 rounded-full bg-green-400 shadow-[0_0_22px_rgba(34,197,94,1)]"
-    />
-  );
-}
-
-function HeroStat({ icon, value, label }: { icon: string; value: string; label: string }) {
-  return (
-    <motion.div
-      whileInView={{ y: [12, 0], opacity: [0, 1] }}
-      viewport={{ once: true }}
-      className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur"
-    >
-      <p className="text-lg">{icon}</p>
-      <p className="mt-1 text-sm font-black text-cyan-300">{value}</p>
-      <p className="text-[10px] text-slate-400">{label}</p>
-    </motion.div>
-  );
-}
-
-function BigCard({ number, title, text }: { number: string; title: string; text: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45 }}
-      viewport={{ once: true, margin: "-80px" }}
-      className="relative overflow-hidden rounded-[30px] border border-cyan-300/20 bg-[#06111f] p-6 shadow-[0_0_45px_rgba(34,211,238,0.08)]"
-    >
-      <div className="absolute right-5 top-4 text-6xl font-black text-cyan-300/10">
-        {number}
+    <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-5">
+      <h3 className="text-xl font-black">{title}</h3>
+      <div className="mt-4 grid gap-3">
+        {items.map((item) => (
+          <p key={item} className="flex items-center gap-2 text-sm text-slate-300">
+            <span>{upcoming ? "🚀" : "✓"}</span>
+            {item}
+          </p>
+        ))}
       </div>
-      <p className="mb-3 text-xs font-black text-cyan-300">{number}</p>
-      <h3 className="mb-3 text-2xl font-black">{title}</h3>
-      <p className="text-sm leading-relaxed text-slate-400">{text}</p>
-    </motion.div>
+    </div>
   );
 }
 
-function AiItem({ title, text }: { title: string; text: string }) {
+function PriceCard({
+  title,
+  price,
+  suffix,
+  text,
+  highlight,
+}: {
+  title: string;
+  price: string;
+  suffix: string;
+  text: string;
+  highlight?: boolean;
+}) {
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -22 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.45 }}
-      viewport={{ once: true }}
-      className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] p-4"
+    <div
+      className={
+        highlight
+          ? "rounded-[30px] border border-cyan-300/30 bg-gradient-to-br from-cyan-400/15 to-violet-500/15 p-6 shadow-[0_0_60px_rgba(96,165,250,0.2)]"
+          : "rounded-[30px] border border-white/10 bg-white/[0.04] p-6"
+      }
     >
-      <h3 className="text-base font-black text-white">{title}</h3>
-      <p className="mt-1 text-sm text-slate-400">{text}</p>
-    </motion.div>
-  );
-}
-
-function Feature({ icon, title, text }: { icon: string; title: string; text: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.45 }}
-      viewport={{ once: true }}
-      className="rounded-[30px] border border-cyan-300/10 bg-[#06111f] p-6"
-    >
-      <p className="text-3xl">{icon}</p>
-      <h3 className="mt-4 text-2xl font-black">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-400">{text}</p>
-    </motion.div>
+      <h3 className="text-2xl font-black">{title}</h3>
+      <p className="mt-4 text-5xl font-black">
+        {price}
+        <span className="ml-1 text-sm text-slate-400">{suffix}</span>
+      </p>
+      <p className="mt-4 text-sm leading-relaxed text-slate-400">{text}</p>
+    </div>
   );
 }
 
@@ -534,12 +841,10 @@ function Reservation({
   time,
   name,
   status,
-  danger,
 }: {
   time: string;
   name: string;
   status: string;
-  danger?: boolean;
 }) {
   return (
     <div className="mb-3 flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.04] p-3">
@@ -548,13 +853,7 @@ function Reservation({
         <p className="text-sm font-bold">{name}</p>
       </div>
 
-      <span
-        className={
-          danger
-            ? "rounded-full bg-red-500/15 px-2 py-1 text-[10px] font-black text-red-300"
-            : "rounded-full bg-green-500/15 px-2 py-1 text-[10px] font-black text-green-300"
-        }
-      >
+      <span className="rounded-full bg-green-500/15 px-2 py-1 text-[10px] font-black text-green-300">
         {status}
       </span>
     </div>
