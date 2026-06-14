@@ -193,3 +193,21 @@
   height: 0 !important;
   display: none !important;
 }
+.input-dark {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.35);
+  padding-left: 1rem;
+  padding-right: 1rem;
+  color: white;
+  outline: none;
+}
+
+.input-dark::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.input-dark:focus {
+  border-color: rgba(255, 255, 255, 0.35);
+}

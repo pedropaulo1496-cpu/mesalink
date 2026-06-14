@@ -22,12 +22,25 @@ export async function POST(
     where: { id },
     data: {
       websiteEnabled: formData.get("websiteEnabled") === "on",
+      websiteTemplate: String(formData.get("websiteTemplate") || "PREMIUM"),
       slug: normalizeSlug(String(formData.get("slug") || "")),
+
       websiteHeadline: String(formData.get("websiteHeadline") || ""),
       websiteDescription: String(formData.get("websiteDescription") || ""),
       websiteCuisine: String(formData.get("websiteCuisine") || ""),
       websiteInstagram: String(formData.get("websiteInstagram") || ""),
+
       websiteHeroImage: String(formData.get("websiteHeroImage") || ""),
+      websiteGalleryImage1: String(formData.get("websiteGalleryImage1") || ""),
+      websiteGalleryImage2: String(formData.get("websiteGalleryImage2") || ""),
+      websiteGalleryImage3: String(formData.get("websiteGalleryImage3") || ""),
+      websiteGalleryImage4: String(formData.get("websiteGalleryImage4") || ""),
+
+      websiteAboutTitle: String(formData.get("websiteAboutTitle") || ""),
+      websiteAboutText: String(formData.get("websiteAboutText") || ""),
+      websiteFeatureTitle: String(formData.get("websiteFeatureTitle") || ""),
+      websiteFeatureText: String(formData.get("websiteFeatureText") || ""),
+
       websitePrimaryColor: String(
         formData.get("websitePrimaryColor") || "#111827"
       ),
@@ -35,6 +48,6 @@ export async function POST(
   });
 
   return NextResponse.redirect(
-    new URL(`/restaurants/${id}/website`, request.url)
+    new URL(`/restaurants/${id}/website?success=1`, request.url)
   );
 }

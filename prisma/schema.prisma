@@ -15,8 +15,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  restaurants  Restaurant[]
-  subscription Subscription?
+  restaurants         Restaurant[]
+  subscription        Subscription?
   passwordResetTokens PasswordResetToken[]
 }
 
@@ -49,13 +49,23 @@ model Restaurant {
   phone   String?
   address String?
 
-  websiteEnabled      Boolean @default(false)
-websiteHeadline     String?
-websiteDescription  String?
-websiteCuisine      String?
-websiteInstagram    String?
-websiteHeroImage    String?
-websitePrimaryColor String? @default("#111827")
+  // Mini-site
+  websiteEnabled       Boolean @default(false)
+  websiteTemplate      String  @default("PREMIUM")
+  websiteHeadline      String?
+  websiteDescription   String?
+  websiteCuisine       String?
+  websiteInstagram     String?
+  websiteHeroImage     String?
+  websiteGalleryImage1 String?
+  websiteGalleryImage2 String?
+  websiteGalleryImage3 String?
+  websiteGalleryImage4 String?
+  websiteAboutTitle    String?
+  websiteAboutText     String?
+  websiteFeatureTitle  String?
+  websiteFeatureText   String?
+  websitePrimaryColor  String? @default("#111827")
 
   plan String @default("STARTER")
 
@@ -160,13 +170,14 @@ model Reservation {
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
 
   tableId String?
-  table   Table?  @relation(fields: [tableId], references: [id])
+  table   Table? @relation(fields: [tableId], references: [id])
 
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id])
 
   createdAt DateTime @default(now())
 }
+
 model PasswordResetToken {
   id        String   @id @default(cuid())
   token     String   @unique
