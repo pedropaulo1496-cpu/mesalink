@@ -20,6 +20,47 @@ type RestaurantWebsiteData = {
   websiteGalleryImage2: string | null;
   websiteGalleryImage3: string | null;
   websiteGalleryImage4: string | null;
+    websiteGalleryImage5: string | null;
+  websiteGalleryImage6: string | null;
+
+  websiteLogoImage: string | null;
+
+  websiteMenuTitle: string | null;
+  websiteMenuDescription: string | null;
+
+  websiteDish1Name: string | null;
+  websiteDish1Description: string | null;
+  websiteDish1Price: string | null;
+  websiteDish1Image: string | null;
+
+  websiteDish2Name: string | null;
+  websiteDish2Description: string | null;
+  websiteDish2Price: string | null;
+  websiteDish2Image: string | null;
+
+  websiteDish3Name: string | null;
+  websiteDish3Description: string | null;
+  websiteDish3Price: string | null;
+  websiteDish3Image: string | null;
+
+  websiteDish4Name: string | null;
+  websiteDish4Description: string | null;
+  websiteDish4Price: string | null;
+  websiteDish4Image: string | null;
+
+  websiteDish5Name: string | null;
+  websiteDish5Description: string | null;
+  websiteDish5Price: string | null;
+  websiteDish5Image: string | null;
+
+  websiteDish6Name: string | null;
+  websiteDish6Description: string | null;
+  websiteDish6Price: string | null;
+  websiteDish6Image: string | null;
+
+  websiteSeoTitle: string | null;
+  websiteSeoDescription: string | null;
+  customDomain: string | null;
   websiteAboutTitle: string | null;
   websiteAboutText: string | null;
   websiteFeatureTitle: string | null;
@@ -48,6 +89,64 @@ export function WebsiteEditorClient({
   const [gallery2, setGallery2] = useState(restaurant.websiteGalleryImage2 || "");
   const [gallery3, setGallery3] = useState(restaurant.websiteGalleryImage3 || "");
   const [gallery4, setGallery4] = useState(restaurant.websiteGalleryImage4 || "");
+    const [gallery5, setGallery5] = useState(restaurant.websiteGalleryImage5 || "");
+  const [gallery6, setGallery6] = useState(restaurant.websiteGalleryImage6 || "");
+  const [logoImage, setLogoImage] = useState(restaurant.websiteLogoImage || "");
+
+  const [menuTitle, setMenuTitle] = useState(restaurant.websiteMenuTitle || "");
+  const [menuDescription, setMenuDescription] = useState(
+    restaurant.websiteMenuDescription || ""
+  );
+
+  const [dish1Name, setDish1Name] = useState(restaurant.websiteDish1Name || "");
+  const [dish1Description, setDish1Description] = useState(
+    restaurant.websiteDish1Description || ""
+  );
+  const [dish1Price, setDish1Price] = useState(restaurant.websiteDish1Price || "");
+  const [dish1Image, setDish1Image] = useState(restaurant.websiteDish1Image || "");
+
+  const [dish2Name, setDish2Name] = useState(restaurant.websiteDish2Name || "");
+  const [dish2Description, setDish2Description] = useState(
+    restaurant.websiteDish2Description || ""
+  );
+  const [dish2Price, setDish2Price] = useState(restaurant.websiteDish2Price || "");
+  const [dish2Image, setDish2Image] = useState(restaurant.websiteDish2Image || "");
+
+  const [dish3Name, setDish3Name] = useState(restaurant.websiteDish3Name || "");
+  const [dish3Description, setDish3Description] = useState(
+    restaurant.websiteDish3Description || ""
+  );
+  const [dish3Price, setDish3Price] = useState(restaurant.websiteDish3Price || "");
+  const [dish3Image, setDish3Image] = useState(restaurant.websiteDish3Image || "");
+
+  const [dish4Name, setDish4Name] = useState(restaurant.websiteDish4Name || "");
+  const [dish4Description, setDish4Description] = useState(
+    restaurant.websiteDish4Description || ""
+  );
+  const [dish4Price, setDish4Price] = useState(restaurant.websiteDish4Price || "");
+  const [dish4Image, setDish4Image] = useState(restaurant.websiteDish4Image || "");
+
+  const [dish5Name, setDish5Name] = useState(restaurant.websiteDish5Name || "");
+  const [dish5Description, setDish5Description] = useState(
+    restaurant.websiteDish5Description || ""
+  );
+  const [dish5Price, setDish5Price] = useState(restaurant.websiteDish5Price || "");
+  const [dish5Image, setDish5Image] = useState(restaurant.websiteDish5Image || "");
+
+  const [dish6Name, setDish6Name] = useState(restaurant.websiteDish6Name || "");
+  const [dish6Description, setDish6Description] = useState(
+    restaurant.websiteDish6Description || ""
+  );
+  const [dish6Price, setDish6Price] = useState(restaurant.websiteDish6Price || "");
+  const [dish6Image, setDish6Image] = useState(restaurant.websiteDish6Image || "");
+
+  const [seoTitle, setSeoTitle] = useState(restaurant.websiteSeoTitle || "");
+  const [seoDescription, setSeoDescription] = useState(
+    restaurant.websiteSeoDescription || ""
+  );
+  const [customDomain, setCustomDomain] = useState(
+    restaurant.customDomain || ""
+  );
   const [aboutTitle, setAboutTitle] = useState(
     restaurant.websiteAboutTitle || ""
   );
@@ -63,7 +162,7 @@ export function WebsiteEditorClient({
   );
 
   const publicUrl = `/s/${slug || restaurant.slug}`;
-  const fullPublicUrl = `mesalink.pt/s/${slug || restaurant.slug}`;
+  const fullPublicUrl = `${slug || restaurant.slug}.mesalink.pt`;
 
   const score = useMemo(() => {
     const items = [
@@ -182,19 +281,19 @@ export function WebsiteEditorClient({
               </label>
 
               <Field label="Link público">
-                <div className="grid gap-3 md:grid-cols-[150px_1fr]">
-                  <div className="flex h-12 items-center rounded-2xl border border-white/10 bg-black/35 px-4 text-sm font-bold text-white/35">
-                    mesalink.pt/s/
-                  </div>
-                  <input
-                    name="slug"
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    className="input-dark h-12"
-                    required
-                  />
-                </div>
-              </Field>
+  <div className="grid gap-3 md:grid-cols-[1fr_150px]">
+    <input
+      name="slug"
+      value={slug}
+      onChange={(e) => setSlug(e.target.value)}
+      className="input-dark h-12"
+      required
+    />
+    <div className="flex h-12 items-center rounded-2xl border border-white/10 bg-black/35 px-4 text-sm font-bold text-white/35">
+      .mesalink.pt
+    </div>
+  </div>
+</Field>
 
               <Field label="Template">
                 <select
@@ -304,6 +403,17 @@ export function WebsiteEditorClient({
               title="Imagens"
               description="Por agora usa URLs. A seguir fazemos upload real."
             >
+
+                <Field label="Logo">
+  <input
+    name="websiteLogoImage"
+    value={logoImage}
+    onChange={(e) => setLogoImage(e.target.value)}
+    placeholder="https://..."
+    className="input-dark h-12"
+  />
+</Field>
+
               <Field label="Foto principal">
                 <input
                   name="websiteHeroImage"
@@ -354,11 +464,169 @@ export function WebsiteEditorClient({
                     className="input-dark h-12"
                   />
                 </Field>
+
+                <Field label="Galeria 5">
+  <input
+    name="websiteGalleryImage5"
+    value={gallery5}
+    onChange={(e) => setGallery5(e.target.value)}
+    placeholder="https://..."
+    className="input-dark h-12"
+  />
+</Field>
+
+<Field label="Galeria 6">
+  <input
+    name="websiteGalleryImage6"
+    value={gallery6}
+    onChange={(e) => setGallery6(e.target.value)}
+    placeholder="https://..."
+    className="input-dark h-12"
+  />
+</Field>
+
               </div>
             </EditorBlock>
 
             <EditorBlock
-              number="05"
+  number="05"
+  title="Menu"
+  description="Mostra pratos em destaque. Isto é essencial para um site de restaurante."
+>
+  <div className="grid gap-4 md:grid-cols-2">
+    <Field label="Título do menu">
+      <input
+        name="websiteMenuTitle"
+        value={menuTitle}
+        onChange={(e) => setMenuTitle(e.target.value)}
+        placeholder="Pratos em destaque"
+        className="input-dark h-12"
+      />
+    </Field>
+
+    <Field label="Descrição do menu">
+      <input
+        name="websiteMenuDescription"
+        value={menuDescription}
+        onChange={(e) => setMenuDescription(e.target.value)}
+        placeholder="Uma seleção pensada para abrir o apetite."
+        className="input-dark h-12"
+      />
+    </Field>
+  </div>
+
+  <DishFields
+    number="1"
+    name={dish1Name}
+    setName={setDish1Name}
+    description={dish1Description}
+    setDescription={setDish1Description}
+    price={dish1Price}
+    setPrice={setDish1Price}
+    image={dish1Image}
+    setImage={setDish1Image}
+  />
+
+  <DishFields
+    number="2"
+    name={dish2Name}
+    setName={setDish2Name}
+    description={dish2Description}
+    setDescription={setDish2Description}
+    price={dish2Price}
+    setPrice={setDish2Price}
+    image={dish2Image}
+    setImage={setDish2Image}
+  />
+
+  <DishFields
+    number="3"
+    name={dish3Name}
+    setName={setDish3Name}
+    description={dish3Description}
+    setDescription={setDish3Description}
+    price={dish3Price}
+    setPrice={setDish3Price}
+    image={dish3Image}
+    setImage={setDish3Image}
+  />
+
+  <DishFields
+    number="4"
+    name={dish4Name}
+    setName={setDish4Name}
+    description={dish4Description}
+    setDescription={setDish4Description}
+    price={dish4Price}
+    setPrice={setDish4Price}
+    image={dish4Image}
+    setImage={setDish4Image}
+  />
+
+  <DishFields
+    number="5"
+    name={dish5Name}
+    setName={setDish5Name}
+    description={dish5Description}
+    setDescription={setDish5Description}
+    price={dish5Price}
+    setPrice={setDish5Price}
+    image={dish5Image}
+    setImage={setDish5Image}
+  />
+
+  <DishFields
+    number="6"
+    name={dish6Name}
+    setName={setDish6Name}
+    description={dish6Description}
+    setDescription={setDish6Description}
+    price={dish6Price}
+    setPrice={setDish6Price}
+    image={dish6Image}
+    setImage={setDish6Image}
+  />
+</EditorBlock>
+
+<EditorBlock
+  number="07"
+  title="SEO e domínio"
+  description="Preparado para crescer: Google, domínio próprio e presença profissional."
+>
+  <Field label="Título SEO">
+    <input
+      name="websiteSeoTitle"
+      value={seoTitle}
+      onChange={(e) => setSeoTitle(e.target.value)}
+      placeholder={`${restaurant.name} | Reservas online`}
+      className="input-dark h-12"
+    />
+  </Field>
+
+  <Field label="Descrição SEO">
+    <textarea
+      name="websiteSeoDescription"
+      value={seoDescription}
+      onChange={(e) => setSeoDescription(e.target.value)}
+      rows={3}
+      placeholder="Descrição para Google e partilhas."
+      className="input-dark min-h-24 py-3"
+    />
+  </Field>
+
+  <Field label="Domínio próprio">
+    <input
+      name="customDomain"
+      value={customDomain}
+      onChange={(e) => setCustomDomain(e.target.value)}
+      placeholder="tabernatuga.pt"
+      className="input-dark h-12"
+    />
+  </Field>
+</EditorBlock>
+
+            <EditorBlock
+              number="06"
               title="Estilo"
               description="A cor já muda o preview todo e prepara o tema."
             >
@@ -388,16 +656,25 @@ export function WebsiteEditorClient({
 
           <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
             <LivePreview
-              restaurantName={restaurant.name}
-              headline={headline}
-              description={description}
-              cuisine={cuisine}
-              heroImage={heroImage}
-              gallery={[gallery1, gallery2, gallery3, gallery4]}
-              primaryColor={primaryColor}
-              template={template}
-              theme={previewTheme}
-            />
+  restaurantName={restaurant.name}
+  headline={headline}
+  description={description}
+  cuisine={cuisine}
+  heroImage={heroImage}
+  gallery={[gallery1, gallery2, gallery3, gallery4, gallery5, gallery6]}
+  primaryColor={primaryColor}
+  template={template}
+  theme={previewTheme}
+  menuTitle={menuTitle}
+  dishes={[
+    dish1Name,
+    dish2Name,
+    dish3Name,
+    dish4Name,
+    dish5Name,
+    dish6Name,
+  ]}
+/>
 
             <QualityCard score={score} enabled={enabled} />
 
@@ -424,6 +701,8 @@ function LivePreview({
   primaryColor,
   template,
   theme,
+  menuTitle,
+  dishes,
 }: {
   restaurantName: string;
   headline: string;
@@ -434,6 +713,8 @@ function LivePreview({
   primaryColor: string;
   template: string;
   theme: ReturnType<typeof getPreviewTheme>;
+  menuTitle: string;
+  dishes: string[];
 }) {
   const validGallery = gallery.filter((item) => item.startsWith("http"));
 
@@ -508,6 +789,30 @@ function LivePreview({
             Design, história, galeria, horário e reserva num só site.
           </p>
         </div>
+        <div className="mt-4 rounded-2xl border border-current/10 p-4">
+  <p className="text-xs font-black uppercase tracking-[0.25em] opacity-40">
+    Menu
+  </p>
+
+  <p className="mt-2 text-lg font-black">
+    {menuTitle || "Pratos em destaque"}
+  </p>
+
+  <div className="mt-3 grid gap-2">
+    {dishes
+      .filter(Boolean)
+      .slice(0, 3)
+      .map((dish, index) => (
+        <div
+          key={index}
+          className="flex items-center justify-between rounded-xl border border-current/10 px-3 py-2 text-sm"
+        >
+          <span className="font-bold">{dish}</span>
+          <span className="opacity-40">Prato</span>
+        </div>
+      ))}
+  </div>
+</div>
       </div>
     </div>
   );
@@ -602,6 +907,78 @@ function Field({
       </div>
       {children}
     </label>
+  );
+}
+
+function DishFields({
+  number,
+  name,
+  setName,
+  description,
+  setDescription,
+  price,
+  setPrice,
+  image,
+  setImage,
+}: {
+  number: string;
+  name: string;
+  setName: (value: string) => void;
+  description: string;
+  setDescription: (value: string) => void;
+  price: string;
+  setPrice: (value: string) => void;
+  image: string;
+  setImage: (value: string) => void;
+}) {
+  return (
+    <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
+      <p className="mb-4 text-sm font-black text-white/60">
+        Prato {number}
+      </p>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field label="Nome">
+          <input
+            name={`websiteDish${number}Name`}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Bacalhau à Brás"
+            className="input-dark h-12"
+          />
+        </Field>
+
+        <Field label="Preço">
+          <input
+            name={`websiteDish${number}Price`}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="14€"
+            className="input-dark h-12"
+          />
+        </Field>
+
+        <Field label="Descrição">
+          <input
+            name={`websiteDish${number}Description`}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Descrição curta do prato."
+            className="input-dark h-12"
+          />
+        </Field>
+
+        <Field label="Imagem">
+          <input
+            name={`websiteDish${number}Image`}
+            value={image}
+            onChange={(e) => setImage(e.target.value)}
+            placeholder="https://..."
+            className="input-dark h-12"
+          />
+        </Field>
+      </div>
+    </div>
   );
 }
 
