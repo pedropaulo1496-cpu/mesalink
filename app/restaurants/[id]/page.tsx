@@ -115,25 +115,24 @@ startOfMonth.setHours(0, 0, 0, 0);
 const nextMonth = new Date(startOfMonth);
 nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-const publicReservationsThisMonthResult = await prisma.$queryRaw<
-  { count: bigint }[]
+const coversThisMonthResult = await prisma.$queryRaw<
+  { total: bigint | null }[]
 >`
-  SELECT COUNT(*)::bigint as count
+  SELECT COALESCE(SUM("guests"), 0)::bigint as total
   FROM "Reservation"
   WHERE "restaurantId" = ${restaurant.id}
     AND "source" = 'PUBLIC'
     AND "createdAt" >= ${startOfMonth}
     AND "createdAt" < ${nextMonth}
-    AND "status" NOT IN ('CANCELLED', 'REJECTED', 'NO_SHOW', 'FINISHED')
 `;
 
-const publicReservationsThisMonth = Number(
-  publicReservationsThisMonthResult[0]?.count || 0
+const coversThisMonth = Number(
+  coversThisMonthResult[0]?.total || 0
 );
 
-const remainingFreeReservations = Math.max(
+const remainingFreeCovers = Math.max(
   0,
-  FREE_RESERVATION_LIMIT - publicReservationsThisMonth
+  FREE_RESERVATION_LIMIT - coversThisMonth
 );
 
   const isToday = (date: Date | string) => {
@@ -234,9 +233,6 @@ const remainingFreeReservations = Math.max(
               <DashboardLink href={`/restaurants/${id}/day`}>
                 Serviço
               </DashboardLink>
-              <DashboardLink href={`/restaurants/${id}/reservations`}>
-                Reservas
-              </DashboardLink>
               <DashboardLink href={`/restaurants/${id}/calendar`}>
                 Calendário
               </DashboardLink>
@@ -300,21 +296,21 @@ const remainingFreeReservations = Math.max(
       ? trialDaysLeft
       : isPro
       ? "∞"
-      : remainingFreeReservations
+      : remainingFreeCovers
   }
   sub={
     trialActive
       ? `${trialDaysLeft} dias restantes`
       : isPro
       ? "reservas ilimitadas"
-      : `${publicReservationsThisMonth}/100 usadas`
+      : `${coversThisMonth}/100 covers usados`
   }
   tone={
     trialActive
       ? "violet"
       : isPro
       ? "cyan"
-      : remainingFreeReservations <= 20
+      : remainingFreeCovers <= 20
       ? "yellow"
       : "blue"
   }
@@ -444,10 +440,10 @@ function BottomNav({ id }: { id: string }) {
           <p className="text-xl">⚡</p>
           Hoje
         </Link>
-        <Link href={`/restaurants/${id}/reservations`}>
-          <p className="text-xl">📅</p>
-          Reservas
-        </Link>
+        <Link href={`/restaurants/${id}/customers`}>
+  <p className="text-xl">👥</p>
+  Clientes
+</Link>
         <Link href={`/restaurants/${id}/tables`}>
           <p className="text-xl">▦</p>
           Sala

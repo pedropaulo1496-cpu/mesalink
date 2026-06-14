@@ -18,61 +18,60 @@ async function createPublicReservation(formData: FormData) {
   const date = new Date(String(formData.get("date")));
   const reservationMode = String(formData.get("reservationMode") ?? "TABLES");
 
-  const now = new Date();
-
-  if (date < now) {
+  if (date < new Date()) {
     redirect(`/reserve/${slug}?error=past`);
   }
 
   const restaurant = await prisma.restaurant.findUnique({
-  where: { id: restaurantId },
-  include: {
-    user: {
-      include: {
-        subscription: true,
-      },
-    },
-  },
-});
-
-  if (!restaurant) {
-    notFound();
-  }
-
-  const subscription = restaurant.user?.subscription;
-
-const isTrialActive =
-  subscription?.status === "TRIAL" &&
-  subscription.trialEndsAt &&
-  new Date() <= subscription.trialEndsAt;
-
-const isPro =
-  subscription?.status === "ACTIVE" &&
-  subscription.plan === "PRO";
-
-const isUnlimited = isTrialActive || isPro;
-
-if (!isUnlimited) {
-  const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-  const startOfNextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-
-  const monthlyReservations = await prisma.reservation.count({
-    where: {
-      restaurantId: restaurant.id,
-      createdAt: {
-        gte: startOfMonth,
-        lt: startOfNextMonth,
-      },
-      status: {
-        notIn: ["CANCELLED", "REJECTED", "NO_SHOW"],
+    where: { id: restaurantId },
+    include: {
+      user: {
+        include: {
+          subscription: true,
+        },
       },
     },
   });
 
-  if (monthlyReservations >= 100) {
-    redirect(`/reserve/${slug}?error=free_limit`);
+  if (!restaurant) notFound();
+
+  const subscription = restaurant.user?.subscription;
+
+  const isTrialActive =
+    subscription?.status === "TRIAL" &&
+    subscription.trialEndsAt &&
+    new Date() <= subscription.trialEndsAt;
+
+  const isPro =
+    subscription?.status === "ACTIVE" && subscription.plan === "PRO";
+
+  const isUnlimited = isTrialActive || isPro;
+
+  if (!isUnlimited) {
+    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const startOfNextMonth = new Date(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      1
+    );
+
+    const coversThisMonthResult = await prisma.$queryRaw<
+      { total: bigint | null }[]
+    >`
+      SELECT COALESCE(SUM("guests"), 0)::bigint as total
+      FROM "Reservation"
+      WHERE "restaurantId" = ${restaurant.id}
+        AND "source" = 'PUBLIC'
+        AND "createdAt" >= ${startOfMonth}
+        AND "createdAt" < ${startOfNextMonth}
+    `;
+
+    const coversThisMonth = Number(coversThisMonthResult[0]?.total || 0);
+
+    if (coversThisMonth + guests > 100) {
+      redirect(`/reserve/${slug}?error=free_limit`);
+    }
   }
-}
 
   let status = String(formData.get("status") ?? "CONFIRMED");
   let approvalReason: string | null = null;
@@ -127,10 +126,9 @@ if (!isUnlimited) {
     });
 
     const bookedGuests = reservationsInPeriod.reduce(
-  (total: number, reservation: { guests: number }) =>
-    total + reservation.guests,
-  0
-);
+      (total, reservation) => total + reservation.guests,
+      0
+    );
 
     const totalCapacity = restaurant.totalCapacity ?? 0;
 
@@ -156,39 +154,39 @@ if (!isUnlimited) {
   });
 
   await prisma.$executeRaw`
-  INSERT INTO "Reservation"
-    (
-      "id",
-      "restaurantId",
-      "customerId",
-      "customerName",
-      "phone",
-      "email",
-      "guests",
-      "date",
-      "status",
-      "approvalReason",
-      "tableId",
-      "source",
-      "createdAt"
-    )
-  VALUES
-    (
-      gen_random_uuid()::text,
-      ${restaurant.id},
-      ${customer.id},
-      ${customerName},
-      ${phone},
-      ${email || null},
-      ${guests},
-      ${date},
-      ${status},
-      ${approvalReason},
-      ${tableIdValue || null},
-      'PUBLIC',
-      NOW()
-    )
-`;
+    INSERT INTO "Reservation"
+      (
+        "id",
+        "restaurantId",
+        "customerId",
+        "customerName",
+        "phone",
+        "email",
+        "guests",
+        "date",
+        "status",
+        "approvalReason",
+        "tableId",
+        "source",
+        "createdAt"
+      )
+    VALUES
+      (
+        gen_random_uuid()::text,
+        ${restaurant.id},
+        ${customer.id},
+        ${customerName},
+        ${phone},
+        ${email || null},
+        ${guests},
+        ${date},
+        ${status},
+        ${approvalReason},
+        ${tableIdValue || null},
+        'PUBLIC',
+        NOW()
+      )
+  `;
 
   const shouldSendEmail =
     restaurant.plan === "PRO" &&
@@ -197,7 +195,7 @@ if (!isUnlimited) {
 
   if (shouldSendEmail) {
     try {
-      const emailResult = await resend.emails.send({
+      await resend.emails.send({
         from: "MesaLink <info@mesalink.pt>",
         to: email,
         subject:
@@ -206,24 +204,17 @@ if (!isUnlimited) {
             : `Reserva confirmada - ${restaurant.name}`,
         html: `
           <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.5;">
-            <h1>
-              ${
-                status === "PENDING"
-                  ? "Pedido de reserva recebido"
-                  : "Reserva confirmada"
-              }
-            </h1>
-
+            <h1>${
+              status === "PENDING"
+                ? "Pedido de reserva recebido"
+                : "Reserva confirmada"
+            }</h1>
             <p>Olá ${customerName},</p>
-
-            <p>
-              ${
-                status === "PENDING"
-                  ? "Recebemos o seu pedido de reserva. O restaurante irá confirmar ou recusar em breve."
-                  : "A sua reserva foi confirmada com sucesso."
-              }
-            </p>
-
+            <p>${
+              status === "PENDING"
+                ? "Recebemos o seu pedido de reserva. O restaurante irá confirmar ou recusar em breve."
+                : "A sua reserva foi confirmada com sucesso."
+            }</p>
             <div style="margin: 24px 0; padding: 16px; border: 1px solid #eee; border-radius: 12px; background: #fafafa;">
               <p><strong>Restaurante:</strong> ${restaurant.name}</p>
               <p><strong>Data:</strong> ${date.toLocaleDateString("pt-PT")}</p>
@@ -236,20 +227,14 @@ if (!isUnlimited) {
                 status === "PENDING" ? "Pendente de aprovação" : "Confirmada"
               }</p>
             </div>
-
             <p style="font-size: 13px; color: #666;">
               Este email foi enviado automaticamente pelo MesaLink.
             </p>
           </div>
         `,
       });
-
-      console.log("Email enviado:", emailResult);
     } catch (error) {
-      console.error(
-        "Erro ao enviar email de reserva:",
-        JSON.stringify(error, null, 2)
-      );
+      console.error("Erro ao enviar email de reserva:", error);
     }
   }
 
@@ -282,55 +267,7 @@ export default async function PublicReservePage({
     },
   });
 
-  if (!restaurant) {
-    notFound();
-  }
-
-  const subscription = await prisma.subscription.findUnique({
-  where: {
-    userId: restaurant.userId || "",
-  },
-});
-
-const trialActive =
-  subscription?.status === "TRIAL" &&
-  subscription.trialEndsAt &&
-  new Date() <= subscription.trialEndsAt;
-
-const isPro =
-  subscription?.status === "ACTIVE" &&
-  subscription.plan === "PRO";
-
-const unlimitedReservations = trialActive || isPro;
-
-if (!unlimitedReservations) {
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
-  const nextMonth = new Date(startOfMonth);
-  nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-  const reservationsThisMonthResult = await prisma.$queryRaw<
-  { count: bigint }[]
->`
-  SELECT COUNT(*)::bigint as count
-  FROM "Reservation"
-  WHERE "restaurantId" = ${restaurant.id}
-    AND "source" = 'PUBLIC'
-    AND "createdAt" >= ${startOfMonth}
-    AND "createdAt" < ${nextMonth}
-    AND "status" NOT IN ('CANCELLED', 'REJECTED', 'NO_SHOW', 'FINISHED')
-`;
-
-const reservationsThisMonth = Number(
-  reservationsThisMonthResult[0]?.count || 0
-);
-
-  if (reservationsThisMonth >= 100) {
-    redirect(`/reserve/${slug}?error=free_limit`);
-  }
-}
+  if (!restaurant) notFound();
 
   return (
     <ReserveForm
