@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { UploadButton } from "@/lib/uploadthing";
+import { UploadDropzone } from "@/lib/uploadthing";
 
 export function ImageUploadField({
   value,
@@ -12,7 +12,7 @@ export function ImageUploadField({
 }) {
   return (
     <div className="space-y-3">
-      {value && (
+      {value?.startsWith("http") && (
         <div className="overflow-hidden rounded-2xl border border-white/10">
           <Image
             src={value}
@@ -24,8 +24,14 @@ export function ImageUploadField({
         </div>
       )}
 
-      <UploadButton
+      <UploadDropzone
         endpoint="websiteImage"
+        appearance={{
+          container: "border border-white/10 rounded-3xl bg-black/20 p-6",
+          uploadIcon: "text-white",
+          label: "text-white font-bold",
+          allowedContent: "text-white/40",
+        }}
         onClientUploadComplete={(res) => {
           if (res?.[0]?.ufsUrl) {
             onChange(res[0].ufsUrl);
