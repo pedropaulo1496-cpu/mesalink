@@ -14,11 +14,21 @@ export type PublicRestaurant = {
   phone: string | null;
   address: string | null;
 
+  websiteEnabled: boolean;
+  websiteTemplate: string;
   websiteHeadline: string | null;
   websiteDescription: string | null;
   websiteCuisine: string | null;
   websiteInstagram: string | null;
   websiteHeroImage: string | null;
+  websiteGalleryImage1: string | null;
+  websiteGalleryImage2: string | null;
+  websiteGalleryImage3: string | null;
+  websiteGalleryImage4: string | null;
+  websiteAboutTitle: string | null;
+  websiteAboutText: string | null;
+  websiteFeatureTitle: string | null;
+  websiteFeatureText: string | null;
   websitePrimaryColor: string | null;
 
   mondayOpen: boolean;
@@ -63,6 +73,15 @@ export function hasValidHeroImage(restaurant: PublicRestaurant) {
     restaurant.websiteHeroImage &&
       restaurant.websiteHeroImage.startsWith("http")
   );
+}
+
+export function getGalleryImages(restaurant: PublicRestaurant) {
+  return [
+    restaurant.websiteGalleryImage1,
+    restaurant.websiteGalleryImage2,
+    restaurant.websiteGalleryImage3,
+    restaurant.websiteGalleryImage4,
+  ].filter((image): image is string => Boolean(image && image.startsWith("http")));
 }
 
 export function getMapsUrl(restaurant: PublicRestaurant) {
@@ -175,5 +194,28 @@ export function getDisplayDescription(restaurant: PublicRestaurant) {
   return (
     restaurant.websiteDescription ||
     "Reserva a tua mesa online de forma rápida, simples e segura."
+  );
+}
+
+export function getAboutTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteAboutTitle || "A nossa casa";
+}
+
+export function getAboutText(restaurant: PublicRestaurant) {
+  return (
+    restaurant.websiteAboutText ||
+    restaurant.websiteDescription ||
+    "Um espaço pensado para comer bem, ficar mais um pouco e voltar."
+  );
+}
+
+export function getFeatureTitle(restaurant: PublicRestaurant) {
+  return restaurant.websiteFeatureTitle || "Uma experiência à mesa";
+}
+
+export function getFeatureText(restaurant: PublicRestaurant) {
+  return (
+    restaurant.websiteFeatureText ||
+    "Boa comida, bom ambiente e reservas online sem complicações."
   );
 }

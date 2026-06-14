@@ -15,6 +15,7 @@ import {
   getPrimaryColor,
   type PublicRestaurant,
 } from "./utils";
+import { getTemplateTheme, getWebsiteTemplate } from "./templates";
 
 export function PublicWebsite({
   restaurant,
@@ -23,13 +24,17 @@ export function PublicWebsite({
 }) {
   const primaryColor = getPrimaryColor(restaurant);
   const hours = getOpeningHours(restaurant);
+  const template = getWebsiteTemplate(restaurant.websiteTemplate);
+  const theme = getTemplateTheme(template, primaryColor);
 
   return (
-    <main className="min-h-screen bg-[#060606] text-white">
+    <main className={`min-h-screen ${theme.page}`}>
       <WebsiteHero
         restaurant={restaurant}
         hours={hours}
-        primaryColor={primaryColor}
+        primaryColor={theme.accent}
+        theme={theme}
+        template={template}
       />
 
       <QuickInfoSection restaurant={restaurant} />
@@ -37,36 +42,36 @@ export function PublicWebsite({
       <ReservationAndHoursSection
         restaurant={restaurant}
         hours={hours}
-        primaryColor={primaryColor}
+        primaryColor={theme.accent}
       />
 
       <ExperienceSection
         restaurant={restaurant}
-        primaryColor={primaryColor}
+        primaryColor={theme.accent}
       />
 
       <GallerySection restaurant={restaurant} />
 
       <LocationSection
         restaurant={restaurant}
-        primaryColor={primaryColor}
+        primaryColor={theme.accent}
       />
 
       <InstagramSection
         restaurant={restaurant}
-        primaryColor={primaryColor}
+        primaryColor={theme.accent}
       />
 
       <FinalCtaSection
         restaurant={restaurant}
-        primaryColor={primaryColor}
+        primaryColor={theme.accent}
       />
 
       <PublicFooter />
 
       <MobileStickyReserve
         restaurant={restaurant}
-        primaryColor={primaryColor}
+        primaryColor={theme.accent}
       />
     </main>
   );
