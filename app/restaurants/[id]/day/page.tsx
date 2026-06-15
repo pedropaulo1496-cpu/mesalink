@@ -331,34 +331,6 @@ export default async function DayPage({
           <StatBox label="Pendentes" value={pendingReservations.length} highlighted />
                  </section>
 
-        {nextReservation && (
-          <section className="rounded-[32px] border border-cyan-300/20 bg-cyan-400/10 p-5 shadow-[0_0_60px_rgba(34,211,238,0.12)]">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-              Próxima entrada
-            </p>
-
-            <div className="mt-4 flex items-end justify-between gap-4">
-              <div>
-                <p className="text-4xl font-black text-cyan-200">
-                  {new Date(nextReservation.date).toLocaleTimeString("pt-PT", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <p className="mt-2 text-xl font-black">{nextReservation.customerName}</p>
-                <p className="mt-1 text-sm text-slate-400">
-                  {nextReservation.guests} pessoas ·{" "}
-                  {nextReservation.table ? `Mesa ${nextReservation.table.number}` : "Sem mesa"}
-                </p>
-              </div>
-
-              <span className={`rounded-full border px-3 py-1 text-xs font-black ${getStatusClass(nextReservation.status)}`}>
-                {getStatusLabel(nextReservation.status)}
-              </span>
-            </div>
-          </section>
-        )}
-
         {pendingReservations.length > 0 && (
           <ServiceSection
             title="Pendentes"
