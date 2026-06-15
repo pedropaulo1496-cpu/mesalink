@@ -297,42 +297,39 @@ export default async function DayPage({
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <header className="rounded-[32px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:p-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <Link
-                href={`/restaurants/${id}/calendar`}
-                className="text-sm font-bold text-slate-400 hover:text-white"
-              >
-                ← Voltar ao calendário
-              </Link>
+        <header className="rounded-[24px] border border-cyan-300/10 bg-white/[0.04] p-4 shadow-[0_0_35px_rgba(34,211,238,0.06)] backdrop-blur-xl">
+  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <Link
+        href={`/restaurants/${id}`}
+        className="text-sm font-bold text-slate-400 hover:text-white"
+      >
+        ← Dashboard
+      </Link>
 
-              <p className="mt-6 text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-                MesaLink OS · Live Service
-              </p>
+      <div className="mt-3 flex flex-wrap items-end gap-3">
+        <h1 className="text-3xl font-black tracking-[-0.04em] text-white">
+  Serviço
+</h1>
 
-              <h1 className="mt-3 text-4xl font-black leading-[0.92] tracking-[-0.05em] sm:text-5xl lg:text-6xl">
-                Serviço do dia
-              </h1>
+        <p className="pb-1 text-sm font-bold text-slate-400">
+          {restaurant.name} · {formattedDate}
+        </p>
+      </div>
+    </div>
 
-              <p className="mt-3 text-slate-400">
-                {restaurant.name} · {formattedDate}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-3">
-              <DayPicker restaurantId={id} selectedDay={selectedDay} />
-            </div>
-          </div>
-        </header>
+    <div className="w-full sm:w-auto">
+  <DayPicker restaurantId={id} selectedDay={selectedDay} />
+</div>
+  </div>
+</header>
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <StatBox label="Reservas" value={reservations.length} />
           <StatBox label="Pessoas" value={totalGuests} />
           <StatBox label="Sentados" value={seatedReservations.length} />
           <StatBox label="Pendentes" value={pendingReservations.length} highlighted />
-          <StatBox label="Data" value={new Date(selectedDay).toLocaleDateString("pt-PT")} />
-        </section>
+                 </section>
 
         {nextReservation && (
           <section className="rounded-[32px] border border-cyan-300/20 bg-cyan-400/10 p-5 shadow-[0_0_60px_rgba(34,211,238,0.12)]">
