@@ -141,11 +141,6 @@ export default async function DayPage({
     0
   );
 
-  const nextReservation = reservations.find(
-    (reservation) =>
-      ["PENDING", "CONFIRMED"].includes(reservation.status) &&
-      new Date(reservation.date) >= new Date()
-  );
 
   const formattedDate = new Date(selectedDay).toLocaleDateString("pt-PT", {
     weekday: "long",
@@ -154,138 +149,136 @@ export default async function DayPage({
   });
 
   function ReservationCard({
-  reservation,
-}: {
-  reservation: (typeof reservations)[number];
-}) {
-  const reasonLabel = getApprovalReasonLabel(reservation.approvalReason);
+    reservation,
+  }: {
+    reservation: (typeof reservations)[number];
+  }) {
+    const reasonLabel = getApprovalReasonLabel(reservation.approvalReason);
 
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-cyan-300/10 bg-[#020617]/55 px-3 py-2">
-      <p className="w-14 shrink-0 text-lg font-black text-cyan-300">
-        {new Date(reservation.date).toLocaleTimeString("pt-PT", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </p>
+    return (
+      <div className="rounded-2xl border border-cyan-300/10 bg-[#020617]/55 px-4 py-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <p className="w-16 shrink-0 text-xl font-black leading-none text-cyan-300 sm:text-2xl">
+              {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-black text-white">
-            {reservation.customerName}
-          </p>
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <p className="min-w-0 break-words text-base font-black leading-tight text-white sm:text-lg">
+                  {reservation.customerName}
+                </p>
 
-          {reasonLabel && (
-            <span className="rounded-full bg-violet-400/10 px-2 py-0.5 text-[10px] font-bold text-violet-200">
-              {reasonLabel}
-            </span>
-          )}
+                {reasonLabel && (
+                  <span className="shrink-0 rounded-full bg-violet-400/10 px-2 py-0.5 text-[10px] font-bold leading-4 text-violet-200">
+                    {reasonLabel}
+                  </span>
+                )}
+              </div>
+
+              <p className="mt-1 text-xs font-medium text-slate-400 sm:text-sm">
+                {reservation.guests} pessoas ·{" "}
+                {reservation.table
+                  ? `Mesa ${reservation.table.number}`
+                  : "Sem mesa"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+            {reservation.status === "PENDING" && (
+              <>
+                <StatusButton
+                  restaurantId={id}
+                  reservationId={reservation.id}
+                  day={selectedDay}
+                  status="CONFIRMED"
+                  label="Aprovar"
+                  variant="primary"
+                />
+                <StatusButton
+                  restaurantId={id}
+                  reservationId={reservation.id}
+                  day={selectedDay}
+                  status="REJECTED"
+                  label="Recusar"
+                  variant="red"
+                />
+              </>
+            )}
+
+            {reservation.status === "CONFIRMED" && (
+              <>
+                <StatusButton
+                  restaurantId={id}
+                  reservationId={reservation.id}
+                  day={selectedDay}
+                  status="SEATED"
+                  label="Sentar"
+                  variant="primary"
+                />
+                <StatusButton
+                  restaurantId={id}
+                  reservationId={reservation.id}
+                  day={selectedDay}
+                  status="NO_SHOW"
+                  label="No-show"
+                  variant="orange"
+                />
+              </>
+            )}
+
+            {reservation.status === "SEATED" && (
+              <StatusButton
+                restaurantId={id}
+                reservationId={reservation.id}
+                day={selectedDay}
+                status="FINISHED"
+                label="Finalizar"
+                variant="primary"
+              />
+            )}
+          </div>
         </div>
-
-        <p className="truncate text-xs text-slate-400">
-          {reservation.guests} pessoas ·{" "}
-          {reservation.table ? `Mesa ${reservation.table.number}` : "Sem mesa"}
-        </p>
       </div>
+    );
+  }
 
-      <span
-        className={`hidden shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-black sm:inline-flex ${getStatusClass(
-          reservation.status
-        )}`}
-      >
-        {getStatusLabel(reservation.status)}
-      </span>
+  function StatusButton({
+    restaurantId,
+    reservationId,
+    day,
+    status,
+    label,
+    variant,
+  }: {
+    restaurantId: string;
+    reservationId: string;
+    day: string;
+    status: string;
+    label: string;
+    variant: "primary" | "red" | "orange";
+  }) {
+    const className =
+      variant === "primary"
+        ? "rounded-full bg-cyan-300 px-4 py-2 text-xs font-black text-black hover:opacity-90"
+        : variant === "red"
+          ? "rounded-full border border-red-300/30 bg-red-400/10 px-4 py-2 text-xs font-black text-red-200 hover:bg-red-400/20"
+          : "rounded-full border border-orange-300/30 bg-orange-400/10 px-4 py-2 text-xs font-black text-orange-200 hover:bg-orange-400/20";
 
-      <div className="flex shrink-0 gap-1">
-        {reservation.status === "PENDING" && (
-          <>
-            <StatusButton
-              restaurantId={id}
-              reservationId={reservation.id}
-              day={selectedDay}
-              status="CONFIRMED"
-              label="✓"
-              variant="primary"
-            />
-            <StatusButton
-              restaurantId={id}
-              reservationId={reservation.id}
-              day={selectedDay}
-              status="REJECTED"
-              label="×"
-              variant="red"
-            />
-          </>
-        )}
-
-        {reservation.status === "CONFIRMED" && (
-          <>
-            <StatusButton
-              restaurantId={id}
-              reservationId={reservation.id}
-              day={selectedDay}
-              status="SEATED"
-              label="Sentar"
-              variant="primary"
-            />
-            <StatusButton
-              restaurantId={id}
-              reservationId={reservation.id}
-              day={selectedDay}
-              status="NO_SHOW"
-              label="No-show"
-              variant="orange"
-            />
-          </>
-        )}
-
-        {reservation.status === "SEATED" && (
-          <StatusButton
-            restaurantId={id}
-            reservationId={reservation.id}
-            day={selectedDay}
-            status="FINISHED"
-            label="Fim"
-            variant="primary"
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
- function StatusButton({
-  restaurantId,
-  reservationId,
-  day,
-  status,
-  label,
-  variant,
-}: {
-  restaurantId: string;
-  reservationId: string;
-  day: string;
-  status: string;
-  label: string;
-  variant: "primary" | "red" | "orange";
-}) {
-  const className =
-    variant === "primary"
-      ? "rounded-full bg-cyan-300 px-2.5 py-1 text-[10px] font-black text-black hover:opacity-90"
-      : variant === "red"
-        ? "rounded-full border border-red-300/30 bg-red-400/10 px-2.5 py-1 text-[10px] font-black text-red-200 hover:bg-red-400/20"
-        : "rounded-full border border-orange-300/30 bg-orange-400/10 px-2.5 py-1 text-[10px] font-black text-orange-200 hover:bg-orange-400/20";
-
-  return (
-    <form action={updateReservationStatus}>
-      <input type="hidden" name="restaurantId" value={restaurantId} />
-      <input type="hidden" name="reservationId" value={reservationId} />
-      <input type="hidden" name="status" value={status} />
-      <input type="hidden" name="day" value={day} />
-      <button className={className}>{label}</button>
-    </form>
-  );
-}
+    return (
+      <form action={updateReservationStatus}>
+        <input type="hidden" name="restaurantId" value={restaurantId} />
+        <input type="hidden" name="reservationId" value={reservationId} />
+        <input type="hidden" name="status" value={status} />
+        <input type="hidden" name="day" value={day} />
+        <button className={className}>{label}</button>
+      </form>
+    );
+  }
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
