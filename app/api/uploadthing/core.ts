@@ -20,6 +20,15 @@ export const ourFileRouter = {
   }).onUploadComplete(async ({ file }) => {
     return { url: file.ufsUrl };
   }),
+
+  productImage: f({
+    image: {
+      maxFileSize: "8MB",
+      maxFileCount: 1,
+    },
+  }).onUploadComplete(async ({ file }) => {
+    return { url: file.ufsUrl };
+  }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;
