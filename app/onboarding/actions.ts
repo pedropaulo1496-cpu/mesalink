@@ -22,15 +22,6 @@ export async function createRestaurant(formData: FormData) {
     redirect("/login");
   }
 
-  const name = String(formData.get("name") || "").trim();
-  const email = String(formData.get("email") || "").trim();
-  const phone = String(formData.get("phone") || "").trim();
-  const address = String(formData.get("address") || "").trim();
-
-  if (!name) {
-    redirect("/onboarding");
-  }
-
   const user = await prisma.user.findUnique({
     where: {
       email: session.user.email,
@@ -44,19 +35,41 @@ export async function createRestaurant(formData: FormData) {
     redirect("/login");
   }
 
+  const existingRestaurant = await prisma.restaurant.findFirst({
+    where: {
+      userId: user.id,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  if (existingRestaurant) {
+    redirect(`/restaurants/${existingRestaurant.id}`);
+  }
+
   if (!user.subscription) {
     await prisma.subscription.create({
       data: {
         userId: user.id,
         plan: "FREE",
-        status: "ACTIVE",
-        trialEndsAt: null,
+        status: "TRIAL",
+        trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         restaurantLimit: 1,
         priceMonthly: 0,
         websiteAddon: false,
         qrOrderingAddon: false,
       },
     });
+  }
+
+  const name = String(formData.get("name") || "").trim();
+  const email = String(formData.get("email") || "").trim();
+  const phone = String(formData.get("phone") || "").trim();
+  const address = String(formData.get("address") || "").trim();
+
+  if (!name) {
+    redirect("/onboarding");
   }
 
   const baseSlug = slugify(name) || "restaurante";
@@ -80,5 +93,5 @@ export async function createRestaurant(formData: FormData) {
     },
   });
 
-  redirect(`/restaurants/${restaurant.id}/settings?setup=true`);
+  redirect(`/restaurants/${restaurant.id}`);
 }
