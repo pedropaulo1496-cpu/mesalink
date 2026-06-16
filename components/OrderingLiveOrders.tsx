@@ -34,6 +34,7 @@ export default function OrderingLiveOrders({
   initialSessions: OrderingSession[];
 }) {
   const [sessions, setSessions] = useState(initialSessions);
+  const [sessionToClose, setSessionToClose] = useState<string | null>(null);
 
   async function refreshOrders() {
     const response = await fetch(
@@ -57,9 +58,11 @@ export default function OrderingLiveOrders({
     await refreshOrders();
   }
 
-async function closeSession(sessionId: string) {
+async function confirmCloseSession() {
+  if (!sessionToClose) return;
+
   const response = await fetch(
-    `/api/restaurants/${restaurantId}/ordering/sessions/${sessionId}/close`,
+    `/api/restaurants/${restaurantId}/ordering/sessions/${sessionToClose}/close`,
     {
       method: "PATCH",
     }
@@ -68,7 +71,9 @@ async function closeSession(sessionId: string) {
   if (!response.ok) return;
 
   const data = await response.json();
+
   setSessions(data.sessions || []);
+  setSessionToClose(null);
 }
 
 async function resolveAlert(sessionId: string, type: "waiter" | "bill") {
@@ -96,6 +101,7 @@ async function resolveAlert(sessionId: string, type: "waiter" | "bill") {
   }, [restaurantId]);
 
   return (
+  <>
     <div className="mt-6 space-y-4">
       {sessions.length === 0 ? (
         <div className="rounded-[24px] border border-dashed border-cyan-300/15 bg-[#020617]/60 p-6 text-sm text-slate-400">
@@ -107,52 +113,53 @@ async function resolveAlert(sessionId: string, type: "waiter" | "bill") {
             key={session.id}
             className="rounded-[24px] border border-cyan-300/10 bg-[#020617]/60 p-4"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-2xl font-black">
                   Mesa {session.tableNumber}
                 </h3>
+
                 <p className="text-xs text-slate-500">
                   {session.orders.length} pedido(s)
                 </p>
               </div>
 
               {(session.requestedWaiterAt || session.requestedBillAt) && (
-  <div className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 p-4">
-    <p className="text-xs font-black uppercase tracking-[0.18em] text-red-300">
-      Ações pendentes
-    </p>
-
-    <div className="mt-3 flex flex-wrap gap-2">
-      {session.requestedWaiterAt && (
-        <button
-          type="button"
-          onClick={() => resolveAlert(session.id, "waiter")}
-          className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-cyan-300"
-        >
-          🔔 Resolver empregado
-        </button>
-      )}
-
-      {session.requestedBillAt && (
-        <button
-          type="button"
-          onClick={() => resolveAlert(session.id, "bill")}
-          className="rounded-full border border-yellow-300/20 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-yellow-300"
-        >
-          🧾 Resolver conta
-        </button>
-      )}
-    </div>
-  </div>
-)}
-
-              {(session.requestedWaiterAt || session.requestedBillAt) && (
-                <span className="rounded-full bg-red-500/20 px-3 py-1 text-xs font-black text-red-300">
+                <span className="w-fit rounded-full bg-red-500/20 px-3 py-1 text-xs font-black text-red-300">
                   ALERTA
                 </span>
               )}
             </div>
+
+            {(session.requestedWaiterAt || session.requestedBillAt) && (
+              <div className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-red-300">
+                  Ações pendentes
+                </p>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {session.requestedWaiterAt && (
+                    <button
+                      type="button"
+                      onClick={() => resolveAlert(session.id, "waiter")}
+                      className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-cyan-300"
+                    >
+                      🔔 Resolver empregado
+                    </button>
+                  )}
+
+                  {session.requestedBillAt && (
+                    <button
+                      type="button"
+                      onClick={() => resolveAlert(session.id, "bill")}
+                      className="rounded-full border border-yellow-300/20 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-yellow-300"
+                    >
+                      🧾 Resolver conta
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="mt-4 space-y-3">
               {session.orders.map((order) => (
@@ -175,6 +182,7 @@ async function resolveAlert(sessionId: string, type: "waiter" | "bill") {
                             <p className="font-black text-white">
                               {item.quantity}x {item.productName}
                             </p>
+
                             <p className="font-black text-slate-500">
                               {Number(item.lineTotal).toFixed(2)}€
                             </p>
@@ -232,20 +240,58 @@ async function resolveAlert(sessionId: string, type: "waiter" | "bill") {
                 </div>
               ))}
             </div>
+
             <div className="mt-4 border-t border-white/10 pt-4">
-  <button
-  type="button"
-  onClick={() => closeSession(session.id)}
-  className="rounded-full border border-red-300/20 bg-red-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-red-300 hover:bg-red-500/20"
->
-  Encerrar mesa
-</button>
-</div>
+              <button
+                type="button"
+                onClick={() => setSessionToClose(session.id)}
+                className="rounded-full border border-red-300/20 bg-red-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-red-300 hover:bg-red-500/20"
+              >
+                Encerrar mesa
+              </button>
+            </div>
           </div>
         ))
       )}
     </div>
-  );
+
+    {sessionToClose && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+        <div className="w-full max-w-md rounded-[28px] border border-red-400/20 bg-[#020617] p-6 shadow-[0_0_80px_rgba(239,68,68,0.15)]">
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-red-300">
+            Atenção
+          </p>
+
+          <h3 className="mt-3 text-2xl font-black text-white">
+            Encerrar mesa?
+          </h3>
+
+          <p className="mt-3 text-sm leading-6 text-slate-400">
+            Esta ação fecha a sessão da mesa e remove-a dos pedidos ativos.
+          </p>
+
+          <div className="mt-6 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setSessionToClose(null)}
+              className="flex-1 rounded-full border border-white/10 bg-white/[0.04] py-3 text-sm font-black text-slate-300"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="button"
+              onClick={confirmCloseSession}
+              className="flex-1 rounded-full border border-red-300/20 bg-red-500/10 py-3 text-sm font-black text-red-300"
+            >
+              Encerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
+);
 }
 
 function statusLabel(status: string) {
