@@ -57,6 +57,24 @@ export default function OrderingLiveOrders({
     await refreshOrders();
   }
 
+async function closeSession(sessionId: string) {
+  const confirmed = window.confirm("Terminar esta mesa?");
+
+  if (!confirmed) return;
+
+  const response = await fetch(
+    `/api/restaurants/${restaurantId}/ordering/sessions/${sessionId}/close`,
+    {
+      method: "PATCH",
+    }
+  );
+
+  if (!response.ok) return;
+
+  const data = await response.json();
+  setSessions(data.sessions || []);
+}
+
   useEffect(() => {
     const interval = setInterval(() => {
       refreshOrders();
@@ -172,6 +190,15 @@ export default function OrderingLiveOrders({
                 </div>
               ))}
             </div>
+            <div className="mt-4 border-t border-white/10 pt-4">
+  <button
+    type="button"
+    onClick={() => closeSession(session.id)}
+    className="rounded-full border border-yellow-300/20 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-yellow-300"
+  >
+    Terminar mesa
+  </button>
+</div>
           </div>
         ))
       )}
