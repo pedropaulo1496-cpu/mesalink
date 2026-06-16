@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth";
 function slugify(value: string) {
   return value
     .toLowerCase()
+    .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
@@ -21,14 +22,21 @@ export async function createRestaurant(formData: FormData) {
     redirect("/login");
   }
 
-  const name = String(formData.get("name"));
-  const email = String(formData.get("email") || "");
-  const phone = String(formData.get("phone") || "");
-  const address = String(formData.get("address") || "");
+  const name = String(formData.get("name") || "").trim();
+  const email = String(formData.get("email") || "").trim();
+  const phone = String(formData.get("phone") || "").trim();
+  const address = String(formData.get("address") || "").trim();
+
+  if (!name) {
+    redirect("/onboarding");
+  }
 
   const user = await prisma.user.findUnique({
     where: {
       email: session.user.email,
+    },
+    include: {
+      subscription: true,
     },
   });
 
@@ -36,7 +44,22 @@ export async function createRestaurant(formData: FormData) {
     redirect("/login");
   }
 
-  const baseSlug = slugify(name);
+  if (!user.subscription) {
+    await prisma.subscription.create({
+      data: {
+        userId: user.id,
+        plan: "FREE",
+        status: "ACTIVE",
+        trialEndsAt: null,
+        restaurantLimit: 1,
+        priceMonthly: 0,
+        websiteAddon: false,
+        qrOrderingAddon: false,
+      },
+    });
+  }
+
+  const baseSlug = slugify(name) || "restaurante";
   let slug = baseSlug;
   let counter = 1;
 
@@ -57,5 +80,5 @@ export async function createRestaurant(formData: FormData) {
     },
   });
 
-  redirect(`/restaurants/${restaurant.id}/settings`);
+  redirect(`/restaurants/${restaurant.id}/settings?setup=true`);
 }
