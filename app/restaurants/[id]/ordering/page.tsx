@@ -356,33 +356,22 @@ export default async function RestaurantOrderingPage({
 
   const now = new Date();
 
-  const qrOrderingTrialActive =
-    !!subscription.qrOrderingTrialEndsAt &&
-    subscription.qrOrderingTrialEndsAt > now;
+  const trialActive =
+  subscription.status === "TRIAL" &&
+  subscription.trialEndsAt &&
+  subscription.trialEndsAt > now;
 
-  const canUseQrOrdering =
-    subscription.qrOrderingAddon === true || qrOrderingTrialActive;
+const canUseQrOrdering =
+  subscription.qrOrderingAddon || Boolean(trialActive);
 
   if (!canUseQrOrdering) {
     redirect(`/billing?addon=qr-ordering&restaurantId=${id}`);
   }
 
-  const qrTrialDaysLeft = subscription.qrOrderingTrialEndsAt
-    ? Math.max(
-        0,
-        Math.ceil(
-          (subscription.qrOrderingTrialEndsAt.getTime() - Date.now()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )
-    : 0;
-
-  const qrStatusLabel = subscription.qrOrderingAddon
-    ? "Ativo"
-    : qrOrderingTrialActive
-    ? `Trial · ${qrTrialDaysLeft} dia(s)`
-    : "Inativo";
-
+ const qrStatusLabel = canUseQrOrdering
+  ? "Ativo"
+  : "Inativo";
+  
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
