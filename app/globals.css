@@ -211,3 +211,10 @@
 .input-dark:focus {
   border-color: rgba(255, 255, 255, 0.35);
 }
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

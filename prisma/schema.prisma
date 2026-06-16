@@ -151,6 +151,13 @@ model Restaurant {
 
   orderingCategories OrderingCategory[]
   orderingOrders     OrderingOrder[]
+
+  orderingTableSessions OrderingTableSession[]
+
+  qrOrderingEnabled  Boolean @default(true)
+  qrAllowWaiterCall  Boolean @default(true)
+  qrAllowBillRequest Boolean @default(true)
+  qrWelcomeMessage   String?
 }
 
 model WebsiteMenu {
@@ -303,6 +310,9 @@ model OrderingOrder {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  sessionId String?
+  session   OrderingTableSession? @relation(fields: [sessionId], references: [id])
 }
 
 model OrderingOrderItem {
@@ -324,4 +334,21 @@ model OrderingOrderItem {
   order OrderingOrder @relation(fields: [orderId], references: [id])
 
   createdAt DateTime @default(now())
+}
+
+model OrderingTableSession {
+  id           String @id @default(cuid())
+  restaurantId String
+  tableNumber  Int
+
+  status String @default("OPEN")
+
+  openedAt DateTime  @default(now())
+  closedAt DateTime?
+
+  restaurant Restaurant      @relation(fields: [restaurantId], references: [id])
+  orders     OrderingOrder[]
+
+  requestedBillAt   DateTime?
+  requestedWaiterAt DateTime?
 }

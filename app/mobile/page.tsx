@@ -25,7 +25,7 @@ const copy = {
     heroTitleA: "Tudo o que o seu restaurante precisa",
     heroTitleB: "numa única app.",
     heroText:
-      "Website, reservas, QR Code Ordering, POS, marketing e gestão. Tudo ligado para o seu restaurante funcionar melhor.",
+      "Website, reservas, QR Ordering, gestão de mesas e clientes numa única plataforma. Tudo ligado para o seu restaurante funcionar melhor.",
     proof1: "Até 100 reservas/mês grátis",
     proof2: "Sem cartão de crédito",
     proof3: "Configuração em minutos",
@@ -55,19 +55,19 @@ const copy = {
     networkTitleA: "Uma plataforma.",
     networkTitleB: "Todo o restaurante.",
     networkText:
-      "O MesaLink liga o que realmente importa: website, reservas, QR Code Ordering, marketing, POS e dados.",
+      "O MesaLink liga website, reservas, QR Ordering, clientes e dados numa única plataforma.",
     modules: [
       ["🌐", "Website", "Online 24/7"],
       ["📅", "Gestão de Reservas", "Todos os canais"],
-      ["📲", "QR Code Ordering", "Pedidos na mesa"],
+      ["📲", "QR Ordering", "Menu, pedidos e conta"],
       ["📣", "Marketing", "Atrair e fidelizar"],
       ["💳", "POS", "Vendas e operação"],
       ["📊", "Dados e Relatórios", "Tudo num só lugar"],
     ],
     today: "Disponível hoje",
     soon: "A caminho",
-    todayItems: ["Reservas online", "Gestão de mesas", "Clientes", "Website profissional"],
-    soonItems: ["QR Code Ordering", "Marketing", "POS integrado", "IA para restaurantes"],
+    todayItems: ["Reservas online", "Gestão de mesas", "Clientes", "Website profissional", "QR Ordering"],
+    soonItems: ["Marketing", "POS integrado", "IA para restaurantes"],
     pricingBadge: "Preços simples",
     pricingTitle: "Comece grátis. Cresça quando precisar.",
     free: "Free",
@@ -77,6 +77,14 @@ const copy = {
     freeDesc: "Até 100 reservas por mês.",
     proDesc: "Reservas ilimitadas e gestão de mesas.",
     websiteDesc: "Website profissional com reservas integradas.",
+    qrOrdering: "QR Ordering",
+    qrBadge: "QR Ordering",
+    qrTitleA: "Os clientes pedem.",
+    qrTitleB: "O restaurante controla.",
+    qrText: "Menu digital por QR, pedidos por mesa, chamar empregado e pedir conta. Tudo integrado no MesaLink.",
+    qrItems: ["Menu digital por QR", "Pedidos por mesa", "Chamar empregado", "Pedir conta", "Alertas em tempo real", "QR Codes personalizados", "Templates de QR"],
+    qrPriceText: "Menu digital, pedidos por mesa, chamar empregado e pedir conta.",
+    qrPriceBadge: "Disponível por apenas +15€/mês",
     ctaTitle: "Comece gratuitamente hoje.",
     ctaText:
       "Receba reservas online e prepare o seu restaurante para uma plataforma completa de restauração.",
@@ -89,7 +97,7 @@ const copy = {
     heroTitleA: "Everything your restaurant needs",
     heroTitleB: "in one app.",
     heroText:
-      "Website, reservations, QR Code Ordering, POS, marketing and management. All connected so your restaurant runs better.",
+      "Website, reservations, QR Ordering, table management and customers in one platform. Everything connected so your restaurant runs better.",
     proof1: "Up to 100 reservations/month free",
     proof2: "No credit card required",
     proof3: "Set up in minutes",
@@ -119,19 +127,19 @@ const copy = {
     networkTitleA: "One platform.",
     networkTitleB: "The whole restaurant.",
     networkText:
-      "MesaLink connects what really matters: website, reservations, QR Code Ordering, marketing, POS and data.",
+      "MesaLink connects websites, reservations, QR Ordering, customers and data in one platform.",
     modules: [
       ["🌐", "Website", "Online 24/7"],
       ["📅", "Reservation Management", "All channels"],
-      ["📲", "QR Code Ordering", "Table ordering"],
+      ["📲", "QR Ordering", "Menu, orders and bill"],
       ["📣", "Marketing", "Attract and retain"],
       ["💳", "POS", "Sales and operations"],
       ["📊", "Data & Reports", "All in one place"],
     ],
     today: "Available today",
     soon: "Coming soon",
-    todayItems: ["Online reservations", "Table management", "Customers", "Professional website"],
-    soonItems: ["QR Code Ordering", "Marketing", "Integrated POS", "AI for restaurants"],
+    todayItems: ["Online reservations", "Table management", "Customers", "Professional website", "QR Ordering"],
+    soonItems: ["Marketing", "Integrated POS", "AI for restaurants"],
     pricingBadge: "Simple pricing",
     pricingTitle: "Start free. Upgrade when you need.",
     free: "Free",
@@ -141,6 +149,14 @@ const copy = {
     freeDesc: "Up to 100 reservations per month.",
     proDesc: "Unlimited reservations and table management.",
     websiteDesc: "Professional website with integrated reservations.",
+    qrOrdering: "QR Ordering",
+    qrBadge: "QR Ordering",
+    qrTitleA: "Customers order.",
+    qrTitleB: "The restaurant controls.",
+    qrText: "Digital QR menu, table orders, call waiter and request the bill. Everything integrated into MesaLink.",
+    qrItems: ["Digital QR menu", "Table orders", "Call waiter", "Request the bill", "Real-time alerts", "Custom QR Codes", "QR templates"],
+    qrPriceText: "Digital menu, table orders, call waiter and request the bill.",
+    qrPriceBadge: "Available for only +€15/month",
     ctaTitle: "Start for free today.",
     ctaText:
       "Receive online reservations and prepare your restaurant for a complete restaurant platform.",
@@ -153,7 +169,7 @@ const copy = {
     heroTitleA: "Todo lo que tu restaurante necesita",
     heroTitleB: "en una sola app.",
     heroText:
-      "Web, reservas, QR Code Ordering, POS, marketing y gestión. Todo conectado para que tu restaurante funcione mejor.",
+      "Web, reservas, QR Ordering, gestión de mesas y clientes en una sola plataforma. Todo conectado para que tu restaurante funcione mejor.",
     proof1: "Hasta 100 reservas/mes gratis",
     proof2: "Sin tarjeta de crédito",
     proof3: "Configuración en minutos",
@@ -183,19 +199,19 @@ const copy = {
     networkTitleA: "Una plataforma.",
     networkTitleB: "Todo el restaurante.",
     networkText:
-      "MesaLink conecta lo que realmente importa: web, reservas, QR Code Ordering, marketing, POS y datos.",
+      "MesaLink conecta web, reservas, QR Ordering, clientes y datos en una sola plataforma.",
     modules: [
       ["🌐", "Web", "Online 24/7"],
       ["📅", "Gestión de Reservas", "Todos los canales"],
-      ["📲", "QR Code Ordering", "Pedidos en mesa"],
+      ["📲", "QR Ordering", "Menú, pedidos y cuenta"],
       ["📣", "Marketing", "Atraer y fidelizar"],
       ["💳", "POS", "Ventas y operación"],
       ["📊", "Datos e Informes", "Todo en un lugar"],
     ],
     today: "Disponible hoy",
     soon: "Próximamente",
-    todayItems: ["Reservas online", "Gestión de mesas", "Clientes", "Web profesional"],
-    soonItems: ["QR Code Ordering", "Marketing", "POS integrado", "IA para restaurantes"],
+    todayItems: ["Reservas online", "Gestión de mesas", "Clientes", "Web profesional", "QR Ordering"],
+    soonItems: ["Marketing", "POS integrado", "IA para restaurantes"],
     pricingBadge: "Precios simples",
     pricingTitle: "Empieza gratis. Crece cuando lo necesites.",
     free: "Free",
@@ -205,6 +221,14 @@ const copy = {
     freeDesc: "Hasta 100 reservas por mes.",
     proDesc: "Reservas ilimitadas y gestión de mesas.",
     websiteDesc: "Web profesional con reservas integradas.",
+    qrOrdering: "QR Ordering",
+    qrBadge: "QR Ordering",
+    qrTitleA: "Los clientes piden.",
+    qrTitleB: "El restaurante controla.",
+    qrText: "Menú digital por QR, pedidos por mesa, llamar al camarero y pedir la cuenta. Todo integrado en MesaLink.",
+    qrItems: ["Menú digital por QR", "Pedidos por mesa", "Llamar al camarero", "Pedir la cuenta", "Alertas en tiempo real", "QR Codes personalizados", "Plantillas de QR"],
+    qrPriceText: "Menú digital, pedidos por mesa, llamar al camarero y pedir la cuenta.",
+    qrPriceBadge: "Disponible por solo +15€/mes",
     ctaTitle: "Empieza gratis hoy.",
     ctaText:
       "Recibe reservas online y prepara tu restaurante para una plataforma completa de restauración.",
@@ -217,7 +241,7 @@ const copy = {
     heroTitleA: "Tout ce dont votre restaurant a besoin",
     heroTitleB: "dans une seule app.",
     heroText:
-      "Site web, réservations, QR Code Ordering, POS, marketing et gestion. Tout connecté pour mieux faire fonctionner votre restaurant.",
+      "Site web, réservations, QR Ordering, gestion des tables et clients dans une seule plateforme. Tout connecté pour mieux gérer votre restaurant.",
     proof1: "Jusqu’à 100 réservations/mois gratuites",
     proof2: "Aucune carte bancaire requise",
     proof3: "Configuration en quelques minutes",
@@ -247,19 +271,19 @@ const copy = {
     networkTitleA: "Une plateforme.",
     networkTitleB: "Tout le restaurant.",
     networkText:
-      "MesaLink connecte l’essentiel : site web, réservations, QR Code Ordering, marketing, POS et données.",
+      "MesaLink connecte site web, réservations, QR Ordering, clients et données dans une seule plateforme.",
     modules: [
       ["🌐", "Site web", "Online 24/7"],
       ["📅", "Gestion des Réservations", "Tous les canaux"],
-      ["📲", "QR Code Ordering", "Commandes à table"],
+      ["📲", "QR Ordering", "Menu, commandes et addition"],
       ["📣", "Marketing", "Attirer et fidéliser"],
       ["💳", "POS", "Ventes et opérations"],
       ["📊", "Données & Rapports", "Tout au même endroit"],
     ],
     today: "Disponible aujourd’hui",
     soon: "Bientôt",
-    todayItems: ["Réservations en ligne", "Gestion des tables", "Clients", "Site web professionnel"],
-    soonItems: ["QR Code Ordering", "Marketing", "POS intégré", "IA pour restaurants"],
+    todayItems: ["Réservations en ligne", "Gestion des tables", "Clients", "Site web professionnel", "QR Ordering"],
+    soonItems: ["Marketing", "POS intégré", "IA pour restaurants"],
     pricingBadge: "Prix simples",
     pricingTitle: "Commencez gratuitement. Évoluez quand vous voulez.",
     free: "Free",
@@ -269,6 +293,14 @@ const copy = {
     freeDesc: "Jusqu’à 100 réservations par mois.",
     proDesc: "Réservations illimitées et gestion des tables.",
     websiteDesc: "Site web professionnel avec réservations intégrées.",
+    qrOrdering: "QR Ordering",
+    qrBadge: "QR Ordering",
+    qrTitleA: "Les clients commandent.",
+    qrTitleB: "Le restaurant contrôle.",
+    qrText: "Menu digital par QR, commandes à table, appel serveur et demande d’addition. Tout intégré dans MesaLink.",
+    qrItems: ["Menu digital par QR", "Commandes à table", "Appeler le serveur", "Demander l’addition", "Alertes en temps réel", "QR Codes personnalisés", "Templates QR"],
+    qrPriceText: "Menu digital, commandes à table, appel serveur et demande d’addition.",
+    qrPriceBadge: "Disponible pour seulement +15€/mois",
     ctaTitle: "Commencez gratuitement aujourd’hui.",
     ctaText:
       "Recevez des réservations en ligne et préparez votre restaurant à une plateforme complète.",
@@ -281,7 +313,7 @@ const copy = {
     heroTitleA: "Alles, was Ihr Restaurant braucht",
     heroTitleB: "in einer einzigen App.",
     heroText:
-      "Website, Reservierungen, QR Code Ordering, POS, Marketing und Management. Alles verbunden, damit Ihr Restaurant besser läuft.",
+      "Website, Reservierungen, QR Ordering, Tischverwaltung und Kunden in einer Plattform. Alles verbunden, damit Ihr Restaurant besser läuft.",
     proof1: "Bis zu 100 Reservierungen/Monat kostenlos",
     proof2: "Keine Kreditkarte erforderlich",
     proof3: "Einrichtung in wenigen Minuten",
@@ -311,19 +343,19 @@ const copy = {
     networkTitleA: "Eine Plattform.",
     networkTitleB: "Das ganze Restaurant.",
     networkText:
-      "MesaLink verbindet, was wirklich wichtig ist: Website, Reservierungen, QR Code Ordering, Marketing, POS und Daten.",
+      "MesaLink verbindet Website, Reservierungen, QR Ordering, Kunden und Daten in einer Plattform.",
     modules: [
       ["🌐", "Website", "Online 24/7"],
       ["📅", "Reservierungsverwaltung", "Alle Kanäle"],
-      ["📲", "QR Code Ordering", "Bestellen am Tisch"],
+      ["📲", "QR Ordering", "Menü, Bestellungen und Rechnung"],
       ["📣", "Marketing", "Gewinnen & binden"],
       ["💳", "POS", "Verkauf & Betrieb"],
       ["📊", "Daten & Berichte", "Alles an einem Ort"],
     ],
     today: "Heute verfügbar",
     soon: "Demnächst",
-    todayItems: ["Online-Reservierungen", "Tischverwaltung", "Kunden", "Professionelle Website"],
-    soonItems: ["QR Code Ordering", "Marketing", "Integrierter POS", "KI für Restaurants"],
+    todayItems: ["Online-Reservierungen", "Tischverwaltung", "Kunden", "Professionelle Website", "QR Ordering"],
+    soonItems: ["Marketing", "Integrierter POS", "KI für Restaurants"],
     pricingBadge: "Einfache Preise",
     pricingTitle: "Kostenlos starten. Wachsen, wenn Sie bereit sind.",
     free: "Free",
@@ -333,6 +365,14 @@ const copy = {
     freeDesc: "Bis zu 100 Reservierungen pro Monat.",
     proDesc: "Unbegrenzte Reservierungen und Tischverwaltung.",
     websiteDesc: "Professionelle Website mit integrierten Reservierungen.",
+    qrOrdering: "QR Ordering",
+    qrBadge: "QR Ordering",
+    qrTitleA: "Gäste bestellen.",
+    qrTitleB: "Das Restaurant kontrolliert.",
+    qrText: "Digitales QR-Menü, Tischbestellungen, Kellner rufen und Rechnung anfordern. Alles in MesaLink integriert.",
+    qrItems: ["Digitales QR-Menü", "Tischbestellungen", "Kellner rufen", "Rechnung anfordern", "Echtzeit-Benachrichtigungen", "Individuelle QR Codes", "QR Templates"],
+    qrPriceText: "Digitales Menü, Tischbestellungen, Kellner rufen und Rechnung anfordern.",
+    qrPriceBadge: "Verfügbar für nur +15€/Monat",
     ctaTitle: "Starten Sie heute kostenlos.",
     ctaText:
       "Erhalten Sie Online-Reservierungen und bereiten Sie Ihr Restaurant auf eine vollständige Plattform vor.",
@@ -468,6 +508,41 @@ export default function MobilePage() {
         </div>
       </section>
 
+      <section id="qr-ordering" className="relative z-10 px-4 py-14 sm:px-5">
+        <div className="mx-auto max-w-md">
+          <Badge>{t.qrBadge}</Badge>
+
+          <h2 className="mt-5 text-[39px] font-black leading-[0.92] tracking-[-0.055em]">
+            {t.qrTitleA}
+            <span className="block bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">
+              {t.qrTitleB}
+            </span>
+          </h2>
+
+          <p className="mt-5 text-base leading-relaxed text-slate-400">
+            {t.qrText}
+          </p>
+
+          <div className="mt-6 grid gap-3">
+            {t.qrItems.map((item) => (
+              <Proof key={item}>{item}</Proof>
+            ))}
+          </div>
+
+          <div className="mt-6 overflow-hidden rounded-[28px] border border-cyan-300/20 bg-[#06111f]/90 p-5 shadow-[0_0_80px_rgba(34,211,238,0.14)] backdrop-blur">
+            <div className="grid gap-3">
+              <QrEvent icon="📲" text="Mesa 12 · Pedido recebido" />
+              <QrEvent icon="🔔" text="Mesa 7 · Chamou empregado" />
+              <QrEvent icon="💳" text="Mesa 4 · Pediu conta" />
+            </div>
+
+            <div className="mt-5 rounded-[24px] border border-cyan-300/20 bg-cyan-400/10 p-4">
+              <p className="font-black text-cyan-300">{t.qrPriceBadge}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="relative z-10 px-4 py-14 sm:px-5">
         <div className="mx-auto max-w-md">
           <Badge>{t.networkBadge}</Badge>
@@ -508,6 +583,7 @@ export default function MobilePage() {
             <PriceCard title={t.free} price="0€" suffix={t.perMonth} text={t.freeDesc} />
             <PriceCard title={t.pro} price="10€" suffix={t.perMonth} text={t.proDesc} highlight />
             <PriceCard title={t.website} price="+10€" suffix={t.perMonth} text={t.websiteDesc} />
+            <PriceCard title={t.qrOrdering} price="+15€" suffix={t.perMonth} text={t.qrPriceText} />
           </div>
         </div>
       </section>
@@ -601,7 +677,7 @@ function StickyBar({ t }: { t: (typeof copy)[Lang] }) {
             MesaLink
           </p>
           <p className="text-sm font-bold text-white">
-            Website · Reservas · POS
+            Website · Reservas · QR
           </p>
         </div>
 
@@ -793,6 +869,17 @@ function Roadmap({
           </p>
         ))}
       </div>
+    </div>
+  );
+}
+
+function QrEvent({ icon, text }: { icon: string; text: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-[22px] border border-white/10 bg-white/[0.045] p-4">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-cyan-400/10 text-xl">
+        {icon}
+      </span>
+      <p className="text-sm font-bold text-slate-200">{text}</p>
     </div>
   );
 }
