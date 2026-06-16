@@ -445,10 +445,10 @@ function BottomNav({ id }: { id: string }) {
           <p className="text-xl">⚡</p>
           Hoje
         </Link>
-        <Link href={`/restaurants/${id}/customers`}>
-  <p className="text-xl">👥</p>
-  Clientes
-</Link>
+        <Link href={`/restaurants/${id}/ordering`}>
+          <p className="text-xl">📲</p>
+          QR
+        </Link>
         <Link href={`/restaurants/${id}/tables`}>
           <p className="text-xl">▦</p>
           Sala
@@ -665,17 +665,16 @@ function AddonsSection({ id }: { id: string }) {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-            Trials e add-ons
+            Plano e add-ons
           </p>
 
           <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
-            Experimente funcionalidades durante 7 dias
+            Trial completo durante 7 dias
           </h2>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-            A conta começa no plano Free. Depois, o restaurante escolhe quando quer
-            experimentar Pro, Website ou QR Ordering durante 7 dias — sem começar
-            tudo automaticamente no primeiro login.
+            Durante o trial pode experimentar reservas ilimitadas, Website e QR Ordering.
+            Depois, ativa apenas o que fizer sentido para o restaurante.
           </p>
         </div>
 
@@ -683,7 +682,7 @@ function AddonsSection({ id }: { id: string }) {
           href="/billing"
           className="rounded-full border border-cyan-300/20 bg-white/[0.04] px-5 py-2.5 text-sm font-black text-slate-200 transition hover:border-cyan-300/50 hover:bg-cyan-400/10 hover:text-white"
         >
-          Gerir subscrição →
+          Gerir plano →
         </Link>
       </div>
 
@@ -693,9 +692,9 @@ function AddonsSection({ id }: { id: string }) {
           icon="⚡"
           description="Reservas ilimitadas, gestão de mesas, calendário mensal, serviço do dia e histórico de clientes."
           price="10€/mês"
-          status="Trial 7 dias"
-          href="/billing"
-          cta="Iniciar Trial 7 dias"
+          status="Incluído no trial"
+          href={`/restaurants/${id}`}
+          cta="Abrir dashboard"
           featured
         />
 
@@ -704,9 +703,9 @@ function AddonsSection({ id }: { id: string }) {
           icon="🌐"
           description="Website profissional com templates, menus, galeria, SEO e reservas integradas."
           price="+10€/mês"
-          status="Trial 7 dias"
+          status="Incluído no trial"
           href={`/restaurants/${id}/website`}
-          cta="Experimentar grátis"
+          cta="Abrir Website"
         />
 
         <AddonCard
@@ -714,9 +713,9 @@ function AddonsSection({ id }: { id: string }) {
           icon="📲"
           description="Menu digital, pedidos por mesa, chamar empregado, pedir conta e alertas no painel."
           price="+15€/mês"
-          status="Novo"
-          href={`/restaurants/${id}/qr-ordering`}
-          cta="Iniciar Trial 7 dias"
+          status="Incluído no trial"
+          href={`/restaurants/${id}/ordering`}
+          cta="Abrir QR Ordering"
         />
 
         <AddonCard
@@ -731,8 +730,8 @@ function AddonsSection({ id }: { id: string }) {
 
       <div className="mt-5 rounded-[24px] border border-violet-300/15 bg-violet-500/10 p-5">
         <p className="text-sm font-bold leading-6 text-violet-100">
-          Free continua disponível para começar. Os trials são ativados pelo restaurante,
-          funcionalidade a funcionalidade: Pro, Website e QR Ordering.
+          O trial completo é ativado ao criar conta. Não existem trials separados por funcionalidade.
+          QR Ordering abre diretamente durante o trial e depois pode ser ativado por +15€/mês.
         </p>
       </div>
     </section>
