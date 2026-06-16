@@ -58,10 +58,6 @@ export default function OrderingLiveOrders({
   }
 
 async function closeSession(sessionId: string) {
-  const confirmed = window.confirm("Terminar esta mesa?");
-
-  if (!confirmed) return;
-
   const response = await fetch(
     `/api/restaurants/${restaurantId}/ordering/sessions/${sessionId}/close`,
     {
@@ -238,12 +234,12 @@ async function resolveAlert(sessionId: string, type: "waiter" | "bill") {
             </div>
             <div className="mt-4 border-t border-white/10 pt-4">
   <button
-    type="button"
-    onClick={() => closeSession(session.id)}
-    className="rounded-full border border-yellow-300/20 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-yellow-300"
-  >
-    Terminar mesa
-  </button>
+  type="button"
+  onClick={() => closeSession(session.id)}
+  className="rounded-full border border-red-300/20 bg-red-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-red-300 hover:bg-red-500/20"
+>
+  Encerrar mesa
+</button>
 </div>
           </div>
         ))
