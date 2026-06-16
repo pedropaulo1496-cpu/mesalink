@@ -35,17 +35,31 @@ export default function OrderingLiveOrders({
 }) {
   const [sessions, setSessions] = useState(initialSessions);
 
+  async function refreshOrders() {
+    const response = await fetch(
+      `/api/restaurants/${restaurantId}/ordering/live`,
+      { cache: "no-store" }
+    );
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+    setSessions(data.sessions || []);
+  }
+
+  async function updateOrderStatus(orderId: string, status: string) {
+    await fetch(`/api/restaurants/${restaurantId}/ordering/orders/${orderId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+
+    await refreshOrders();
+  }
+
   useEffect(() => {
-    const interval = setInterval(async () => {
-      const response = await fetch(
-        `/api/restaurants/${restaurantId}/ordering/live`,
-        { cache: "no-store" }
-      );
-
-      if (!response.ok) return;
-
-      const data = await response.json();
-      setSessions(data.sessions || []);
+    const interval = setInterval(() => {
+      refreshOrders();
     }, 4000);
 
     return () => clearInterval(interval);
@@ -89,14 +103,22 @@ export default function OrderingLiveOrders({
                   <div className="flex justify-between gap-4">
                     <div>
                       <p className="text-xs font-black uppercase text-cyan-300">
-                        {order.status}
+                        {statusLabel(order.status)}
                       </p>
 
                       <div className="mt-3 space-y-1">
                         {order.items.map((item) => (
-                          <p key={item.id} className="text-sm font-bold">
-                            {item.quantity}x {item.productName}
-                          </p>
+                          <div
+                            key={item.id}
+                            className="flex max-w-lg items-center justify-between gap-8 text-sm"
+                          >
+                            <p className="font-black text-white">
+                              {item.quantity}x {item.productName}
+                            </p>
+                            <p className="font-black text-slate-500">
+                              {Number(item.lineTotal).toFixed(2)}€
+                            </p>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -104,6 +126,48 @@ export default function OrderingLiveOrders({
                     <p className="text-xl font-black text-cyan-300">
                       {Number(order.total).toFixed(2)}€
                     </p>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {order.status !== "PREPARING" &&
+                      order.status !== "DELIVERED" &&
+                      order.status !== "CANCELLED" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateOrderStatus(order.id, "PREPARING")
+                          }
+                          className="h-9 rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 text-xs font-black uppercase tracking-[0.14em] text-cyan-300"
+                        >
+                          Preparar
+                        </button>
+                      )}
+
+                    {order.status !== "DELIVERED" &&
+                      order.status !== "CANCELLED" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateOrderStatus(order.id, "DELIVERED")
+                          }
+                          className="h-9 rounded-full border border-green-300/20 bg-green-400/10 px-4 text-xs font-black uppercase tracking-[0.14em] text-green-300"
+                        >
+                          Entregue
+                        </button>
+                      )}
+
+                    {order.status !== "CANCELLED" &&
+                      order.status !== "DELIVERED" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateOrderStatus(order.id, "CANCELLED")
+                          }
+                          className="h-9 rounded-full border border-red-300/20 bg-red-400/10 px-4 text-xs font-black uppercase tracking-[0.14em] text-red-300"
+                        >
+                          Cancelar
+                        </button>
+                      )}
                   </div>
                 </div>
               ))}
@@ -113,4 +177,13 @@ export default function OrderingLiveOrders({
       )}
     </div>
   );
+}
+
+function statusLabel(status: string) {
+  if (status === "PENDING") return "Recebido";
+  if (status === "PREPARING") return "A preparar";
+  if (status === "READY") return "Pronto";
+  if (status === "DELIVERED") return "Entregue";
+  if (status === "CANCELLED") return "Cancelado";
+  return status;
 }
