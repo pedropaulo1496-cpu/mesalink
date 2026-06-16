@@ -339,8 +339,8 @@ export default async function RestaurantOrderingPage({
       data: {
         userId: user.id,
         plan: "FREE",
-        status: "ACTIVE",
-        trialEndsAt: null,
+        status: "TRIAL",
+trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         restaurantLimit: 1,
         priceMonthly: 0,
         websiteAddon: false,
@@ -437,8 +437,6 @@ const canUseQrOrdering =
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] pb-24 text-white">
       <Background />
-
-      <OrderingAutoRefresh enabled={activeTab === "orders"} interval={5000} />
 
       <div className="relative z-10 mx-auto max-w-7xl space-y-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         <header className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:p-6">
