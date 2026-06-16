@@ -197,7 +197,7 @@ const remainingFreeCovers = Math.max(
         <header className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <Link href="/" className="text-2xl font-black">
+              <Link href={`/restaurants/${id}`} className="text-2xl font-black">
                 Mesa
                 <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
                   Link
@@ -238,7 +238,7 @@ const remainingFreeCovers = Math.max(
               <DashboardLink href={`/restaurants/${id}/website`}>
                 Website
               </DashboardLink>
-              <DashboardLink href={`/restaurants/${id}/qr-ordering`}>
+              <DashboardLink href={`/restaurants/${id}/ordering`}>
                 QR Ordering
               </DashboardLink>
               <SignOutButton />

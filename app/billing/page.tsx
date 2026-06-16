@@ -2,7 +2,6 @@ import CheckoutButton from "@/components/CheckoutButton";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasTrialExpired } from "@/lib/subscription";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -45,31 +44,33 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
         restaurantLimit: 1,
         priceMonthly: 0,
         websiteAddon: false,
+        qrOrderingAddon: false,
       },
     }));
 
-  const trialActive =
-    subscription.status === "TRIAL" &&
-    !hasTrialExpired(subscription.trialEndsAt);
+  const now = new Date();
 
-  const trialDaysLeft = subscription.trialEndsAt
-    ? Math.max(
-        0,
-        Math.ceil(
-          (subscription.trialEndsAt.getTime() - Date.now()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )
-    : 0;
+  const proTrialActive =
+    subscription.proTrialEndsAt && subscription.proTrialEndsAt > now;
+
+  const websiteTrialActive =
+    subscription.websiteTrialEndsAt && subscription.websiteTrialEndsAt > now;
+
+  const qrOrderingTrialActive =
+    subscription.qrOrderingTrialEndsAt &&
+    subscription.qrOrderingTrialEndsAt > now;
 
   const isPro =
-    (subscription.status === "ACTIVE" && subscription.plan === "PRO") ||
-    trialActive;
+    subscription.status === "ACTIVE" && subscription.plan === "PRO";
 
   const hasWebsite = subscription.websiteAddon === true;
-  const hasQrOrdering = false;
+  const hasQrOrdering = subscription.qrOrderingAddon === true;
 
-  const currentPlan = isPro ? "Pro" : "Free";
+  const canUsePro = isPro || Boolean(proTrialActive);
+  const canUseWebsite = hasWebsite || Boolean(websiteTrialActive);
+  const canUseQrOrdering = hasQrOrdering || Boolean(qrOrderingTrialActive);
+
+  const currentPlan = canUsePro ? "Pro" : "Free";
 
   const backHref = restaurantId ? `/restaurants/${restaurantId}` : "/dashboard";
 
@@ -107,7 +108,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
             </span>
           </div>
 
-          {requestedAddon === "qr-ordering" && (
+          {requestedAddon === "qr-ordering" && !canUseQrOrdering && (
             <div className="mt-8 rounded-[1.5rem] border border-cyan-300/20 bg-cyan-500/10 p-5">
               <p className="text-sm font-bold leading-6 text-cyan-100">
                 Para usar o QR Ordering, inicie o trial de 7 dias ou ative o
@@ -118,28 +119,18 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <Info label="Plano atual" value={currentPlan} />
-            <Info label="Reservas" value={isPro ? "Ilimitadas" : "100/mês"} />
-            <Info label="Website" value={hasWebsite ? "Ativo" : "Inativo"} />
+            <Info label="Reservas" value={canUsePro ? "Ilimitadas" : "100/mês"} />
+            <Info label="Website" value={canUseWebsite ? "Ativo" : "Inativo"} />
             <Info
               label="QR Ordering"
-              value={hasQrOrdering ? "Ativo" : "Inativo"}
+              value={canUseQrOrdering ? "Ativo" : "Inativo"}
             />
           </div>
-
-          {trialActive && (
-            <div className="mt-8 rounded-[1.5rem] border border-violet-300/20 bg-violet-500/10 p-5">
-              <p className="text-sm font-bold leading-6 text-violet-100">
-                Trial ativo: tem acesso durante mais {trialDaysLeft} dia(s).
-                Depois disso, continua no plano Free com até 100 reservas online
-                por mês, exceto se ativar uma subscrição.
-              </p>
-            </div>
-          )}
 
           <div className="mt-8 grid gap-5 lg:grid-cols-3">
             <PlanCard
               title="Pro"
-              badge={isPro ? "Ativo" : "7 dias trial"}
+              badge={canUsePro ? "Ativo" : "7 dias trial"}
               price="10€/mês"
               description="Reservas ilimitadas, gestão de mesas e controlo avançado da operação."
               features={[
@@ -150,11 +141,20 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 "Serviço do dia",
                 "Clientes",
               ]}
-              active={isPro}
+              active={canUsePro}
               highlighted
               action={
-                isPro ? (
-                  <ManageSubscriptionButton />
+                canUsePro ? (
+                  isPro ? (
+                    <ManageSubscriptionButton />
+                  ) : (
+                    <Link
+                      href={restaurantId ? `/restaurants/${restaurantId}` : "/dashboard"}
+                      className="flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-sm font-black text-black transition hover:opacity-90"
+                    >
+                      Abrir Pro →
+                    </Link>
+                  )
                 ) : (
                   <div className="grid gap-3">
                     <TrialButton feature="pro" restaurantId={restaurantId}>
@@ -168,7 +168,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
             <PlanCard
               title="Website"
-              badge={hasWebsite ? "Ativo" : "7 dias trial"}
+              badge={canUseWebsite ? "Ativo" : "7 dias trial"}
               price="+10€/mês"
               description="Website profissional para o restaurante com reservas integradas."
               features={[
@@ -179,10 +179,19 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 "SEO básico",
                 "Google Maps",
               ]}
-              active={hasWebsite}
+              active={canUseWebsite}
               action={
-                hasWebsite ? (
-                  <ManageSubscriptionButton />
+                canUseWebsite ? (
+                  <Link
+                    href={
+                      restaurantId
+                        ? `/restaurants/${restaurantId}/website`
+                        : "/dashboard"
+                    }
+                    className="flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-sm font-black text-black transition hover:opacity-90"
+                  >
+                    Abrir Website →
+                  </Link>
                 ) : (
                   <div className="grid gap-3">
                     <TrialButton feature="website" restaurantId={restaurantId}>
@@ -196,7 +205,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
             <PlanCard
               title="QR Ordering"
-              badge={hasQrOrdering ? "Ativo" : "7 dias trial"}
+              badge={canUseQrOrdering ? "Ativo" : "7 dias trial"}
               price="+15€/mês"
               description="Menu digital por QR, pedidos por mesa, chamar empregado e pedir conta."
               features={[
@@ -209,10 +218,10 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 "Templates de QR",
                 "Ativar/desativar funcionalidades",
               ]}
-              active={hasQrOrdering}
+              active={canUseQrOrdering}
               focused={requestedAddon === "qr-ordering"}
               action={
-                hasQrOrdering ? (
+                canUseQrOrdering ? (
                   <Link
                     href={
                       restaurantId
@@ -225,10 +234,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                   </Link>
                 ) : (
                   <div className="grid gap-3">
-                    <TrialButton
-                      feature="qr-ordering"
-                      restaurantId={restaurantId}
-                    >
+                    <TrialButton feature="qr-ordering" restaurantId={restaurantId}>
                       Iniciar Trial 7 dias
                     </TrialButton>
                     <CheckoutButton
@@ -300,25 +306,25 @@ function PlanCard({
         <div className="absolute -right-16 top-8 h-48 w-48 rounded-full bg-cyan-500/20 blur-[70px]" />
       )}
 
-      <div className="relative">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-black tracking-[-0.04em]">{title}</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
-              {description}
-            </p>
-          </div>
+     <div className="relative">
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <h2 className="text-3xl font-black tracking-[-0.04em]">{title}</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-400">
+        {description}
+      </p>
+    </div>
 
-          <span
-            className={`shrink-0 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.18em] ${
-              active
-                ? "border-green-300/20 bg-green-400/10 text-green-300"
-                : "border-cyan-300/20 bg-cyan-400/10 text-cyan-300"
-            }`}
-          >
-            {badge}
-          </span>
-        </div>
+    <span
+      className={`shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] sm:px-3 sm:text-[10px] ${
+        active
+          ? "border-green-300/20 bg-green-400/10 text-green-300"
+          : "border-cyan-300/20 bg-cyan-400/10 text-cyan-300"
+      }`}
+    >
+      {badge}
+    </span>
+  </div>
 
         <p className="mt-6 text-4xl font-black text-cyan-300">{price}</p>
 
