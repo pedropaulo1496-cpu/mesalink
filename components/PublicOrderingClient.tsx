@@ -39,10 +39,11 @@ type SessionOrder = {
   status: string;
   createdAt: string;
   items: {
-    id: string;
-    productName: string;
-    quantity: number;
-  }[];
+  id: string;
+  productName: string;
+  quantity: number;
+  lineTotal?: number | string;
+}[];
 };
 
 type TableSession = {
@@ -580,7 +581,10 @@ function OrderGroup({
               </span>
 
               <p className="text-xs font-black text-cyan-300">
-                {Number(order.total).toFixed(2)}€
+                {order.items
+  .reduce((sum, item) => sum + Number(item.lineTotal || 0), 0)
+  .toFixed(2)}
+€
               </p>
             </div>
 
