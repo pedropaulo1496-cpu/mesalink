@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import ProductImageUpload from "@/components/ProductImageUpload";
+import OrderingLiveOrders from "@/components/OrderingLiveOrders";
 
 const TABS = [
   { key: "orders", label: "Pedidos" },
@@ -545,290 +546,38 @@ function OrdersTab({
   restaurantId: string;
   sessions: any[];
 }) {
-
-const pendingActions = sessions.filter(
-  (session) =>
-    session.requestedWaiterAt ||
-    session.requestedBillAt
-);
+  const pendingActions = sessions.filter(
+    (session) => session.requestedWaiterAt || session.requestedBillAt
+  );
 
   return (
     <section className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-    Pedidos
-  </p>
-
-  <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
-    Mesas com pedidos QR
-  </h2>
-
-  {pendingActions.length > 0 && (
-    <div className="mt-4 rounded-3xl border border-red-400/20 bg-red-500/5 p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-red-300">
-            Ações Pendentes
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+            Pedidos
           </p>
 
-          <p className="mt-1 text-sm font-bold text-slate-300">
-            {pendingActions.length} alerta(s)
-          </p>
+          <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
+            Mesas com pedidos QR
+          </h2>
+
+          {pendingActions.length > 0 && (
+            <p className="mt-2 text-sm font-bold text-red-300">
+              {pendingActions.length} alerta(s) pendente(s)
+            </p>
+          )}
         </div>
 
-        <div className="h-3 w-3 rounded-full bg-red-400 animate-pulse" />
-      </div>
-
-      <div className="mt-3 space-y-2">
-  {pendingActions.map((session) => (
-    <div
-      key={session.id}
-      className="rounded-2xl border border-white/10 bg-black/20 p-3"
-    >
-      <p className="font-black text-white">
-        Mesa {session.tableNumber}
-      </p>
-
-      {session.requestedWaiterAt && (
-        <>
-          <p className="mt-1 text-sm font-bold text-cyan-300">
-            🔔 Chamou empregado
-          </p>
-
-          <form action={resolveTableAlert}>
-  <input type="hidden" name="restaurantId" value={restaurantId} />
-  <input type="hidden" name="sessionId" value={session.id} />
-  <input type="hidden" name="type" value="waiter" />
-
-  <button className="mt-2 rounded-full border border-green-300/20 bg-green-400/10 px-3 py-1 text-xs font-black text-green-300">
-    Resolver
-  </button>
-</form>
-        </>
-      )}
-
-      {session.requestedBillAt && (
-        <>
-          <p className="mt-3 text-sm font-bold text-yellow-300">
-            🧾 Pediu conta
-          </p>
-
-          <form action={resolveTableAlert}>
-  <input
-    type="hidden"
-    name="restaurantId"
-    value={restaurantId}
-  />
-
-  <input
-    type="hidden"
-    name="sessionId"
-    value={session.id}
-  />
-
-  <input
-    type="hidden"
-    name="type"
-    value="bill"
-  />
-
-  <button
-    className="mt-2 rounded-full border border-green-300/20 bg-green-400/10 px-3 py-1 text-xs font-black text-green-300"
-  >
-    Resolver
-  </button>
-</form>
-        </>
-      )}
-    </div>
-  ))}
-</div>
-    </div>
-  )}
-</div>
-
         <span className="rounded-full border border-cyan-300/15 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-300">
-          {sessions.length} mesas abertas
+          Atualiza automaticamente
         </span>
       </div>
 
-      <div className="mt-6 space-y-4">
-        {sessions.length === 0 ? (
-          <div className="rounded-[24px] border border-dashed border-cyan-300/15 bg-[#020617]/60 p-6 text-sm text-slate-400">
-            Ainda não há pedidos QR ativos.
-          </div>
-        ) : (
-          sessions.map((tableSession) => (
-            <details
-              key={tableSession.id}
-              open
-              className={`rounded-[24px] border p-4 ${
-  tableSession.requestedWaiterAt ||
-  tableSession.requestedBillAt
-    ? "border-red-400/30 bg-red-500/5"
-    : "border-cyan-300/10 bg-[#020617]/60"
-}`}
-            >
-              <summary className="flex cursor-pointer list-none flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-2xl font-black tracking-[-0.04em]">
-                    Mesa {tableSession.tableNumber}
-                  </h3>
-                  <p className="mt-1 text-xs font-bold text-slate-500">
-                    Aberta às {formatTime(tableSession.openedAt)}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full border border-cyan-300/15 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-300">
-                    {tableSession.orders.length} pedidos
-                  </span>
-
-                  {tableSession.requestedWaiterAt && (
-  <span className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-300">
-    CHAMOU EMPREGADO
-  </span>
-)}
-
-{tableSession.requestedBillAt && (
-  <span className="rounded-full border border-yellow-300/20 bg-yellow-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-yellow-300">
-    PEDIU CONTA
-  </span>
-)}
-
-                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-300">
-                    Abrir
-                  </span>
-                </div>
-              </summary>
-
-              <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
-                {tableSession.orders.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-white/10 p-4 text-sm text-slate-500">
-                    Esta mesa ainda não tem pedidos.
-                  </p>
-                ) : (
-                  tableSession.orders.map((order: any) => (
-                    <div
-                      key={order.id}
-                      className="rounded-2xl border border-white/10 bg-white/[0.04] p-4"
-                    >
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span
-                              className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] ${statusClass(
-                                order.status
-                              )}`}
-                            >
-                              {statusLabel(order.status)}
-                            </span>
-
-                            <span className="text-xs font-bold text-slate-500">
-                              {formatTime(order.createdAt)}
-                            </span>
-                          </div>
-
-                          <div className="mt-3 space-y-1">
-                            {order.items.map((item: any) => (
-                              <div
-                                key={item.id}
-                                className="flex max-w-lg items-center justify-between gap-8 text-sm"
-                              >
-                                <p className="font-black text-white">
-                                  {item.quantity}x {item.productName}
-                                </p>
-                                <p className="font-black text-slate-500">
-                                  {Number(item.lineTotal).toFixed(2)}€
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <p className="text-xl font-black text-cyan-300">
-                          {Number(order.total).toFixed(2)}€
-                        </p>
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {order.status !== "PREPARING" &&
-                          order.status !== "DELIVERED" &&
-                          order.status !== "CANCELLED" && (
-                            <OrderStatusButton
-                              restaurantId={restaurantId}
-                              orderId={order.id}
-                              status="PREPARING"
-                            >
-                              Preparar
-                            </OrderStatusButton>
-                          )}
-
-                        {order.status !== "DELIVERED" &&
-                          order.status !== "CANCELLED" && (
-                            <OrderStatusButton
-                              restaurantId={restaurantId}
-                              orderId={order.id}
-                              status="DELIVERED"
-                            >
-                              Entregue
-                            </OrderStatusButton>
-                          )}
-
-                        {order.status !== "CANCELLED" &&
-                          order.status !== "DELIVERED" && (
-                            <OrderStatusButton
-                              restaurantId={restaurantId}
-                              orderId={order.id}
-                              status="CANCELLED"
-                              danger
-                            >
-                              Cancelar
-                            </OrderStatusButton>
-                          )}
-                      </div>
-                    </div>
-                  ))
-                )}
-
-                <details className="pt-2">
-                  <summary className="inline-flex cursor-pointer list-none rounded-full border border-yellow-300/20 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-yellow-300">
-                    Terminar mesa
-                  </summary>
-
-                  <form
-                    action={closeTableSession}
-                    className="mt-3 rounded-2xl border border-yellow-300/20 bg-yellow-400/10 p-4"
-                  >
-                    <input type="hidden" name="restaurantId" value={restaurantId} />
-                    <input type="hidden" name="sessionId" value={tableSession.id} />
-
-                    <p className="text-sm font-bold text-yellow-100">
-                      Isto fecha a sessão da Mesa {tableSession.tableNumber}. O
-                      cliente deixa de ver o histórico atual e o próximo pedido
-                      abre uma nova sessão.
-                    </p>
-
-                    <label className="mt-3 flex items-center gap-2 text-xs font-bold text-yellow-100">
-                      <input
-                        name="confirmClose"
-                        type="checkbox"
-                        className="h-4 w-4 accent-yellow-300"
-                      />
-                      Confirmo que quero terminar esta mesa
-                    </label>
-
-                    <button className="mt-3 rounded-full border border-yellow-300/30 bg-yellow-400/20 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-yellow-100">
-                      Terminar mesa
-                    </button>
-                  </form>
-                </details>
-              </div>
-            </details>
-          ))
-        )}
-      </div>
+      <OrderingLiveOrders
+        restaurantId={restaurantId}
+        initialSessions={sessions}
+      />
     </section>
   );
 }
