@@ -4,7 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type Product = "PRO" | "WEBSITE";
+type Product = "PRO" | "WEBSITE" | "QR_ORDERING";
 
 export async function POST(request: Request) {
   try {
@@ -31,8 +31,11 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
 
-    const product: Product =
-      body.product === "WEBSITE" ? "WEBSITE" : "PRO";
+    const allowedProducts: Product[] = ["PRO", "WEBSITE", "QR_ORDERING"];
+
+    const product: Product = allowedProducts.includes(body.product)
+      ? body.product
+      : "PRO";
 
     const subscription =
       user.subscription ??
@@ -40,18 +43,21 @@ export async function POST(request: Request) {
         data: {
           userId: user.id,
           plan: "FREE",
-          status: "TRIAL",
-          trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          status: "ACTIVE",
+          trialEndsAt: null,
           restaurantLimit: 1,
           priceMonthly: 0,
           websiteAddon: false,
         },
       }));
 
-    const priceId =
-      product === "WEBSITE"
-        ? process.env.STRIPE_PRICE_WEBSITE_MONTHLY
-        : process.env.STRIPE_PRICE_PRO_MONTHLY;
+    const priceMap: Record<Product, string | undefined> = {
+      PRO: process.env.STRIPE_PRICE_PRO_MONTHLY,
+      WEBSITE: process.env.STRIPE_PRICE_WEBSITE_MONTHLY,
+      QR_ORDERING: process.env.STRIPE_PRICE_QRORDERING_MONTHLY,
+    };
+
+    const priceId = priceMap[product];
 
     if (!priceId) {
       return NextResponse.json(

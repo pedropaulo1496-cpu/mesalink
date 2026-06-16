@@ -7,12 +7,23 @@ import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-export default async function BillingPage() {
+type BillingPageProps = {
+  searchParams?: Promise<{
+    addon?: string;
+    restaurantId?: string;
+  }>;
+};
+
+export default async function BillingPage({ searchParams }: BillingPageProps) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
     redirect("/login");
   }
+
+  const params = searchParams ? await searchParams : {};
+  const requestedAddon = params?.addon;
+  const restaurantId = params?.restaurantId;
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
@@ -29,8 +40,8 @@ export default async function BillingPage() {
       data: {
         userId: user.id,
         plan: "FREE",
-        status: "TRIAL",
-        trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        status: "ACTIVE",
+        trialEndsAt: null,
         restaurantLimit: 1,
         priceMonthly: 0,
         websiteAddon: false,
@@ -51,10 +62,16 @@ export default async function BillingPage() {
       )
     : 0;
 
-  const isPro = subscription.status === "ACTIVE" && subscription.plan === "PRO";
-  const hasWebsite = subscription.websiteAddon === true;
+  const isPro =
+    (subscription.status === "ACTIVE" && subscription.plan === "PRO") ||
+    trialActive;
 
-  const currentPlan = trialActive ? "Trial" : isPro ? "Pro" : "Free";
+  const hasWebsite = subscription.websiteAddon === true;
+  const hasQrOrdering = false;
+
+  const currentPlan = isPro ? "Pro" : "Free";
+
+  const backHref = restaurantId ? `/restaurants/${restaurantId}` : "/dashboard";
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
@@ -62,7 +79,7 @@ export default async function BillingPage() {
 
       <section className="relative z-10 mx-auto max-w-7xl px-5 py-8 sm:px-8">
         <Link
-          href="/dashboard"
+          href={backHref}
           className="text-sm font-bold text-slate-400 hover:text-white"
         >
           ← Voltar ao dashboard
@@ -76,12 +93,12 @@ export default async function BillingPage() {
               </p>
 
               <h1 className="mt-3 text-4xl font-black tracking-[-0.05em]">
-                Plano e add-ons
+                Plano, trials e add-ons
               </h1>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-                Ative reservas ilimitadas, gestão de mesas e o website
-                profissional do restaurante.
+                A conta começa sempre no plano Free. Depois pode experimentar
+                Pro, Website e QR Ordering durante 7 dias, quando quiser.
               </p>
             </div>
 
@@ -90,82 +107,143 @@ export default async function BillingPage() {
             </span>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {requestedAddon === "qr-ordering" && (
+            <div className="mt-8 rounded-[1.5rem] border border-cyan-300/20 bg-cyan-500/10 p-5">
+              <p className="text-sm font-bold leading-6 text-cyan-100">
+                Para usar o QR Ordering, inicie o trial de 7 dias ou ative o
+                add-on por +15€/mês.
+              </p>
+            </div>
+          )}
+
+          <div className="mt-8 grid gap-4 md:grid-cols-4">
             <Info label="Plano atual" value={currentPlan} />
+            <Info label="Reservas" value={isPro ? "Ilimitadas" : "100/mês"} />
+            <Info label="Website" value={hasWebsite ? "Ativo" : "Inativo"} />
             <Info
-              label="Reservas"
-              value={isPro || trialActive ? "Ilimitadas" : "100/mês"}
-            />
-            <Info
-              label="Website"
-              value={hasWebsite || trialActive ? "Ativo" : "Inativo"}
+              label="QR Ordering"
+              value={hasQrOrdering ? "Ativo" : "Inativo"}
             />
           </div>
 
           {trialActive && (
             <div className="mt-8 rounded-[1.5rem] border border-violet-300/20 bg-violet-500/10 p-5">
               <p className="text-sm font-bold leading-6 text-violet-100">
-                Trial ativo: tem acesso total durante mais {trialDaysLeft} dia(s).
+                Trial ativo: tem acesso durante mais {trialDaysLeft} dia(s).
                 Depois disso, continua no plano Free com até 100 reservas online
-                por mês.
+                por mês, exceto se ativar uma subscrição.
               </p>
             </div>
           )}
 
-          <div className="mt-8 grid gap-5 lg:grid-cols-2">
+          <div className="mt-8 grid gap-5 lg:grid-cols-3">
             <PlanCard
               title="Pro"
-              badge={isPro || trialActive ? "Ativo" : "Upgrade"}
+              badge={isPro ? "Ativo" : "7 dias trial"}
               price="10€/mês"
-              description="Para restaurantes que querem reservas ilimitadas e controlo avançado da operação."
+              description="Reservas ilimitadas, gestão de mesas e controlo avançado da operação."
               features={[
                 "Reservas online ilimitadas",
                 "Gestão de mesas",
                 "Reservas por capacidade",
                 "Calendário",
+                "Serviço do dia",
                 "Clientes",
               ]}
-              active={isPro || trialActive}
+              active={isPro}
+              highlighted
               action={
                 isPro ? (
                   <ManageSubscriptionButton />
                 ) : (
-                  <CheckoutButton product="PRO" label="Ativar Pro →" />
+                  <div className="grid gap-3">
+                    <TrialButton feature="pro" restaurantId={restaurantId}>
+                      Iniciar Trial 7 dias
+                    </TrialButton>
+                    <CheckoutButton product="PRO" label="Ativar Pro →" />
+                  </div>
                 )
               }
             />
 
             <PlanCard
               title="Website"
-              badge={hasWebsite || trialActive ? "Ativo" : "Add-on"}
+              badge={hasWebsite ? "Ativo" : "7 dias trial"}
               price="+10€/mês"
               description="Website profissional para o restaurante com reservas integradas."
               features={[
                 "Website profissional",
-                "Templates",
+                "Templates premium",
                 "Menus PDF",
                 "Galeria",
-                "SEO",
+                "SEO básico",
                 "Google Maps",
               ]}
-              active={hasWebsite || trialActive}
+              active={hasWebsite}
               action={
                 hasWebsite ? (
                   <ManageSubscriptionButton />
                 ) : (
-                  <CheckoutButton
-                    product="WEBSITE"
-                    label="Ativar Website →"
-                  />
+                  <div className="grid gap-3">
+                    <TrialButton feature="website" restaurantId={restaurantId}>
+                      Iniciar Trial 7 dias
+                    </TrialButton>
+                    <CheckoutButton product="WEBSITE" label="Ativar Website →" />
+                  </div>
+                )
+              }
+            />
+
+            <PlanCard
+              title="QR Ordering"
+              badge={hasQrOrdering ? "Ativo" : "7 dias trial"}
+              price="+15€/mês"
+              description="Menu digital por QR, pedidos por mesa, chamar empregado e pedir conta."
+              features={[
+                "Menu digital por QR",
+                "Pedidos por mesa",
+                "Chamar empregado",
+                "Pedir conta",
+                "Alertas no painel",
+                "Gestão e impressão de QR Codes",
+                "Templates de QR",
+                "Ativar/desativar funcionalidades",
+              ]}
+              active={hasQrOrdering}
+              focused={requestedAddon === "qr-ordering"}
+              action={
+                hasQrOrdering ? (
+                  <Link
+                    href={
+                      restaurantId
+                        ? `/restaurants/${restaurantId}/ordering`
+                        : "/dashboard"
+                    }
+                    className="flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-sm font-black text-black transition hover:opacity-90"
+                  >
+                    Abrir QR Ordering →
+                  </Link>
+                ) : (
+                  <div className="grid gap-3">
+                    <TrialButton
+                      feature="qr-ordering"
+                      restaurantId={restaurantId}
+                    >
+                      Iniciar Trial 7 dias
+                    </TrialButton>
+                    <CheckoutButton
+                      product="QR_ORDERING"
+                      label="Ativar QR Ordering →"
+                    />
+                  </div>
                 )
               }
             />
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <ComingSoon title="IA" icon="🤖" />
             <ComingSoon title="Marketing" icon="📣" />
-            <ComingSoon title="QR Ordering" icon="📲" />
             <ComingSoon title="POS" icon="🧾" />
           </div>
         </div>
@@ -193,6 +271,8 @@ function PlanCard({
   features,
   active,
   action,
+  highlighted,
+  focused,
 }: {
   title: string;
   badge: string;
@@ -201,44 +281,79 @@ function PlanCard({
   features: string[];
   active: boolean;
   action: React.ReactNode;
+  highlighted?: boolean;
+  focused?: boolean;
 }) {
   return (
     <div
-      className={`rounded-[2rem] border p-6 ${
+      className={`relative overflow-hidden rounded-[2rem] border p-6 ${
         active
           ? "border-green-300/20 bg-green-500/10"
+          : focused
+          ? "border-cyan-300/45 bg-cyan-500/10 shadow-[0_0_80px_rgba(34,211,238,0.18)]"
+          : highlighted
+          ? "border-cyan-300/25 bg-[#06111f]"
           : "border-cyan-300/15 bg-black/25"
       }`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-black tracking-[-0.04em]">{title}</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
-            {description}
-          </p>
+      {(focused || highlighted) && (
+        <div className="absolute -right-16 top-8 h-48 w-48 rounded-full bg-cyan-500/20 blur-[70px]" />
+      )}
+
+      <div className="relative">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-black tracking-[-0.04em]">{title}</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              {description}
+            </p>
+          </div>
+
+          <span
+            className={`shrink-0 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.18em] ${
+              active
+                ? "border-green-300/20 bg-green-400/10 text-green-300"
+                : "border-cyan-300/20 bg-cyan-400/10 text-cyan-300"
+            }`}
+          >
+            {badge}
+          </span>
         </div>
 
-        <span
-          className={`rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.18em] ${
-            active
-              ? "border-green-300/20 bg-green-400/10 text-green-300"
-              : "border-cyan-300/20 bg-cyan-400/10 text-cyan-300"
-          }`}
-        >
-          {badge}
-        </span>
+        <p className="mt-6 text-4xl font-black text-cyan-300">{price}</p>
+
+        <ul className="mt-6 space-y-3 text-sm text-slate-300">
+          {features.map((feature) => (
+            <li key={feature}>✓ {feature}</li>
+          ))}
+        </ul>
+
+        <div className="mt-6">{action}</div>
       </div>
-
-      <p className="mt-6 text-4xl font-black text-cyan-300">{price}</p>
-
-      <ul className="mt-6 space-y-3 text-sm text-slate-300">
-        {features.map((feature) => (
-          <li key={feature}>✓ {feature}</li>
-        ))}
-      </ul>
-
-      <div className="mt-6">{action}</div>
     </div>
+  );
+}
+
+function TrialButton({
+  feature,
+  restaurantId,
+  children,
+}: {
+  feature: "pro" | "website" | "qr-ordering";
+  restaurantId?: string;
+  children: React.ReactNode;
+}) {
+  const href = restaurantId
+    ? `/billing/start-trial?feature=${feature}&restaurantId=${restaurantId}`
+    : `/billing/start-trial?feature=${feature}`;
+
+  return (
+    <Link
+      href={href}
+      className="flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-sm font-black text-black shadow-[0_0_45px_rgba(96,165,250,0.25)] transition hover:opacity-90"
+    >
+      {children}
+    </Link>
   );
 }
 

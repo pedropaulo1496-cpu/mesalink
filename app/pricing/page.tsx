@@ -65,6 +65,28 @@ const plans = [
     highlighted: false,
     checkout: false,
   },
+  {
+    name: "QR Ordering",
+    badge: "Add-on",
+    price: "+15€",
+    suffix: "+ IVA / mês",
+    description:
+      "Menu digital por QR, pedidos por mesa, chamar empregado e pedir conta.",
+    features: [
+      "Menu digital por QR",
+      "Pedidos por mesa",
+      "Chamar empregado",
+      "Pedir conta",
+      "Alertas em tempo real",
+      "QR Codes personalizados",
+      "Templates de QR",
+      "Ativar/desativar funcionalidades",
+    ],
+    cta: "Adicionar QR Ordering →",
+    href: "/register",
+    highlighted: false,
+    checkout: false,
+  },
 ];
 
 const comparison = [
@@ -73,7 +95,7 @@ const comparison = [
   ["Gestão de Mesas", "Ferramenta #3", "✓"],
   ["Clientes", "Ferramenta #4", "✓"],
   ["Marketing", "Ferramenta #5", "Em breve"],
-  ["QR Ordering", "Ferramenta #6", "Em breve"],
+  ["QR Ordering", "Ferramenta #6", "✓"],
   ["POS", "Ferramenta #7", "Em breve"],
 ];
 
@@ -87,8 +109,8 @@ const roadmap = [
     text: "Campanhas, automações e comunicação para trazer clientes de volta.",
   },
   {
-    title: "QR Ordering",
-    text: "Pedidos à mesa por QR Code, integrados com a operação do restaurante.",
+    title: "Inteligência Artificial",
+    text: "Automatização de tarefas, sugestões operacionais e insights para ajudar a gerir melhor o restaurante.",
   },
   {
     title: "POS Integrado",
@@ -108,6 +130,10 @@ const faqs = [
   {
     question: "O website está incluído no Pro?",
     answer: "Não. O Website é um add-on de 10€/mês para restaurantes que querem presença online profissional.",
+  },
+  {
+    question: "Quanto custa o QR Ordering?",
+    answer: "O QR Ordering está disponível como add-on por 15€/mês por restaurante.",
   },
   {
     question: "Posso cancelar?",
@@ -149,8 +175,8 @@ export default function PricingPage() {
             </h1>
 
             <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-relaxed text-slate-300">
-              Website profissional, reservas online, gestão de mesas e clientes
-              numa única plataforma. Comece grátis e adicione apenas o que precisa.
+              Website profissional, reservas online, QR Ordering, gestão de mesas
+              e clientes numa única plataforma. Comece grátis e adicione apenas o que precisa.
             </p>
 
             <div className="mx-auto mt-8 grid max-w-2xl grid-cols-3 gap-3">
@@ -160,7 +186,7 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <section className="grid gap-5 lg:grid-cols-3">
+          <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {plans.map((plan) => (
               <PlanCard key={plan.name} plan={plan} />
             ))}
@@ -176,7 +202,7 @@ export default function PricingPage() {
 
               <p className="mt-4 max-w-2xl text-slate-400">
                 Em vez de pagar e gerir várias plataformas separadas, o MesaLink
-                junta o essencial da operação num único sistema.
+                junta reservas, website, QR Ordering, clientes e gestão num único sistema.
               </p>
             </div>
 
@@ -225,8 +251,8 @@ export default function PricingPage() {
 
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-black/70">
               Até 100 reservas por mês grátis. Sem cartão de crédito. Quando o
-              restaurante crescer, adicione Pro, Website e as próximas ferramentas
-              do ecossistema MesaLink.
+              restaurante crescer, adicione Pro, Website, QR Ordering e as próximas
+              ferramentas do ecossistema MesaLink.
             </p>
 
             <Link

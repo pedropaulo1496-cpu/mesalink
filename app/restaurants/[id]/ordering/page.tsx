@@ -3,7 +3,6 @@ import OrderingAutoRefresh from "@/components/OrderingAutoRefresh";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
-import { canAccessApp } from "@/lib/check-subscription";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -327,14 +326,62 @@ export default async function RestaurantOrderingPage({
 
   if (!session?.user?.email) redirect("/login");
 
-  const hasAccess = await canAccessApp(session.user.email);
-  if (!hasAccess) redirect("/billing");
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: { subscription: true },
+  });
+
+  if (!user) redirect("/login");
+
+  const subscription =
+    user.subscription ??
+    (await prisma.subscription.create({
+      data: {
+        userId: user.id,
+        plan: "FREE",
+        status: "ACTIVE",
+        trialEndsAt: null,
+        restaurantLimit: 1,
+        priceMonthly: 0,
+        websiteAddon: false,
+        qrOrderingAddon: false,
+      },
+    }));
 
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
   const activeTab = TABS.some((tab) => tab.key === query?.tab)
     ? query.tab!
     : "orders";
+
+  const now = new Date();
+
+  const qrOrderingTrialActive =
+    !!subscription.qrOrderingTrialEndsAt &&
+    subscription.qrOrderingTrialEndsAt > now;
+
+  const canUseQrOrdering =
+    subscription.qrOrderingAddon === true || qrOrderingTrialActive;
+
+  if (!canUseQrOrdering) {
+    redirect(`/billing?addon=qr-ordering&restaurantId=${id}`);
+  }
+
+  const qrTrialDaysLeft = subscription.qrOrderingTrialEndsAt
+    ? Math.max(
+        0,
+        Math.ceil(
+          (subscription.qrOrderingTrialEndsAt.getTime() - Date.now()) /
+            (1000 * 60 * 60 * 24)
+        )
+      )
+    : 0;
+
+  const qrStatusLabel = subscription.qrOrderingAddon
+    ? "Ativo"
+    : qrOrderingTrialActive
+    ? `Trial · ${qrTrialDaysLeft} dia(s)`
+    : "Inativo";
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
@@ -421,7 +468,7 @@ export default async function RestaurantOrderingPage({
                 </h1>
 
                 <span className="rounded-full border border-green-300/20 bg-green-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-green-300">
-                  MVP ativo
+                  {qrStatusLabel}
                 </span>
               </div>
 

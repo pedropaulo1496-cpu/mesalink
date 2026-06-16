@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-type Product = "PRO" | "WEBSITE";
+type Product = "PRO" | "WEBSITE" | "QR_ORDERING";
 
 type CheckoutButtonProps = {
   product?: Product;
@@ -36,7 +36,11 @@ export default function CheckoutButton({
   }
 
   const defaultLabel =
-    product === "WEBSITE" ? "Ativar Website →" : "Ativar Pro →";
+    product === "WEBSITE"
+      ? "Ativar Website →"
+      : product === "QR_ORDERING"
+      ? "Ativar QR Ordering →"
+      : "Ativar Pro →";
 
   return (
     <button

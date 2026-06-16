@@ -35,29 +35,55 @@ export async function POST(req: Request) {
       return new Response("Missing userId", { status: 400 });
     }
 
-    if (product === "PRO") {
-      await prisma.subscription.update({
-        where: { userId },
-        data: {
-          plan: "PRO",
-          status: "ACTIVE",
-          priceMonthly: 10,
-          stripeCustomerId: session.customer?.toString(),
-          stripeProSubscriptionId: session.subscription?.toString(),
-        },
-      });
-    }
+    await prisma.subscription.upsert({
+      where: { userId },
+      create: {
+        userId,
+        plan: product === "PRO" ? "PRO" : "FREE",
+        status: "ACTIVE",
+        trialEndsAt: null,
+        restaurantLimit: 1,
+        priceMonthly: product === "PRO" ? 10 : 0,
+        websiteAddon: product === "WEBSITE",
+        qrOrderingAddon: product === "QR_ORDERING",
+        stripeCustomerId: session.customer?.toString(),
+        stripeProSubscriptionId:
+          product === "PRO" ? session.subscription?.toString() : undefined,
+        stripeWebsiteSubscriptionId:
+          product === "WEBSITE" ? session.subscription?.toString() : undefined,
+        stripeQrOrderingSubscriptionId:
+          product === "QR_ORDERING"
+            ? session.subscription?.toString()
+            : undefined,
+      },
+      update: {
+        status: "ACTIVE",
+        trialEndsAt: null,
+        stripeCustomerId: session.customer?.toString(),
 
-    if (product === "WEBSITE") {
-      await prisma.subscription.update({
-        where: { userId },
-        data: {
-          websiteAddon: true,
-          stripeCustomerId: session.customer?.toString(),
-          stripeWebsiteSubscriptionId: session.subscription?.toString(),
-        },
-      });
-    }
+        ...(product === "PRO"
+          ? {
+              plan: "PRO",
+              priceMonthly: 10,
+              stripeProSubscriptionId: session.subscription?.toString(),
+            }
+          : {}),
+
+        ...(product === "WEBSITE"
+          ? {
+              websiteAddon: true,
+              stripeWebsiteSubscriptionId: session.subscription?.toString(),
+            }
+          : {}),
+
+        ...(product === "QR_ORDERING"
+          ? {
+              qrOrderingAddon: true,
+              stripeQrOrderingSubscriptionId: session.subscription?.toString(),
+            }
+          : {}),
+      },
+    });
   }
 
   return new Response("OK");

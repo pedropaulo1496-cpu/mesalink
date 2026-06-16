@@ -87,16 +87,15 @@ const subscription = await prisma.subscription.findUnique({
   },
 });
 
-const trialActive =
+const proTrialActive =
   subscription?.status === "TRIAL" &&
+  subscription.plan === "PRO" &&
   subscription.trialEndsAt &&
   new Date() <= subscription.trialEndsAt;
 
 const isPro =
   subscription?.status === "ACTIVE" &&
   subscription.plan === "PRO";
-
-const hasUnlimitedReservations = trialActive || isPro;
 
 const trialDaysLeft = subscription?.trialEndsAt
   ? Math.max(
@@ -239,6 +238,9 @@ const remainingFreeCovers = Math.max(
               <DashboardLink href={`/restaurants/${id}/website`}>
                 Website
               </DashboardLink>
+              <DashboardLink href={`/restaurants/${id}/qr-ordering`}>
+                QR Ordering
+              </DashboardLink>
               <SignOutButton />
             </div>
           </div>
@@ -290,31 +292,31 @@ const remainingFreeCovers = Math.max(
               />
 
               <MiniMetric
-  label={trialActive ? "Trial" : isPro ? "Pro" : "Free"}
-  value={
-    trialActive
-      ? trialDaysLeft
-      : isPro
-      ? "∞"
-      : remainingFreeCovers
-  }
-  sub={
-    trialActive
-      ? `${trialDaysLeft} dias restantes`
-      : isPro
-      ? "reservas ilimitadas"
-      : `${coversThisMonth}/100 covers usados`
-  }
-  tone={
-    trialActive
-      ? "violet"
-      : isPro
-      ? "cyan"
-      : remainingFreeCovers <= 20
-      ? "yellow"
-      : "blue"
-  }
-/>
+                label={proTrialActive ? "Pro Trial" : isPro ? "Pro" : "Free"}
+                value={
+                  proTrialActive
+                    ? trialDaysLeft
+                    : isPro
+                    ? "∞"
+                    : remainingFreeCovers
+                }
+                sub={
+                  proTrialActive
+                    ? `${trialDaysLeft} dias restantes`
+                    : isPro
+                    ? "reservas ilimitadas"
+                    : `${coversThisMonth}/100 covers usados`
+                }
+                tone={
+                  proTrialActive
+                    ? "violet"
+                    : isPro
+                    ? "cyan"
+                    : remainingFreeCovers <= 20
+                    ? "yellow"
+                    : "blue"
+                }
+              />
 
               {pendingToday.length > 0 && (
                 <MiniMetric
@@ -388,7 +390,7 @@ const remainingFreeCovers = Math.max(
                   Sala
                 </ActionLink>
                 <ActionLink href={`/restaurants/${id}/qr`}>
-                  QR Code
+                  QR Codes
                 </ActionLink>
                 <ActionLink href={`/restaurants/${id}/customers`}>
                   Clientes
@@ -396,6 +398,9 @@ const remainingFreeCovers = Math.max(
                 <ActionLink href={`/restaurants/${id}/website`}>
                   Website
                 </ActionLink>
+                <ActionLink href={`/restaurants/${id}/ordering`}>
+  QR Ordering
+</ActionLink>
                 <ActionLink href={`/restaurants/${id}/settings`}>
                   Definições
                 </ActionLink>
@@ -408,7 +413,7 @@ const remainingFreeCovers = Math.max(
           </aside>
         </section>
 
-        <AddonsSection id={id} slug={restaurant.slug} />
+        <AddonsSection id={id} />
       </div>
 
       <BottomNav id={id} />
@@ -654,22 +659,23 @@ function WebsiteCard({ id, slug }: { id: string; slug: string }) {
   );
 }
 
-function AddonsSection({ id, slug }: { id: string; slug: string }) {
+function AddonsSection({ id }: { id: string }) {
   return (
     <section className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-            Add-ons
+            Trials e add-ons
           </p>
 
           <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
-            Expanda o MesaLink
+            Experimente funcionalidades durante 7 dias
           </h2>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-            Transforme o MesaLink no centro da operação do restaurante: website, IA,
-            marketing, pedidos por QR Code e POS.
+            A conta começa no plano Free. Depois, o restaurante escolhe quando quer
+            experimentar Pro, Website ou QR Ordering durante 7 dias — sem começar
+            tudo automaticamente no primeiro login.
           </p>
         </div>
 
@@ -683,38 +689,40 @@ function AddonsSection({ id, slug }: { id: string; slug: string }) {
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <AddonCard
-          title="Website"
-          icon="🌐"
-          description="Website profissional com templates, menus, galeria, SEO e reservas integradas."
-          price="+10€/mês"
-          status="Disponível"
-          href={`/restaurants/${id}/website`}
-          cta="Criar / editar"
+          title="Pro"
+          icon="⚡"
+          description="Reservas ilimitadas, gestão de mesas, calendário mensal, serviço do dia e histórico de clientes."
+          price="10€/mês"
+          status="Trial 7 dias"
+          href="/billing"
+          cta="Iniciar Trial 7 dias"
           featured
         />
 
         <AddonCard
-          title="IA"
-          icon="🤖"
-          description="Assistente para marketing, descrições de pratos, respostas e sugestões operacionais."
-          price="Brevemente"
-          status="Coming soon"
-          disabled
+          title="Website"
+          icon="🌐"
+          description="Website profissional com templates, menus, galeria, SEO e reservas integradas."
+          price="+10€/mês"
+          status="Trial 7 dias"
+          href={`/restaurants/${id}/website`}
+          cta="Experimentar grátis"
         />
 
         <AddonCard
-          title="Marketing"
-          icon="📣"
-          description="Campanhas, mensagens, promoções e ferramentas para trazer clientes de volta."
-          price="Brevemente"
-          status="Coming soon"
-          disabled
-        />
-
-        <AddonCard
-          title="QR Ordering + POS"
+          title="QR Ordering"
           icon="📲"
-          description="Pedidos por QR Code, conta da mesa e sistema de vendas integrado."
+          description="Menu digital, pedidos por mesa, chamar empregado, pedir conta e alertas no painel."
+          price="+15€/mês"
+          status="Novo"
+          href={`/restaurants/${id}/qr-ordering`}
+          cta="Iniciar Trial 7 dias"
+        />
+
+        <AddonCard
+          title="IA e Marketing"
+          icon="🤖"
+          description="Assistente IA, campanhas, mensagens, promoções e ferramentas para trazer clientes de volta."
           price="Brevemente"
           status="Coming soon"
           disabled
@@ -723,8 +731,8 @@ function AddonsSection({ id, slug }: { id: string; slug: string }) {
 
       <div className="mt-5 rounded-[24px] border border-violet-300/15 bg-violet-500/10 p-5">
         <p className="text-sm font-bold leading-6 text-violet-100">
-          O objetivo é simples: uma app para gerir todo o restaurante — do website às
-          reservas, dos pedidos por QR Code ao POS.
+          Free continua disponível para começar. Os trials são ativados pelo restaurante,
+          funcionalidade a funcionalidade: Pro, Website e QR Ordering.
         </p>
       </div>
     </section>
