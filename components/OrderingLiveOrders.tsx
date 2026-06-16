@@ -75,6 +75,22 @@ async function closeSession(sessionId: string) {
   setSessions(data.sessions || []);
 }
 
+async function resolveAlert(sessionId: string, type: "waiter" | "bill") {
+  const response = await fetch(
+    `/api/restaurants/${restaurantId}/ordering/sessions/${sessionId}/resolve`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type }),
+    }
+  );
+
+  if (!response.ok) return;
+
+  const data = await response.json();
+  setSessions(data.sessions || []);
+}
+
   useEffect(() => {
     const interval = setInterval(() => {
       refreshOrders();
@@ -104,6 +120,36 @@ async function closeSession(sessionId: string) {
                   {session.orders.length} pedido(s)
                 </p>
               </div>
+
+              {(session.requestedWaiterAt || session.requestedBillAt) && (
+  <div className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 p-4">
+    <p className="text-xs font-black uppercase tracking-[0.18em] text-red-300">
+      Ações pendentes
+    </p>
+
+    <div className="mt-3 flex flex-wrap gap-2">
+      {session.requestedWaiterAt && (
+        <button
+          type="button"
+          onClick={() => resolveAlert(session.id, "waiter")}
+          className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-cyan-300"
+        >
+          🔔 Resolver empregado
+        </button>
+      )}
+
+      {session.requestedBillAt && (
+        <button
+          type="button"
+          onClick={() => resolveAlert(session.id, "bill")}
+          className="rounded-full border border-yellow-300/20 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-yellow-300"
+        >
+          🧾 Resolver conta
+        </button>
+      )}
+    </div>
+  </div>
+)}
 
               {(session.requestedWaiterAt || session.requestedBillAt) && (
                 <span className="rounded-full bg-red-500/20 px-3 py-1 text-xs font-black text-red-300">
