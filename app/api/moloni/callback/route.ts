@@ -1,21 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-function getCookie(request: Request, name: string) {
-  return request.headers
-    .get("cookie")
-    ?.split(";")
-    .map((cookie) => cookie.trim())
-    .find((cookie) => cookie.startsWith(`${name}=`))
-    ?.split("=")[1];
-}
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get("code");
 
-    const restaurantId = getCookie(request, "moloni_restaurant_id");
+    const restaurantId = searchParams.get("restaurantId");
 
     if (!restaurantId) {
       return NextResponse.json(
@@ -33,9 +25,10 @@ export async function GET(request: Request) {
 
     const developerId = process.env.MOLONI_DEVELOPER_ID;
     const clientSecret = process.env.MOLONI_CLIENT_SECRET;
-    const redirectUri = process.env.MOLONI_REDIRECT_URI;
+    const baseRedirectUri = process.env.MOLONI_REDIRECT_URI;
+const redirectUri = `${baseRedirectUri}?restaurantId=${restaurantId}`;
 
-    if (!developerId || !clientSecret || !redirectUri) {
+    if (!developerId || !clientSecret || !baseRedirectUri) {
       return NextResponse.json(
         { error: "Moloni não configurado no servidor." },
         { status: 500 },
@@ -91,8 +84,6 @@ export async function GET(request: Request) {
     const redirect = NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_APP_URL}/restaurants/${restaurantId}/pos`,
     );
-
-    redirect.cookies.delete("moloni_restaurant_id");
 
     return redirect;
   } catch (error: any) {

@@ -12,14 +12,16 @@ export async function GET(request: Request) {
   }
 
   const developerId = process.env.MOLONI_DEVELOPER_ID;
-  const redirectUri = process.env.MOLONI_REDIRECT_URI;
+  const baseRedirectUri = process.env.MOLONI_REDIRECT_URI;
 
-  if (!developerId || !redirectUri) {
+  if (!developerId || !baseRedirectUri) {
     return NextResponse.json(
       { error: "Moloni não configurado." },
       { status: 500 },
     );
   }
+
+  const redirectUri = `${baseRedirectUri}?restaurantId=${restaurantId}`;
 
   const url =
     "https://www.moloni.pt/ac/root/oauth/?" +
@@ -29,15 +31,5 @@ export async function GET(request: Request) {
       redirect_uri: redirectUri,
     });
 
-  const response = NextResponse.redirect(url);
-
-  response.cookies.set("moloni_restaurant_id", restaurantId, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 10 * 60,
-  });
-
-  return response;
+  return NextResponse.redirect(url);
 }
