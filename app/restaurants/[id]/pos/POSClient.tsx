@@ -3,6 +3,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+type POSReport = {
+  totalRevenue: number;
+  totalPayments: number;
+  totalGuests: number;
+  averageTicket: number;
+  averagePerGuest: number;
+  byMethod: {
+    CASH: number;
+    CARD: number;
+    BANK_TRANSFER: number;
+  };
+  topProducts: {
+    name: string;
+    quantity: number;
+    revenue: number;
+  }[];
+};
+
 type FiscalDocument = {
   id: string;
   documentType: string;
@@ -286,6 +304,8 @@ export default function POSClient({
   pendingOrders: QRPendingOrder[];
   qrAlerts: QRAlert[];
 }) {
+  const [report, setReport] = useState<POSReport | null>(null);
+const [loadingReport, setLoadingReport] = useState(false);
   const [documents, setDocuments] = useState<FiscalDocument[]>([]);
 const [loadingDocuments, setLoadingDocuments] = useState(false);
 const [fiscalIntegration, setFiscalIntegration] = useState<any>(null);
@@ -1138,6 +1158,29 @@ async function rejectQrOrder(orderId: string) {
   }
 }
 
+async function loadReport() {
+  setLoadingReport(true);
+
+  try {
+    const response = await fetch(
+      `/api/restaurants/${restaurantId}/pos/reports`,
+    );
+
+    if (!response.ok) {
+      setReport(null);
+      return;
+    }
+
+    const data = await response.json();
+
+    setReport(data);
+  } catch {
+    setReport(null);
+  } finally {
+    setLoadingReport(false);
+  }
+}
+
   useEffect(() => {
     if (posTab !== "HISTORY") return;
 
@@ -1154,6 +1197,12 @@ async function rejectQrOrder(orderId: string) {
   if (posTab !== "FISCAL") return;
 
   loadFiscalSettings();
+}, [posTab]);
+
+useEffect(() => {
+  if (posTab !== "STATS") return;
+
+  loadReport();
 }, [posTab]);
 
   return (
@@ -1284,7 +1333,7 @@ async function rejectQrOrder(orderId: string) {
 )}
 
 {!selectedTableId && posTab === "STATS" && (
-  <ComingSoonView label="Estatísticas" />
+  <StatsView report={report} loading={loadingReport} />
 )}
 
         {selectedTableId && (
@@ -2186,6 +2235,90 @@ function InfoCard({
       <p className="mt-2 font-black text-[#0E0D0C]">
         {value}
       </p>
+    </div>
+  );
+}
+
+function StatsView({
+  report,
+  loading,
+}: {
+  report: POSReport | null;
+  loading: boolean;
+}) {
+  if (loading) {
+    return (
+      <section className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white p-8">
+        <p className="text-sm font-black text-[#8B7C68]">A carregar estatísticas...</p>
+      </section>
+    );
+  }
+
+  if (!report) {
+    return (
+      <section className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white p-8 text-center">
+        <p className="text-sm font-black text-[#8B7C68]">Sem dados para mostrar.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-6">
+      <div className="mb-6">
+        <p className="text-[11px] font-black uppercase tracking-[0.36em] text-[#B58A45]">
+          Estatísticas
+        </p>
+        <h2 className="mt-2 text-[32px] font-black tracking-[-0.05em] text-[#0E0D0C]">
+          Relatório de hoje
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
+        <SmallMetric label="Faturado" value={formatMoney(report.totalRevenue)} />
+        <SmallMetric label="Pagamentos" value={String(report.totalPayments)} />
+        <SmallMetric label="Pessoas" value={String(report.totalGuests)} />
+        <SmallMetric label="Ticket médio" value={formatMoney(report.averageTicket)} />
+        <SmallMetric label="Por pessoa" value={formatMoney(report.averagePerGuest)} />
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-2">
+        <div className="rounded-[24px] border border-[#E8E0D4] bg-[#FCFBF9] p-5">
+          <h3 className="text-sm font-black text-[#0E0D0C]">Métodos de pagamento</h3>
+
+          <div className="mt-4 space-y-3">
+            <ReportRow label="Dinheiro" value={formatMoney(report.byMethod.CASH)} />
+            <ReportRow label="Multibanco" value={formatMoney(report.byMethod.CARD)} />
+            <ReportRow label="Transferência" value={formatMoney(report.byMethod.BANK_TRANSFER)} />
+          </div>
+        </div>
+
+        <div className="rounded-[24px] border border-[#E8E0D4] bg-[#FCFBF9] p-5">
+          <h3 className="text-sm font-black text-[#0E0D0C]">Produtos mais vendidos</h3>
+
+          <div className="mt-4 space-y-3">
+            {report.topProducts.length === 0 ? (
+              <p className="text-sm font-bold text-[#8B7C68]">Ainda sem produtos vendidos.</p>
+            ) : (
+              report.topProducts.map((product) => (
+                <ReportRow
+                  key={product.name}
+                  label={`${product.quantity} × ${product.name}`}
+                  value={formatMoney(product.revenue)}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ReportRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-[#E8E0D4] pb-2 last:border-b-0">
+      <span className="text-sm font-bold text-[#7D746A]">{label}</span>
+      <span className="text-sm font-black text-[#0E0D0C]">{value}</span>
     </div>
   );
 }
