@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const restaurantId = searchParams.get("restaurantId");
+
+  if (!restaurantId) {
+    return NextResponse.json(
+      { error: "restaurantId em falta." },
+      { status: 400 },
+    );
+  }
+
   const developerId = process.env.MOLONI_DEVELOPER_ID;
   const redirectUri = process.env.MOLONI_REDIRECT_URI;
 
@@ -19,10 +29,15 @@ export async function GET() {
       redirect_uri: redirectUri,
     });
 
-console.log(
-  process.env.MOLONI_DEVELOPER_ID,
-  process.env.MOLONI_REDIRECT_URI,
-);
+  const response = NextResponse.redirect(url);
 
-  return NextResponse.redirect(url);
+  response.cookies.set("moloni_restaurant_id", restaurantId, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 10 * 60,
+  });
+
+  return response;
 }
