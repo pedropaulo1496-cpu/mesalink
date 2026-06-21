@@ -152,6 +152,14 @@ type POSPayment = {
   createdAt: string | Date;
 };
 
+type POSCashMovement = {
+  id: string;
+  type: "IN" | "OUT" | string;
+  amount: unknown;
+  reason?: string | null;
+  createdAt: string | Date;
+};
+
 type POSCashRegister = {
   id: string;
   status: string;
@@ -162,6 +170,7 @@ type POSCashRegister = {
   openedAt: string | Date;
   closedAt?: string | Date | null;
   payments: POSPayment[];
+  movements: POSCashMovement[];
 };
 
 type POSHistoryPayment = {
@@ -356,6 +365,20 @@ const [loadingFiscal, setLoadingFiscal] = useState(false);
   const [editingLine, setEditingLine] = useState<AccountLine | null>(null);
   const [savingLine, setSavingLine] = useState(false);
   const [editingCartProductId, setEditingCartProductId] = useState<string | null>(null);
+  const [showCashMovementModal, setShowCashMovementModal] =
+  useState(false);
+
+const [cashMovementType, setCashMovementType] =
+  useState<"IN" | "OUT">("OUT");
+
+const [cashMovementAmount, setCashMovementAmount] =
+  useState("");
+
+const [cashMovementReason, setCashMovementReason] =
+  useState("");
+
+const [savingCashMovement, setSavingCashMovement] =
+  useState(false);
 
   const selectedTable = useMemo(
     () => tables.find((table) => table.id === selectedTableId) ?? null,
@@ -402,8 +425,21 @@ const [loadingFiscal, setLoadingFiscal] = useState(false);
     .filter((payment) => payment.method === "BANK_TRANSFER")
     .reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
   const registerTotal = cashTotal + cardTotal + transferTotal;
-  const expectedCash =
-    Number(openCashRegister?.openingAmount ?? 0) + cashTotal;
+  const cashMovements = openCashRegister?.movements ?? [];
+
+const cashInTotal = cashMovements
+  .filter((movement) => movement.type === "IN")
+  .reduce((sum, movement) => sum + Number(movement.amount ?? 0), 0);
+
+const cashOutTotal = cashMovements
+  .filter((movement) => movement.type === "OUT")
+  .reduce((sum, movement) => sum + Number(movement.amount ?? 0), 0);
+
+const expectedCash =
+  Number(openCashRegister?.openingAmount ?? 0) +
+  cashTotal +
+  cashInTotal -
+  cashOutTotal;
 
   const total = cart.reduce((sum, item) => sum + getCartItemTotal(item), 0);
 
@@ -975,6 +1011,46 @@ async function applyDiscount(data: {
     router.refresh();
   }
 
+  async function createCashMovement() {
+  if (!cashMovementAmount) return;
+
+  try {
+    setSavingCashMovement(true);
+
+    const response = await fetch(
+      `/api/restaurants/${restaurantId}/pos/cash-movements`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: cashMovementType,
+          amount: Number(cashMovementAmount),
+          reason: cashMovementReason,
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data?.error ?? "Erro ao guardar movimento.");
+      return;
+    }
+
+    setShowCashMovementModal(false);
+    setCashMovementAmount("");
+    setCashMovementReason("");
+
+    window.location.reload();
+  } catch {
+    alert("Erro ao guardar movimento.");
+  } finally {
+    setSavingCashMovement(false);
+  }
+}
+
   async function closeCashRegisterAction() {
     if (!openCashRegister) return;
 
@@ -1290,6 +1366,14 @@ useEffect(() => {
             transferTotal={transferTotal}
             registerTotal={registerTotal}
             expectedCash={expectedCash}
+            onCashIn={() => {
+  setCashMovementType("IN");
+  setShowCashMovementModal(true);
+}}
+onCashOut={() => {
+  setCashMovementType("OUT");
+  setShowCashMovementModal(true);
+}}
             onOpenCash={() => setCashModal("OPEN")}
             onCloseCash={() => {
               setClosingAmount(String(expectedCash.toFixed(2)));
@@ -1502,6 +1586,19 @@ useEffect(() => {
           onConfirm={closeCashRegisterAction}
         />
       )}
+
+      {showCashMovementModal && (
+  <CashMovementModal
+    type={cashMovementType}
+    amount={cashMovementAmount}
+    reason={cashMovementReason}
+    loading={savingCashMovement}
+    onChangeAmount={setCashMovementAmount}
+    onChangeReason={setCashMovementReason}
+    onClose={() => setShowCashMovementModal(false)}
+    onConfirm={createCashMovement}
+  />
+)}
 
       {transferOpen && (
        <TransferTableModal
@@ -1794,6 +1891,8 @@ function CashRegisterView({
   expectedCash,
   onOpenCash,
   onCloseCash,
+  onCashIn,
+  onCashOut,
 }: {
   openCashRegister: POSCashRegister | null;
   openingAmount: number;
@@ -1804,6 +1903,8 @@ function CashRegisterView({
   expectedCash: number;
   onOpenCash: () => void;
   onCloseCash: () => void;
+  onCashIn: () => void;
+  onCashOut: () => void;
 }) {
   if (!openCashRegister) {
     return (
@@ -1858,12 +1959,30 @@ function CashRegisterView({
           </p>
         </div>
 
-        <button
-          onClick={onCloseCash}
-          className="rounded-2xl border border-[#D8AE62] bg-white px-5 py-3 text-sm font-black text-[#0E0D0C] transition hover:bg-[#FBF4E8]"
-        >
-          Fechar caixa
-        </button>
+        <div className="flex gap-2">
+  <button
+    onClick={() => {
+      onCashIn();
+    }}
+    className="rounded-2xl border border-[#D7EAD9] bg-[#F4FFF5] px-4 py-3 text-sm font-black text-[#166534]"
+  >
+    + Entrada
+  </button>
+
+  <button
+    onClick={onCashOut}
+    className="rounded-2xl border border-[#F1D5D5] bg-[#FFF5F5] px-4 py-3 text-sm font-black text-[#991B1B]"
+  >
+    - Saída
+  </button>
+
+  <button
+    onClick={onCloseCash}
+    className="rounded-2xl border border-[#D8AE62] bg-white px-5 py-3 text-sm font-black text-[#0E0D0C] transition hover:bg-[#FBF4E8]"
+  >
+    Fechar caixa
+  </button>
+</div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
@@ -1881,6 +2000,48 @@ function CashRegisterView({
           </div>
         ))}
       </div>
+
+      {openCashRegister.movements.length > 0 && (
+  <div className="mt-5 rounded-[24px] border border-[#E8E0D4] bg-white p-5">
+    <p className="text-xs font-black uppercase tracking-[0.22em] text-[#B58A45]">
+      Movimentos de caixa
+    </p>
+
+    <div className="mt-4 space-y-3">
+      {openCashRegister.movements.map((movement) => {
+        const isIn = movement.type === "IN";
+
+        return (
+          <div
+            key={movement.id}
+            className="flex items-center justify-between rounded-2xl border border-[#EEE7DD] bg-[#FCFBF9] px-4 py-3"
+          >
+            <div>
+              <p className="text-sm font-black text-[#0E0D0C]">
+                {isIn ? "Entrada" : "Saída"}
+              </p>
+
+              <p className="mt-1 text-xs font-bold text-[#8B7C68]">
+                {movement.reason || "Sem motivo"}
+              </p>
+            </div>
+
+            <p
+              className={
+                isIn
+                  ? "text-sm font-black text-[#166534]"
+                  : "text-sm font-black text-[#991B1B]"
+              }
+            >
+              {isIn ? "+" : "-"}
+              {formatMoney(Number(movement.amount ?? 0))}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
 
       <div className="mt-5 rounded-[24px] border border-[#E8E0D4] bg-white p-5">
         <p className="text-xs font-black uppercase tracking-[0.22em] text-[#B58A45]">
@@ -2491,6 +2652,98 @@ function CashRegisterModal({
             : isClosing
               ? "Fechar caixa"
               : "Abrir caixa"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CashMovementModal({
+  type,
+  amount,
+  reason,
+  loading,
+  onChangeAmount,
+  onChangeReason,
+  onClose,
+  onConfirm,
+}: {
+  type: "IN" | "OUT";
+  amount: string;
+  reason: string;
+  loading: boolean;
+  onChangeAmount: (value: string) => void;
+  onChangeReason: (value: string) => void;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const isIn = type === "IN";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#11100F]/45 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-[430px] rounded-[32px] border border-[#E8E0D4] bg-white p-7 shadow-[0_30px_90px_rgba(0,0,0,0.22)]">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.38em] text-[#B58A45]">
+              Movimento de caixa
+            </p>
+            <h3 className="mt-3 text-[34px] font-black tracking-[-0.06em] text-[#0E0D0C]">
+              {isIn ? "Entrada" : "Saída"}
+            </h3>
+            <p className="mt-2 text-sm font-medium text-[#7D746A]">
+              {isIn
+                ? "Regista dinheiro que entrou na caixa."
+                : "Regista dinheiro retirado da caixa, como compras ou trocos."}
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E8E0D4] text-lg font-black text-[#8B7C68] transition hover:bg-[#F7F1E8] disabled:opacity-50"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="mt-7 rounded-[26px] border border-[#E8E0D4] bg-[#FCFBF9] p-5">
+          <label className="text-xs font-black uppercase tracking-[0.22em] text-[#8B7C68]">
+            Valor
+          </label>
+
+          <div className="mt-3 flex items-center gap-3">
+            <input
+              value={amount}
+              onChange={(event) => onChangeAmount(event.target.value)}
+              inputMode="decimal"
+              className="h-16 min-w-0 flex-1 rounded-2xl border border-[#E8E0D4] bg-white px-4 text-[30px] font-black tracking-[-0.06em] text-[#0E0D0C] outline-none focus:border-[#C99B4F]"
+              placeholder="0.00"
+            />
+            <span className="text-2xl font-black text-[#8B7C68]">€</span>
+          </div>
+
+          <label className="mt-5 block text-xs font-black uppercase tracking-[0.22em] text-[#8B7C68]">
+            Motivo
+          </label>
+
+          <input
+            value={reason}
+            onChange={(event) => onChangeReason(event.target.value)}
+            className="mt-3 h-12 w-full rounded-2xl border border-[#E8E0D4] bg-white px-4 text-sm font-bold text-[#0E0D0C] outline-none focus:border-[#C99B4F]"
+            placeholder={isIn ? "Ex: Reforço de caixa" : "Ex: Compras supermercado"}
+          />
+        </div>
+
+        <button
+          onClick={onConfirm}
+          disabled={loading}
+          className={
+            isIn
+              ? "mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-[#166534] text-sm font-black text-white shadow-[0_16px_34px_rgba(22,101,52,0.22)] transition hover:opacity-90 disabled:opacity-50"
+              : "mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-[#991B1B] text-sm font-black text-white shadow-[0_16px_34px_rgba(153,27,27,0.22)] transition hover:opacity-90 disabled:opacity-50"
+          }
+        >
+          {loading ? "A guardar..." : isIn ? "Guardar entrada" : "Guardar saída"}
         </button>
       </div>
     </div>

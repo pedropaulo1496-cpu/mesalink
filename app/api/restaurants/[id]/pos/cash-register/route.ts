@@ -36,7 +36,7 @@ export async function POST(
       cashRegister,
     });
   } catch (error) {
-    console.error(error);
+    console.error("POS CASH REGISTER OPEN ERROR:", error);
 
     return NextResponse.json(
       { error: "Erro interno" },
@@ -68,6 +68,7 @@ export async function PATCH(
       },
       include: {
         payments: true,
+        movements: true,
       },
     });
 
@@ -82,7 +83,17 @@ export async function PATCH(
       .filter((payment) => payment.method === "CASH")
       .reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
 
-    const expectedCash = Number(cashRegister.openingAmount ?? 0) + cashTotal;
+    const cashIn = cashRegister.movements
+      .filter((movement) => movement.type === "IN")
+      .reduce((sum, movement) => sum + Number(movement.amount ?? 0), 0);
+
+    const cashOut = cashRegister.movements
+      .filter((movement) => movement.type === "OUT")
+      .reduce((sum, movement) => sum + Number(movement.amount ?? 0), 0);
+
+    const expectedCash =
+      Number(cashRegister.openingAmount ?? 0) + cashTotal + cashIn - cashOut;
+
     const countedCash = Number(closingAmount ?? 0);
     const difference = countedCash - expectedCash;
 
@@ -101,9 +112,11 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
+      expectedCash,
+      difference,
     });
   } catch (error) {
-    console.error(error);
+    console.error("POS CASH REGISTER CLOSE ERROR:", error);
 
     return NextResponse.json(
       { error: "Erro interno" },

@@ -17,8 +17,10 @@ export default async function RestaurantPOSPage({
     where: { id },
     include: {
       posCashRegisters: {
-        where: { status: "OPEN" },
-        include: { payments: true },
+        include: {
+          payments: true,
+          movements: true,
+        },
         orderBy: { openedAt: "desc" },
       },
 
@@ -133,21 +135,41 @@ export default async function RestaurantPOSPage({
 
   const cashRegisters = restaurant.posCashRegisters.map((register) => ({
     ...register,
+
     openingAmount: Number(register.openingAmount),
+
     closingAmount:
-      register.closingAmount === null ? null : Number(register.closingAmount),
+      register.closingAmount === null
+        ? null
+        : Number(register.closingAmount),
+
     expectedCash:
-      register.expectedCash === null ? null : Number(register.expectedCash),
+      register.expectedCash === null
+        ? null
+        : Number(register.expectedCash),
+
     difference:
-      register.difference === null ? null : Number(register.difference),
+      register.difference === null
+        ? null
+        : Number(register.difference),
 
     payments: register.payments.map((payment) => ({
       ...payment,
+
       amount: Number(payment.amount),
+
       receivedAmount:
-        payment.receivedAmount === null ? null : Number(payment.receivedAmount),
+        payment.receivedAmount === null
+          ? null
+          : Number(payment.receivedAmount),
+
       changeAmount:
         payment.changeAmount === null ? null : Number(payment.changeAmount),
+    })),
+
+    movements: register.movements.map((movement) => ({
+      ...movement,
+      amount: Number(movement.amount),
     })),
   }));
 

@@ -187,6 +187,7 @@ model Restaurant {
   posReceipts       POSReceipt[]
   posTableTransfers POSTableTransfer[]
   posDiscountCodes  POSDiscountCode[]
+  posCashMovements  POSCashMovement[]
 }
 
 model WebsiteMenu {
@@ -714,7 +715,8 @@ model POSCashRegister {
   openedAt DateTime  @default(now())
   closedAt DateTime?
 
-  payments POSPayment[]
+  payments  POSPayment[]
+  movements POSCashMovement[]
 }
 
 model POSDiscount {
@@ -814,4 +816,28 @@ model POSDiscountCode {
   @@unique([restaurantId, code])
   @@index([restaurantId])
   @@index([code])
+}
+
+model POSCashMovement {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  cashRegisterId String
+  cashRegister   POSCashRegister @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+
+  type String
+  // IN
+  // OUT
+
+  amount Decimal @db.Decimal(10, 2)
+
+  reason String?
+
+  createdAt DateTime @default(now())
+
+  @@index([restaurantId])
+  @@index([cashRegisterId])
+  @@index([type])
 }
