@@ -157,10 +157,36 @@ model Restaurant {
 
   orderingTableSessions OrderingTableSession[]
 
-  qrOrderingEnabled  Boolean @default(true)
-  qrAllowWaiterCall  Boolean @default(true)
-  qrAllowBillRequest Boolean @default(true)
-  qrWelcomeMessage   String?
+  qrOrderingEnabled       Boolean           @default(true)
+  qrAllowWaiterCall       Boolean           @default(true)
+  qrAllowBillRequest      Boolean           @default(true)
+  qrWelcomeMessage        String?
+  floorRooms              FloorRoom[]
+  marketingActions        MarketingAction[]
+  googleReviewUrl         String?
+  reviewRedirectThreshold Int               @default(4)
+  averageTicket           Float?            @default(25)
+  birthdayOffer           String?
+  recoveryOffer           String?
+  vipOffer                String?
+  bronzeVipOffer          String?
+  silverVipOffer          String?
+  goldVipOffer            String?
+  platinumVipOffer        String?
+  posEnabled              Boolean           @default(false)
+
+  posOrders   POSOrder[]
+  posPayments POSPayment[]
+
+  posTableSessions POSTableSession[]
+
+  fiscalIntegration FiscalIntegration?
+  fiscalDocuments   FiscalDocument[]
+  posCashRegisters  POSCashRegister[]
+  posDiscounts      POSDiscount[]
+  posReceipts       POSReceipt[]
+  posTableTransfers POSTableTransfer[]
+  posDiscountCodes  POSDiscountCode[]
 }
 
 model WebsiteMenu {
@@ -170,11 +196,29 @@ model WebsiteMenu {
 
   sortOrder Int @default(0)
 
+  roomId String?
+  room   FloorRoom? @relation(fields: [roomId], references: [id])
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
+  restaurantId String?
+}
+
+model FloorRoom {
+  id String @id @default(cuid())
+
+  name      String
+  sortOrder Int    @default(0)
+
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  tables Table[]
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  websiteMenus WebsiteMenu[]
 }
 
 model Table {
@@ -190,10 +234,13 @@ model Table {
 
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  roomId       String?
+  room         FloorRoom? @relation(fields: [roomId], references: [id])
 
   reservations Reservation[]
 
-  createdAt DateTime @default(now())
+  createdAt        DateTime          @default(now())
+  posTableSessions POSTableSession[]
 }
 
 model Customer {
@@ -207,6 +254,21 @@ model Customer {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  marketingOptIn    Boolean           @default(false)
+  marketingJoinedAt DateTime?
+  birthDate         DateTime?
+  lastVisitAt       DateTime?
+  visitCount        Int               @default(0)
+  vipTier           String?
+  marketingActions  MarketingAction[]
+  totalVisits       Int               @default(0)
+
+  lastReservationAt DateTime?
+  riskScore         Int               @default(0)
+  notes             String?
+  tags              String[]
+  posTableSessions  POSTableSession[]
 }
 
 model Reservation {
@@ -223,13 +285,7 @@ model Reservation {
   source      String  @default("MANUAL")
   cancelledBy String?
 
-  // CONFIRMED
-  // PENDING
-  // SEATED
-  // FINISHED
-  // NO_SHOW
-  // CANCELLED
-  // REJECTED
+  notes String?
 
   approvalReason String?
 
@@ -242,7 +298,8 @@ model Reservation {
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id])
 
-  createdAt DateTime @default(now())
+  createdAt        DateTime          @default(now())
+  posTableSessions POSTableSession[]
 }
 
 model PasswordResetToken {
@@ -265,7 +322,8 @@ model OrderingCategory {
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id])
 
-  products OrderingProduct[]
+  products    OrderingProduct[]
+  activeInPOS Boolean           @default(true)
 }
 
 model OrderingProduct {
@@ -289,8 +347,14 @@ model OrderingProduct {
 
   category OrderingCategory @relation(fields: [categoryId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @default(now()) @updatedAt
+  activeInPOS      Boolean        @default(true)
+  activeInOrdering Boolean        @default(true)
+  activeOnWebsite  Boolean        @default(true)
+  posorderItems    POSOrderItem[]
+  productionCenter String         @default("KITCHEN")
+  printName        String?
 }
 
 model OrderingOrder {
@@ -298,14 +362,23 @@ model OrderingOrder {
   restaurantId String
 
   tableNumber Int
+  tableId     String?
 
   status String @default("PENDING")
+  // PENDING
+  // ACCEPTED
+  // REJECTED
 
   subtotal Decimal @default(0) @db.Decimal(10, 2)
   vatTotal Decimal @default(0) @db.Decimal(10, 2)
   total    Decimal @default(0) @db.Decimal(10, 2)
 
   notes String?
+
+  posOrderId String?
+  acceptedAt DateTime?
+  rejectedAt DateTime?
+  printedAt  DateTime?
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id])
 
@@ -354,4 +427,391 @@ model OrderingTableSession {
 
   requestedBillAt   DateTime?
   requestedWaiterAt DateTime?
+}
+
+model MarketingAutomation {
+  id           String @id @default(cuid())
+  restaurantId String
+
+  type    String
+  name    String
+  enabled Boolean @default(true)
+
+  triggerDays     Int?
+  ratingThreshold Int?
+
+  subject   String?
+  message   String?
+  offerType String?
+  offerText String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReviewFeedback {
+  id            String  @id @default(cuid())
+  restaurantId  String
+  customerId    String?
+  reservationId String?
+
+  rating             Int
+  comment            String?
+  redirectedToGoogle Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+model MarketingAction {
+  id String @id @default(cuid())
+
+  restaurantId String
+  customerId   String?
+  automationId String?
+
+  type   String
+  status String @default("SENT")
+
+  sentAt      DateTime  @default(now())
+  openedAt    DateTime?
+  clickedAt   DateTime?
+  bookedAt    DateTime?
+  convertedAt DateTime?
+
+  reservationId String?
+
+  estimatedRevenue Decimal? @db.Decimal(10, 2)
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  customer Customer? @relation(fields: [customerId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model POSTableSession {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  tableId String?
+  table   Table?  @relation(fields: [tableId], references: [id])
+
+  reservationId String?
+  reservation   Reservation? @relation(fields: [reservationId], references: [id])
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  status String @default("OPEN")
+
+  totalAmount Decimal @default(0) @db.Decimal(10, 2)
+
+  openedAt DateTime  @default(now())
+  closedAt DateTime?
+
+  orders     POSOrder[]
+  guestCount Int        @default(1)
+
+  subtotalAmount Decimal @default(0) @db.Decimal(10, 2)
+  discountAmount Decimal @default(0) @db.Decimal(10, 2)
+
+  customerNif  String?
+  customerName String?
+
+  openedBy String?
+  closedBy String?
+
+  consultationCount Int @default(0)
+
+  payments        POSPayment[]
+  discounts       POSDiscount[]
+  receipts        POSReceipt[]
+  paidAmount      Decimal          @default(0)
+  remainingAmount Decimal          @default(0)
+  invoiceStatus   String           @default("NONE")
+  invoiceId       String?
+  invoiceNumber   String?
+  invoiceUrl      String?
+  invoiceIssuedAt DateTime?
+  fiscalDocuments FiscalDocument[]
+}
+
+model POSOrder {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  tableSessionId String?
+  tableSession   POSTableSession? @relation(fields: [tableSessionId], references: [id])
+
+  source String @default("POS")
+
+  status String @default("OPEN")
+
+  subtotal Decimal @default(0) @db.Decimal(10, 2)
+
+  items POSOrderItem[]
+
+  createdAt   DateTime @default(now())
+  orderNumber Int?
+
+  discountAmount Decimal @default(0) @db.Decimal(10, 2)
+
+  kitchenNotes  String?
+  customerNotes String?
+
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model POSOrderItem {
+  id String @id @default(cuid())
+
+  orderId String
+  order   POSOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String?
+  product   OrderingProduct? @relation(fields: [productId], references: [id])
+
+  productName String
+
+  quantity Int
+
+  unitPrice Decimal @db.Decimal(10, 2)
+
+  totalPrice Decimal @db.Decimal(10, 2)
+
+  paidQuantity   Int @default(0)
+  voidedQuantity Int @default(0)
+
+  notes String?
+
+  createdAt      DateTime @default(now())
+  discountType   String?
+  discountValue  Decimal? @db.Decimal(10, 2)
+  discountAmount Decimal  @default(0) @db.Decimal(10, 2)
+
+  kitchenNotes String?
+}
+
+model POSPayment {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  tableSessionId String?
+  tableSession   POSTableSession? @relation(fields: [tableSessionId], references: [id])
+
+  cashRegisterId String?
+  cashRegister   POSCashRegister? @relation(fields: [cashRegisterId], references: [id])
+
+  amount Decimal @db.Decimal(10, 2)
+
+  method String
+  status String @default("PAID")
+
+  receivedAmount Decimal? @db.Decimal(10, 2)
+  changeAmount   Decimal? @db.Decimal(10, 2)
+
+  reference String?
+
+  createdAt      DateTime        @default(now())
+  fiscalDocument FiscalDocument?
+}
+
+model FiscalIntegration {
+  id String @id @default(cuid())
+
+  restaurantId String     @unique
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  provider String @default("MOLONI")
+
+  clientId     String?
+  clientSecret String? @db.Text
+
+  companyId String?
+
+  invoiceSerieId           String?
+  simplifiedInvoiceSerieId String?
+  creditNoteSerieId        String?
+
+  accessToken    String?   @db.Text
+  refreshToken   String?   @db.Text
+  tokenExpiresAt DateTime?
+
+  oauthState String?
+
+  active Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FiscalDocument {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  paymentId String?     @unique
+  payment   POSPayment? @relation(fields: [paymentId], references: [id])
+
+  tableSessionId String?
+  tableSession   POSTableSession? @relation(fields: [tableSessionId], references: [id])
+
+  documentType String
+  // INVOICE
+  // SIMPLIFIED_INVOICE
+  // RECEIPT
+  // CREDIT_NOTE
+
+  status String @default("DRAFT")
+  // DRAFT
+  // ISSUED
+  // CANCELLED
+
+  provider String @default("MOLONI")
+
+  externalId     String?
+  documentNumber String?
+
+  totalAmount Decimal @db.Decimal(10, 2)
+
+  pdfUrl String?
+
+  relatedDocumentId String?
+  relatedDocument   FiscalDocument?  @relation("FiscalCreditNoteRelation", fields: [relatedDocumentId], references: [id])
+  creditNotes       FiscalDocument[] @relation("FiscalCreditNoteRelation")
+
+  issuedAt  DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([restaurantId])
+  @@index([paymentId])
+  @@index([tableSessionId])
+  @@index([documentType])
+  @@index([status])
+}
+
+model POSCashRegister {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  status String @default("OPEN")
+
+  openingAmount Decimal  @default(0) @db.Decimal(10, 2)
+  closingAmount Decimal? @db.Decimal(10, 2)
+
+  expectedCash Decimal? @db.Decimal(10, 2)
+  difference   Decimal? @db.Decimal(10, 2)
+
+  openedAt DateTime  @default(now())
+  closedAt DateTime?
+
+  payments POSPayment[]
+}
+
+model POSDiscount {
+  id String @id @default(cuid())
+
+  tableSessionId String?
+  orderItemId    String?
+
+  type String // AMOUNT | PERCENTAGE
+
+  value Decimal @db.Decimal(10, 2)
+
+  amount Decimal @db.Decimal(10, 2)
+
+  reason String?
+
+  createdAt         DateTime         @default(now())
+  discountCodeId    String?
+  discountCode      POSDiscountCode? @relation(fields: [discountCodeId], references: [id])
+  restaurant        Restaurant?      @relation(fields: [restaurantId], references: [id])
+  restaurantId      String?
+  postableSession   POSTableSession? @relation(fields: [pOSTableSessionId], references: [id])
+  pOSTableSessionId String?
+}
+
+model POSReceipt {
+  id String @id @default(cuid())
+
+  tableSessionId String
+
+  type String
+  // CONSULTATION
+  // FINAL
+  // INVOICE
+
+  subtotal Decimal @db.Decimal(10, 2)
+
+  discountAmount Decimal @default(0) @db.Decimal(10, 2)
+
+  total Decimal @db.Decimal(10, 2)
+
+  printedAt         DateTime         @default(now())
+  restaurant        Restaurant?      @relation(fields: [restaurantId], references: [id])
+  restaurantId      String?
+  postableSession   POSTableSession? @relation(fields: [pOSTableSessionId], references: [id])
+  pOSTableSessionId String?
+}
+
+model POSTableTransfer {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  fromTableId String?
+  toTableId   String?
+
+  fromSessionId String?
+  toSessionId   String?
+
+  reason String?
+
+  createdAt DateTime @default(now())
+
+  @@index([restaurantId])
+  @@index([fromSessionId])
+  @@index([toSessionId])
+}
+
+model POSDiscountCode {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  code String
+
+  type  String // AMOUNT | PERCENTAGE
+  value Decimal @db.Decimal(10, 2)
+
+  active Boolean @default(true)
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  maxUses   Int?
+  usedCount Int  @default(0)
+
+  minimumSpend Decimal? @db.Decimal(10, 2)
+
+  campaignId String?
+
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  discounts POSDiscount[]
+
+  @@unique([restaurantId, code])
+  @@index([restaurantId])
+  @@index([code])
 }

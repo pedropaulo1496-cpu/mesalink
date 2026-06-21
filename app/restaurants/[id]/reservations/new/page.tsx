@@ -1,65 +1,130 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
 
 async function createReservation(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
   const reservationMode = String(formData.get("reservationMode"));
-  const tableIdValue = String(formData.get("tableId") || "");
   const customerName = String(formData.get("customerName"));
   const phone = String(formData.get("phone"));
   const guests = Number(formData.get("guests"));
   const dateValue = String(formData.get("date"));
   const timeValue = String(formData.get("time"));
+  const notes = String(formData.get("notes") || "").trim();
 
-  const tableId =
-  reservationMode === "TABLES" && tableIdValue !== ""
-    ? tableIdValue
-    : null;
   const date = new Date(`${dateValue}T${timeValue}`);
 
   const startDate = date;
   const endDate = new Date(startDate);
   endDate.setHours(endDate.getHours() + 2);
 
-  const conflictingReservation = tableId
-    ? await prisma.reservation.findFirst({
-        where: {
-          tableId,
-          status: {
-            notIn: ["CANCELLED", "FINISHED", "REJECTED", "NO_SHOW"],
-          },
-          date: {
-            gte: new Date(startDate.getTime() - 2 * 60 * 60 * 1000),
-            lt: endDate,
+  const restaurant = await prisma.restaurant.findUnique({
+    where: { id: restaurantId },
+    include: {
+      tables: {
+        orderBy: { capacity: "asc" },
+        include: {
+          reservations: {
+            where: {
+              status: {
+                notIn: ["CANCELLED", "FINISHED", "REJECTED", "NO_SHOW"],
+              },
+              date: {
+                gte: new Date(startDate.getTime() - 2 * 60 * 60 * 1000),
+                lt: endDate,
+              },
+            },
           },
         },
-      })
-    : null;
-
-  if (conflictingReservation) {
-    redirect(`/restaurants/${restaurantId}/reservations?error=conflict`);
-  }
-
-  const customer = await prisma.customer.upsert({
-    where: { phone },
-    update: { name: customerName },
-    create: { name: customerName, phone },
-  });
-
-  if (reservationMode === "TABLES" && tableId) {
-  const tableExists = await prisma.table.findFirst({
-    where: {
-      id: tableId,
-      restaurantId,
+      },
     },
   });
 
-  if (!tableExists) {
-    redirect(`/restaurants/${restaurantId}/reservations/new?error=invalid-table`);
+  if (!restaurant) {
+    redirect(`/restaurants/${restaurantId}/reservations/new?error=restaurant`);
   }
+
+  let tableId: string | null = null;
+  let status = "CONFIRMED";
+  let approvalReason: string | null = null;
+
+  if (
+    restaurant.manualApprovalGuests &&
+    guests >= restaurant.manualApprovalGuests
+  ) {
+    status = "PENDING";
+    approvalReason = "LARGE_GROUP";
+  }
+
+  if (reservationMode === "TABLES") {
+    const availableTables = restaurant.tables.filter(
+      (table) => table.reservations.length === 0,
+    );
+
+    const singleTable = availableTables.find((table) => table.capacity >= guests);
+
+    if (singleTable) {
+      tableId = singleTable.id;
+    } else {
+      let totalCapacity = 0;
+
+      for (const table of availableTables) {
+        totalCapacity += table.capacity;
+
+        if (totalCapacity >= guests) {
+          break;
+        }
+      }
+
+      if (totalCapacity < guests) {
+        redirect(`/restaurants/${restaurantId}/reservations/new?error=no-table`);
+      }
+
+      tableId = null;
+
+      if (restaurant.approvalOnTableMerge) {
+        status = "PENDING";
+        approvalReason = "TABLE_MERGE";
+      }
+    }
+  }
+
+ const email = String(formData.get("email") || "");
+const normalizedEmail = email.trim().toLowerCase() || null;
+
+let customer = await prisma.customer.findFirst({
+  where: {
+    OR: [
+      { phone },
+      ...(normalizedEmail ? [{ email: normalizedEmail }] : []),
+    ],
+  },
+});
+
+if (customer) {
+  customer = await prisma.customer.update({
+    where: {
+      id: customer.id,
+    },
+    data: {
+      name: customerName,
+      phone,
+      ...(normalizedEmail && {
+        email: normalizedEmail,
+      }),
+    },
+  });
+} else {
+  customer = await prisma.customer.create({
+    data: {
+      name: customerName,
+      phone,
+      email: normalizedEmail,
+    },
+  });
 }
 
   await prisma.reservation.create({
@@ -71,7 +136,9 @@ async function createReservation(formData: FormData) {
       guests,
       date,
       tableId,
-      status: "CONFIRMED",
+      status,
+      approvalReason,
+      notes: notes || null,
     },
   });
 
@@ -97,10 +164,14 @@ const times = [
 
 export default async function NewReservationPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ error?: string }>;
 }) {
   const { id } = await params;
+
+  const query = searchParams ? await searchParams : {};
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
@@ -113,7 +184,7 @@ export default async function NewReservationPage({
 
   if (!restaurant) {
     return (
-      <main className="min-h-screen bg-[#020617] p-10 text-white">
+      <main className="min-h-screen bg-[#F5EFE6] p-10 text-[#16120E]">
         Restaurante não encontrado
       </main>
     );
@@ -122,63 +193,69 @@ export default async function NewReservationPage({
   const usesTables = restaurant.reservationMode === "TABLES";
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
-      <Background />
-
-      <section className="relative z-10 mx-auto max-w-6xl px-5 py-8 sm:px-8">
+    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <section className="mx-auto max-w-6xl px-5 py-7 sm:px-8">
         <Link
           href={`/restaurants/${id}/reservations`}
-          className="text-sm font-bold text-slate-400 hover:text-white"
+          className="text-sm font-semibold text-[#9B6F3B] hover:text-[#16120E]"
         >
           ← Voltar às reservas
         </Link>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-          <aside className="rounded-[2rem] border border-cyan-300/20 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:p-8">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-              Nova reserva
-            </p>
+        <div className="mt-7 grid gap-6 lg:grid-cols-[0.82fr_1.18fr]">
+          <aside className="rounded-[32px] border border-[#E1D0B8] bg-white p-7 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
+            <SectionLabel>Nova reserva</SectionLabel>
 
-            <h1 className="mt-4 text-5xl font-black leading-[0.9] tracking-[-0.06em]">
+            <h1 className="mt-4 text-5xl font-semibold leading-[0.9] tracking-[-0.065em]">
               Criar reserva manual.
             </h1>
 
-            <p className="mt-5 text-sm leading-6 text-slate-400">
-              Adicione rapidamente uma reserva ao calendário de{" "}
-              <span className="font-bold text-white">{restaurant.name}</span>.
+            <p className="mt-5 text-sm leading-6 text-[#6B6258]">
+              Adicione uma reserva ao calendário de{" "}
+              <span className="font-semibold text-[#16120E]">
+                {restaurant.name}
+              </span>
+              . A mesa será atribuída automaticamente.
             </p>
 
             <div className="mt-8 grid gap-3">
-              <MiniCard label="Estado" value="Confirmada" />
+              <MiniCard label="Estado" value="Confirmada automaticamente" />
               <MiniCard
-                label="Modo"
-                value={usesTables ? "Por mesas" : "Por capacidade"}
+                label="Mesa"
+                value={usesTables ? "Atribuição automática" : "Sem mesa atribuída"}
               />
-              <MiniCard label="Duração" value="2 horas" />
+              <MiniCard label="Duração média" value="2 horas" />
             </div>
           </aside>
 
-          <section className="rounded-[2rem] border border-cyan-300/20 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:p-8">
+          <section className="rounded-[32px] border border-[#E1D0B8] bg-white p-7 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
             <form action={createReservation} className="space-y-8">
               <input type="hidden" name="restaurantId" value={restaurant.id} />
-
               <input
                 type="hidden"
                 name="reservationMode"
                 value={restaurant.reservationMode}
               />
 
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-                  Cliente
-                </p>
+              {query.error === "no-table" && (
+  <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-4 text-sm font-semibold text-[#A14E36]">
+    Não existe nenhuma mesa disponível para esse número de pessoas nesse horário.
+  </div>
+)}
 
-                <div className="mt-5 grid gap-4 md:grid-cols-2">
+{query.error === "conflict" && (
+  <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-4 text-sm font-semibold text-[#A14E36]">
+    Já existe uma reserva próxima nesse horário.
+  </div>
+)}
+
+              <FormSection title="Cliente">
+                <div className="grid gap-4 md:grid-cols-2">
                   <Field label="Nome do cliente">
                     <input
                       name="customerName"
                       placeholder="Ex: João Silva"
-                      className="input-ai h-14"
+                      className="input-premium"
                       required
                     />
                   </Field>
@@ -187,26 +264,22 @@ export default async function NewReservationPage({
                     <input
                       name="phone"
                       placeholder="Ex: 912345678"
-                      className="input-ai h-14"
+                      className="input-premium"
                       required
                     />
                   </Field>
                 </div>
-              </div>
+              </FormSection>
 
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-                  Reserva
-                </p>
-
-                <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <FormSection title="Reserva">
+                <div className="grid gap-4 md:grid-cols-2">
                   <Field label="Número de pessoas">
                     <input
                       name="guests"
                       type="number"
                       min="1"
                       placeholder="Ex: 4"
-                      className="input-ai h-14"
+                      className="input-premium"
                       required
                     />
                   </Field>
@@ -215,16 +288,14 @@ export default async function NewReservationPage({
                     <input
                       name="date"
                       type="date"
-                      className="input-ai h-14"
+                      className="input-premium"
                       required
                     />
                   </Field>
                 </div>
-              </div>
+              </FormSection>
 
-              <div>
-                <p className="mb-4 text-sm font-bold text-slate-300">Hora</p>
-
+              <FormSection title="Hora">
                 <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
                   {times.map((time) => (
                     <label key={time} className="group cursor-pointer">
@@ -236,63 +307,43 @@ export default async function NewReservationPage({
                         className="peer sr-only"
                       />
 
-                      <span className="flex h-12 items-center justify-center rounded-2xl border border-white/10 bg-black/25 text-sm font-black text-slate-300 transition peer-checked:border-cyan-300/70 peer-checked:bg-cyan-300 peer-checked:text-black group-hover:border-cyan-300/40">
+                      <span className="flex h-12 items-center justify-center rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] text-sm font-semibold text-[#16120E] transition peer-checked:border-[#16120E] peer-checked:bg-[#16120E] peer-checked:text-white group-hover:border-[#C8A56A]">
                         {time}
                       </span>
                     </label>
                   ))}
                 </div>
-              </div>
+              </FormSection>
 
-              {usesTables && (
-                <div>
-                  <p className="mb-4 text-sm font-bold text-slate-300">Mesa</p>
+              <FormSection title="Observações">
+                <textarea
+                  name="notes"
+                  rows={5}
+                  placeholder="Ex: 1 vegetariano, aniversário, mesa calma, cadeira de bebé..."
+                  className="min-h-[130px] w-full resize-none rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-4 text-[#16120E] outline-none transition placeholder:text-[#9B8B7A] focus:border-[#C8A56A] focus:bg-white"
+                />
+              </FormSection>
 
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    {restaurant.tables.map((table) => (
-                      <label key={table.id} className="group cursor-pointer">
-                        <input
-                          type="radio"
-                          name="tableId"
-                          value={table.id}
-                          required
-                          className="peer sr-only"
-                        />
-
-                        <span className="block rounded-3xl border border-white/10 bg-black/25 p-5 transition peer-checked:border-cyan-300/70 peer-checked:bg-cyan-300/15 group-hover:border-cyan-300/40">
-                          <span className="block text-xl font-black text-white">
-                            Mesa {table.number}
-                          </span>
-
-                          <span className="mt-2 block text-sm text-slate-400">
-                            {table.capacity} pessoas
-                          </span>
-
-                          <span className="mt-4 inline-flex rounded-full border border-cyan-300/20 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-300">
-                            Disponível
-                          </span>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+              {usesTables ? (
+                <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 text-sm leading-6 text-[#6B6258]">
+                  A mesa será atribuída automaticamente com base no número de
+                  pessoas e disponibilidade.
                 </div>
-              )}
-
-              {!usesTables && (
-                <div className="rounded-2xl border border-cyan-300/15 bg-cyan-500/10 p-4 text-sm leading-6 text-cyan-100">
+              ) : (
+                <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 text-sm leading-6 text-[#6B6258]">
                   Este restaurante está em modo <strong>capacidade</strong>. A
                   reserva será criada sem mesa atribuída.
                 </div>
               )}
 
-              <div className="flex flex-col gap-3 border-t border-white/10 pt-6 md:flex-row">
-                <button className="h-14 flex-1 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-6 font-black text-black shadow-[0_0_60px_rgba(96,165,250,0.35)] hover:opacity-90">
+              <div className="flex flex-col gap-3 border-t border-[#E1D0B8] pt-6 md:flex-row">
+                <button className="h-14 flex-1 rounded-full bg-[#16120E] px-6 font-semibold text-white transition hover:bg-[#2A2118]">
                   Criar reserva
                 </button>
 
                 <Link
                   href={`/restaurants/${id}/reservations`}
-                  className="flex h-14 flex-1 items-center justify-center rounded-full border border-cyan-300/25 bg-white/5 px-6 font-black text-white backdrop-blur hover:bg-white/10"
+                  className="flex h-14 flex-1 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-6 font-semibold text-[#16120E] transition hover:bg-white"
                 >
                   Cancelar
                 </Link>
@@ -305,16 +356,31 @@ export default async function NewReservationPage({
   );
 }
 
+function FormSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      <SectionLabel>{title}</SectionLabel>
+      <div className="mt-5">{children}</div>
+    </div>
+  );
+}
+
 function Field({
   label,
   children,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-slate-300">
+      <span className="mb-2 block text-sm font-semibold text-[#6B6258]">
         {label}
       </span>
       {children}
@@ -324,21 +390,20 @@ function Field({
 
 function MiniCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
+    <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
         {label}
       </p>
-      <p className="mt-2 text-lg font-black text-cyan-300">{value}</p>
+
+      <p className="mt-2 text-lg font-semibold text-[#16120E]">{value}</p>
     </div>
   );
 }
 
-function Background() {
+function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="pointer-events-none fixed inset-0 z-0">
-      <div className="absolute left-1/2 top-[-180px] h-[460px] w-[460px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[120px]" />
-      <div className="absolute right-[-160px] top-[280px] h-[360px] w-[360px] rounded-full bg-violet-500/15 blur-[110px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.15),transparent_35%),linear-gradient(to_bottom,#020617,#050816_45%,#020617)]" />
-    </div>
+    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9B6F3B]">
+      {children}
+    </p>
   );
 }

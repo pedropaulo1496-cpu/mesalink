@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import RestaurantSidebar from "@/components/RestaurantSidebar";
 
 export default async function CustomersPage({
   params,
@@ -14,8 +15,8 @@ export default async function CustomersPage({
 
   if (!restaurant) {
     return (
-      <main className="min-h-screen bg-[#020617] p-6 text-white">
-        Restaurante não encontrado
+      <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
+        Restaurante não encontrado.
       </main>
     );
   }
@@ -43,324 +44,275 @@ export default async function CustomersPage({
     },
   });
 
-  const totalReservations = customers.reduce(
-  (
-    total: number,
-    customer: { reservations: unknown[] }
-  ) => total + customer.reservations.length,
-  0
-);
+  const averageTicket = Number(restaurant.averageTicket || 25);
 
-  const totalNoShows = customers.reduce(
-  (
-    total: number,
-    customer: {
-      reservations: {
-        status: string;
-      }[];
-    }
-  ) =>
-    total +
-    customer.reservations.filter(
-      (reservation) => reservation.status === "NO_SHOW"
-    ).length,
-  0
-);
+  const enrichedCustomers = customers.map((customer) => {
+    const totalReservations = customer.reservations.length;
 
-  const totalGuests = customers.reduce(
-  (total: number, customer: any) =>
-    total +
-    customer.reservations.reduce(
-      (sum: number, reservation: any) => sum + reservation.guests,
-      0
-    ),
-  0
-);
+    const totalGuests = customer.reservations.reduce(
+      (total, reservation) => total + reservation.guests,
+      0,
+    );
+
+    const noShows = customer.reservations.filter(
+      (reservation) => reservation.status === "NO_SHOW",
+    ).length;
+
+    const lastReservation = customer.reservations[0];
+
+    const totalVisits =
+      customer.totalVisits || customer.visitCount || totalReservations;
+
+    const estimatedValue = totalVisits * averageTicket;
+
+    const vipTier =
+      customer.vipTier ||
+      (totalVisits >= 50
+        ? "PLATINUM"
+        : totalVisits >= 20
+          ? "GOLD"
+          : totalVisits >= 10
+            ? "SILVER"
+            : totalVisits >= 5
+              ? "BRONZE"
+              : null);
+
+    const isVip = Boolean(vipTier);
+
+    const riskScore = customer.riskScore ?? 0;
+
+    return {
+      id: customer.id,
+      name: customer.name,
+      phone: customer.phone,
+      email: customer.email,
+      totalReservations,
+      totalGuests,
+      totalVisits,
+      estimatedValue,
+      noShows,
+      lastReservation,
+      isVip,
+      vipTier,
+      riskScore,
+    };
+  });
+
+  const totalGuests = enrichedCustomers.reduce(
+    (total, customer) => total + customer.totalGuests,
+    0,
+  );
+
+  const totalNoShows = enrichedCustomers.reduce(
+    (total, customer) => total + customer.noShows,
+    0,
+  );
+
+  const vipCustomers = enrichedCustomers.filter((customer) => customer.isVip);
+
+  const riskyCustomers = enrichedCustomers.filter(
+    (customer) => customer.riskScore >= 50,
+  );
+
+  const estimatedCustomerValue = enrichedCustomers.reduce(
+    (total, customer) => total + customer.estimatedValue,
+    0,
+  );
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute left-1/2 top-[-180px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px]" />
-        <div className="absolute right-[-160px] top-[360px] h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.06)_1px,transparent_1px)] bg-[size:44px_44px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.14),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
-      </div>
+    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
+        <RestaurantSidebar
+          id={id}
+          restaurantName={restaurant.name}
+          active="Clientes"
+        />
 
-      <div className="relative z-10 mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <header className="rounded-[32px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:p-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <section className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+          <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
-              <Link
-                href={`/restaurants/${id}`}
-                className="text-sm font-bold text-slate-400 hover:text-white"
-              >
-                ← Voltar ao dashboard
-              </Link>
-
-              <p className="mt-6 text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-                MesaLink OS · CRM
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
+                Clientes
               </p>
 
-              <h1 className="mt-3 text-4xl font-black leading-[0.92] tracking-[-0.05em] sm:text-5xl lg:text-6xl">
-                Clientes
+              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
+                CRM
               </h1>
 
-              <p className="mt-3 text-slate-400">{restaurant.name}</p>
-            </div>
-
-            <div className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-5 py-3 text-sm font-black text-cyan-200">
-              CRM inteligente
-            </div>
-          </div>
-        </header>
-
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard label="Clientes" value={customers.length} />
-          <StatCard label="Reservas" value={totalReservations} />
-          <StatCard label="Pessoas" value={totalGuests} highlighted />
-          <StatCard label="No-shows" value={totalNoShows} danger />
-        </section>
-
-        <section className="grid gap-4 lg:hidden">
-          {customers.map((customer) => {
-            const totalCustomerReservations = customer.reservations.length;
-
-            const noShows = customer.reservations.filter(
-              (reservation) => reservation.status === "NO_SHOW"
-            ).length;
-
-            const customerGuests = customer.reservations.reduce(
-  (total: number, reservation: any) => total + reservation.guests,
-  0
-);
-
-            const lastReservation = customer.reservations[0];
-
-            return (
-              <CustomerCard
-                key={customer.id}
-                name={customer.name}
-                phone={customer.phone}
-                reservations={totalCustomerReservations}
-                noShows={noShows}
-                guests={customerGuests}
-                lastVisit={
-                  lastReservation
-                    ? new Date(lastReservation.date).toLocaleDateString("pt-PT")
-                    : "-"
-                }
-              />
-            );
-          })}
-
-          {customers.length === 0 && (
-            <EmptyState text="Ainda não existem clientes." />
-          )}
-        </section>
-
-        <section className="hidden overflow-hidden rounded-[32px] border border-cyan-300/10 bg-white/[0.04] shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:block">
-          <div className="grid grid-cols-[1.4fr_1fr_0.7fr_0.7fr_0.8fr_1fr] gap-4 border-b border-cyan-300/10 bg-[#020617]/50 px-5 py-4 text-sm font-bold text-slate-400">
-            <div>Cliente</div>
-            <div>Telefone</div>
-            <div>Reservas</div>
-            <div>No-shows</div>
-            <div>Pessoas</div>
-            <div>Última visita</div>
-          </div>
-
-          <div>
-            {customers.map((customer) => {
-              const totalCustomerReservations = customer.reservations.length;
-
-              const noShows = customer.reservations.filter(
-                (reservation) => reservation.status === "NO_SHOW"
-              ).length;
-
-              const customerGuests = customer.reservations.reduce(
-  (total: number, reservation: any) => total + reservation.guests,
-  0
-);
-
-              const lastReservation = customer.reservations[0];
-
-              return (
-                <div
-                  key={customer.id}
-                  className="grid grid-cols-[1.4fr_1fr_0.7fr_0.7fr_0.8fr_1fr] items-center gap-4 border-b border-cyan-300/10 px-5 py-4 last:border-b-0 hover:bg-white/[0.03]"
-                >
-                  <div>
-                    <p className="font-black text-white">{customer.name}</p>
-
-                    {totalCustomerReservations >= 5 && (
-                      <span className="mt-2 inline-block rounded-full border border-violet-300/20 bg-violet-400/10 px-3 py-1 text-xs font-black text-violet-200">
-                        Cliente frequente
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="text-slate-300">{customer.phone}</div>
-
-                  <div className="font-black text-cyan-300">
-                    {totalCustomerReservations}
-                  </div>
-
-                  <div
-                    className={
-                      noShows > 0
-                        ? "font-black text-orange-300"
-                        : "font-black text-slate-500"
-                    }
-                  >
-                    {noShows}
-                  </div>
-
-                  <div className="font-black text-white">{customerGuests}</div>
-
-                  <div className="text-slate-400">
-                    {lastReservation
-                      ? new Date(lastReservation.date).toLocaleDateString(
-                          "pt-PT"
-                        )
-                      : "-"}
-                  </div>
-                </div>
-              );
-            })}
-
-            {customers.length === 0 && (
-              <p className="p-6 text-slate-400">
-                Ainda não existem clientes.
+              <p className="mt-3 text-sm text-[#6B6258]">
+                {restaurant.name} · clientes, valor estimado, VIP tiers e risco de abandono.
               </p>
-            )}
-          </div>
+            </div>
+
+            <div className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#6B6258] shadow-[0_14px_44px_rgba(80,55,30,0.045)]">
+              {enrichedCustomers.length} clientes registados
+            </div>
+          </header>
+
+          <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <MetricCard label="Clientes" value={enrichedCustomers.length} />
+            <MetricCard label="VIPs" value={vipCustomers.length} tone="gold" />
+            <MetricCard label="Em risco" value={riskyCustomers.length} tone="red" />
+            <MetricCard label="Covers" value={totalGuests} tone="green" />
+            <MetricCard
+              label="Valor"
+              value={`${estimatedCustomerValue.toFixed(0)}€`}
+              tone="gold"
+            />
+          </section>
+
+          <section className="mt-5 rounded-[34px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
+                  Lista
+                </p>
+
+                <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
+                  Base de clientes
+                </h2>
+              </div>
+
+              <div className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-5 py-3 text-sm text-[#6B6258]">
+                Ordenado por atividade recente
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {enrichedCustomers.map((customer) => {
+                const lastVisit = customer.lastReservation
+                  ? new Date(customer.lastReservation.date).toLocaleDateString(
+                      "pt-PT",
+                    )
+                  : "-";
+
+                return (
+                  <Link
+                    key={customer.id}
+                    href={`/restaurants/${id}/customers/${customer.id}`}
+                    className="grid gap-4 rounded-[26px] border border-[#E8DCCB] bg-[#FFF9F0] p-4 transition hover:border-[#C8A56A] hover:bg-white xl:grid-cols-[1.4fr_0.7fr_0.7fr_0.7fr_0.7fr_0.7fr_auto] xl:items-center"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-lg font-semibold">
+                          {customer.name}
+                        </p>
+
+                        {customer.vipTier && (
+                          <VipBadge tier={customer.vipTier} />
+                        )}
+
+                        {customer.riskScore >= 75 && (
+                          <RiskBadge label="Risco alto" />
+                        )}
+
+                        {customer.riskScore >= 50 &&
+                          customer.riskScore < 75 && (
+                            <RiskBadge label="Risco médio" />
+                          )}
+                      </div>
+
+                      <p className="mt-1 text-sm text-[#6B6258]">
+                        {customer.email || "Sem email"}
+                      </p>
+                    </div>
+
+                    <InfoBlock label="Telefone" value={customer.phone} />
+                    <InfoBlock
+                      label="Visitas"
+                      value={String(customer.totalVisits)}
+                    />
+                    <InfoBlock
+                      label="Valor"
+                      value={`${customer.estimatedValue.toFixed(0)}€`}
+                    />
+                    <InfoBlock label="Covers" value={String(customer.totalGuests)} />
+                    <InfoBlock label="Última visita" value={lastVisit} />
+
+                    <span className="rounded-full bg-[#16120E] px-4 py-2 text-center text-sm font-semibold text-white">
+                      Ver
+                    </span>
+                  </Link>
+                );
+              })}
+
+              {enrichedCustomers.length === 0 && (
+                <div className="rounded-[26px] border border-[#E8DCCB] bg-[#FFF9F0] p-8 text-center">
+                  <p className="text-2xl font-semibold tracking-[-0.04em]">
+                    Ainda não existem clientes.
+                  </p>
+
+                  <p className="mt-2 text-sm text-[#6B6258]">
+                    Quando houver reservas, os clientes aparecem aqui
+                    automaticamente.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
         </section>
       </div>
     </main>
   );
 }
 
-function CustomerCard({
-  name,
-  phone,
-  reservations,
-  noShows,
-  guests,
-  lastVisit,
-}: {
-  name: string;
-  phone: string;
-  reservations: number;
-  noShows: number;
-  guests: number;
-  lastVisit: string;
-}) {
-  const isFrequent = reservations >= 5;
-
+function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_40px_rgba(34,211,238,0.06)] backdrop-blur-xl">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="truncate text-xl font-black text-white">{name}</p>
-          <p className="mt-1 text-sm text-slate-400">{phone}</p>
-        </div>
-
-        {isFrequent && (
-          <span className="shrink-0 rounded-full border border-violet-300/20 bg-violet-400/10 px-3 py-1 text-xs font-black text-violet-200">
-            VIP
-          </span>
-        )}
-      </div>
-
-      <div className="mt-5 grid grid-cols-2 gap-3">
-        <MiniInfo label="Reservas" value={String(reservations)} />
-        <MiniInfo label="Pessoas" value={String(guests)} />
-        <MiniInfo label="No-shows" value={String(noShows)} danger={noShows > 0} />
-        <MiniInfo label="Última visita" value={lastVisit} />
-      </div>
-
-      <div className="mt-5 flex gap-2">
-        <a
-          href={`https://wa.me/351${phone}`}
-          target="_blank"
-          className="rounded-full border border-green-300/20 bg-green-400/10 px-4 py-2 text-xs font-black text-green-200"
-        >
-          WhatsApp
-        </a>
-
-        <span className="rounded-full border border-cyan-300/10 bg-white/[0.04] px-4 py-2 text-xs font-bold text-slate-300">
-          Histórico
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function MiniInfo({
-  label,
-  value,
-  danger,
-}: {
-  label: string;
-  value: string;
-  danger?: boolean;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9B6F3B]">
         {label}
       </p>
-      <p
-        className={
-          danger
-            ? "mt-1 font-black text-orange-300"
-            : "mt-1 font-black text-white"
-        }
-      >
-        {value}
-      </p>
+      <p className="mt-1 text-sm font-semibold text-[#16120E]">{value}</p>
     </div>
   );
 }
 
-function EmptyState({ text }: { text: string }) {
+function VipBadge({ tier }: { tier: string }) {
   return (
-    <p className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] p-5 text-slate-400">
-      {text}
-    </p>
+    <span className="rounded-full bg-[#E8DFC9] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
+      {tier}
+    </span>
   );
 }
 
-function StatCard({
+function RiskBadge({ label }: { label: string }) {
+  return (
+    <span className="rounded-full bg-[#FFF0EA] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#A14E36]">
+      {label}
+    </span>
+  );
+}
+
+function MetricCard({
   label,
   value,
-  highlighted,
-  danger,
+  tone,
 }: {
   label: string;
-  value: number;
-  highlighted?: boolean;
-  danger?: boolean;
+  value: number | string;
+  tone?: "gold" | "green" | "red";
 }) {
+  const dot =
+    tone === "green"
+      ? "bg-[#86A969]"
+      : tone === "red"
+        ? "bg-[#A14E36]"
+        : tone === "gold"
+          ? "bg-[#C8A56A]"
+          : "bg-[#DCC9AE]";
+
   return (
-    <div
-      className={
-        danger
-          ? "rounded-[24px] border border-orange-300/20 bg-orange-400/10 p-5 shadow-[0_0_36px_rgba(251,146,60,0.12)]"
-          : highlighted
-          ? "rounded-[24px] border border-violet-300/20 bg-violet-400/10 p-5 shadow-[0_0_36px_rgba(167,139,250,0.12)]"
-          : "rounded-[24px] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl"
-      }
-    >
-      <p className="text-xs font-bold text-slate-400">{label}</p>
-      <p
-        className={
-          danger
-            ? "mt-2 text-2xl font-black text-orange-300"
-            : "mt-2 text-2xl font-black text-cyan-300"
-        }
-      >
-        {value}
-      </p>
+    <div className="flex items-center justify-between rounded-[24px] border border-[#E1D0B8] bg-white px-4 py-4 shadow-[0_14px_44px_rgba(80,55,30,0.035)]">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
+          {label}
+        </p>
+        <p className="mt-1 text-3xl font-semibold tracking-[-0.055em]">
+          {value}
+        </p>
+      </div>
+
+      <span className={`h-3.5 w-3.5 rounded-full ${dot}`} />
     </div>
   );
 }

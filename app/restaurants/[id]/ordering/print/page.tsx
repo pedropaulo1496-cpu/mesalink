@@ -36,25 +36,25 @@ const QR_SIZES = {
 
 const QR_TEMPLATES = {
   premium: {
-    label: "Premium Dark",
-    page: "bg-[#020617] text-white",
-    card: "border-cyan-300/25 bg-[#020617] text-white",
-    accent: "text-cyan-300",
+    label: "Premium",
+    page: "bg-[#F5EFE6] text-[#16120E]",
+    card: "border-[#16120E] bg-[#16120E] text-white",
+    accent: "text-[#C8A56A]",
     qrWrap: "bg-white",
   },
   minimal: {
-    label: "Minimal White",
-    page: "bg-white text-black",
-    card: "border-slate-200 bg-white text-black",
-    accent: "text-slate-500",
+    label: "Minimal",
+    page: "bg-[#F5EFE6] text-[#16120E]",
+    card: "border-[#E1D0B8] bg-white text-[#16120E]",
+    accent: "text-[#9B6F3B]",
     qrWrap: "bg-white",
   },
   mesalink: {
     label: "MesaLink",
-    page: "bg-[#020617] text-white",
+    page: "bg-[#F5EFE6] text-[#16120E]",
     card:
-      "border-violet-300/25 bg-gradient-to-br from-[#020617] via-[#06111f] to-[#1b1035] text-white",
-    accent: "text-violet-300",
+      "border-[#D6C3A5] bg-gradient-to-br from-[#FFFDF8] via-[#FFF9F0] to-[#EFE5D6] text-[#16120E]",
+    accent: "text-[#9B6F3B]",
     qrWrap: "bg-white",
   },
 };
@@ -101,10 +101,17 @@ export default async function PrintQrCodesPage({
   return (
     <main className={`min-h-screen p-6 print:p-0 ${template.page}`}>
       <div className="mx-auto mb-6 max-w-5xl space-y-4 print:hidden">
-        <div className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+        <div className="flex flex-col gap-4 rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-black">QR Codes</h1>
-            <p className="text-sm opacity-70">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
+              QR Ordering
+            </p>
+
+            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
+              QR Codes
+            </h1>
+
+            <p className="mt-2 text-sm font-bold text-[#6B6258]">
               {restaurant.name} · {tables.length} mesa(s) · {template.label} ·{" "}
               {size.label}
             </p>
@@ -113,16 +120,18 @@ export default async function PrintQrCodesPage({
           <PrintButton />
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] opacity-60">
+        <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
             Mesas
           </p>
 
           <div className="flex flex-wrap gap-2">
             <Link
               href={`/restaurants/${restaurant.id}/ordering/print?template=${selectedTemplate}&size=${selectedSize}`}
-              className={`rounded-full border px-4 py-2 text-xs font-black ${
-                !selectedTable ? "bg-white text-black" : "border-white/20"
+              className={`rounded-full border px-4 py-2 text-xs font-semibold ${
+                !selectedTable
+                  ? "border-[#16120E] bg-[#16120E] text-white"
+                  : "border-[#E1D0B8] bg-[#FFF9F0] text-[#6B6258] hover:border-[#C8A56A]"
               }`}
             >
               Todas
@@ -132,10 +141,10 @@ export default async function PrintQrCodesPage({
               <Link
                 key={table.id}
                 href={`/restaurants/${restaurant.id}/ordering/print?table=${table.number}&template=${selectedTemplate}&size=${selectedSize}`}
-                className={`rounded-full border px-4 py-2 text-xs font-black ${
+                className={`rounded-full border px-4 py-2 text-xs font-semibold ${
                   selectedTable === table.number
-                    ? "bg-white text-black"
-                    : "border-white/20"
+                    ? "border-[#16120E] bg-[#16120E] text-white"
+                    : "border-[#E1D0B8] bg-[#FFF9F0] text-[#6B6258] hover:border-[#C8A56A]"
                 }`}
               >
                 Mesa {table.number}
@@ -145,8 +154,8 @@ export default async function PrintQrCodesPage({
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-            <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] opacity-60">
+          <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
               Template
             </p>
 
@@ -159,10 +168,10 @@ export default async function PrintQrCodesPage({
                       ? `?table=${selectedTable}&template=${key}&size=${selectedSize}`
                       : `?template=${key}&size=${selectedSize}`
                   }`}
-                  className={`rounded-full border px-4 py-2 text-xs font-black ${
+                  className={`rounded-full border px-4 py-2 text-xs font-semibold ${
                     selectedTemplate === key
-                      ? "bg-white text-black"
-                      : "border-white/20"
+                      ? "border-[#16120E] bg-[#16120E] text-white"
+                      : "border-[#E1D0B8] bg-[#FFF9F0] text-[#6B6258] hover:border-[#C8A56A]"
                   }`}
                 >
                   {item.label}
@@ -171,8 +180,8 @@ export default async function PrintQrCodesPage({
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-            <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] opacity-60">
+          <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
               Tamanho
             </p>
 
@@ -185,10 +194,10 @@ export default async function PrintQrCodesPage({
                       ? `?table=${selectedTable}&template=${selectedTemplate}&size=${key}`
                       : `?template=${selectedTemplate}&size=${key}`
                   }`}
-                  className={`rounded-full border px-4 py-2 text-xs font-black ${
+                  className={`rounded-full border px-4 py-2 text-xs font-semibold ${
                     selectedSize === key
-                      ? "bg-white text-black"
-                      : "border-white/20"
+                      ? "border-[#16120E] bg-[#16120E] text-white"
+                      : "border-[#E1D0B8] bg-[#FFF9F0] text-[#6B6258] hover:border-[#C8A56A]"
                   }`}
                 >
                   {item.label}
@@ -212,21 +221,21 @@ export default async function PrintQrCodesPage({
             >
               <div className="flex h-full flex-col items-center justify-center text-center">
                 <p
-                  className={`text-xs font-black uppercase tracking-[0.22em] ${template.accent}`}
+                  className={`text-xs font-semibold uppercase tracking-[0.22em] ${template.accent}`}
                 >
                   MesaLink QR Ordering
                 </p>
 
-                <h2 className="mt-3 text-5xl font-black tracking-[-0.06em]">
+                <h2 className="mt-3 text-5xl font-semibold tracking-[-0.06em]">
                   Mesa {table.number}
                 </h2>
 
-                <p className={`mt-2 text-sm font-bold ${template.accent}`}>
+                <p className={`mt-2 text-sm font-semibold ${template.accent}`}>
                   {restaurant.name}
                 </p>
 
                 <div
-                  className={`mt-6 rounded-3xl p-4 ${template.qrWrap}`}
+                  className={`mt-6 rounded-[28px] p-4 shadow-sm ${template.qrWrap}`}
                   style={{
                     width: size.qr + 32,
                     height: size.qr + 32,
@@ -235,7 +244,7 @@ export default async function PrintQrCodesPage({
                   <QrCodeImage value={url} size={size.qr} />
                 </div>
 
-                <p className="mt-6 text-lg font-black">
+                <p className="mt-6 text-lg font-semibold">
                   Abra a câmara e faça o seu pedido
                 </p>
 

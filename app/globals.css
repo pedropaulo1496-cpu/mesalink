@@ -132,46 +132,116 @@
   height: 3.5rem;
   width: 100%;
   border-radius: 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: #f8f6f2;
+  border: 1px solid #e1d0b8;
+  background: #fff9f0;
   padding: 0 1rem;
+  color: #16120e;
   outline: none;
 }
 
 .input:focus {
-  border-color: #c2923f;
+  border-color: #c8a56a;
+  box-shadow: 0 0 0 4px rgba(200, 165, 106, 0.12);
 }
+
 .input-dark {
-  height: 3rem;
   width: 100%;
-  border-radius: 1rem;
-  border: 1px solid #2b2b2b;
-  background: #111111;
-  padding: 0 1rem;
-  color: white;
+  min-height: 48px;
+  border-radius: 18px;
+  border: 1px solid #e1d0b8;
+  background: #fff9f0;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #16120e;
   outline: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.input-dark::placeholder {
+  color: #9b8f82;
+  font-weight: 500;
 }
 
 .input-dark:focus {
-  border-color: #f0c36a;
+  border-color: #c8a56a;
+  background: #fffdf8;
+  box-shadow: 0 0 0 4px rgba(200, 165, 106, 0.12);
 }
+
 .input-ai {
   height: 3rem;
   width: 100%;
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid #e1d0b8;
+  background: #fff9f0;
   padding: 0 1rem;
-  color: white;
+  color: #16120e;
   outline: none;
 }
 
 .input-ai::placeholder {
-  color: rgb(71 85 105);
+  color: #9b8f82;
 }
 
 .input-ai:focus {
-  border-color: rgba(103, 232, 249, 0.5);
+  border-color: #c8a56a;
+  box-shadow: 0 0 0 4px rgba(200, 165, 106, 0.12);
+}
+
+.input-premium {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  border-radius: 20px;
+  border: 1px solid #dcc9ae;
+  background:
+    linear-gradient(180deg, #fffdf8 0%, #fff8ee 100%);
+  padding: 0.9rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #16120e;
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 10px 24px rgba(80, 55, 30, 0.035);
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.input-premium::placeholder {
+  color: #9b8f82;
+  font-weight: 500;
+}
+
+.input-premium:hover {
+  border-color: #c8a56a;
+  background: #fffdf8;
+}
+
+.input-premium:focus {
+  border-color: #c8a56a;
+  background: #fffdf8;
+  box-shadow:
+    0 0 0 4px rgba(200, 165, 106, 0.14),
+    0 16px 34px rgba(80, 55, 30, 0.08);
+}
+
+textarea.input-premium {
+  resize: vertical;
+  line-height: 1.6;
+  min-height: 132px;
+}
+
+select.input-premium {
+  cursor: pointer;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -193,28 +263,55 @@
   height: 0 !important;
   display: none !important;
 }
-.input-dark {
-  width: 100%;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.35);
-  padding-left: 1rem;
-  padding-right: 1rem;
-  color: white;
-  outline: none;
-}
-
-.input-dark::placeholder {
-  color: rgba(255, 255, 255, 0.28);
-}
-
-.input-dark:focus {
-  border-color: rgba(255, 255, 255, 0.35);
-}
 
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+}
+
+/* UploadThing / FileUpload premium style */
+[data-ut-element="upload-dropzone"] {
+  min-height: 220px !important;
+  border: 1px dashed #d6c3a5 !important;
+  border-radius: 28px !important;
+  background:
+    linear-gradient(180deg, #fffdf8 0%, #fff8ee 100%) !important;
+  color: #16120e !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8) !important;
+}
+
+[data-ut-element="upload-dropzone"] svg {
+  color: #c8a56a !important;
+  opacity: 1 !important;
+}
+
+[data-ut-element="label"] {
+  color: #16120e !important;
+  font-weight: 700 !important;
+}
+
+[data-ut-element="allowed-content"] {
+  color: #9b8f82 !important;
+  font-weight: 500 !important;
+}
+
+[data-ut-element="button"] {
+  min-width: 150px !important;
+  height: 44px !important;
+  border-radius: 999px !important;
+  background: #16120e !important;
+  color: white !important;
+  font-weight: 700 !important;
+  box-shadow: 0 14px 34px rgba(80,55,30,0.16) !important;
+}
+
+[data-ut-element="button"]:hover {
+  background: #2a2118 !important;
+}
+
+[data-ut-element="upload-dropzone"]:hover {
+  border-color: #c8a56a !important;
+  background: #fffdf8 !important;
 }

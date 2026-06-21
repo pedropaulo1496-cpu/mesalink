@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 export function Badge({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-white/60 backdrop-blur-xl">
+    <span className="rounded-full border border-[#E1D0B8] bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#9B6F3B] shadow-sm">
       {children}
     </span>
   );
@@ -17,8 +17,8 @@ export function MiniLine({
 }) {
   return (
     <div className="grid grid-cols-[90px_1fr] gap-3 text-sm">
-      <span className="font-bold text-white/35">{label}</span>
-      <span className="font-semibold text-white/75">{value}</span>
+      <span className="font-semibold text-[#9B8F82]">{label}</span>
+      <span className="font-semibold text-[#16120E]">{value}</span>
     </div>
   );
 }
@@ -33,12 +33,14 @@ export function GlassCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.08] p-5 shadow-2xl backdrop-blur-xl">
-      <p className="text-xs font-black uppercase tracking-[0.25em] text-white/35">
+    <div className="rounded-[1.6rem] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
         {eyebrow}
       </p>
-      <h3 className="mt-3 text-xl font-black tracking-[-0.03em]">{title}</h3>
-      <p className="mt-2 text-sm font-semibold leading-6 text-white/55">
+      <h3 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#16120E]">
+        {title}
+      </h3>
+      <p className="mt-2 text-sm font-semibold leading-6 text-[#6B6258]">
         {value}
       </p>
     </div>
@@ -55,10 +57,12 @@ export function FeatureCard({
   text: string;
 }) {
   return (
-    <div className="rounded-[1.7rem] border border-white/10 bg-black/20 p-5">
-      <p className="text-xs font-black text-white/30">{number}</p>
-      <h3 className="mt-5 text-xl font-black tracking-[-0.03em]">{title}</h3>
-      <p className="mt-3 text-sm leading-6 text-white/50">{text}</p>
+    <div className="rounded-[1.7rem] border border-[#E1D0B8] bg-[#FFF9F0] p-5">
+      <p className="text-xs font-semibold text-[#9B6F3B]">{number}</p>
+      <h3 className="mt-5 text-xl font-semibold tracking-[-0.03em] text-[#16120E]">
+        {title}
+      </h3>
+      <p className="mt-3 text-sm leading-6 text-[#6B6258]">{text}</p>
     </div>
   );
 }
@@ -72,7 +76,7 @@ export function PremiumCard({
 }) {
   return (
     <div
-      className={`rounded-[2.5rem] border border-white/10 bg-white/[0.06] shadow-2xl backdrop-blur-xl ${className}`}
+      className={`rounded-[2.5rem] border border-[#E1D0B8] bg-white shadow-[0_22px_70px_rgba(80,55,30,0.055)] ${className}`}
     >
       {children}
     </div>
@@ -94,27 +98,29 @@ export function GalleryTile({
     <div
       className={
         large
-          ? "relative min-h-[420px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.06] p-6 shadow-2xl md:col-span-2 lg:col-span-2"
-          : "relative min-h-[260px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.06] p-6 shadow-2xl"
+          ? "relative min-h-[420px] overflow-hidden rounded-[2.5rem] border border-[#E1D0B8] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)] md:col-span-2 lg:col-span-2"
+          : "relative min-h-[260px] overflow-hidden rounded-[2.5rem] border border-[#E1D0B8] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)]"
       }
     >
       {image ? (
         <img
           src={image}
           alt={title}
-          className="absolute inset-0 h-full w-full object-cover opacity-55"
+          className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_55%),linear-gradient(to_bottom,#18181b,#09090b)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(200,165,106,0.24),transparent_55%),linear-gradient(to_bottom,#FFF9F0,#EFE5D6)]" />
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-black/85" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/20 to-black/75" />
 
       <div className="relative flex h-full min-h-[220px] flex-col justify-end">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-white/35">
-          {subtitle}
-        </p>
-        <h3 className="mt-2 text-3xl font-black tracking-[-0.05em]">
+        {subtitle && (
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
+            {subtitle}
+          </p>
+        )}
+        <h3 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-white">
           {title}
         </h3>
       </div>
@@ -133,16 +139,16 @@ export function SectionTitle({
 }) {
   return (
     <div>
-      <p className="text-sm font-black uppercase tracking-[0.3em] text-white/35">
+      <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#9B6F3B]">
         {eyebrow}
       </p>
 
-      <h2 className="mt-5 max-w-4xl text-4xl font-black leading-[0.95] tracking-[-0.06em] md:text-6xl">
+      <h2 className="mt-5 max-w-4xl text-4xl font-semibold leading-[0.95] tracking-[-0.06em] text-[#16120E] md:text-6xl">
         {title}
       </h2>
 
       {text && (
-        <p className="mt-5 max-w-2xl text-sm leading-7 text-white/55">
+        <p className="mt-5 max-w-2xl text-sm leading-7 text-[#6B6258]">
           {text}
         </p>
       )}

@@ -1,4 +1,3 @@
-import CopyButton from "@/components/CopyButton";
 import SignOutButton from "@/components/SignOutButton";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -6,6 +5,9 @@ import { authOptions } from "@/lib/auth";
 import { canAccessApp } from "@/lib/check-subscription";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
+import CopyButton from "@/components/CopyButton";
+import RestaurantSidebar from "@/components/RestaurantSidebar";
 
 export default async function RestaurantPage({
   params,
@@ -13,7 +15,6 @@ export default async function RestaurantPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await getServerSession(authOptions);
-
   if (!session?.user?.email) redirect("/login");
 
   const hasAccess = await canAccessApp(session.user.email);
@@ -24,16 +25,14 @@ export default async function RestaurantPage({
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
-      tables: {
-        include: { reservations: true },
-      },
+      tables: { include: { reservations: true } },
       reservations: true,
     },
   });
 
   if (!restaurant) {
     return (
-      <main className="min-h-screen bg-[#020617] p-6 text-white">
+      <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
         Restaurante não encontrado
       </main>
     );
@@ -64,7 +63,7 @@ export default async function RestaurantPage({
     table.reservations.map((reservation) => ({
       ...reservation,
       tableNumber: table.number,
-    }))
+    })),
   );
 
   const directReservations = restaurant.reservations.map((reservation) => ({
@@ -74,97 +73,41 @@ export default async function RestaurantPage({
 
   const allReservations = [...tableReservations, ...directReservations].filter(
     (reservation, index, array) =>
-      array.findIndex((item) => item.id === reservation.id) === index
+      array.findIndex((item) => item.id === reservation.id) === index,
   );
 
   const today = new Date();
 
-  const FREE_RESERVATION_LIMIT = 100;
-
-const subscription = await prisma.subscription.findUnique({
-  where: {
-    userId: restaurant.userId || "",
-  },
-});
-
-const proTrialActive =
-  subscription?.status === "TRIAL" &&
-  subscription.plan === "PRO" &&
-  subscription.trialEndsAt &&
-  new Date() <= subscription.trialEndsAt;
-
-const isPro =
-  subscription?.status === "ACTIVE" &&
-  subscription.plan === "PRO";
-
-const trialDaysLeft = subscription?.trialEndsAt
-  ? Math.max(
-      0,
-      Math.ceil(
-        (subscription.trialEndsAt.getTime() - Date.now()) /
-          (1000 * 60 * 60 * 24)
-      )
-    )
-  : 0;
-
-const startOfMonth = new Date();
-startOfMonth.setDate(1);
-startOfMonth.setHours(0, 0, 0, 0);
-
-const nextMonth = new Date(startOfMonth);
-nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-const coversThisMonthResult = await prisma.$queryRaw<
-  { total: bigint | null }[]
->`
-  SELECT COALESCE(SUM("guests"), 0)::bigint as total
-  FROM "Reservation"
-  WHERE "restaurantId" = ${restaurant.id}
-    AND "source" = 'PUBLIC'
-    AND "createdAt" >= ${startOfMonth}
-    AND "createdAt" < ${nextMonth}
-`;
-
-const coversThisMonth = Number(
-  coversThisMonthResult[0]?.total || 0
-);
-
-const remainingFreeCovers = Math.max(
-  0,
-  FREE_RESERVATION_LIMIT - coversThisMonth
-);
-
   const isToday = (date: Date | string) => {
-    const reservationDate = new Date(date);
-
+    const d = new Date(date);
     return (
-      reservationDate.getDate() === today.getDate() &&
-      reservationDate.getMonth() === today.getMonth() &&
-      reservationDate.getFullYear() === today.getFullYear()
+      d.getDate() === today.getDate() &&
+      d.getMonth() === today.getMonth() &&
+      d.getFullYear() === today.getFullYear()
     );
   };
 
   const inactiveStatuses = ["CANCELLED", "REJECTED", "NO_SHOW"];
 
   const activeReservations = allReservations.filter(
-    (reservation) => !inactiveStatuses.includes(String(reservation.status))
+    (reservation) => !inactiveStatuses.includes(String(reservation.status)),
   );
 
   const reservationsToday = activeReservations.filter((reservation) =>
-    isToday(reservation.date)
+    isToday(reservation.date),
   );
 
   const confirmedToday = reservationsToday.filter(
-    (reservation) => reservation.status === "CONFIRMED"
+    (reservation) => reservation.status === "CONFIRMED",
   );
 
   const pendingToday = reservationsToday.filter(
-    (reservation) => reservation.status === "PENDING"
+    (reservation) => reservation.status === "PENDING",
   );
 
   const guestsToday = reservationsToday.reduce(
     (total, reservation) => total + reservation.guests,
-    0
+    0,
   );
 
   const totalCapacity =
@@ -177,51 +120,73 @@ const remainingFreeCovers = Math.max(
 
   const todayReservationsList = reservationsToday
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 10);
+    .slice(0, 8);
 
   const nextReservations = activeReservations
     .filter((reservation) => new Date(reservation.date) >= new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 10);
+    .slice(0, 8);
 
   const listToShow =
     todayReservationsList.length > 0 ? todayReservationsList : nextReservations;
 
   const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reserve/${restaurant.slug}`;
+  const websiteUrl = `https://${restaurant.slug}.mesalink.pt`;
+  const customers = await prisma.customer.findMany({
+  where: {
+    reservations: {
+      some: {
+        restaurantId: id,
+      },
+    },
+  },
+});
+
+const riskyCustomers = customers.filter(
+  (customer) => (customer.riskScore ?? 0) >= 50,
+);
+
+const riskyRevenue = riskyCustomers.reduce(
+  (total, customer) =>
+    total +
+    (customer.totalVisits ?? customer.visitCount ?? 0) *
+      Number(restaurant.averageTicket || 25),
+  0,
+);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020617] pb-24 text-white">
-      <Background />
+    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <div className="grid min-h-screen lg:grid-cols-[276px_1fr]">
+        <RestaurantSidebar
+  id={id}
+  restaurantName={restaurant.name}
+/>
 
-      <div className="relative z-10 mx-auto max-w-7xl space-y-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-        <header className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <section className="px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+          <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <Link href={`/restaurants/${id}`} className="text-2xl font-black">
-                Mesa
-                <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                  Link
-                </span>
-              </Link>
+              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#9B6F3B]">
+                Dashboard
+              </p>
 
               <div className="mt-3 flex flex-wrap items-center gap-3">
-                <h1 className="text-3xl font-black leading-none tracking-[-0.04em] sm:text-4xl">
+                <h1 className="text-4xl font-semibold leading-none tracking-[-0.065em] sm:text-5xl">
                   {restaurant.name}
                 </h1>
 
                 <span
-                  className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${
+                  className={`rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
                     restaurant.onlineReservationsEnabled
-                      ? "border-green-300/20 bg-green-400/10 text-green-300"
-                      : "border-red-300/20 bg-red-400/10 text-red-300"
+                      ? "border-[#B7D7B8] bg-[#ECF7EC] text-[#3F6A4D]"
+                      : "border-[#E7B7A8] bg-[#FFF0EA] text-[#A14E36]"
                   }`}
                 >
                   {restaurant.onlineReservationsEnabled ? "Online" : "Offline"}
                 </span>
               </div>
 
-              <p className="mt-3 text-sm text-slate-400">
-                {restaurant.address || "Dashboard operacional do restaurante"}
+              <p className="mt-3 text-sm text-[#6B6258]">
+                {restaurant.address || "Resumo operacional do restaurante."}
               </p>
             </div>
 
@@ -229,191 +194,125 @@ const remainingFreeCovers = Math.max(
               <PrimaryLink href={`/restaurants/${id}/reservations/new`}>
                 + Nova reserva
               </PrimaryLink>
-              <DashboardLink href={`/restaurants/${id}/day`}>
-                Serviço
-              </DashboardLink>
-              <DashboardLink href={`/restaurants/${id}/calendar`}>
-                Calendário
-              </DashboardLink>
-              <DashboardLink href={`/restaurants/${id}/website`}>
-                Website
-              </DashboardLink>
-              <DashboardLink href={`/restaurants/${id}/ordering`}>
-                QR Ordering
-              </DashboardLink>
               <SignOutButton />
             </div>
-          </div>
-        </header>
+          </header>
 
-        <section className="grid gap-5 lg:grid-cols-[1fr_320px]">
-          <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-                  {todayReservationsList.length > 0 ? "Hoje" : "Agenda"}
-                </p>
-
-                <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
-                  {todayReservationsList.length > 0
-                    ? "Reservas de hoje"
-                    : "Próximas reservas"}
-                </h2>
-              </div>
-
-              <Link
-                href={`/restaurants/${id}/reservations`}
-                className="text-sm font-black text-cyan-300 hover:text-cyan-200"
-              >
-                Ver todas →
-              </Link>
-            </div>
-
-            <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-              <MiniMetric
-                label="Reservas"
-                value={reservationsToday.length}
-                sub={`${confirmedToday.length} confirmadas`}
-                tone="cyan"
-              />
-
-              <MiniMetric
-                label="Pessoas"
-                value={guestsToday}
-                sub="previstas"
-                tone="blue"
-              />
-
-              <MiniMetric
-                label="Ocupação"
-                value={`${occupancyRate}%`}
-                sub={totalCapacity > 0 ? `${guestsToday}/${totalCapacity} lugares` : "sem capacidade"}
-                tone="violet"
-              />
-
-              <MiniMetric
-                label={proTrialActive ? "Pro Trial" : isPro ? "Pro" : "Free"}
-                value={
-                  proTrialActive
-                    ? trialDaysLeft
-                    : isPro
-                    ? "∞"
-                    : remainingFreeCovers
-                }
-                sub={
-                  proTrialActive
-                    ? `${trialDaysLeft} dias restantes`
-                    : isPro
-                    ? "reservas ilimitadas"
-                    : `${coversThisMonth}/100 covers usados`
-                }
-                tone={
-                  proTrialActive
-                    ? "violet"
-                    : isPro
-                    ? "cyan"
-                    : remainingFreeCovers <= 20
-                    ? "yellow"
-                    : "blue"
-                }
-              />
-
-              {pendingToday.length > 0 && (
-                <MiniMetric
-                  label="Pendentes"
-                  value={pendingToday.length}
-                  sub="precisa atenção"
-                  tone="yellow"
-                />
-              )}
-            </div>
-
-            <div className="mt-4 overflow-hidden rounded-[22px] border border-cyan-300/10 bg-[#020617]/50">
-              {listToShow.map((reservation, index) => (
-                <ReservationLine
-                  key={reservation.id}
-                  reservation={reservation}
-                  isNext={todayReservationsList.length > 0 && index === 0}
-                  showDate={todayReservationsList.length === 0}
-                />
-              ))}
-
-              {listToShow.length === 0 && (
-                <div className="p-5 text-sm text-slate-400">
-                  Ainda não há reservas. Partilhe o link público para começar a
-                  receber reservas online.
-                </div>
-              )}
-            </div>
-          </div>
-
-          <aside className="space-y-5">
-            <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-                Link público
-              </p>
-
-              <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
-                Reservas 24/7
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                Use este link no Google Maps, Instagram, website e QR Code.
-              </p>
-
-              <div className="mt-4 space-y-3">
-                <div className="overflow-hidden rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-3 text-sm text-slate-300">
-                  <p className="truncate">{publicUrl}</p>
+          <section className="mt-7 grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
+            <Panel>
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <SectionLabel>
+                    {todayReservationsList.length > 0 ? "Hoje" : "Agenda"}
+                  </SectionLabel>
+                  <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
+                    {todayReservationsList.length > 0
+                      ? "Reservas de hoje"
+                      : "Próximas reservas"}
+                  </h2>
                 </div>
 
-                <CopyButton text={publicUrl} />
+                <div className="grid grid-cols-3 gap-2">
+                  <InlineStat label="Reservas" value={reservationsToday.length} />
+                  <InlineStat label="Covers" value={guestsToday} />
+                  <InlineStat label="Pendentes" value={pendingToday.length} />
+                </div>
               </div>
 
-              <p className="mt-3 text-xs leading-5 text-slate-500">
-                Procure por{" "}
-                <span className="font-semibold text-cyan-300">
-                  Google Business Profile
-                </span>{" "}
-                e cole este link no botão de reservas.
+              <div className="mt-6 overflow-hidden rounded-[28px] border border-[#E8DCCB] bg-[#FFF9F0]">
+                {listToShow.map((reservation, index) => (
+                  <ReservationLine
+                    key={reservation.id}
+                    reservation={reservation}
+                    isNext={todayReservationsList.length > 0 && index === 0}
+                    showDate={todayReservationsList.length === 0}
+                  />
+                ))}
+
+                {listToShow.length === 0 && (
+                  <div className="p-6 text-sm text-[#6B6258]">
+                    Ainda não há reservas. Partilhe o link público para começar.
+                  </div>
+                )}
+              </div>
+            </Panel>
+
+            <TableMapCard
+              tablesCount={restaurant.tables.length}
+              occupancyRate={occupancyRate}
+              guestsToday={guestsToday}
+              totalCapacity={totalCapacity}
+            />
+          </section>
+
+          <section className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+            <RevenueCard />
+            <MarketingCard />
+          </section>
+
+          {riskyCustomers.length > 0 && (
+  <section className="mt-6">
+    <Panel>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <SectionLabel>Clientes em risco</SectionLabel>
+
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
+            {riskyCustomers.length} clientes podem abandonar
+          </h2>
+
+          <p className="mt-2 text-sm text-[#6B6258]">
+            Valor potencial em risco:{" "}
+            <span className="font-bold text-[#16120E]">
+              {riskyRevenue.toFixed(0)}€
+            </span>
+          </p>
+        </div>
+
+        <form action="/api/marketing/run-recovery" method="POST">
+          <button className="rounded-full bg-[#16120E] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
+            Recuperar agora
+          </button>
+        </form>
+      </div>
+
+      <div className="mt-6 grid gap-3">
+        {riskyCustomers.slice(0, 5).map((customer) => (
+          <div
+            key={customer.id}
+            className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] px-4 py-3"
+          >
+            <div>
+              <p className="font-semibold">{customer.name}</p>
+              <p className="text-xs text-[#6B6258]">
+                Risk Score {customer.riskScore}
               </p>
             </div>
 
-            <WebsiteCard id={id} slug={restaurant.slug} />
+            <p className="font-bold">
+              {(
+                (customer.totalVisits ?? customer.visitCount ?? 0) *
+                Number(restaurant.averageTicket || 25)
+              ).toFixed(0)}
+              €
+            </p>
+          </div>
+        ))}
+      </div>
+    </Panel>
+  </section>
+)}
 
-            <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl lg:p-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-                Ações rápidas
-              </p>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <ActionLink href={`/restaurants/${id}/tables`}>
-                  Sala
-                </ActionLink>
-                <ActionLink href={`/restaurants/${id}/qr`}>
-                  QR Codes
-                </ActionLink>
-                <ActionLink href={`/restaurants/${id}/customers`}>
-                  Clientes
-                </ActionLink>
-                <ActionLink href={`/restaurants/${id}/website`}>
-                  Website
-                </ActionLink>
-                <ActionLink href={`/restaurants/${id}/ordering`}>
-  QR Ordering
-</ActionLink>
-                <ActionLink href={`/restaurants/${id}/settings`}>
-                  Definições
-                </ActionLink>
-                <ActionLink href="/billing">Billing</ActionLink>
-                <ActionLink href={`/reserve/${restaurant.slug}`}>
-                  Público
-                </ActionLink>
-              </div>
-            </div>
-          </aside>
+          <section className="mt-6 grid gap-6 xl:grid-cols-[0.9fr_0.9fr_1.1fr]">
+            <QrEfficiencyCard />
+            <AiCard />
+            <ReservationLinkCard
+              id={id}
+              publicUrl={publicUrl}
+              websiteUrl={websiteUrl}
+            />
+          </section>
         </section>
-
-        <AddonsSection id={id} />
       </div>
 
       <BottomNav id={id} />
@@ -421,115 +320,33 @@ const remainingFreeCovers = Math.max(
   );
 }
 
-function Background() {
+function Panel({ children }: { children: ReactNode }) {
   return (
-    <div className="pointer-events-none fixed inset-0 z-0">
-      <div className="absolute left-1/2 top-[-180px] h-[430px] w-[430px] -translate-x-1/2 rounded-full bg-cyan-500/18 blur-[110px]" />
-      <div className="absolute right-[-160px] top-[360px] h-[330px] w-[330px] rounded-full bg-violet-500/16 blur-[100px]" />
-      <div className="absolute bottom-[-160px] left-[-160px] h-[330px] w-[330px] rounded-full bg-blue-500/12 blur-[100px]" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.12),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
+    <div className="rounded-[32px] border border-[#E1D0B8] bg-white p-5 shadow-[0_22px_70px_rgba(80,55,30,0.055)] lg:p-6">
+      {children}
     </div>
   );
 }
 
-function BottomNav({ id }: { id: string }) {
+function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-cyan-300/10 bg-[#020617]/90 px-4 py-3 backdrop-blur-2xl lg:hidden">
-      <div className="grid grid-cols-5 text-center text-xs font-bold text-slate-400">
-        <Link href={`/restaurants/${id}`} className="text-cyan-300">
-          <p className="text-xl">⌂</p>
-          Dashboard
-        </Link>
-        <Link href={`/restaurants/${id}/day`}>
-          <p className="text-xl">⚡</p>
-          Hoje
-        </Link>
-        <Link href={`/restaurants/${id}/ordering`}>
-          <p className="text-xl">📲</p>
-          QR
-        </Link>
-        <Link href={`/restaurants/${id}/tables`}>
-          <p className="text-xl">▦</p>
-          Sala
-        </Link>
-        <Link href={`/restaurants/${id}/website`}>
-          <p className="text-xl">🌐</p>
-          Website
-        </Link>
-      </div>
-    </nav>
-  );
-}
-
-function PrimaryLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className="rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 py-2.5 text-sm font-black text-black shadow-[0_0_40px_rgba(96,165,250,0.3)] transition hover:opacity-90"
-    >
+    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9B6F3B]">
       {children}
-    </Link>
+    </p>
   );
 }
 
-function DashboardLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className="rounded-full border border-cyan-300/20 bg-white/[0.04] px-4 py-2 text-sm font-black text-slate-200 transition hover:border-cyan-300/50 hover:bg-cyan-400/10 hover:text-white"
-    >
-      {children}
-    </Link>
-  );
-}
-
-function MiniMetric({
+function InlineStat({
   label,
   value,
-  sub,
-  tone,
 }: {
   label: string;
   value: number | string;
-  sub: string;
-  tone: "cyan" | "blue" | "violet" | "yellow";
 }) {
-  const toneClass =
-    tone === "yellow"
-      ? "border-yellow-300/20 bg-yellow-400/10 text-yellow-300"
-      : tone === "blue"
-      ? "border-blue-300/20 bg-blue-400/10 text-blue-300"
-      : tone === "violet"
-      ? "border-violet-300/20 bg-violet-400/10 text-violet-300"
-      : "border-cyan-300/20 bg-cyan-400/10 text-cyan-300";
-
   return (
-    <div className={`rounded-2xl border px-4 py-3 ${toneClass}`}>
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
-            {label}
-          </p>
-          <p className="mt-1 text-2xl font-black leading-none">{value}</p>
-        </div>
-
-        <p className="pb-0.5 text-right text-[10px] font-bold text-slate-500">
-          {sub}
-        </p>
-      </div>
+    <div className="min-w-[82px] rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-2">
+      <p className="text-lg font-semibold tracking-[-0.04em]">{value}</p>
+      <p className="text-[11px] text-[#6B6258]">{label}</p>
     </div>
   );
 }
@@ -555,282 +372,462 @@ function ReservationLine({
     status === "PENDING"
       ? "Pendente"
       : status === "CONFIRMED"
-      ? "Confirmada"
-      : status === "SEATED"
-      ? "Sentada"
-      : status;
+        ? "Confirmada"
+        : status === "SEATED"
+          ? "Sentada"
+          : status;
 
-  const dotClass =
+  const statusClass =
     status === "PENDING"
-      ? "bg-yellow-300"
+      ? "bg-[#FFF1D0] text-[#9B6F3B]"
       : status === "CONFIRMED"
-      ? "bg-green-300"
-      : status === "SEATED"
-      ? "bg-cyan-300"
-      : "bg-slate-400";
+        ? "bg-[#ECF7EC] text-[#3F6A4D]"
+        : "bg-[#EFE5D6] text-[#6B6258]";
 
   return (
-    <div className="grid grid-cols-[64px_1fr_auto] items-center gap-3 border-b border-cyan-300/10 px-4 py-3 last:border-b-0">
-      <div>
-        <p className="text-lg font-black text-cyan-300">
-          {new Date(reservation.date).toLocaleTimeString("pt-PT", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </p>
+    <div className="grid grid-cols-[76px_1fr_auto_auto] items-center gap-4 border-b border-[#E8DCCB] px-4 py-4 last:border-b-0">
+      <p className="text-lg font-semibold">
+        {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </p>
+
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          {isNext && (
+            <span className="rounded-full bg-[#2A2118] px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-white">
+              Próxima
+            </span>
+          )}
+
+          <p className="truncate font-semibold">{reservation.customerName}</p>
+        </div>
 
         {showDate && (
-          <p className="mt-0.5 text-[10px] font-bold text-slate-500">
+          <p className="mt-1 text-xs text-[#7A7166]">
             {new Date(reservation.date).toLocaleDateString("pt-PT")}
           </p>
         )}
       </div>
 
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          {isNext && (
-            <span className="rounded-full border border-orange-300/20 bg-orange-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.16em] text-orange-300">
-              Próxima
-            </span>
-          )}
+      <p className="hidden text-sm text-[#6B6258] sm:block">
+        {reservation.tableNumber ? `Mesa ${reservation.tableNumber}` : "Sem mesa"} ·{" "}
+        {reservation.guests} pax
+      </p>
 
-          <p className="truncate font-black text-white">
-            {reservation.customerName}
-          </p>
-        </div>
-
-        <p className="mt-1 text-xs text-slate-400">
-          {reservation.tableNumber ? `Mesa ${reservation.tableNumber}` : "Sem mesa"} ·{" "}
-          {reservation.guests} pessoas
-        </p>
-      </div>
-
-      <div className="hidden items-center gap-2 text-right sm:flex">
-        <span className={`h-2 w-2 rounded-full ${dotClass}`} />
-        <span className="text-xs font-bold text-slate-400">{statusLabel}</span>
-      </div>
+      <span
+        className={`hidden rounded-full px-3 py-1 text-xs font-semibold sm:block ${statusClass}`}
+      >
+        {statusLabel}
+      </span>
     </div>
   );
 }
 
-
-function WebsiteCard({ id, slug }: { id: string; slug: string }) {
-  const websiteUrl = `https://${slug}.mesalink.pt`;
+function TableMapCard({
+  tablesCount,
+  occupancyRate,
+  guestsToday,
+  totalCapacity,
+}: {
+  tablesCount: number;
+  occupancyRate: number;
+  guestsToday: number;
+  totalCapacity: number;
+}) {
+  const tables = [
+    ["1", "Livre"],
+    ["2", "Reserva"],
+    ["3", "Ocupada"],
+    ["4", "Livre"],
+    ["5", "QR"],
+    ["6", "Conta"],
+    ["7", "Livre"],
+    ["8", "Reserva"],
+  ];
 
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-violet-300/20 bg-gradient-to-br from-violet-500/15 via-cyan-500/10 to-white/[0.04] p-5 shadow-[0_0_55px_rgba(167,139,250,0.08)] backdrop-blur-xl lg:p-6">
-      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-violet-500/25 blur-3xl" />
-
-      <div className="relative">
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-violet-200">
-          Website
-        </p>
-
-        <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
-          Website do restaurante
-        </h2>
-
-        <p className="mt-2 text-sm leading-6 text-slate-400">
-          Crie, edite e publique o website profissional do restaurante com reservas integradas.
-        </p>
-
-        <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-[#020617]/70 p-3 text-sm text-slate-300">
-          <p className="truncate">{websiteUrl}</p>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-          <Link
-            href={`/restaurants/${id}/website`}
-            className="flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-4 text-sm font-black text-black shadow-[0_0_35px_rgba(96,165,250,0.25)] transition hover:opacity-90"
-          >
-            Criar / editar
-          </Link>
-
-          <Link
-            href={websiteUrl}
-            target="_blank"
-            className="flex h-12 items-center justify-center rounded-full border border-cyan-300/20 bg-white/[0.04] px-4 text-sm font-black text-white transition hover:border-cyan-300/50 hover:bg-cyan-400/10"
-          >
-            Ver website
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AddonsSection({ id }: { id: string }) {
-  return (
-    <section className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <Panel>
+      <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-            Plano e add-ons
-          </p>
-
-          <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
-            Trial completo durante 7 dias
+          <SectionLabel>Sala</SectionLabel>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
+            Tempo real
           </h2>
-
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-            Durante o trial pode experimentar reservas ilimitadas, Website e QR Ordering.
-            Depois, ativa apenas o que fizer sentido para o restaurante.
-          </p>
         </div>
 
         <Link
-          href="/billing"
-          className="rounded-full border border-cyan-300/20 bg-white/[0.04] px-5 py-2.5 text-sm font-black text-slate-200 transition hover:border-cyan-300/50 hover:bg-cyan-400/10 hover:text-white"
+          href="#"
+          className="text-sm font-semibold text-[#9B6F3B] hover:text-[#16120E]"
         >
-          Gerir plano →
+          {tablesCount || 0} mesas
         </Link>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <AddonCard
-          title="Pro"
-          icon="⚡"
-          description="Reservas ilimitadas, gestão de mesas, calendário mensal, serviço do dia e histórico de clientes."
-          price="10€/mês"
-          status="Incluído no trial"
-          href={`/restaurants/${id}`}
-          cta="Abrir dashboard"
-          featured
-        />
-
-        <AddonCard
-          title="Website"
-          icon="🌐"
-          description="Website profissional com templates, menus, galeria, SEO e reservas integradas."
-          price="+10€/mês"
-          status="Incluído no trial"
-          href={`/restaurants/${id}/website`}
-          cta="Abrir Website"
-        />
-
-        <AddonCard
-          title="QR Ordering"
-          icon="📲"
-          description="Menu digital, pedidos por mesa, chamar empregado, pedir conta e alertas no painel."
-          price="+15€/mês"
-          status="Incluído no trial"
-          href={`/restaurants/${id}/ordering`}
-          cta="Abrir QR Ordering"
-        />
-
-        <AddonCard
-          title="IA e Marketing"
-          icon="🤖"
-          description="Assistente IA, campanhas, mensagens, promoções e ferramentas para trazer clientes de volta."
-          price="Brevemente"
-          status="Coming soon"
-          disabled
-        />
+      <div className="mt-6 grid grid-cols-4 gap-5">
+        {tables.map(([table, status]) => (
+          <div key={table} className="flex flex-col items-center gap-2">
+            <div
+              className={
+                status === "Ocupada"
+                  ? "flex h-16 w-16 items-center justify-center rounded-full bg-[#2A2118] text-white"
+                  : status === "QR" || status === "Conta"
+                    ? "flex h-16 w-16 items-center justify-center rounded-full border border-[#B9965E] bg-[#FFF1D0]"
+                    : "flex h-16 w-16 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0]"
+              }
+            >
+              <span className="font-semibold">{table}</span>
+            </div>
+            <span className="text-[11px] text-[#6B6258]">{status}</span>
+          </div>
+        ))}
       </div>
 
-      <div className="mt-5 rounded-[24px] border border-violet-300/15 bg-violet-500/10 p-5">
-        <p className="text-sm font-bold leading-6 text-violet-100">
-          O trial completo é ativado ao criar conta. Não existem trials separados por funcionalidade.
-          QR Ordering abre diretamente durante o trial e depois pode ser ativado por +15€/mês.
-        </p>
+      <div className="mt-6 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-[#6B6258]">
+            {guestsToday}/{totalCapacity || 0} lugares
+          </p>
+          <p className="text-lg font-semibold">{occupancyRate}%</p>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#E8DCCB]">
+          <div
+            className="h-full rounded-full bg-[#C8A56A]"
+            style={{ width: `${Math.min(occupancyRate, 100)}%` }}
+          />
+        </div>
       </div>
-    </section>
+    </Panel>
   );
 }
 
-function AddonCard({
+function RevenueCard() {
+  const points = "0,126 60,104 120,82 180,111 240,64 300,76 360,38 420,58 480,29 540,48";
+
+  return (
+    <Panel>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <SectionLabel>POS</SectionLabel>
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
+            Faturação
+          </h2>
+        </div>
+        <ComingSoon />
+      </div>
+
+      <div className="mt-6 grid gap-5 sm:grid-cols-3">
+        <FinanceStat title="Hoje" value="€0,00" sub="Ontem: €344,43" neutral />
+        <FinanceStat title="Mensal" value="€13.197,28" sub="-66,3% vs anterior" down />
+        <FinanceStat title="Anual" value="€197.101,73" sub="+4,87% vs anterior" />
+      </div>
+
+      <div className="mt-7 rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-5">
+        <svg viewBox="0 0 540 150" className="h-44 w-full">
+          <defs>
+            <linearGradient id="revenueFill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#C8A56A" stopOpacity="0.34" />
+              <stop offset="100%" stopColor="#C8A56A" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+
+          {[30, 60, 90, 120].map((y) => (
+            <line
+              key={y}
+              x1="0"
+              x2="540"
+              y1={y}
+              y2={y}
+              stroke="#E1D0B8"
+              strokeWidth="1"
+            />
+          ))}
+
+          <polygon
+            points={`0,150 ${points} 540,150`}
+            fill="url(#revenueFill)"
+          />
+
+          <polyline
+            points={points}
+            fill="none"
+            stroke="#C8A56A"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {[
+            ["19-05", 0],
+            ["23-05", 120],
+            ["27-05", 240],
+            ["31-05", 360],
+            ["04-06", 480],
+          ].map(([label, x]) => (
+            <text
+              key={label}
+              x={Number(x)}
+              y="146"
+              fill="#6B6258"
+              fontSize="12"
+            >
+              {label}
+            </text>
+          ))}
+        </svg>
+      </div>
+    </Panel>
+  );
+}
+
+function FinanceStat({
   title,
-  icon,
-  description,
-  price,
-  status,
-  href,
-  cta,
-  disabled,
-  featured,
+  value,
+  sub,
+  down,
+  neutral,
 }: {
   title: string;
-  icon: string;
-  description: string;
-  price: string;
-  status: string;
-  href?: string;
-  cta?: string;
-  disabled?: boolean;
-  featured?: boolean;
+  value: string;
+  sub: string;
+  down?: boolean;
+  neutral?: boolean;
 }) {
   return (
-    <div
-      className={`relative overflow-hidden rounded-[26px] border p-5 ${
-        featured
-          ? "border-cyan-300/25 bg-cyan-400/10 shadow-[0_0_45px_rgba(34,211,238,0.08)]"
-          : "border-white/10 bg-[#020617]/55"
-      }`}
-    >
-      {featured && (
-        <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-500/20 blur-3xl" />
-      )}
-
-      <div className="relative">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-3xl">{icon}</p>
-            <h3 className="mt-3 text-xl font-black tracking-[-0.03em] text-white">
-              {title}
-            </h3>
-          </div>
-
-          <span
-            className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] ${
-              disabled
-                ? "border-slate-300/15 bg-white/[0.04] text-slate-400"
-                : "border-green-300/20 bg-green-400/10 text-green-300"
-            }`}
-          >
-            {status}
-          </span>
-        </div>
-
-        <p className="mt-3 min-h-[72px] text-sm leading-6 text-slate-400">
-          {description}
-        </p>
-
-        <p className="mt-4 text-2xl font-black text-cyan-300">{price}</p>
-
-        {disabled ? (
-          <button
-            disabled
-            className="mt-5 flex h-12 w-full cursor-not-allowed items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-sm font-black text-slate-500"
-          >
-            Coming soon
-          </button>
-        ) : (
-          <Link
-            href={href || "#"}
-            className="mt-5 flex h-12 w-full items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-sm font-black text-black transition hover:opacity-90"
-          >
-            {cta}
-          </Link>
-        )}
-      </div>
+    <div className="rounded-2xl border border-[#E1D0B8] bg-white p-4">
+      <p className="text-sm text-[#6B6258]">{title}</p>
+      <p className="mt-2 text-2xl font-semibold tracking-[-0.05em] text-[#16120E]">
+        {value}
+      </p>
+      <p
+        className={`mt-2 text-xs ${
+          neutral
+            ? "text-[#6B6258]"
+            : down
+              ? "text-[#B85C5C]"
+              : "text-[#3F6A4D]"
+        }`}
+      >
+        {sub}
+      </p>
     </div>
   );
 }
 
-function ActionLink({
+function MarketingCard() {
+  return (
+    <Panel>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <SectionLabel>Marketing</SectionLabel>
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
+            ROI & IA
+          </h2>
+        </div>
+        <ComingSoon />
+      </div>
+
+      <div className="mt-6 grid gap-3">
+        <SmallStat value="+€680" label="receita recuperada" />
+        <SmallStat value="18" label="reviews geradas" />
+        <SmallStat value="7" label="clientes reativados" />
+      </div>
+    </Panel>
+  );
+}
+
+function QrEfficiencyCard() {
+  return (
+    <Panel>
+      <SectionLabel>QR Ordering</SectionLabel>
+      <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
+        Eficiência
+      </h2>
+
+      <div className="mt-6 grid gap-3">
+        <SmallStat value="9" label="pedidos ativos" />
+        <SmallStat value="4" label="contas pedidas" />
+        <SmallStat value="-32%" label="chamadas à equipa" />
+      </div>
+    </Panel>
+  );
+}
+
+function AiCard() {
+  return (
+    <Panel>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <SectionLabel>IA</SectionLabel>
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
+            Sugestão
+          </h2>
+        </div>
+        <ComingSoon />
+      </div>
+
+      <div className="mt-6 rounded-[24px] bg-[#FFF9F0] p-5">
+        <p className="text-sm leading-6 text-[#6B6258]">
+          Enviar campanha a clientes sem visita há 45 dias. Estimativa: 8 a 12
+          reservas recuperadas.
+        </p>
+      </div>
+    </Panel>
+  );
+}
+
+function ReservationLinkCard({
+  id,
+  publicUrl,
+  websiteUrl,
+}: {
+  id: string;
+  publicUrl: string;
+  websiteUrl: string;
+}) {
+  return (
+    <Panel>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <SectionLabel>Link público</SectionLabel>
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
+            Reservas 24/7
+          </h2>
+        </div>
+
+        <span className="rounded-full bg-[#EFE5D6] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9B6F3B]">
+          Ativo
+        </span>
+      </div>
+
+      <p className="mt-4 text-sm leading-6 text-[#6B6258]">
+        Coloque este link no botão de reservas do Google Maps, Instagram,
+        Facebook, website ou bio das redes sociais.
+      </p>
+
+      <div className="mt-5 overflow-hidden rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-3 text-sm text-[#3D362F]">
+        <p className="truncate">{publicUrl}</p>
+      </div>
+
+      <div className="mt-3">
+  <CopyButton text={publicUrl} />
+</div>
+
+      <div className="mt-5 rounded-2xl bg-[#FFF9F0] p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9B6F3B]">
+          Como usar
+        </p>
+
+        <div className="mt-3 space-y-2 text-sm leading-6 text-[#6B6258]">
+          <p>1. Abra o Google Business Profile.</p>
+          <p>2. Vá a Reservas / Links de marcação.</p>
+          <p>3. Cole este link como botão principal.</p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <Link
+          href={`/restaurants/${id}/website`}
+          className="flex h-11 items-center justify-center rounded-full bg-[#16120E] px-4 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+        >
+          Website
+        </Link>
+
+        <Link
+          href={websiteUrl}
+          target="_blank"
+          className="flex h-11 items-center justify-center rounded-full border border-[#C8A56A] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] transition hover:bg-white"
+        >
+          Ver página
+        </Link>
+      </div>
+    </Panel>
+  );
+}
+
+function SmallStat({ value, label }: { value: number | string; label: string }) {
+  return (
+    <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
+      <p className="text-2xl font-semibold tracking-[-0.05em]">{value}</p>
+      <p className="mt-1 text-xs text-[#6B6258]">{label}</p>
+    </div>
+  );
+}
+
+function ComingSoon() {
+  return (
+    <span className="rounded-full bg-[#EFE5D6] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9B6F3B]">
+      Soon
+    </span>
+  );
+}
+
+function SideLink({
   href,
   children,
+  active,
 }: {
   href: string;
-  children: React.ReactNode;
+  children: ReactNode;
+  active?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="flex items-center justify-between rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-3.5 text-sm font-black text-white transition hover:border-cyan-300/40 hover:bg-cyan-400/10"
+      className={
+        active
+          ? "block rounded-2xl bg-[#16120E] px-4 py-3 text-sm font-semibold text-white"
+          : "block rounded-2xl px-4 py-3 text-sm font-semibold text-[#5C5348] transition hover:bg-[#FFF9F0] hover:text-[#16120E]"
+      }
     >
-      <span>{children}</span>
-      <span className="text-cyan-300">→</span>
+      {children}
     </Link>
+  );
+}
+
+function PrimaryLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-full bg-[#16120E] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function BottomNav({ id }: { id: string }) {
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E1D0B8] bg-[#F5EFE6]/95 px-4 py-3 backdrop-blur-2xl lg:hidden">
+      <div className="grid grid-cols-5 text-center text-xs font-semibold text-[#6B6258]">
+        <Link href={`/restaurants/${id}`} className="text-[#16120E]">
+          <p className="text-xl">⌂</p>
+          Dashboard
+        </Link>
+        <Link href={`/restaurants/${id}/day`}>
+          <p className="text-xl">⚡</p>
+          Hoje
+        </Link>
+        <Link href={`/restaurants/${id}/ordering`}>
+          <p className="text-xl">📲</p>
+          QR
+        </Link>
+        <Link href={`/restaurants/${id}/tables`}>
+          <p className="text-xl">▦</p>
+          Sala
+        </Link>
+        <Link href={`/restaurants/${id}/website`}>
+          <p className="text-xl">🌐</p>
+          Website
+        </Link>
+      </div>
+    </nav>
   );
 }

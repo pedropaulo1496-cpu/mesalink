@@ -39,11 +39,11 @@ type SessionOrder = {
   status: string;
   createdAt: string;
   items: {
-  id: string;
-  productName: string;
-  quantity: number;
-  lineTotal?: number | string;
-}[];
+    id: string;
+    productName: string;
+    quantity: number;
+    lineTotal?: number | string;
+  }[];
 };
 
 type TableSession = {
@@ -65,18 +65,25 @@ function statusLabel(status: string) {
 
 function statusTone(status: string) {
   if (status === "DELIVERED") {
-    return "border-green-300/20 bg-green-400/10 text-green-300";
+    return "border-[#CFE3D0] bg-[#ECF7EC] text-[#3F6A4D]";
   }
 
   if (status === "PREPARING" || status === "READY") {
-    return "border-yellow-300/20 bg-yellow-400/10 text-yellow-300";
+    return "border-[#E8D2A3] bg-[#FFF1D0] text-[#9B6F3B]";
   }
 
   if (status === "CANCELLED") {
-    return "border-red-300/20 bg-red-400/10 text-red-300";
+    return "border-[#E7B7A8] bg-[#FFF0EA] text-[#A14E36]";
   }
 
-  return "border-cyan-300/20 bg-cyan-400/10 text-cyan-300";
+  return "border-[#E1D0B8] bg-[#F7F0E7] text-[#6B6258]";
+}
+
+function orderTime(date: string) {
+  return new Date(date).toLocaleTimeString("pt-PT", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function PublicOrderingClient({
@@ -110,7 +117,7 @@ export default function PublicOrderingClient({
 
   const total = useMemo(
     () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    [cart]
+    [cart],
   );
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -119,11 +126,11 @@ export default function PublicOrderingClient({
     (order) =>
       order.status === "PENDING" ||
       order.status === "PREPARING" ||
-      order.status === "READY"
+      order.status === "READY",
   );
 
   const deliveredOrders = (session?.orders || []).filter(
-    (order) => order.status === "DELIVERED"
+    (order) => order.status === "DELIVERED",
   );
 
   async function loadSession() {
@@ -132,7 +139,7 @@ export default function PublicOrderingClient({
 
       const response = await fetch(
         `/api/ordering/table-session?restaurantId=${restaurantId}&tableNumber=${tableNumber}`,
-        { cache: "no-store" }
+        { cache: "no-store" },
       );
 
       if (!response.ok) return;
@@ -144,7 +151,7 @@ export default function PublicOrderingClient({
     }
   }
 
-    useEffect(() => {
+  useEffect(() => {
     loadSession();
 
     const interval = window.setInterval(() => {
@@ -156,13 +163,17 @@ export default function PublicOrderingClient({
 
   if (!qrOrderingEnabled) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#020617] p-6">
-        <div className="max-w-md rounded-3xl border border-cyan-300/10 bg-white/[0.04] p-8 text-center">
-          <h1 className="text-2xl font-black text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#F5EFE6] p-6 text-[#16120E]">
+        <div className="max-w-md rounded-[32px] border border-[#E1D0B8] bg-white p-8 text-center shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
+            MesaLink QR Ordering
+          </p>
+
+          <h1 className="mt-3 text-2xl font-semibold tracking-[-0.05em]">
             QR Ordering indisponível
           </h1>
 
-          <p className="mt-3 text-sm font-bold text-slate-500">
+          <p className="mt-3 text-sm font-medium leading-6 text-[#6B6258]">
             Este restaurante desativou temporariamente os pedidos por QR Code.
           </p>
         </div>
@@ -180,7 +191,7 @@ export default function PublicOrderingClient({
         return current.map((item) =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
-            : item
+            : item,
         );
       }
 
@@ -203,9 +214,9 @@ export default function PublicOrderingClient({
         .map((item) =>
           item.id === productId
             ? { ...item, quantity: item.quantity - 1 }
-            : item
+            : item,
         )
-        .filter((item) => item.quantity > 0)
+        .filter((item) => item.quantity > 0),
     );
   }
 
@@ -248,41 +259,46 @@ export default function PublicOrderingClient({
     }
   }
 
-async function requestWaiter() {
-  setSuccessMessage("");
+  async function requestWaiter() {
+    if (isRequestingWaiter) return;
 
-  try {
-    const response = await fetch("/api/ordering/request-waiter", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        restaurantId,
-        tableNumber,
-      }),
-    });
+    setIsRequestingWaiter(true);
+    setSuccessMessage("");
 
-    const text = await response.text();
+    try {
+      const response = await fetch("/api/ordering/request-waiter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          restaurantId,
+          tableNumber,
+        }),
+      });
 
-let data: any = {};
-try {
-  data = text ? JSON.parse(text) : {};
-} catch {
-  data = { error: text };
-}
+      const text = await response.text();
 
-    if (!response.ok) {
-      console.error("request waiter failed:", data);
-      setSuccessMessage(data?.error || "Não foi possível chamar o empregado.");
-      return;
+      let data: any = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { error: text };
+      }
+
+      if (!response.ok) {
+        console.error("request waiter failed:", data);
+        setSuccessMessage(data?.error || "Não foi possível chamar o empregado.");
+        return;
+      }
+
+      await loadSession();
+      setSuccessMessage("Empregado chamado.");
+    } catch (error) {
+      console.error("request waiter catch:", error);
+      setSuccessMessage("Não foi possível chamar o empregado.");
+    } finally {
+      setIsRequestingWaiter(false);
     }
-
-    await loadSession();
-    setSuccessMessage("Empregado chamado.");
-  } catch (error) {
-    console.error("request waiter catch:", error);
-    setSuccessMessage("Não foi possível chamar o empregado.");
   }
-}
 
   async function requestBill() {
     if (!session?.id || isRequestingBill) return;
@@ -311,17 +327,20 @@ try {
   }
 
   return (
-    <main className="min-h-screen bg-[#020617] text-white">
-      <div className="mx-auto max-w-md px-4 pb-44 pt-5">
-        <header className="sticky top-0 z-20 -mx-4 border-b border-cyan-300/10 bg-[#020617]/90 px-4 pb-4 pt-3 backdrop-blur-xl">
-          <p className="text-[10px] font-black uppercase tracking-[0.26em] text-cyan-300">
+    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <div className="mx-auto max-w-md px-4 pb-36 pt-5">
+        <header className="sticky top-0 z-20 -mx-4 border-b border-[#E1D0B8] bg-[#F5EFE6]/92 px-4 pb-4 pt-3 backdrop-blur-xl">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#9B6F3B]">
             MesaLink QR Ordering
           </p>
 
           <div className="mt-2 flex items-end justify-between gap-3">
             <div>
-                
-              <p className="mt-1 text-sm font-bold text-slate-400">
+              <h1 className="text-3xl font-semibold tracking-[-0.065em]">
+                {restaurantName}
+              </h1>
+
+              <p className="mt-1 text-sm font-medium text-[#6B6258]">
                 Mesa {tableNumber}
               </p>
             </div>
@@ -330,13 +349,13 @@ try {
           {(session?.requestedWaiterAt || session?.requestedBillAt) && (
             <div className="mt-4 flex flex-wrap gap-2">
               {session?.requestedWaiterAt && (
-                <span className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-300">
+                <span className="rounded-full border border-[#E1D0B8] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6B6258]">
                   Empregado chamado
                 </span>
               )}
 
               {session?.requestedBillAt && (
-                <span className="rounded-full border border-yellow-300/20 bg-yellow-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-yellow-300">
+                <span className="rounded-full border border-[#E8D2A3] bg-[#FFF1D0] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
                   Conta pedida
                 </span>
               )}
@@ -345,18 +364,26 @@ try {
         </header>
 
         {successMessage && (
-          <div className="mt-4 rounded-2xl border border-green-300/20 bg-green-400/10 p-4 text-sm font-black text-green-300">
+          <div className="mt-4 rounded-2xl border border-[#CFE3D0] bg-[#ECF7EC] p-4 text-sm font-semibold text-[#3F6A4D]">
             {successMessage}
           </div>
         )}
 
-        <section className="mt-4 rounded-[24px] border border-cyan-300/10 bg-white/[0.04] p-4">
+        {qrWelcomeMessage && (
+          <section className="mt-4 rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
+            <p className="text-sm font-medium leading-6 text-[#6B6258]">
+              {qrWelcomeMessage}
+            </p>
+          </section>
+        )}
+
+        <section className="mt-4 rounded-[28px] border border-[#E1D0B8] bg-white p-4 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9B6F3B]">
                 Pedido da mesa
               </p>
-              <h2 className="mt-1 text-xl font-black tracking-[-0.03em]">
+              <h2 className="mt-1 text-xl font-semibold tracking-[-0.05em]">
                 Estado atual
               </h2>
             </div>
@@ -364,56 +391,56 @@ try {
             <button
               type="button"
               onClick={loadSession}
-              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-black uppercase text-slate-300"
+              className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-1 text-[10px] font-semibold uppercase text-[#6B6258] transition hover:bg-[#F7F0E7]"
             >
               {isLoadingSession ? "..." : "Atualizar"}
             </button>
           </div>
 
           {!session || session.orders.length === 0 ? (
-            <p className="mt-4 text-sm font-bold text-slate-500">
+            <p className="mt-4 text-sm font-medium text-[#6B6258]">
               Ainda não há pedidos nesta mesa.
             </p>
           ) : (
             <div className="mt-4 space-y-4">
               {activeOrders.length > 0 && (
-                <OrderGroup title="A fazer" orders={activeOrders} />
+                <OrderGroup title="Pedidos ativos" orders={activeOrders} />
               )}
 
               {deliveredOrders.length > 0 && (
-                <OrderGroup title="Entregue" orders={deliveredOrders} />
+                <OrderGroup title="Histórico" orders={deliveredOrders} />
               )}
             </div>
           )}
 
           {(qrAllowWaiterCall || qrAllowBillRequest) && (
-  <div className="mt-4 grid grid-cols-2 gap-2 border-t border-white/10 pt-4">
-    {qrAllowWaiterCall && (
-      <button
-        type="button"
-        onClick={requestWaiter}
-        disabled={isRequestingWaiter}
-        className="h-11 rounded-full border border-cyan-300/15 bg-cyan-400/10 px-3 text-xs font-black text-cyan-300 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isRequestingWaiter ? "A chamar..." : "🛎 Empregado"}
-      </button>
-    )}
+            <div className="mt-4 grid grid-cols-2 gap-2 border-t border-[#E8DCCB] pt-4">
+              {qrAllowWaiterCall && (
+                <button
+                  type="button"
+                  onClick={requestWaiter}
+                  disabled={isRequestingWaiter}
+                  className="h-11 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-xs font-semibold text-[#16120E] transition hover:bg-[#F7F0E7] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isRequestingWaiter ? "A chamar..." : "Chamar empregado"}
+                </button>
+              )}
 
-    {qrAllowBillRequest && (
-      <button
-        type="button"
-        onClick={requestBill}
-        disabled={!session?.id || isRequestingBill}
-        className="h-11 rounded-full border border-yellow-300/15 bg-yellow-400/10 px-3 text-xs font-black text-yellow-300 transition hover:bg-yellow-400/20 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {isRequestingBill ? "A pedir..." : "💳 Conta"}
-      </button>
-    )}
-  </div>
-)}
+              {qrAllowBillRequest && (
+                <button
+                  type="button"
+                  onClick={requestBill}
+                  disabled={!session?.id || isRequestingBill}
+                  className="h-11 rounded-full border border-[#E8D2A3] bg-[#FFF1D0] px-3 text-xs font-semibold text-[#9B6F3B] transition hover:bg-[#FFF9F0] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {isRequestingBill ? "A pedir..." : "Pedir conta"}
+                </button>
+              )}
+            </div>
+          )}
 
           {!session?.id && (qrAllowWaiterCall || qrAllowBillRequest) && (
-            <p className="mt-2 text-center text-[11px] font-bold text-slate-600">
+            <p className="mt-2 text-center text-[11px] font-medium text-[#8B8177]">
               Pode chamar o empregado antes de fazer pedido. A conta fica
               disponível depois de abrir a mesa.
             </p>
@@ -423,125 +450,129 @@ try {
         <section className="mt-5 space-y-4">
           {categories.map((category, index) => (
             <details key={category.id} open={index === 0} className="group">
-              <summary className="mb-3 flex cursor-pointer list-none items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+              <summary className="mb-3 flex cursor-pointer list-none items-center justify-between rounded-[24px] border border-[#E1D0B8] bg-white px-4 py-3 shadow-[0_14px_40px_rgba(80,55,30,0.035)]">
                 <div>
-                  <h2 className="text-xl font-black tracking-[-0.03em]">
+                  <h2 className="text-xl font-semibold tracking-[-0.05em]">
                     {category.name}
                   </h2>
-                  <p className="mt-1 text-xs font-bold text-slate-500">
+                  <p className="mt-1 text-xs font-medium text-[#6B6258]">
                     {category.products.length} produto(s)
                   </p>
                 </div>
 
-                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cyan-300/15 bg-cyan-400/10 text-sm font-black text-cyan-300 transition group-open:rotate-180">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] text-sm font-semibold text-[#6B6258] transition group-open:rotate-180">
                   ↓
                 </span>
               </summary>
 
               <div className="space-y-3 pb-3">
-                {category.products.map((product) => (
-                  <article
-                    key={product.id}
-                    className="rounded-2xl border border-white/10 bg-white/[0.04] p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      {product.imageUrl && (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="h-12 w-12 shrink-0 rounded-xl object-cover"
-                        />
-                      )}
+                {category.products.map((product) => {
+                  const cartItem = cart.find((item) => item.id === product.id);
+                  const quantity = cartItem?.quantity || 0;
 
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-black text-white">
-                          {product.name}
-                        </p>
-
-                        {product.description && (
-                          <p className="truncate text-xs text-slate-500">
-                            {product.description}
-                          </p>
+                  return (
+                    <article
+                      key={product.id}
+                      className="rounded-[24px] border border-[#E1D0B8] bg-white p-3 shadow-[0_14px_40px_rgba(80,55,30,0.035)]"
+                    >
+                      <div className="flex gap-3">
+                        {product.imageUrl && (
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="h-20 w-20 shrink-0 rounded-2xl object-cover"
+                          />
                         )}
 
-                        <div className="mt-1 flex gap-1">
-                          <span className="rounded-full border border-cyan-300/15 bg-cyan-400/10 px-2 py-0.5 text-[9px] font-black text-cyan-300">
-                            IVA {product.vatRate}%
-                          </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex min-w-0 items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-base font-semibold tracking-[-0.035em] text-[#16120E]">
+                                {product.name}
+                              </p>
 
-                          {product.featured && (
-                            <span className="rounded-full border border-yellow-300/15 bg-yellow-400/10 px-2 py-0.5 text-[9px] font-black text-yellow-300">
-                              Popular
+                              {product.description && (
+                                <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#6B6258]">
+                                  {product.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            <span className="rounded-full border border-[#E1D0B8] bg-[#F7F0E7] px-2 py-0.5 text-[9px] font-semibold text-[#6B6258]">
+                              IVA {product.vatRate}%
                             </span>
-                          )}
+
+                            {product.featured && (
+                              <span className="rounded-full border border-[#E8D2A3] bg-[#FFF1D0] px-2 py-0.5 text-[9px] font-semibold text-[#9B6F3B]">
+                                Destaque
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between gap-4 pt-3">
+                            <p className="text-2xl font-semibold text-[#16120E]">
+                              {Number(product.price).toFixed(2)}€
+                            </p>
+
+                            {quantity > 0 ? (
+                              <div className="flex items-center gap-2 rounded-full border border-[#E1D0B8] bg-white p-1">
+                                <button
+                                  type="button"
+                                  onClick={() => removeFromCart(product.id)}
+                                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF0EA] text-lg font-semibold text-[#A14E36]"
+                                >
+                                  −
+                                </button>
+
+                                <span className="min-w-[24px] text-center font-semibold">
+                                  {quantity}
+                                </span>
+
+                                <button
+                                  type="button"
+                                  onClick={() => addToCart(product)}
+                                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[#16120E] text-lg font-semibold text-white"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => addToCart(product)}
+                                className="rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white"
+                              >
+                                Adicionar
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-
-                      <div className="text-right">
-                        <p className="text-sm font-black text-cyan-300">
-                          {Number(product.price).toFixed(2)}€
-                        </p>
-
-                        <button
-                          type="button"
-                          onClick={() => addToCart(product)}
-                          className="mt-2 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-3 py-1 text-[11px] font-black text-black"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
+                    </article>
+                  );
+                })}
               </div>
             </details>
           ))}
         </section>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 border-t border-cyan-300/10 bg-[#020617]/95 p-4 backdrop-blur-xl">
-        <div className="mx-auto max-w-md space-y-3">
-          {cart.length > 0 && (
-            <div className="max-h-36 space-y-2 overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-              {cart.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-3 text-sm"
-                >
-                  <div>
-                    <p className="font-black">{item.name}</p>
-                    <p className="text-xs text-slate-500">
-                      {item.quantity} x {item.price.toFixed(2)}€
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => removeFromCart(item.id)}
-                    className="rounded-full border border-red-300/20 bg-red-400/10 px-3 py-1 text-xs font-black text-red-300"
-                  >
-                    -
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold text-slate-500">Pedido</p>
-              <p className="text-sm font-black text-white">
-                {cartCount > 0
-                  ? `${cartCount} item(s) · ${total.toFixed(2)}€`
-                  : "Carrinho vazio"}
-              </p>
-            </div>
+      <div className="fixed bottom-0 left-0 right-0 border-t border-[#E1D0B8] bg-[#F5EFE6]/95 p-4 backdrop-blur-xl">
+        <div className="mx-auto max-w-md">
+          <div className="flex items-center justify-between gap-3 rounded-full border border-[#E1D0B8] bg-white p-2 pl-5 shadow-[0_18px_55px_rgba(80,55,30,0.09)]">
+            <p className="text-sm font-semibold text-[#16120E]">
+              {cartCount > 0
+                ? `${cartCount} item(s) · ${total.toFixed(2)}€`
+                : "Carrinho vazio"}
+            </p>
 
             <button
               type="button"
               onClick={submitOrder}
               disabled={cart.length === 0 || isSending}
-              className="rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 py-3 text-sm font-black text-black disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118] disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isSending ? "A enviar..." : "Enviar pedido"}
             </button>
@@ -561,7 +592,7 @@ function OrderGroup({
 }) {
   return (
     <div>
-      <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6B6258]">
         {title}
       </p>
 
@@ -569,22 +600,28 @@ function OrderGroup({
         {orders.map((order) => (
           <div
             key={order.id}
-            className="rounded-2xl border border-white/10 bg-[#020617]/60 p-3"
+            className="rounded-2xl border border-[#E8DCCB] bg-[#FFFDF8] p-3"
           >
             <div className="mb-2 flex items-center justify-between gap-3">
-              <span
-                className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase ${statusTone(
-                  order.status
-                )}`}
-              >
-                {statusLabel(order.status)}
-              </span>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase ${statusTone(
+                    order.status,
+                  )}`}
+                >
+                  {statusLabel(order.status)}
+                </span>
 
-              <p className="text-xs font-black text-cyan-300">
+                <span className="text-[11px] font-semibold text-[#8B8177]">
+                  {orderTime(order.createdAt)}
+                </span>
+              </div>
+
+              <p className="text-xs font-semibold text-[#16120E]">
                 {order.items
-  .reduce((sum, item) => sum + Number(item.lineTotal || 0), 0)
-  .toFixed(2)}
-€
+                  .reduce((sum, item) => sum + Number(item.lineTotal || 0), 0)
+                  .toFixed(2)}
+                €
               </p>
             </div>
 
@@ -594,11 +631,11 @@ function OrderGroup({
                   key={item.id}
                   className="flex items-center justify-between gap-3 text-xs"
                 >
-                  <p className="font-bold text-slate-300">
+                  <p className="font-medium text-[#5C5348]">
                     {item.quantity}x {item.productName}
                   </p>
-                  <p className="font-bold text-slate-500">
-                    {Number(item.lineTotal).toFixed(2)}€
+                  <p className="font-semibold text-[#8B8177]">
+                    {Number(item.lineTotal || 0).toFixed(2)}€
                   </p>
                 </div>
               ))}

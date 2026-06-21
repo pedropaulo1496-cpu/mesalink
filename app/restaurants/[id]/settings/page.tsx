@@ -2,6 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import ApplyMondayButton from "./ApplyMondayButton";
+import RestaurantSidebar from "@/components/RestaurantSidebar";
+
+const inputClass =
+  "h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]";
 
 async function updateSettings(formData: FormData) {
   "use server";
@@ -24,11 +28,22 @@ async function updateSettings(formData: FormData) {
   const totalCapacity = Number(formData.get("totalCapacity"));
   const manualApprovalGuests = Number(formData.get("manualApprovalGuests"));
 
+  const googleReviewUrl = String(formData.get("googleReviewUrl") || "").trim();
+
+const reviewRedirectThreshold = Number(
+  formData.get("reviewRedirectThreshold") || 4,
+);
+
   await prisma.restaurant.update({
     where: {
       id: restaurantId,
     },
     data: {
+      googleReviewUrl: googleReviewUrl || null,
+reviewRedirectThreshold:
+  reviewRedirectThreshold >= 1 && reviewRedirectThreshold <= 5
+    ? reviewRedirectThreshold
+    : 4,
       onlineReservationsEnabled:
         formData.get("onlineReservationsEnabled") === "on",
 
@@ -61,25 +76,24 @@ async function updateSettings(formData: FormData) {
       sundayDinner: String(formData.get("sundayDinner") || ""),
 
       ...(canUseAdvancedReservations
-  ? {
-      reservationMode:
-        reservationMode === "CAPACITY" ? "CAPACITY" : "TABLES",
+        ? {
+            reservationMode:
+              reservationMode === "CAPACITY" ? "CAPACITY" : "TABLES",
 
-      totalCapacity:
-        totalCapacity > 0 ? totalCapacity : null,
+            totalCapacity: totalCapacity > 0 ? totalCapacity : null,
 
-      manualApprovalGuests:
-        manualApprovalGuests > 0 ? manualApprovalGuests : null,
+            manualApprovalGuests:
+              manualApprovalGuests > 0 ? manualApprovalGuests : null,
 
-      approvalOnTableMerge:
-        formData.get("approvalOnTableMerge") === "on",
-    }
-  : {
-      reservationMode: "CAPACITY",
-      totalCapacity: totalCapacity > 0 ? totalCapacity : null,
-      manualApprovalGuests: null,
-      approvalOnTableMerge: false,
-    }),
+            approvalOnTableMerge:
+              formData.get("approvalOnTableMerge") === "on",
+          }
+        : {
+            reservationMode: "CAPACITY",
+            totalCapacity: totalCapacity > 0 ? totalCapacity : null,
+            manualApprovalGuests: null,
+            approvalOnTableMerge: false,
+          }),
     },
   });
 
@@ -109,12 +123,10 @@ async function canUseAdvancedReservationSettings(userId?: string | null) {
     new Date() <= subscription.trialEndsAt;
 
   const isPro =
-    subscription?.status === "ACTIVE" &&
-    subscription.plan === "PRO";
+    subscription?.status === "ACTIVE" && subscription.plan === "PRO";
 
   return Boolean(trialActive || isPro);
 }
-
 
 export default async function SettingsPage({
   params,
@@ -129,7 +141,7 @@ export default async function SettingsPage({
 
   if (!restaurant) {
     return (
-      <main className="min-h-screen bg-[#020617] p-10 text-white">
+      <main className="min-h-screen bg-[#F5EFE6] p-10 text-[#16120E]">
         Restaurante não encontrado
       </main>
     );
@@ -139,49 +151,49 @@ export default async function SettingsPage({
     await canUseAdvancedReservationSettings(restaurant.userId);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
-      <Background />
+    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+  <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
+    <RestaurantSidebar
+  id={id}
+  restaurantName={restaurant.name}
+  active="Definições"
+/>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-5 py-8 sm:px-8">
-        <header className="flex flex-col justify-between gap-6 border-b border-cyan-300/10 pb-8 md:flex-row md:items-center">
-          <div>
-            <Link
-              href={`/restaurants/${id}`}
-              className="text-sm font-bold text-slate-400 hover:text-white"
-            >
-              ← Voltar ao dashboard
-            </Link>
+    <section className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+  <div>
+    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
+      MesaLink Control
+    </p>
 
-            <p className="mt-8 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-              MesaLink Control
-            </p>
+    <h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
+      Configurações
+    </h1>
 
-            <h1 className="mt-3 text-5xl font-black tracking-[-0.06em]">
-              Configurações
-            </h1>
+    <p className="mt-3 text-[#6B6258]">
+      {restaurant.name}
+    </p>
+  </div>
 
-            <p className="mt-2 text-slate-400">{restaurant.name}</p>
-          </div>
-
-          <div className="w-fit rounded-full border border-cyan-300/20 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-300">
-            Gestão operacional
-          </div>
-        </header>
+  <div className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#9B6F3B]">
+    Gestão operacional
+  </div>
+</header>
 
         <form id="settings-form" action={updateSettings} className="space-y-6">
           <input type="hidden" name="restaurantId" value={restaurant.id} />
 
           <section className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[420px_1fr]">
-            <div className="rounded-[2rem] border border-cyan-300/15 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.1)] backdrop-blur-2xl">
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+            <div className="rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
                 Reservas
               </p>
 
-              <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.045em]">
                 Regras principais
               </h2>
 
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              <p className="mt-2 text-sm leading-relaxed text-[#6B6258]">
                 Defina se o restaurante trabalha por mesas ou por capacidade, e
                 quando uma reserva deve ficar pendente.
               </p>
@@ -193,7 +205,7 @@ export default async function SettingsPage({
                       <select
                         name="reservationMode"
                         defaultValue={restaurant.reservationMode}
-                        className="input-ai"
+                        className={inputClass}
                       >
                         <option value="TABLES">Por Mesas</option>
                         <option value="CAPACITY">Por Capacidade</option>
@@ -206,10 +218,10 @@ export default async function SettingsPage({
                         name="totalCapacity"
                         defaultValue={restaurant.totalCapacity ?? ""}
                         placeholder="Ex: 60"
-                        className="input-ai"
+                        className={inputClass}
                       />
 
-                      <p className="mt-2 text-xs text-slate-500">
+                      <p className="mt-2 text-xs text-[#9B8F82]">
                         Usado apenas quando o modo é Por Capacidade.
                       </p>
                     </Field>
@@ -220,11 +232,12 @@ export default async function SettingsPage({
                         name="manualApprovalGuests"
                         defaultValue={restaurant.manualApprovalGuests ?? ""}
                         placeholder="Ex: 8"
-                        className="input-ai"
+                        className={inputClass}
                       />
 
-                      <p className="mt-2 text-xs text-slate-500">
-                        Reservas com este número de pessoas ou mais ficam pendentes.
+                      <p className="mt-2 text-xs text-[#9B8F82]">
+                        Reservas com este número de pessoas ou mais ficam
+                        pendentes.
                       </p>
                     </Field>
 
@@ -236,49 +249,53 @@ export default async function SettingsPage({
                     />
                   </>
                 ) : (
-  <>
-    <input type="hidden" name="reservationMode" value="CAPACITY" />
+                  <>
+                    <input
+                      type="hidden"
+                      name="reservationMode"
+                      value="CAPACITY"
+                    />
 
-    <Field label="Capacidade total">
-      <input
-        type="number"
-        name="totalCapacity"
-        defaultValue={restaurant.totalCapacity ?? ""}
-        placeholder="Ex: 60"
-        className="input-ai"
-        required
-      />
+                    <Field label="Capacidade total">
+                      <input
+                        type="number"
+                        name="totalCapacity"
+                        defaultValue={restaurant.totalCapacity ?? ""}
+                        placeholder="Ex: 60"
+                        className={inputClass}
+                        required
+                      />
 
-      <p className="mt-2 text-xs text-slate-500">
-        Número máximo de pessoas que pode aceitar por horário.
-      </p>
-    </Field>
+                      <p className="mt-2 text-xs text-[#9B8F82]">
+                        Número máximo de pessoas que pode aceitar por horário.
+                      </p>
+                    </Field>
 
-    <div className="rounded-3xl border border-cyan-300/20 bg-cyan-500/5 p-5">
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
-        Funcionalidade Pro
-      </p>
+                    <div className="rounded-3xl border border-[#E1D0B8] bg-[#FFF9F0] p-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
+                        Funcionalidade Pro
+                      </p>
 
-      <h3 className="mt-3 text-xl font-black">
-        Gestão de mesas disponível no Pro
-      </h3>
+                      <h3 className="mt-3 text-xl font-semibold">
+                        Gestão de mesas disponível no Pro
+                      </h3>
 
-      <ul className="mt-4 space-y-2 text-sm text-slate-300">
-        <li>✓ Mapa da sala</li>
-        <li>✓ Reservas por mesa</li>
-        <li>✓ Junção de mesas</li>
-        <li>✓ Reservas ilimitadas</li>
-      </ul>
+                      <ul className="mt-4 space-y-2 text-sm text-[#6B6258]">
+                        <li>✓ Mapa da sala</li>
+                        <li>✓ Reservas por mesa</li>
+                        <li>✓ Junção de mesas</li>
+                        <li>✓ Reservas ilimitadas</li>
+                      </ul>
 
-      <Link
-        href="/billing?feature=tables"
-        className="mt-5 inline-flex rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 py-3 font-black text-black"
-      >
-        Upgrade para Pro
-      </Link>
-    </div>
-  </>
-)}
+                      <Link
+                        href="/billing?feature=tables"
+                        className="mt-5 inline-flex rounded-full bg-[#16120E] px-5 py-3 font-semibold text-white transition hover:bg-[#2A2118]"
+                      >
+                        Upgrade para Pro
+                      </Link>
+                    </div>
+                  </>
+                )}
 
                 <ToggleBox
                   name="onlineReservationsEnabled"
@@ -289,14 +306,14 @@ export default async function SettingsPage({
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-cyan-300/15 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.1)] backdrop-blur-2xl">
+            <div className="rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
               <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
                     Horários
                   </p>
 
-                  <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">
+                  <h2 className="mt-3 text-3xl font-semibold tracking-[-0.045em]">
                     Funcionamento semanal
                   </h2>
                 </div>
@@ -315,21 +332,21 @@ export default async function SettingsPage({
                   return (
                     <div
                       key={day.key}
-                      className="grid grid-cols-1 gap-4 rounded-3xl border border-white/10 bg-black/25 p-4 md:grid-cols-[160px_1fr_1fr]"
+                      className="grid grid-cols-1 gap-4 rounded-3xl border border-[#E8DCCB] bg-[#FFF9F0] p-4 md:grid-cols-[160px_1fr_1fr]"
                     >
-                      <label className="flex items-center gap-3 font-black">
+                      <label className="flex items-center gap-3 font-semibold">
                         <input
                           type="checkbox"
                           name={`${day.key}Open`}
                           defaultChecked={Boolean(restaurant[openKey])}
-                          className="h-4 w-4 accent-cyan-300"
+                          className="h-4 w-4 accent-[#16120E]"
                         />
 
                         {day.label}
                       </label>
 
                       <div>
-                        <p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-slate-500">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#9B8F82]">
                           Almoço
                         </p>
 
@@ -337,12 +354,12 @@ export default async function SettingsPage({
                           name={`${day.key}Lunch`}
                           defaultValue={String(restaurant[lunchKey] ?? "")}
                           placeholder="12:00-15:00"
-                          className="input-ai"
+                          className={inputClass}
                         />
                       </div>
 
                       <div>
-                        <p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-slate-500">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#9B8F82]">
                           Jantar
                         </p>
 
@@ -350,7 +367,7 @@ export default async function SettingsPage({
                           name={`${day.key}Dinner`}
                           defaultValue={String(restaurant[dinnerKey] ?? "")}
                           placeholder="19:00-23:00"
-                          className="input-ai"
+                          className={inputClass}
                         />
                       </div>
                     </div>
@@ -359,15 +376,55 @@ export default async function SettingsPage({
               </div>
             </div>
           </section>
+<section className="rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
+    Marketing & Reviews
+  </p>
 
+  <h2 className="mt-3 text-3xl font-semibold tracking-[-0.045em]">
+    Google Reviews
+  </h2>
+
+  <p className="mt-2 text-sm leading-relaxed text-[#6B6258]">
+    Configure o link para onde os clientes satisfeitos podem partilhar a experiência no Google.
+  </p>
+
+  <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_220px]">
+    <Field label="Google Reviews URL">
+      <input
+        name="googleReviewUrl"
+        defaultValue={restaurant.googleReviewUrl ?? ""}
+        placeholder="https://search.google.com/local/writereview?placeid=..."
+        className={inputClass}
+      />
+
+      <p className="mt-2 text-xs text-[#9B8F82]">
+        Este botão só aparece ao cliente quando este link estiver preenchido.
+      </p>
+    </Field>
+
+    <Field label="Mínimo para sugerir Google">
+      <select
+        name="reviewRedirectThreshold"
+        defaultValue={restaurant.reviewRedirectThreshold ?? 4}
+        className={inputClass}
+      >
+        <option value={5}>5 estrelas</option>
+        <option value={4}>4 estrelas ou mais</option>
+        <option value={3}>3 estrelas ou mais</option>
+      </select>
+    </Field>
+  </div>
+</section>
           <div className="sticky bottom-6 z-20 flex justify-end">
-            <button className="rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-8 py-4 font-black text-black shadow-[0_0_60px_rgba(96,165,250,0.35)] hover:opacity-90">
+            <button className="rounded-full bg-[#16120E] px-8 py-4 font-semibold text-white shadow-[0_18px_55px_rgba(80,55,30,0.18)] transition hover:bg-[#2A2118]">
               Guardar alterações
             </button>
           </div>
         </form>
-      </section>
-    </main>
+         </section>
+  </div>
+</main>
   );
 }
 
@@ -380,7 +437,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-slate-300">
+      <span className="mb-2 block text-sm font-semibold text-[#6B6258]">
         {label}
       </span>
 
@@ -401,30 +458,20 @@ function ToggleBox({
   text: string;
 }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-black/25 p-4">
+    <div className="rounded-3xl border border-[#E8DCCB] bg-[#FFF9F0] p-4">
       <label className="flex items-start gap-3">
         <input
           type="checkbox"
           name={name}
           defaultChecked={defaultChecked}
-          className="mt-1 h-4 w-4 accent-cyan-300"
+          className="mt-1 h-4 w-4 accent-[#16120E]"
         />
 
         <div>
-          <p className="font-black">{title}</p>
-          <p className="mt-1 text-sm leading-relaxed text-slate-400">{text}</p>
+          <p className="font-semibold">{title}</p>
+          <p className="mt-1 text-sm leading-relaxed text-[#6B6258]">{text}</p>
         </div>
       </label>
-    </div>
-  );
-}
-
-function Background() {
-  return (
-    <div className="pointer-events-none fixed inset-0 z-0">
-      <div className="absolute left-1/2 top-[-180px] h-[460px] w-[460px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[120px]" />
-      <div className="absolute right-[-160px] top-[280px] h-[360px] w-[360px] rounded-full bg-violet-500/15 blur-[110px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.15),transparent_35%),linear-gradient(to_bottom,#020617,#050816_45%,#020617)]" />
     </div>
   );
 }

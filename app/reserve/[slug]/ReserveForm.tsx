@@ -65,6 +65,9 @@ const weekdayKeys = [
   "saturday",
 ] as const;
 
+const inputClass =
+  "h-14 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]";
+
 function generateTimesFromRange(range: string | null) {
   if (!range || !range.includes("-")) return [];
 
@@ -250,44 +253,31 @@ export default function ReserveForm({
 
   if (!restaurant.onlineReservationsEnabled) {
     return (
-      <main className="relative min-h-screen overflow-hidden bg-[#020617] px-6 py-10 text-white">
-        <PublicBackground />
-        
-
+      <main className="min-h-screen bg-[#F5EFE6] px-6 py-10 text-[#16120E]">
         <motion.div
-          initial={{ opacity: 0, y: 24, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 mx-auto max-w-2xl"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55 }}
+          className="mx-auto max-w-2xl"
         >
-          <div className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-8 text-center shadow-[0_0_70px_rgba(34,211,238,0.12)] backdrop-blur-xl">
+          <div className="rounded-[36px] border border-[#E1D0B8] bg-white p-8 text-center shadow-[0_22px_70px_rgba(80,55,30,0.08)]">
             <Badge>Reserva online</Badge>
 
-            <motion.h1
-              animate={{
-                textShadow: [
-                  "0 0 0px rgba(34,211,238,0)",
-                  "0 0 35px rgba(34,211,238,0.35)",
-                  "0 0 0px rgba(34,211,238,0)",
-                ],
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="mt-5 text-4xl font-black tracking-[-0.05em]"
-            >
+            <h1 className="mt-5 text-4xl font-semibold tracking-[-0.055em]">
               {restaurant.name}
-            </motion.h1>
+            </h1>
 
-            <div className="mt-8 rounded-3xl border border-yellow-300/20 bg-yellow-400/10 p-6">
-              <h2 className="text-2xl font-black text-yellow-200">
+            <div className="mt-8 rounded-3xl border border-[#D8C5A5] bg-[#FFF1D0] p-6">
+              <h2 className="text-2xl font-semibold text-[#9B6F3B]">
                 Reservas indisponíveis
               </h2>
 
-              <p className="mt-3 text-slate-300">
+              <p className="mt-3 text-[#6B6258]">
                 Este restaurante não está a aceitar reservas online neste momento.
               </p>
             </div>
 
-            <p className="mt-8 text-xs text-slate-500">Powered by MesaLink</p>
+            <p className="mt-8 text-xs text-[#9B8F82]">Powered by MesaLink</p>
           </div>
         </motion.div>
       </main>
@@ -295,55 +285,42 @@ export default function ReserveForm({
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020617] px-5 py-8 text-white">
-      <PublicBackground />
-      
-
+    <main className="min-h-screen bg-[#F5EFE6] px-5 py-8 text-[#16120E]">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-        className="relative z-10 mx-auto max-w-5xl"
+        transition={{ duration: 0.55 }}
+        className="mx-auto max-w-5xl"
       >
         <motion.header
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.55 }}
           className="mb-8 text-center"
         >
-          <Badge>MesaLink AI</Badge>
+          <Badge>Reserva online</Badge>
 
-          <motion.h1
-            animate={{
-              textShadow: [
-                "0 0 0px rgba(34,211,238,0)",
-                "0 0 38px rgba(34,211,238,0.38)",
-                "0 0 0px rgba(34,211,238,0)",
-              ],
-            }}
-            transition={{ duration: 4, repeat: Infinity }}
-            className="mt-5 text-5xl font-black leading-[0.9] tracking-[-0.06em]"
-          >
+          <h1 className="mt-5 text-5xl font-semibold leading-[0.95] tracking-[-0.065em]">
             {restaurant.name}
-          </motion.h1>
+          </h1>
 
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-slate-300">
-            A próxima geração das reservas para restaurantes.
+          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-[#6B6258]">
+            Escolha o dia, hora e número de pessoas. A reserva fica registada em segundos.
           </p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <Chip tone="cyan">⚡ Confirmação rápida</Chip>
-            <Chip tone="violet">🤖 Powered by AI</Chip>
-            <Chip tone="green">🍽️ Reserva online</Chip>
+            <Chip>Confirmação rápida</Chip>
+            <Chip>Reserva online</Chip>
+            <Chip>MesaLink</Chip>
           </div>
         </motion.header>
 
         <div className="mx-auto max-w-4xl">
           <motion.section
-            initial={{ opacity: 0, y: 32, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.75, delay: 0.15 }}
-            className="rounded-[36px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_70px_rgba(34,211,238,0.1)] backdrop-blur-xl md:p-8"
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.1 }}
+            className="rounded-[36px] border border-[#E1D0B8] bg-white p-5 shadow-[0_22px_70px_rgba(80,55,30,0.08)] md:p-8"
           >
             {error === "conflict" && (
               <Alert
@@ -371,30 +348,30 @@ export default function ReserveForm({
 
             <div className="space-y-8">
               <motion.div
-                initial={{ opacity: 0, y: 18 }}
+                initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.25 }}
+                transition={{ duration: 0.45, delay: 0.15 }}
               >
-                <StepTitle number="1" title="📅 Quando?" />
+                <StepTitle number="1" title="Quando?" />
 
                 <input
                   type="date"
                   min={today}
                   value={selectedDay}
                   onChange={(e) => setSelectedDay(e.target.value)}
-                  className="mt-4 h-14 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none focus:border-cyan-300/40"
+                  className={`${inputClass} mt-4`}
                 />
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, y: 18 }}
+                initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.35 }}
+                transition={{ duration: 0.45, delay: 0.2 }}
               >
-                <StepTitle number="2" title="🕒 A que horas?" />
+                <StepTitle number="2" title="A que horas?" />
 
                 {availableHours.length === 0 ? (
-                  <div className="mt-4 rounded-2xl border border-red-300/20 bg-red-400/10 p-5 text-red-200">
+                  <div className="mt-4 rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-5 text-[#A14E36]">
                     O restaurante está fechado neste dia.
                   </div>
                 ) : (
@@ -406,13 +383,13 @@ export default function ReserveForm({
                         <motion.button
                           key={hour}
                           type="button"
-                          whileHover={{ scale: 1.04 }}
-                          whileTap={{ scale: 0.96 }}
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
                           onClick={() => setSelectedHour(hour)}
                           className={
                             isSelected
-                              ? "h-12 rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 font-black text-black shadow-[0_0_30px_rgba(34,211,238,0.25)]"
-                              : "h-12 rounded-full border border-cyan-300/10 bg-[#020617]/70 font-bold text-slate-300 hover:border-cyan-300/40"
+                              ? "h-12 rounded-full bg-[#16120E] font-semibold text-white"
+                              : "h-12 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] font-semibold text-[#6B6258] hover:border-[#C8A56A] hover:bg-white hover:text-[#16120E]"
                           }
                         >
                           {hour}
@@ -424,11 +401,11 @@ export default function ReserveForm({
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, y: 18 }}
+                initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.45 }}
+                transition={{ duration: 0.45, delay: 0.25 }}
               >
-                <StepTitle number="3" title="👥 Quantas pessoas?" />
+                <StepTitle number="3" title="Quantas pessoas?" />
 
                 <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-6">
                   {[1, 2, 3, 4, 5, 6, 8, 10].map((value) => {
@@ -438,13 +415,13 @@ export default function ReserveForm({
                       <motion.button
                         key={value}
                         type="button"
-                        whileHover={{ scale: 1.04 }}
-                        whileTap={{ scale: 0.96 }}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
                         onClick={() => setGuests(value)}
                         className={
                           isSelected
-                            ? "h-12 rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 font-black text-black shadow-[0_0_30px_rgba(34,211,238,0.25)]"
-                            : "h-12 rounded-full border border-cyan-300/10 bg-[#020617]/70 font-bold text-slate-300 hover:border-cyan-300/40"
+                            ? "h-12 rounded-full bg-[#16120E] font-semibold text-white"
+                            : "h-12 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] font-semibold text-[#6B6258] hover:border-[#C8A56A] hover:bg-white hover:text-[#16120E]"
                         }
                       >
                         {value}
@@ -454,7 +431,7 @@ export default function ReserveForm({
                 </div>
 
                 <div className="mt-4">
-                  <label className="mb-2 block text-sm font-bold text-slate-400">
+                  <label className="mb-2 block text-sm font-semibold text-[#6B6258]">
                     Outro número
                   </label>
 
@@ -465,7 +442,7 @@ export default function ReserveForm({
                     value={guests}
                     onChange={(e) => setGuests(Number(e.target.value))}
                     placeholder="Número de pessoas"
-                    className="h-14 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40"
+                    className={inputClass}
                     required
                   />
                 </div>
@@ -520,19 +497,19 @@ export default function ReserveForm({
                 />
 
                 <motion.div
-                  initial={{ opacity: 0, y: 18 }}
+                  initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.55, delay: 0.55 }}
-                  className="border-t border-cyan-300/10 pt-8"
+                  transition={{ duration: 0.45, delay: 0.3 }}
+                  className="border-t border-[#E1D0B8] pt-8"
                 >
-                  <StepTitle number="4" title="✨ Quase terminado" />
+                  <StepTitle number="4" title="Dados da reserva" />
 
                   <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                     <input
                       name="customerName"
                       type="text"
                       placeholder="Nome"
-                      className="h-14 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40"
+                      className={inputClass}
                       required
                     />
 
@@ -540,7 +517,7 @@ export default function ReserveForm({
                       name="phone"
                       type="text"
                       placeholder="Telefone"
-                      className="h-14 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40"
+                      className={inputClass}
                       required
                     />
 
@@ -548,31 +525,28 @@ export default function ReserveForm({
                       name="email"
                       type="email"
                       placeholder="Email"
-                      className="h-14 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40 md:col-span-2"
+                      className={`${inputClass} md:col-span-2`}
                       required
                     />
                   </div>
 
                   <motion.button
-                    whileHover={{
-                      scale: 1.02,
-                      boxShadow: "0 0 45px rgba(34,211,238,0.45)",
-                    }}
+                    whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={!canSubmit}
-                    className="mt-6 h-14 w-full rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-base font-black text-black disabled:cursor-not-allowed disabled:bg-none disabled:bg-slate-700 disabled:text-slate-400"
+                    className="mt-6 h-14 w-full rounded-full bg-[#16120E] text-base font-semibold text-white transition hover:bg-[#2A2118] disabled:cursor-not-allowed disabled:bg-[#D8CFC2] disabled:text-[#9B8F82]"
                   >
                     {isPendingRequest ? "Enviar pedido" : "Confirmar reserva"}
                   </motion.button>
 
-                  <p className="mt-4 text-center text-xs text-slate-500">
-  Ao reservar, aceita ser contactado sobre esta reserva.
-</p>
+                  <p className="mt-4 text-center text-xs text-[#9B8F82]">
+                    Ao reservar, aceita ser contactado sobre esta reserva.
+                  </p>
 
-<p className="mt-8 text-center text-xs font-medium text-slate-600">
-  Powered by MesaLink
-</p>
+                  <p className="mt-8 text-center text-xs font-medium text-[#9B8F82]">
+                    Powered by <span className="text-[#6B6258]">MesaLink</span>
+                  </p>
                 </motion.div>
               </form>
             </div>
@@ -583,66 +557,23 @@ export default function ReserveForm({
   );
 }
 
-function PublicBackground() {
-  return (
-    <div className="pointer-events-none fixed inset-0 z-0">
-      <motion.div
-        animate={{ scale: [1, 1.15, 1], y: [0, 35, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[-200px] h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[140px]"
-      />
-      <motion.div
-        animate={{ x: [0, -35, 0], y: [0, 45, 0] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute right-[-150px] top-[300px] h-[350px] w-[350px] rounded-full bg-violet-500/20 blur-[120px]"
-      />
-      <motion.div
-        animate={{ opacity: [0.1, 0.28, 0.1] }}
-        transition={{ duration: 5, repeat: Infinity }}
-        className="absolute bottom-[-180px] left-[-120px] h-[350px] w-[350px] rounded-full bg-blue-500/15 blur-[120px]"
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.16),transparent_35%),linear-gradient(to_bottom,#020617,#050816_40%,#020617)]" />
-    </div>
-  );
-}
-
 function Badge({ children }: { children: React.ReactNode }) {
   return (
     <motion.span
-      animate={{
-        boxShadow: [
-          "0 0 0px rgba(34,211,238,0)",
-          "0 0 30px rgba(34,211,238,0.25)",
-          "0 0 0px rgba(34,211,238,0)",
-        ],
-      }}
-      transition={{ duration: 3, repeat: Infinity }}
-      className="inline-flex rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-cyan-200"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="inline-flex rounded-full border border-[#E1D0B8] bg-white px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]"
     >
       {children}
     </motion.span>
   );
 }
 
-function Chip({
-  children,
-  tone,
-}: {
-  children: React.ReactNode;
-  tone: "cyan" | "violet" | "green";
-}) {
-  const className =
-    tone === "cyan"
-      ? "border-cyan-300/20 bg-cyan-400/10 text-cyan-200"
-      : tone === "violet"
-      ? "border-violet-300/20 bg-violet-400/10 text-violet-200"
-      : "border-emerald-300/20 bg-emerald-400/10 text-emerald-200";
-
+function Chip({ children }: { children: React.ReactNode }) {
   return (
     <motion.span
-      whileHover={{ scale: 1.05 }}
-      className={`rounded-full border px-4 py-2 text-xs font-black ${className}`}
+      whileHover={{ scale: 1.03 }}
+      className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-2 text-xs font-semibold text-[#6B6258]"
     >
       {children}
     </motion.span>
@@ -652,22 +583,11 @@ function Chip({
 function StepTitle({ number, title }: { number: string; title: string }) {
   return (
     <div className="flex items-center gap-3">
-      <motion.span
-        animate={{
-          scale: [1, 1.08, 1],
-          boxShadow: [
-            "0 0 0px rgba(34,211,238,0)",
-            "0 0 24px rgba(34,211,238,0.35)",
-            "0 0 0px rgba(34,211,238,0)",
-          ],
-        }}
-        transition={{ duration: 2.8, repeat: Infinity }}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 text-sm font-black text-black"
-      >
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#16120E] text-sm font-semibold text-white">
         {number}
-      </motion.span>
+      </span>
 
-      <h2 className="text-xl font-black">{title}</h2>
+      <h2 className="text-xl font-semibold tracking-[-0.03em]">{title}</h2>
     </div>
   );
 }
@@ -683,15 +603,15 @@ function SummaryItem({
 }) {
   return (
     <motion.div
-      whileHover={{ scale: 1.02 }}
-      className="rounded-2xl border border-cyan-300/10 bg-[#020617]/70 p-4"
+      whileHover={{ scale: 1.01 }}
+      className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4"
     >
-      <p className="text-sm text-slate-400">{label}</p>
+      <p className="text-sm text-[#6B6258]">{label}</p>
       <p
         className={
           highlight
-            ? "mt-1 font-black text-cyan-300"
-            : "mt-1 font-black text-white"
+            ? "mt-1 font-semibold text-[#9B6F3B]"
+            : "mt-1 font-semibold text-[#16120E]"
         }
       >
         {value}
@@ -711,18 +631,18 @@ function Alert({
 }) {
   const classes =
     tone === "red"
-      ? "border-red-300/20 bg-red-400/10 text-red-200"
+      ? "border-[#E7B7A8] bg-[#FFF0EA] text-[#A14E36]"
       : tone === "yellow"
-      ? "border-yellow-300/20 bg-yellow-400/10 text-yellow-200"
-      : "border-cyan-300/20 bg-cyan-400/10 text-cyan-200";
+      ? "border-[#D8C5A5] bg-[#FFF1D0] text-[#9B6F3B]"
+      : "border-[#BFD9C1] bg-[#ECF7EC] text-[#3F6A4D]";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 14 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       className={`rounded-2xl border p-5 ${classes}`}
     >
-      <p className="font-black">{title}</p>
+      <p className="font-semibold">{title}</p>
       <p className="mt-2 text-sm leading-relaxed">{text}</p>
     </motion.div>
   );

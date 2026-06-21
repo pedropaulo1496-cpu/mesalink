@@ -14,32 +14,38 @@ export default async function ReservationSuccessPage({
   const isPending = status === "PENDING";
 
   return (
-    <main className="min-h-screen bg-[#050711] px-4 py-6 text-white">
+    <main className="min-h-screen bg-[#F5EFE6] px-4 py-6 text-[#16120E]">
       <section className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-xl flex-col justify-center">
-        <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-cyan-500/10 backdrop-blur-xl sm:p-8">
+        <div className="rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.08)] sm:p-8">
           <div className="mb-6 flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10 shadow-lg shadow-cyan-500/20">
-              <span className="text-3xl">{isPending ? "⏳" : "✓"}</span>
+            <div
+              className={
+                isPending
+                  ? "flex h-16 w-16 items-center justify-center rounded-full border border-[#D8C5A5] bg-[#FFF1D0] text-2xl font-semibold text-[#9B6F3B]"
+                  : "flex h-16 w-16 items-center justify-center rounded-full border border-[#9CCB9B] bg-[#ECF7EC] text-2xl font-semibold text-[#3F6A4D]"
+              }
+            >
+              {isPending ? "…" : "✓"}
             </div>
           </div>
 
           <div className="text-center">
-            <p className="mb-2 text-xs font-medium uppercase tracking-[0.3em] text-cyan-300/80">
-              MesaLink AI
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
+              MesaLink
             </p>
 
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            <h1 className="text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">
               {isPending ? "Pedido recebido" : "Reserva confirmada"}
             </h1>
 
-            <p className="mt-3 text-sm leading-6 text-white/55">
+            <p className="mt-3 text-sm leading-6 text-[#6B6258]">
               {isPending
                 ? "O restaurante recebeu o seu pedido e irá responder em breve."
                 : "A sua reserva foi registada com sucesso."}
             </p>
           </div>
 
-          <div className="mt-8 space-y-3 rounded-3xl border border-white/10 bg-black/20 p-4">
+          <div className="mt-8 space-y-3 rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
             {name && <InfoRow label="Nome" value={name} />}
             {guests && <InfoRow label="Pessoas" value={guests} />}
 
@@ -68,16 +74,16 @@ export default async function ReservationSuccessPage({
           </div>
 
           <a
-  href="https://mesalink.pt"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="mt-6 flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-400 to-violet-500 text-sm font-semibold text-black transition hover:scale-[1.01] active:scale-[0.99]"
->
-  Conhecer o MesaLink
-</a>
+            href="https://mesalink.pt"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 flex h-12 w-full items-center justify-center rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:bg-[#2A2118] active:scale-[0.99]"
+          >
+            Conhecer o MesaLink
+          </a>
 
-          <p className="mt-6 text-center text-xs text-white/35">
-            Powered by <span className="text-white/55">MesaLink</span>
+          <p className="mt-6 text-center text-xs text-[#9B8F82]">
+            Powered by <span className="font-semibold text-[#6B6258]">MesaLink</span>
           </p>
         </div>
       </section>
@@ -95,11 +101,11 @@ function InfoRow({
   highlight?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl bg-white/[0.03] px-4 py-3">
-      <span className="text-sm text-white/45">{label}</span>
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3">
+      <span className="text-sm text-[#6B6258]">{label}</span>
       <span
-        className={`text-right text-sm font-medium ${
-          highlight ? "text-cyan-300" : "text-white"
+        className={`text-right text-sm font-semibold ${
+          highlight ? "text-[#9B6F3B]" : "text-[#16120E]"
         }`}
       >
         {value}

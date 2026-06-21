@@ -1,1578 +1,148 @@
 "use client";
 
 import Footer from "@/components/Footer";
-import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
-type Lang = "pt" | "en" | "es" | "fr" | "de";
-
-type Copy = {
-  nav: {
-    platform: string;
-    websites: string;
-    comparison: string;
-    pricing: string;
-    login: string;
-    start: string;
-  };
-  hero: {
-    badge: string;
-    title1: string;
-    title2: string;
-    text: string;
-    primary: string;
-    secondary: string;
-    stat1: [string, string, string];
-    stat2: [string, string, string];
-    stat3: [string, string, string];
-    proof1: string;
-    proof2: string;
-    proof3: string;
-  };
-  platform: {
-    badge: string;
-    title1: string;
-    title2: string;
-    text: string;
-  };
-  sections: {
-    lessToolsBadge: string;
-    lessToolsTitle1: string;
-    lessToolsTitle2: string;
-    lessToolsText: string;
-    websitesBadge: string;
-    websitesTitle1: string;
-    websitesTitle2: string;
-    websitesText: string;
-    completeBadge: string;
-    completeTitle: string;
-    comparisonBadge: string;
-    comparisonTitle: string;
-    comparisonText: string;
-    comparisonFinal: string;
-    pricingBadge: string;
-    pricingTitle: string;
-    futureBadge: string;
-    futureTitle1: string;
-    futureTitle2: string;
-    futureText: string;
-    ctaTitle: string;
-    ctaText: string;
-    ctaButton: string;
-  };
-  bigCards: Array<{ title: string; text: string }>;
-  templates: Array<{ name: string; text: string }>;
-  features: Array<{ icon: string; title: string; text: string }>;
-  comparison: Array<[string, string, string]>;
-  prices: {
-    popular: string;
-    free: {
-      title: string;
-      price: string;
-      text: string;
-      items: string[];
-      cta: string;
-    };
-    pro: {
-      title: string;
-      price: string;
-      text: string;
-      items: string[];
-      cta: string;
-    };
-    website: {
-      title: string;
-      price: string;
-      text: string;
-      items: string[];
-      cta: string;
-    };
-    qr: {
-      title: string;
-      price: string;
-      text: string;
-      items: string[];
-      cta: string;
-    };
-  };
-  future: Array<{ title: string; text: string }>;
-  flow: {
-    center: string;
-    subtitle: string;
-    bottom: string;
-    nodes: Array<{ icon: string; label: string; text: string }>;
-  };
-  phone: {
-    title: string;
-    status: string;
-    reservations: string;
-    people: string;
-    occupancy: string;
-    websiteActive: string;
-    websiteLine: string;
-    websiteText: string;
-    platform: string;
-    platformText: string;
-    bookingConfirmed: string;
-    pending: string;
-  };
-  sticky: { label: string; text: string; start: string };
+const brand = {
+  mesa: "#C8A56A",
+  link: "#17130F",
 };
 
-const copies: Record<Lang, Copy> = {
-  pt: {
-    nav: {
-      platform: "Plataforma",
-      websites: "Websites",
-      comparison: "Comparação",
-      pricing: "Preços",
-      login: "Entrar",
-      start: "Começar grátis",
-    },
-    hero: {
-      badge: "O Sistema Operativo para Restaurantes",
-      title1: "Tudo o que o seu restaurante precisa",
-      title2: "numa única plataforma.",
-      text: "Website, reservas, QR Ordering, gestão de mesas e clientes numa única plataforma. Tudo ligado para o seu restaurante funcionar melhor.",
-      primary: "Começar Gratuitamente →",
-      secondary: "Ver Demonstração →",
-      stat1: ["✓", "100", "reservas/mês grátis"],
-      stat2: ["✓", "Sem", "cartão de crédito"],
-      stat3: ["✓", "5 min", "configuração"],
-      proof1: "Até 100 reservas/mês grátis",
-      proof2: "Sem cartão de crédito",
-      proof3: "Configuração em minutos",
-    },
-    platform: {
-      badge: "Uma plataforma. Um login.",
-      title1: "Tudo o que realmente importa",
-      title2: "ligado ao MesaLink.",
-      text: "Website, reservas, QR Ordering e gestão de clientes não deviam viver em ferramentas separadas. O MesaLink junta tudo numa única plataforma feita para restaurantes.",
-    },
-    sections: {
-      lessToolsBadge: "Menos ferramentas. Mais restaurante.",
-      lessToolsTitle1: "Pare de gerir o restaurante",
-      lessToolsTitle2: "em várias plataformas.",
-      lessToolsText:
-        "Hoje o MesaLink liga website, reservas, clientes, mesas e QR Ordering numa única operação. Menos ferramentas, menos confusão e mais tempo para servir clientes.",
-      websitesBadge: "Website Profissional",
-      websitesTitle1: "O website que o seu",
-      websitesTitle2: "restaurante merece.",
-      websitesText:
-        "Escolha um template, adicione imagens, menus em PDF, galeria, contactos, SEO e reservas integradas. Sem programar. Sem agência. Sem complicações.",
-      completeBadge: "Plataforma completa",
-      completeTitle: "Uma base para todas as fases do restaurante.",
-      comparisonBadge: "Porque MesaLink?",
-      comparisonTitle: "Porque usar várias plataformas?",
-      comparisonText:
-        "A solução tradicional obriga o restaurante a juntar ferramentas diferentes. O MesaLink foi pensado para juntar tudo no mesmo sistema.",
-      comparisonFinal: "Uma plataforma. Um login. Tudo ligado.",
-      pricingBadge: "Preços simples",
-      pricingTitle: "Comece grátis. Cresça quando precisar.",
-      futureBadge: "O futuro da restauração",
-      futureTitle1: "Estamos a construir a plataforma completa para",
-      futureTitle2: "restaurantes.",
-      futureText:
-        "Hoje, o MesaLink liga website, reservas, mesas, clientes e QR Ordering. O próximo passo é adicionar IA, marketing avançado e POS totalmente integrado.",
-      ctaTitle: "Comece gratuitamente hoje.",
-      ctaText:
-        "Receba reservas online, organize o restaurante e prepare a sua operação para uma nova geração de ferramentas de restauração.",
-      ctaButton: "Criar conta grátis →",
-    },
-    bigCards: [
-      {
-        title: "Atrair clientes",
-        text: "Website profissional, SEO, Google Maps, redes sociais e marketing preparados para converter visitas em reservas.",
-      },
-      {
-        title: "Receber e servir",
-        text: "Reservas online, pedidos por QR, chamada de empregado e pedido de conta numa única experiência para o cliente.",
-      },
-      {
-        title: "Operar e crescer",
-        text: "Clientes, dados, marketing e POS integrados para gerir melhor o restaurante todos os dias.",
-      },
-    ],
-    templates: [
-      {
-        name: "Premium",
-        text: "Para restaurantes modernos que querem uma presença forte.",
-      },
-      {
-        name: "Luxury",
-        text: "Para conceitos premium, fine dining e experiências exclusivas.",
-      },
-      {
-        name: "Minimal",
-        text: "Para restaurantes que querem uma imagem limpa e direta.",
-      },
-      {
-        name: "Social",
-        text: "Para marcas jovens, visuais e muito ligadas às redes sociais.",
-      },
-    ],
-    features: [
-      {
-        icon: "🌐",
-        title: "Website profissional",
-        text: "Menus, galeria, contactos, SEO e reservas integradas.",
-      },
-      {
-        icon: "📅",
-        title: "Gestão de reservas",
-        text: "Reservas do website, Google Maps e redes sociais num só calendário.",
-      },
-      {
-        icon: "📲",
-        title: "QR Ordering",
-        text: "Menu digital, pedidos por mesa, chamar empregado e pedir conta através de QR Code.",
-      },
-      {
-        icon: "💳",
-        title: "POS integrado",
-        text: "Brevemente: vendas, produtos, pedidos e relatórios no mesmo lugar.",
-      },
-    ],
-    comparison: [
-      ["Website", "Ferramenta #1", "Incluído"],
-      ["Gestão de Reservas", "Ferramenta #2", "Incluído"],
-      ["QR Ordering", "Ferramenta #3", "Disponível"],
-      ["POS", "Ferramenta #4", "Brevemente"],
-      ["Marketing", "Ferramenta #5", "Brevemente"],
-      ["Dados e Relatórios", "Ferramenta #6", "Incluído"],
-    ],
-    prices: {
-      popular: "Mais popular",
-      free: {
-        title: "Free",
-        price: "0€",
-        text: "Para começar a receber reservas online sem risco.",
-        items: [
-          "Até 100 reservas/mês",
-          "Calendário",
-          "Clientes",
-          "Link para redes sociais e Google Maps",
-        ],
-        cta: "Começar grátis",
-      },
-      pro: {
-        title: "Pro",
-        price: "10€",
-        text: "Para restaurantes que querem gerir reservas sem limites.",
-        items: [
-          "Reservas ilimitadas",
-          "Gestão de mesas",
-          "Calendário",
-          "Clientes",
-        ],
-        cta: "Escolher Pro",
-      },
-      website: {
-        title: "Website",
-        price: "+10€",
-        text: "Add-on para transformar a presença online do restaurante.",
-        items: [
-          "Website profissional",
-          "Templates",
-          "Menus PDF",
-          "Galeria",
-          "SEO",
-          "Reservas integradas",
-        ],
-        cta: "Adicionar website",
-      },
-      qr: {
-        title: "QR Ordering",
-        price: "+15€",
-        text: "Add-on para menu digital e pedidos por QR.",
-        items: [
-          "Menu digital por QR",
-          "Pedidos por mesa",
-          "Chamar empregado",
-          "Pedir conta",
-          "Alertas em tempo real",
-          "QR Codes personalizados",
-        ],
-        cta: "Adicionar QR Ordering",
-      },
-    },
-    future: [
-      {
-        title: "Assistente IA",
-        text: "Ajuda para reviews, descrições, conteúdo, operação e decisões do dia a dia.",
-      },
-      {
-        title: "Ferramentas de Marketing",
-        text: "Campanhas, mensagens, promoções e reativação de clientes.",
-      },
-      {
-        title: "Inteligência Artificial",
-        text: "Automatização de tarefas, sugestões operacionais e insights para ajudar a gerir melhor o restaurante.",
-      },
-      {
-        title: "POS Integrado",
-        text: "O próximo passo para ligar reservas, pedidos, pagamentos e operação.",
-      },
-    ],
-    flow: {
-      center: "MesaLink",
-      subtitle: "TUDO LIGADO",
-      bottom: "Dados e Relatórios",
-      nodes: [
-        { icon: "📲", label: "QR Code Ordering", text: "Pedidos na mesa" },
-        { icon: "🌐", label: "Website", text: "Online 24/7" },
-        { icon: "💳", label: "POS", text: "Vendas e operação" },
-        { icon: "📅", label: "Gestão de Reservas", text: "Todos os canais" },
-        { icon: "📣", label: "Marketing", text: "Atrair e fidelizar" },
-      ],
-    },
-    phone: {
-      title: "Restaurante",
-      status: "ONLINE",
-      reservations: "Reservas",
-      people: "Pessoas",
-      occupancy: "Ocup.",
-      websiteActive: "Website ativo",
-      websiteLine: "Premium · Reservas ON",
-      websiteText: "Menus, galeria, SEO e Google Maps ligados.",
-      platform: "Plataforma completa",
-      platformText: "Website → Reserva → Cliente → Mesa",
-      bookingConfirmed: "Confirmada",
-      pending: "Pendente",
-    },
-    sticky: {
-      label: "MesaLink OS",
-      text: "Website → Reservas → Gestão",
-      start: "Começar",
-    },
-  },
-  en: {
-    nav: {
-      platform: "Platform",
-      websites: "Websites",
-      comparison: "Compare",
-      pricing: "Pricing",
-      login: "Login",
-      start: "Start free",
-    },
-    hero: {
-      badge: "The Restaurant Operating System",
-      title1: "Everything your restaurant needs",
-      title2: "in one platform.",
-      text: "Website, reservations, QR Ordering, table management and customers in one platform. Everything connected so your restaurant runs better.",
-      primary: "Start Free →",
-      secondary: "View Demo →",
-      stat1: ["✓", "100", "free reservations/mo"],
-      stat2: ["✓", "No", "credit card"],
-      stat3: ["✓", "5 min", "setup"],
-      proof1: "Up to 100 reservations/month free",
-      proof2: "No credit card required",
-      proof3: "Set up in minutes",
-    },
-    platform: {
-      badge: "One platform. One login.",
-      title1: "Everything that really matters",
-      title2: "connected to MesaLink.",
-      text: "Website, reservations, QR Ordering and customer management should not live in separate tools. MesaLink brings everything together in one platform built for restaurants.",
-    },
-    sections: {
-      lessToolsBadge: "Fewer tools. More restaurant.",
-      lessToolsTitle1: "Stop running your restaurant",
-      lessToolsTitle2: "across multiple platforms.",
-      lessToolsText:
-        "Today MesaLink connects websites, reservations, customers, tables and QR Ordering in one operation. Fewer tools, less confusion and more time to serve customers.",
-      websitesBadge: "Professional Website",
-      websitesTitle1: "The website your",
-      websitesTitle2: "restaurant deserves.",
-      websitesText:
-        "Choose a template, add images, PDF menus, gallery, contacts, SEO and integrated reservations. No code. No agency. No hassle.",
-      completeBadge: "Complete platform",
-      completeTitle: "A foundation for every stage of the restaurant.",
-      comparisonBadge: "Why MesaLink?",
-      comparisonTitle: "Why use multiple platforms?",
-      comparisonText:
-        "The traditional approach forces restaurants to combine different tools. MesaLink is designed to bring everything into one system.",
-      comparisonFinal: "One platform. One login. Everything connected.",
-      pricingBadge: "Simple pricing",
-      pricingTitle: "Start free. Grow when you need to.",
-      futureBadge: "The future of restaurants",
-      futureTitle1: "We are building the complete platform for",
-      futureTitle2: "restaurants.",
-      futureText:
-        "Today, MesaLink connects websites, reservations, tables, customers and QR Ordering. Next, we are adding AI, advanced marketing and a fully integrated POS.",
-      ctaTitle: "Start free today.",
-      ctaText:
-        "Receive online reservations, organize your restaurant and prepare your operation for a new generation of restaurant tools.",
-      ctaButton: "Create free account →",
-    },
-    bigCards: [
-      {
-        title: "Attract customers",
-        text: "Professional website, SEO, Google Maps, social media and marketing designed to turn visitors into reservations.",
-      },
-      {
-        title: "Receive and serve",
-        text: "Online reservations, QR orders, waiter calls and bill requests in one customer experience.",
-      },
-      {
-        title: "Operate and grow",
-        text: "Customers, data, marketing and POS connected to run the restaurant better every day.",
-      },
-    ],
-    templates: [
-      {
-        name: "Premium",
-        text: "For modern restaurants that want a strong online presence.",
-      },
-      {
-        name: "Luxury",
-        text: "For premium concepts, fine dining and exclusive experiences.",
-      },
-      {
-        name: "Minimal",
-        text: "For restaurants that want a clean and direct image.",
-      },
-      {
-        name: "Social",
-        text: "For young, visual brands highly connected to social media.",
-      },
-    ],
-    features: [
-      {
-        icon: "🌐",
-        title: "Professional website",
-        text: "Menus, gallery, contacts, SEO and integrated reservations.",
-      },
-      {
-        icon: "📅",
-        title: "Reservation management",
-        text: "Reservations from your website, Google Maps and social media in one calendar.",
-      },
-      {
-        icon: "📲",
-        title: "QR Ordering",
-        text: "Digital menu, table orders, waiter calls and bill requests through QR Code.",
-      },
-      {
-        icon: "💳",
-        title: "Integrated POS",
-        text: "Soon: sales, products, orders and reports in one place.",
-      },
-    ],
-    comparison: [
-      ["Website", "Tool #1", "Included"],
-      ["Reservation Management", "Tool #2", "Included"],
-      ["QR Ordering", "Tool #3", "Available"],
-      ["POS", "Tool #4", "Soon"],
-      ["Marketing", "Tool #5", "Soon"],
-      ["Data & Reports", "Tool #6", "Included"],
-    ],
-    prices: {
-      popular: "Most popular",
-      free: {
-        title: "Free",
-        price: "€0",
-        text: "Start receiving online reservations with no risk.",
-        items: [
-          "Up to 100 reservations/month",
-          "Calendar",
-          "Customers",
-          "Links for social media and Google Maps",
-        ],
-        cta: "Start free",
-      },
-      pro: {
-        title: "Pro",
-        price: "€10",
-        text: "For restaurants that want unlimited reservation management.",
-        items: [
-          "Unlimited reservations",
-          "Table management",
-          "Calendar",
-          "Customers",
-        ],
-        cta: "Choose Pro",
-      },
-      website: {
-        title: "Website",
-        price: "+€10",
-        text: "Add-on to transform your restaurant's online presence.",
-        items: [
-          "Professional website",
-          "Templates",
-          "PDF menus",
-          "Gallery",
-          "SEO",
-          "Integrated reservations",
-        ],
-        cta: "Add website",
-      },
-      qr: {
-        title: "QR Ordering",
-        price: "+€15",
-        text: "Add-on for digital menu and QR ordering.",
-        items: [
-          "Digital menu by QR",
-          "Table orders",
-          "Call waiter",
-          "Request bill",
-          "Real-time alerts",
-          "Custom QR Codes",
-        ],
-        cta: "Add QR Ordering",
-      },
-    },
-    future: [
-      {
-        title: "AI Assistant",
-        text: "Help with reviews, descriptions, content, operations and daily decisions.",
-      },
-      {
-        title: "Marketing Tools",
-        text: "Campaigns, messages, promotions and customer reactivation.",
-      },
-      {
-        title: "Artificial Intelligence",
-        text: "Task automation, operational suggestions and insights to help restaurants run better.",
-      },
-      {
-        title: "Integrated POS",
-        text: "The next step to connect reservations, orders, payments and operations.",
-      },
-    ],
-    flow: {
-      center: "MesaLink",
-      subtitle: "CONNECTED",
-      bottom: "Data & Reports",
-      nodes: [
-        { icon: "📲", label: "QR Code Ordering", text: "Table orders" },
-        { icon: "🌐", label: "Website", text: "Online 24/7" },
-        { icon: "💳", label: "POS", text: "Sales & ops" },
-        { icon: "📅", label: "Reservation Management", text: "All channels" },
-        { icon: "📣", label: "Marketing", text: "Attract & retain" },
-      ],
-    },
-    phone: {
-      title: "Restaurant",
-      status: "ONLINE",
-      reservations: "Bookings",
-      people: "Guests",
-      occupancy: "Occup.",
-      websiteActive: "Website live",
-      websiteLine: "Premium · Bookings ON",
-      websiteText: "Menus, gallery, SEO and Google Maps connected.",
-      platform: "Complete platform",
-      platformText: "Website → Booking → Customer → Table",
-      bookingConfirmed: "Confirmed",
-      pending: "Pending",
-    },
-    sticky: {
-      label: "MesaLink OS",
-      text: "Website → Reservations → Management",
-      start: "Start",
-    },
-  },
-  es: {} as Copy,
-  fr: {} as Copy,
-  de: {} as Copy,
-};
-
-copies.es = {
-  ...copies.en,
-  nav: {
-    platform: "Plataforma",
-    websites: "Websites",
-    comparison: "Comparar",
-    pricing: "Precios",
-    login: "Entrar",
-    start: "Empezar gratis",
-  },
-  hero: {
-    ...copies.en.hero,
-    badge: "El Sistema Operativo para Restaurantes",
-    title1: "Todo lo que tu restaurante necesita",
-    title2: "en una sola plataforma.",
-    text: "Website, reservas, QR Ordering, gestión de mesas y clientes en una sola plataforma. Todo conectado para que tu restaurante funcione mejor.",
-    primary: "Empezar Gratis →",
-    secondary: "Ver Demo →",
-    proof1: "Hasta 100 reservas/mes gratis",
-    proof2: "Sin tarjeta de crédito",
-    proof3: "Configuración en minutos",
-  },
-  platform: {
-    badge: "Una plataforma. Un login.",
-    title1: "Todo lo realmente importante",
-    title2: "conectado a MesaLink.",
-    text: "Website, reservas, QR Ordering y gestión de clientes no deberían vivir en herramientas separadas. MesaLink lo une todo en una plataforma creada para restaurantes.",
-  },
-  sections: {
-    ...copies.en.sections,
-    lessToolsBadge: "Menos herramientas. Más restaurante.",
-    lessToolsTitle1: "Deja de gestionar tu restaurante",
-    lessToolsTitle2: "en varias plataformas.",
-    lessToolsText:
-      "Hoy MesaLink conecta website, reservas, clientes, mesas y QR Ordering en una sola operación. Menos herramientas, menos confusión y más tiempo para servir clientes.",
-    websitesBadge: "Website Profesional",
-    websitesTitle1: "El website que tu",
-    websitesTitle2: "restaurante merece.",
-    websitesText:
-      "Elige una plantilla, añade imágenes, menús PDF, galería, contactos, SEO y reservas integradas. Sin código. Sin agencia. Sin complicaciones.",
-    completeBadge: "Plataforma completa",
-    completeTitle: "Una base para todas las fases del restaurante.",
-    comparisonBadge: "¿Por qué MesaLink?",
-    comparisonTitle: "¿Por qué usar varias plataformas?",
-    comparisonText:
-      "La solución tradicional obliga al restaurante a combinar herramientas diferentes. MesaLink está pensado para unir todo en un solo sistema.",
-    comparisonFinal: "Una plataforma. Un login. Todo conectado.",
-    pricingBadge: "Precios simples",
-    pricingTitle: "Empieza gratis. Crece cuando lo necesites.",
-    futureBadge: "El futuro de la restauración",
-    futureTitle1: "Estamos construyendo la plataforma completa para",
-    futureTitle2: "restaurantes.",
-    futureText:
-      "Hoy MesaLink conecta website, reservas, mesas, clientes y QR Ordering. El siguiente paso es añadir IA, marketing avanzado y POS totalmente integrado.",
-    ctaTitle: "Empieza gratis hoy.",
-    ctaText:
-      "Recibe reservas online, organiza tu restaurante y prepara tu operación para una nueva generación de herramientas de restauración.",
-    ctaButton: "Crear cuenta gratis →",
-  },
-  bigCards: [
-    {
-      title: "Atraer clientes",
-      text: "Website profesional, SEO, Google Maps, redes sociales y marketing preparados para convertir visitas en reservas.",
-    },
-    {
-      title: "Recibir y servir",
-      text: "Reservas online, pedidos por QR, llamada al camarero y solicitud de cuenta en una sola experiencia para el cliente.",
-    },
-    {
-      title: "Operar y crecer",
-      text: "Clientes, datos, marketing y POS conectados para gestionar mejor el restaurante cada día.",
-    },
-  ],
-  features: [
-    {
-      icon: "🌐",
-      title: "Website profesional",
-      text: "Menús, galería, contactos, SEO y reservas integradas.",
-    },
-    {
-      icon: "📅",
-      title: "Gestión de reservas",
-      text: "Reservas del website, Google Maps y redes sociales en un solo calendario.",
-    },
-    {
-      icon: "📲",
-      title: "QR Code Ordering",
-      text: "Menú digital, pedidos por mesa, llamar al camarero y pedir la cuenta por QR Code.",
-    },
-    {
-      icon: "💳",
-      title: "POS integrado",
-      text: "Pronto: ventas, productos, pedidos e informes en un solo lugar.",
-    },
-  ],
-  comparison: [
-    ["Website", "Herramienta #1", "Incluido"],
-    ["Gestión de Reservas", "Herramienta #2", "Incluido"],
-    ["QR Ordering", "Herramienta #3", "Disponible"],
-    ["POS", "Herramienta #4", "Pronto"],
-    ["Marketing", "Herramienta #5", "Pronto"],
-    ["Datos e Informes", "Herramienta #6", "Incluido"],
-  ],
-  prices: {
-    popular: "Más popular",
-    free: {
-      title: "Free",
-      price: "0€",
-      text: "Para empezar a recibir reservas online sin riesgo.",
-      items: [
-        "Hasta 100 reservas/mes",
-        "Calendario",
-        "Clientes",
-        "Link para redes sociales y Google Maps",
-      ],
-      cta: "Empezar gratis",
-    },
-    pro: {
-      title: "Pro",
-      price: "10€",
-      text: "Para restaurantes que quieren gestionar reservas sin límites.",
-      items: [
-        "Reservas ilimitadas",
-        "Gestión de mesas",
-        "Calendario",
-        "Clientes",
-      ],
-      cta: "Elegir Pro",
-    },
-    website: {
-      title: "Website",
-      price: "+10€",
-      text: "Add-on para transformar la presencia online del restaurante.",
-      items: [
-        "Website profesional",
-        "Plantillas",
-        "Menús PDF",
-        "Galería",
-        "SEO",
-        "Reservas integradas",
-      ],
-      cta: "Añadir website",
-    },
-    qr: {
-      title: "QR Ordering",
-      price: "+15€",
-      text: "Add-on para menú digital y pedidos por QR.",
-      items: [
-        "Menú digital por QR",
-        "Pedidos por mesa",
-        "Llamar al camarero",
-        "Pedir la cuenta",
-        "Alertas en tiempo real",
-        "QR Codes personalizados",
-      ],
-      cta: "Añadir QR Ordering",
-    },
-  },
-  future: [
-    {
-      title: "Asistente IA",
-      text: "Ayuda con reviews, descripciones, contenido, operación y decisiones diarias.",
-    },
-    {
-      title: "Herramientas de Marketing",
-      text: "Campañas, mensajes, promociones y reactivación de clientes.",
-    },
-    {
-      title: "Inteligencia Artificial",
-      text: "Automatización de tareas, sugerencias operativas e insights para gestionar mejor el restaurante.",
-    },
-    {
-      title: "POS Integrado",
-      text: "El siguiente paso para conectar reservas, pedidos, pagos y operación.",
-    },
-  ],
-  flow: {
-    center: "MesaLink",
-    subtitle: "TODO CONECTADO",
-    bottom: "Datos e Informes",
-    nodes: [
-      { icon: "📲", label: "QR Code Ordering", text: "Pedidos en mesa" },
-      { icon: "🌐", label: "Website", text: "Online 24/7" },
-      { icon: "💳", label: "POS", text: "Ventas y operación" },
-      { icon: "📅", label: "Gestión de Reservas", text: "Todos los canales" },
-      { icon: "📣", label: "Marketing", text: "Atraer y fidelizar" },
-    ],
-  },
-  phone: {
-    ...copies.pt.phone,
-    title: "Restaurante",
-    reservations: "Reservas",
-    people: "Personas",
-    websiteActive: "Website activo",
-    websiteLine: "Premium · Reservas ON",
-    websiteText: "Menús, galería, SEO y Google Maps conectados.",
-    platform: "Plataforma completa",
-    platformText: "Website → Reserva → Cliente → Mesa",
-    bookingConfirmed: "Confirmada",
-    pending: "Pendiente",
-  },
-  sticky: {
-    label: "MesaLink OS",
-    text: "Website → Reservas → Gestión",
-    start: "Empezar",
-  },
-};
-
-copies.fr = {
-  ...copies.en,
-  nav: {
-    platform: "Plateforme",
-    websites: "Sites web",
-    comparison: "Comparer",
-    pricing: "Tarifs",
-    login: "Connexion",
-    start: "Commencer gratuit",
-  },
-  hero: {
-    ...copies.en.hero,
-    badge: "Le Système d’Exploitation pour Restaurants",
-    title1: "Tout ce dont votre restaurant a besoin",
-    title2: "sur une seule plateforme.",
-    text: "Site web, réservations, QR Ordering, gestion des tables et clients sur une seule plateforme. Tout connecté pour mieux gérer votre restaurant.",
-    primary: "Commencer Gratuitement →",
-    secondary: "Voir la Démo →",
-    proof1: "Jusqu’à 100 réservations/mois gratuites",
-    proof2: "Sans carte bancaire",
-    proof3: "Configuration en quelques minutes",
-  },
-  platform: {
-    badge: "Une plateforme. Un accès.",
-    title1: "Tout ce qui compte vraiment",
-    title2: "connecté à MesaLink.",
-    text: "Site web, réservations, QR Ordering et gestion client ne devraient pas être séparés. MesaLink réunit tout dans une plateforme conçue pour les restaurants.",
-  },
-  sections: {
-    ...copies.en.sections,
-    lessToolsBadge: "Moins d’outils. Plus de restaurant.",
-    lessToolsTitle1: "Arrêtez de gérer votre restaurant",
-    lessToolsTitle2: "sur plusieurs plateformes.",
-    lessToolsText:
-      "Aujourd’hui MesaLink connecte site web, réservations, clients, tables et QR Ordering dans une seule opération. Moins d’outils, moins de confusion et plus de temps pour servir les clients.",
-    websitesBadge: "Site Web Professionnel",
-    websitesTitle1: "Le site web que votre",
-    websitesTitle2: "restaurant mérite.",
-    websitesText:
-      "Choisissez un template, ajoutez images, menus PDF, galerie, contacts, SEO et réservations intégrées. Sans code. Sans agence. Sans complications.",
-    completeBadge: "Plateforme complète",
-    completeTitle: "Une base pour chaque étape du restaurant.",
-    comparisonBadge: "Pourquoi MesaLink ?",
-    comparisonTitle: "Pourquoi utiliser plusieurs plateformes ?",
-    comparisonText:
-      "La solution traditionnelle oblige les restaurants à combiner plusieurs outils. MesaLink rassemble tout dans un seul système.",
-    comparisonFinal: "Une plateforme. Un accès. Tout connecté.",
-    pricingBadge: "Tarifs simples",
-    pricingTitle: "Commencez gratuitement. Évoluez quand vous en avez besoin.",
-    futureBadge: "L’avenir de la restauration",
-    futureTitle1: "Nous construisons la plateforme complète pour",
-    futureTitle2: "restaurants.",
-    futureText:
-      "Aujourd’hui, MesaLink connecte sites web, réservations, tables, clients et QR Ordering. La prochaine étape est IA, marketing avancé et POS intégré.",
-    ctaTitle: "Commencez gratuitement aujourd’hui.",
-    ctaText:
-      "Recevez des réservations en ligne, organisez votre restaurant et préparez votre opération à une nouvelle génération d’outils de restauration.",
-    ctaButton: "Créer un compte gratuit →",
-  },
-  bigCards: [
-    {
-      title: "Attirer des clients",
-      text: "Site web professionnel, SEO, Google Maps, réseaux sociaux et marketing conçus pour convertir les visites en réservations.",
-    },
-    {
-      title: "Recevoir et servir",
-      text: "Réservations en ligne, commandes QR, appel serveur et demande d’addition dans une seule expérience client.",
-    },
-    {
-      title: "Opérer et grandir",
-      text: "Clients, données, marketing et POS connectés pour mieux gérer le restaurant chaque jour.",
-    },
-  ],
-  features: [
-    {
-      icon: "🌐",
-      title: "Site web professionnel",
-      text: "Menus, galerie, contacts, SEO et réservations intégrées.",
-    },
-    {
-      icon: "📅",
-      title: "Gestion des réservations",
-      text: "Réservations du site, Google Maps et réseaux sociaux dans un calendrier unique.",
-    },
-    {
-      icon: "📲",
-      title: "QR Code Ordering",
-      text: "Menu digital, commandes à table, appel serveur et demande d’addition par QR Code.",
-    },
-    {
-      icon: "💳",
-      title: "POS intégré",
-      text: "Bientôt : ventes, produits, commandes et rapports au même endroit.",
-    },
-  ],
-  comparison: [
-    ["Site web", "Outil #1", "Inclus"],
-    ["Gestion des réservations", "Outil #2", "Inclus"],
-    ["QR Ordering", "Outil #3", "Disponible"],
-    ["POS", "Outil #4", "Bientôt"],
-    ["Marketing", "Outil #5", "Bientôt"],
-    ["Données et Rapports", "Outil #6", "Inclus"],
-  ],
-  prices: {
-    popular: "Le plus populaire",
-    free: {
-      title: "Free",
-      price: "0€",
-      text: "Pour commencer à recevoir des réservations en ligne sans risque.",
-      items: [
-        "Jusqu’à 100 réservations/mois",
-        "Calendrier",
-        "Clients",
-        "Lien pour réseaux sociaux et Google Maps",
-      ],
-      cta: "Commencer gratuit",
-    },
-    pro: {
-      title: "Pro",
-      price: "10€",
-      text: "Pour les restaurants qui veulent gérer les réservations sans limites.",
-      items: [
-        "Réservations illimitées",
-        "Gestion des tables",
-        "Calendrier",
-        "Clients",
-      ],
-      cta: "Choisir Pro",
-    },
-    website: {
-      title: "Website",
-      price: "+10€",
-      text: "Add-on pour transformer la présence en ligne du restaurant.",
-      items: [
-        "Site web professionnel",
-        "Templates",
-        "Menus PDF",
-        "Galerie",
-        "SEO",
-        "Réservations intégrées",
-      ],
-      cta: "Ajouter le site",
-    },
-    qr: {
-      title: "QR Ordering",
-      price: "+15€",
-      text: "Add-on pour menu digital et commandes par QR.",
-      items: [
-        "Menu digital par QR",
-        "Commandes à table",
-        "Appeler le serveur",
-        "Demander l’addition",
-        "Alertes en temps réel",
-        "QR Codes personnalisés",
-      ],
-      cta: "Ajouter QR Ordering",
-    },
-  },
-  future: [
-    {
-      title: "Assistant IA",
-      text: "Aide pour avis, descriptions, contenu, opérations et décisions quotidiennes.",
-    },
-    {
-      title: "Outils Marketing",
-      text: "Campagnes, messages, promotions et réactivation des clients.",
-    },
-    {
-      title: "Intelligence Artificielle",
-      text: "Automatisation des tâches, suggestions opérationnelles et insights pour mieux gérer le restaurant.",
-    },
-    {
-      title: "POS Intégré",
-      text: "La prochaine étape pour connecter réservations, commandes, paiements et opérations.",
-    },
-  ],
-  flow: {
-    center: "MesaLink",
-    subtitle: "TOUT CONNECTÉ",
-    bottom: "Données et Rapports",
-    nodes: [
-      { icon: "📲", label: "QR Code Ordering", text: "Commandes à table" },
-      { icon: "🌐", label: "Site Web", text: "En ligne 24/7" },
-      { icon: "💳", label: "POS", text: "Ventes et opérations" },
-      {
-        icon: "📅",
-        label: "Gestion des Réservations",
-        text: "Tous les canaux",
-      },
-      { icon: "📣", label: "Marketing", text: "Attirer et fidéliser" },
-    ],
-  },
-  phone: {
-    ...copies.en.phone,
-    title: "Restaurant",
-    reservations: "Réservations",
-    people: "Couverts",
-    occupancy: "Occup.",
-    websiteActive: "Site actif",
-    websiteLine: "Premium · Réservations ON",
-    websiteText: "Menus, galerie, SEO et Google Maps connectés.",
-    platform: "Plateforme complète",
-    platformText: "Site → Réservation → Client → Table",
-    bookingConfirmed: "Confirmée",
-    pending: "En attente",
-  },
-  sticky: {
-    label: "MesaLink OS",
-    text: "Site → Réservations → Gestion",
-    start: "Commencer",
-  },
-};
-
-copies.de = {
-  ...copies.en,
-  nav: {
-    platform: "Plattform",
-    websites: "Websites",
-    comparison: "Vergleich",
-    pricing: "Preise",
-    login: "Login",
-    start: "Kostenlos starten",
-  },
-  hero: {
-    ...copies.en.hero,
-    badge: "Das Betriebssystem für Restaurants",
-    title1: "Alles, was Ihr Restaurant braucht",
-    title2: "auf einer Plattform.",
-    text: "Website, Reservierungen, QR Ordering, Tischverwaltung und Gäste auf einer Plattform. Alles verbunden, damit Ihr Restaurant besser läuft.",
-    primary: "Kostenlos starten →",
-    secondary: "Demo ansehen →",
-    proof1: "Bis zu 100 Reservierungen/Monat kostenlos",
-    proof2: "Keine Kreditkarte erforderlich",
-    proof3: "Einrichtung in wenigen Minuten",
-  },
-  platform: {
-    badge: "Eine Plattform. Ein Login.",
-    title1: "Alles, was wirklich zählt",
-    title2: "mit MesaLink verbunden.",
-    text: "Website, Reservierungen, QR Ordering und Gästemanagement sollten nicht in getrennten Tools leben. MesaLink verbindet alles in einer Plattform für Restaurants.",
-  },
-  sections: {
-    ...copies.en.sections,
-    lessToolsBadge: "Weniger Tools. Mehr Restaurant.",
-    lessToolsTitle1: "Verwalten Sie Ihr Restaurant nicht mehr",
-    lessToolsTitle2: "über mehrere Plattformen.",
-    lessToolsText:
-      "Heute verbindet MesaLink Website, Reservierungen, Gäste, Tische und QR Ordering in einem System. Weniger Tools, weniger Chaos und mehr Zeit für Gäste.",
-    websitesBadge: "Professionelle Website",
-    websitesTitle1: "Die Website, die Ihr",
-    websitesTitle2: "Restaurant verdient.",
-    websitesText:
-      "Wählen Sie ein Template, fügen Sie Bilder, PDF-Menüs, Galerie, Kontakte, SEO und integrierte Reservierungen hinzu. Kein Code. Keine Agentur. Kein Aufwand.",
-    completeBadge: "Komplette Plattform",
-    completeTitle: "Eine Basis für jede Phase des Restaurants.",
-    comparisonBadge: "Warum MesaLink?",
-    comparisonTitle: "Warum mehrere Plattformen nutzen?",
-    comparisonText:
-      "Die traditionelle Lösung zwingt Restaurants, verschiedene Tools zu kombinieren. MesaLink wurde entwickelt, um alles in einem System zu verbinden.",
-    comparisonFinal: "Eine Plattform. Ein Login. Alles verbunden.",
-    pricingBadge: "Einfache Preise",
-    pricingTitle: "Kostenlos starten. Wachsen, wenn Sie bereit sind.",
-    futureBadge: "Die Zukunft der Gastronomie",
-    futureTitle1: "Wir bauen die komplette Plattform für",
-    futureTitle2: "Restaurants.",
-    futureText:
-      "Heute verbindet MesaLink Websites, Reservierungen, Tische, Gäste und QR Ordering. Als Nächstes kommen KI, erweitertes Marketing und ein vollständig integriertes POS.",
-    ctaTitle: "Starten Sie heute kostenlos.",
-    ctaText:
-      "Erhalten Sie Online-Reservierungen, organisieren Sie Ihr Restaurant und bereiten Sie Ihren Betrieb auf eine neue Generation von Restaurant-Tools vor.",
-    ctaButton: "Kostenloses Konto erstellen →",
-  },
-  bigCards: [
-    {
-      title: "Gäste gewinnen",
-      text: "Professionelle Website, SEO, Google Maps, Social Media und Marketing, um Besucher in Reservierungen zu verwandeln.",
-    },
-    {
-      title: "Empfangen und bedienen",
-      text: "Online-Reservierungen, QR-Bestellungen, Service-Rufe und Rechnungswünsche in einem Gästeerlebnis.",
-    },
-    {
-      title: "Betreiben und wachsen",
-      text: "Gäste, Daten, Marketing und POS verbunden, um das Restaurant täglich besser zu führen.",
-    },
-  ],
-  features: [
-    {
-      icon: "🌐",
-      title: "Professionelle Website",
-      text: "Menüs, Galerie, Kontakte, SEO und integrierte Reservierungen.",
-    },
-    {
-      icon: "📅",
-      title: "Reservierungsmanagement",
-      text: "Reservierungen von Website, Google Maps und Social Media in einem Kalender.",
-    },
-    {
-      icon: "📲",
-      title: "QR Code Ordering",
-      text: "Digitales Menü, Tischbestellungen, Service rufen und Rechnung per QR Code anfordern.",
-    },
-    {
-      icon: "💳",
-      title: "Integriertes POS",
-      text: "Bald: Verkäufe, Produkte, Bestellungen und Berichte an einem Ort.",
-    },
-  ],
-  comparison: [
-    ["Website", "Tool #1", "Inklusive"],
-    ["Reservierungsmanagement", "Tool #2", "Inklusive"],
-    ["QR Ordering", "Tool #3", "Verfügbar"],
-    ["POS", "Tool #4", "Bald"],
-    ["Marketing", "Tool #5", "Bald"],
-    ["Daten & Berichte", "Tool #6", "Inklusive"],
-  ],
-  prices: {
-    popular: "Beliebteste",
-    free: {
-      title: "Free",
-      price: "0€",
-      text: "Starten Sie risikofrei mit Online-Reservierungen.",
-      items: [
-        "Bis zu 100 Reservierungen/Monat",
-        "Kalender",
-        "Gäste",
-        "Link für Social Media und Google Maps",
-      ],
-      cta: "Kostenlos starten",
-    },
-    pro: {
-      title: "Pro",
-      price: "10€",
-      text: "Für Restaurants, die Reservierungen ohne Limit verwalten wollen.",
-      items: [
-        "Unbegrenzte Reservierungen",
-        "Tischverwaltung",
-        "Kalender",
-        "Gäste",
-      ],
-      cta: "Pro wählen",
-    },
-    website: {
-      title: "Website",
-      price: "+10€",
-      text: "Add-on für eine professionelle Online-Präsenz Ihres Restaurants.",
-      items: [
-        "Professionelle Website",
-        "Templates",
-        "PDF-Menüs",
-        "Galerie",
-        "SEO",
-        "Integrierte Reservierungen",
-      ],
-      cta: "Website hinzufügen",
-    },
-    qr: {
-      title: "QR Ordering",
-      price: "+15€",
-      text: "Add-on für digitales Menü und QR-Bestellungen.",
-      items: [
-        "Digitales Menü per QR",
-        "Tischbestellungen",
-        "Service rufen",
-        "Rechnung anfordern",
-        "Echtzeit-Alerts",
-        "Personalisierte QR Codes",
-      ],
-      cta: "QR Ordering hinzufügen",
-    },
-  },
-  future: [
-    {
-      title: "KI-Assistent",
-      text: "Hilfe bei Bewertungen, Beschreibungen, Inhalten, Betrieb und täglichen Entscheidungen.",
-    },
-    {
-      title: "Marketing-Tools",
-      text: "Kampagnen, Nachrichten, Angebote und Reaktivierung von Gästen.",
-    },
-    {
-      title: "Künstliche Intelligenz",
-      text: "Automatisierung, operative Vorschläge und Insights, um Restaurants besser zu führen.",
-    },
-    {
-      title: "Integriertes POS",
-      text: "Der nächste Schritt, um Reservierungen, Bestellungen, Zahlungen und Betrieb zu verbinden.",
-    },
-  ],
-  flow: {
-    center: "MesaLink",
-    subtitle: "ALLES VERBUNDEN",
-    bottom: "Daten & Berichte",
-    nodes: [
-      { icon: "📲", label: "QR Code Ordering", text: "Tischbestellungen" },
-      { icon: "🌐", label: "Website", text: "Online 24/7" },
-      { icon: "💳", label: "POS", text: "Verkauf & Betrieb" },
-      { icon: "📅", label: "Reservierungsmanagement", text: "Alle Kanäle" },
-      { icon: "📣", label: "Marketing", text: "Gewinnen & binden" },
-    ],
-  },
-  phone: {
-    ...copies.en.phone,
-    title: "Restaurant",
-    reservations: "Reservierungen",
-    people: "Gäste",
-    occupancy: "Ausl.",
-    websiteActive: "Website live",
-    websiteLine: "Premium · Reservierungen ON",
-    websiteText: "Menüs, Galerie, SEO und Google Maps verbunden.",
-    platform: "Komplette Plattform",
-    platformText: "Website → Reservierung → Gast → Tisch",
-    bookingConfirmed: "Bestätigt",
-    pending: "Offen",
-  },
-  sticky: {
-    label: "MesaLink OS",
-    text: "Website → Reservierungen → Management",
-    start: "Starten",
-  },
-};
-
-const languageLabels: Record<Lang, string> = {
-  pt: "PT",
-  en: "EN",
-  es: "ES",
-  fr: "FR",
-  de: "DE",
-};
+const features = [
+  "Reservas online",
+  "Gestão de mesas",
+  "CRM de clientes",
+  "Website profissional",
+  "POS integrado",
+  "QR Ordering",
+  "Marketing",
+  "Google Reviews",
+  "Fidelização VIP",
+  "Campanhas",
+];
 
 export default function HomePage() {
-  const [lang, setLang] = useState<Lang>("pt");
-  const t = copies[lang];
-  const { scrollYProgress } = useScroll();
-
-  const heroY = useTransform(scrollYProgress, [0, 0.25], [0, -70]);
-  const phoneRotate = useTransform(scrollYProgress, [0, 0.25], [-4, 4]);
-  const priceCards = useMemo(
-    () => [t.prices.free, t.prices.pro, t.prices.website, t.prices.qr],
-    [t],
-  );
-
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
-      <Background />
+    <main className="min-h-screen overflow-hidden bg-[#F1E9DD] text-[#17130F]">
+      <Header />
 
-      <section className="relative z-10 px-5 pb-16 pt-5 lg:px-8 lg:pb-24">
-        <nav className="mx-auto mb-12 flex max-w-7xl items-center justify-between gap-4 lg:mb-16">
-          <Link href="/" className="shrink-0 text-2xl font-black">
-            Mesa
-            <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-              Link
-            </span>
-          </Link>
+      <section className="relative px-5 pb-20 pt-16 lg:px-8 lg:pb-28 lg:pt-24">
+        <SoftBackground />
 
-          <div className="hidden items-center gap-7 text-sm lg:flex">
-            <Link
-              href="#platform"
-              className="font-bold text-slate-400 hover:text-white"
-            >
-              {t.nav.platform}
-            </Link>
-            <Link
-              href="#websites"
-              className="font-bold text-slate-400 hover:text-white"
-            >
-              {t.nav.websites}
-            </Link>
-            <Link
-              href="#comparison"
-              className="font-bold text-slate-400 hover:text-white"
-            >
-              {t.nav.comparison}
-            </Link>
-            <Link
-              href="#pricing"
-              className="font-bold text-slate-400 hover:text-white"
-            >
-              {t.nav.pricing}
-            </Link>
-            <Link
-              href="/login"
-              className="font-bold text-slate-400 hover:text-white"
-            >
-              {t.nav.login}
-            </Link>
-          </div>
+        <div className="relative mx-auto max-w-7xl">
+          <div className="mx-auto max-w-5xl text-center">
+            <Label>Plataforma de crescimento para restaurantes</Label>
 
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher lang={lang} setLang={setLang} />
-            <Link
-              href="/register"
-              className="hidden rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-6 py-3 font-black text-black shadow-[0_0_45px_rgba(96,165,250,0.35)] hover:opacity-90 sm:inline-flex"
-            >
-              {t.nav.start}
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-full border border-cyan-300/30 bg-white/5 px-4 py-2 text-sm font-black text-cyan-200 backdrop-blur lg:hidden"
-            >
-              {t.nav.login}
-            </Link>
-          </div>
-        </nav>
-
-        <div className="mx-auto grid max-w-7xl items-center gap-14 lg:min-h-[720px] lg:grid-cols-[1.02fr_0.98fr]">
-          <motion.div style={{ y: heroY }}>
-            <Badge>{t.hero.badge}</Badge>
-
-            <h1 className="mt-5 text-[48px] font-black leading-[0.9] tracking-[-0.065em] sm:text-7xl lg:text-[84px]">
-              {t.hero.title1}{" "}
-              <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-400 bg-clip-text text-transparent">
-                {t.hero.title2}
-              </span>
+            <h1 className="mt-6 text-[52px] font-semibold leading-[0.88] tracking-[-0.075em] sm:text-7xl lg:text-[104px]">
+              O sistema operativo para restaurantes modernos.
             </h1>
 
-            <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-slate-300 lg:text-lg">
-              {t.hero.text}
+            <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-[#5C5348] lg:text-xl">
+              Reservas, CRM, website, marketing, POS e QR Ordering numa única
+              plataforma para aumentar receita, poupar tempo e fazer clientes
+              voltar.
             </p>
 
-            <div className="mt-7 grid gap-3 sm:max-w-xl sm:grid-cols-2">
+            <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
               <Button
                 asChild
-                className="h-14 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-base font-black text-black shadow-[0_0_70px_rgba(96,165,250,0.6)] hover:opacity-90"
+                className="h-14 rounded-full bg-[#17130F] px-8 text-base font-semibold text-white shadow-[0_20px_55px_rgba(185,150,94,0.22)] hover:bg-[#2A2118]"
               >
-                <Link href="/register">{t.hero.primary}</Link>
+                <Link href="/register">Começar teste gratuito</Link>
               </Button>
+
               <Button
                 asChild
                 variant="outline"
-                className="h-14 rounded-full border-cyan-300/30 bg-white/5 text-base font-black text-white backdrop-blur hover:bg-white/10"
+                className="h-14 rounded-full border-[#B9965E] bg-[#FFF9F0] px-8 text-base font-semibold text-[#17130F] hover:bg-white"
               >
-                <Link href="#platform">{t.hero.secondary}</Link>
+                <Link href="/contact">Pedir demonstração</Link>
               </Button>
             </div>
+          </div>
 
-            <div className="mt-8 grid max-w-xl grid-cols-3 gap-3">
-              <HeroStat
-                icon={t.hero.stat1[0]}
-                value={t.hero.stat1[1]}
-                label={t.hero.stat1[2]}
-              />
-              <HeroStat
-                icon={t.hero.stat2[0]}
-                value={t.hero.stat2[1]}
-                label={t.hero.stat2[2]}
-              />
-              <HeroStat
-                icon={t.hero.stat3[0]}
-                value={t.hero.stat3[1]}
-                label={t.hero.stat3[2]}
-              />
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-3 text-sm font-bold text-slate-400">
-              <span>✓ {t.hero.proof1}</span>
-              <span>✓ {t.hero.proof2}</span>
-              <span>✓ {t.hero.proof3}</span>
-            </div>
-          </motion.div>
-
-          <motion.div style={{ rotate: phoneRotate }} className="lg:mt-8">
-            <PhoneHero t={t} />
-          </motion.div>
+          <div className="mt-16">
+            <HeroProduct />
+          </div>
         </div>
       </section>
 
-      <StickyBar t={t} />
-
-      <section
-        id="platform"
-        className="relative z-10 px-5 py-16 lg:px-8 lg:py-24"
-      >
-        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[0.85fr_1.15fr]">
+      <section className="px-5 py-20 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div>
-            <Badge>{t.platform.badge}</Badge>
-            <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em] sm:text-6xl">
-              {t.platform.title1}{" "}
-              <span className="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text text-transparent">
-                {t.platform.title2}
-              </span>
+            <Label>Uma plataforma. Um login.</Label>
+            <h2 className="mt-5 text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">
+              Tudo ligado ao{" "}
+              <span style={{ color: brand.mesa }}>Mesa</span>
+              <span style={{ color: brand.link }}>Link</span>.
             </h2>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-400 lg:text-lg">
-              {t.platform.text}
+            <p className="mt-6 max-w-xl text-lg leading-8 text-[#5C5348]">
+              O cliente reserva, senta-se, pede por QR, paga, entra no CRM e
+              recebe marketing automático para voltar.
             </p>
           </div>
-          <FlowNetwork t={t} />
+
+          <Ecosystem />
         </div>
       </section>
 
-      <section className="relative z-10 px-5 py-14 lg:px-8 lg:py-20">
-        <div className="mx-auto max-w-7xl">
-          <Badge>{t.sections.lessToolsBadge}</Badge>
-          <div className="mt-5 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+      <section className="px-5 py-20 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <TableEditor />
+
+          <div>
+            <Label>Editor de mesas</Label>
+            <h2 className="mt-5 text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">
+              Veja a sala em tempo real.
+            </h2>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-[#5C5348]">
+              Mesas, reservas, pedidos QR, contas e ocupação num painel visual
+              feito para equipas de restaurante.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <RoiSection />
+
+      <section id="pricing" className="px-5 py-20 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div>
+            <Label>Preço de lançamento</Label>
+            <h2 className="mt-5 text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">
+              79€/mês para uma plataforma que pode pagar-se sozinha.
+            </h2>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-[#5C5348]">
+              Uma mesa extra, um cliente recuperado ou menos pressão na equipa
+              já pode compensar o custo mensal.
+            </p>
+          </div>
+
+          <PricingCard />
+        </div>
+      </section>
+
+      <section className="px-5 pb-20 lg:px-8">
+        <div className="mx-auto max-w-7xl overflow-hidden rounded-[44px] bg-[#221A13] p-8 text-white shadow-[0_35px_120px_rgba(34,26,19,0.24)] lg:p-14">
+          <div className="grid gap-10 lg:grid-cols-[1fr_0.8fr] lg:items-center">
             <div>
-              <h2 className="text-[40px] font-black leading-[0.92] tracking-[-0.05em] sm:text-6xl">
-                {t.sections.lessToolsTitle1}{" "}
-                <span className="text-cyan-300">
-                  {t.sections.lessToolsTitle2}
-                </span>
+              <h2 className="max-w-4xl text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">
+                O próximo cliente já está à procura do seu restaurante.
               </h2>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-400">
-                {t.sections.lessToolsText}
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/65">
+                Dê-lhe uma experiência melhor. Faça-o voltar.
               </p>
             </div>
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-1">
-              {t.bigCards.map((card, index) => (
-                <BigCard
-                  key={card.title}
-                  number={`0${index + 1}`}
-                  title={card.title}
-                  text={card.text}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <section
-        id="websites"
-        className="relative z-10 px-5 py-14 lg:px-8 lg:py-20"
-      >
-        <div className="mx-auto max-w-7xl">
-          <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/20 bg-[#06111f] p-6 shadow-[0_0_100px_rgba(34,211,238,0.22)] lg:p-10">
-            <div className="absolute -right-16 top-10 h-52 w-52 rounded-full bg-cyan-500/25 blur-[70px]" />
-            <div className="absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-violet-500/25 blur-[70px]" />
-            <div className="relative">
-              <Badge purple>{t.sections.websitesBadge}</Badge>
-              <div className="mt-5 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-                <div>
-                  <h2 className="text-[40px] font-black leading-[0.92] tracking-[-0.05em] sm:text-6xl">
-                    {t.sections.websitesTitle1}{" "}
-                    <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">
-                      {t.sections.websitesTitle2}
-                    </span>
-                  </h2>
-                  <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-300">
-                    {t.sections.websitesText}
-                  </p>
-                </div>
-                <div className="grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
-                  <p>✓ PDF menus</p>
-                  <p>✓ Gallery</p>
-                  <p>✓ SEO</p>
-                  <p>✓ Contacts</p>
-                  <p>✓ Google Maps</p>
-                  <p>✓ Integrated reservations</p>
-                </div>
-              </div>
-              <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {t.templates.map((template) => (
-                  <TemplateCard key={template.name} {...template} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <QrOrderingSection />
-
-      <section className="relative z-10 px-5 py-14 lg:px-8 lg:py-20">
-        <div className="mx-auto max-w-7xl">
-          <Badge>{t.sections.completeBadge}</Badge>
-          <h2 className="mt-5 max-w-4xl text-[40px] font-black leading-[0.92] tracking-[-0.05em] sm:text-6xl">
-            {t.sections.completeTitle}
-          </h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {t.features.map((feature) => (
-              <Feature key={feature.title} {...feature} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section
-        id="comparison"
-        className="relative z-10 px-5 py-14 lg:px-8 lg:py-20"
-      >
-        <div className="mx-auto max-w-7xl">
-          <Badge>{t.sections.comparisonBadge}</Badge>
-          <h2 className="mt-5 max-w-4xl text-[40px] font-black leading-[0.92] tracking-[-0.05em] sm:text-6xl">
-            {t.sections.comparisonTitle}
-          </h2>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-400">
-            {t.sections.comparisonText}
-          </p>
-          <div className="mt-10 overflow-hidden rounded-[32px] border border-cyan-300/10 bg-[#06111f] shadow-[0_0_70px_rgba(34,211,238,0.08)]">
-            <div className="grid grid-cols-3 bg-white/[0.04] p-5 text-xs font-black uppercase tracking-[0.18em] text-slate-400">
-              <div>Need</div>
-              <div>Traditional</div>
-              <div>MesaLink</div>
-            </div>
-            {t.comparison.map(([need, traditional, mesalink]) => (
-              <div
-                key={need}
-                className="grid grid-cols-3 border-t border-white/10 p-5 text-sm sm:text-base"
-              >
-                <div className="font-black text-white">{need}</div>
-                <div className="text-slate-400">{traditional}</div>
-                <div className="font-black text-cyan-300">{mesalink}</div>
-              </div>
-            ))}
-          </div>
-          <p className="mt-6 text-xl font-black text-cyan-200">
-            {t.sections.comparisonFinal}
-          </p>
-        </div>
-      </section>
-
-      <section
-        id="pricing"
-        className="relative z-10 px-5 py-14 lg:px-8 lg:py-20"
-      >
-        <div className="mx-auto max-w-7xl">
-          <Badge>{t.sections.pricingBadge}</Badge>
-          <h2 className="mt-5 max-w-4xl text-[40px] font-black leading-[0.92] tracking-[-0.05em] sm:text-6xl">
-            {t.sections.pricingTitle}
-          </h2>
-          <div className="mt-10 grid gap-4 lg:grid-cols-4">
-            {priceCards.map((card, index) => (
-              <PriceCard
-                key={card.title}
-                {...card}
-                highlighted={index === 1}
-                popular={t.prices.popular}
-                href="/register"
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section
-        id="future"
-        className="relative z-10 px-5 py-14 lg:px-8 lg:py-20"
-      >
-        <div className="mx-auto max-w-7xl">
-          <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/20 bg-[#06111f] p-6 shadow-[0_0_100px_rgba(34,211,238,0.16)] lg:p-10">
-            <div className="absolute -right-16 top-10 h-52 w-52 rounded-full bg-cyan-500/25 blur-[70px]" />
-            <div className="absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-violet-500/25 blur-[70px]" />
-            <div className="relative grid gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-center">
-              <div>
-                <Badge purple>{t.sections.futureBadge}</Badge>
-                <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em] sm:text-6xl">
-                  {t.sections.futureTitle1}{" "}
-                  <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">
-                    {t.sections.futureTitle2}
-                  </span>
-                </h2>
-                <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-300">
-                  {t.sections.futureText}
-                </p>
-              </div>
-              <div className="grid gap-3">
-                {t.future.map((item) => (
-                  <AiItem key={item.title} {...item} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="relative z-10 px-5 pb-16 lg:px-8 lg:pb-24">
-        <div className="mx-auto max-w-7xl">
-          <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/20 bg-gradient-to-br from-cyan-300 via-blue-400 to-violet-500 p-7 text-black shadow-[0_0_100px_rgba(96,165,250,0.55)] lg:p-10">
-            <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/40 blur-3xl" />
-            <h2 className="relative max-w-4xl text-[42px] font-black leading-[0.88] tracking-[-0.06em] sm:text-6xl">
-              {t.sections.ctaTitle}
-            </h2>
-            <p className="relative mt-5 max-w-2xl text-base leading-relaxed text-black/70">
-              {t.sections.ctaText}
-            </p>
             <Button
               asChild
-              className="relative mt-7 h-14 rounded-full bg-black px-8 text-base font-black text-white hover:bg-black/90"
+              className="h-14 rounded-full bg-[#D8C5A5] px-8 text-base font-semibold text-[#17130F] hover:bg-[#E8D6B8] lg:justify-self-end"
             >
-              <Link href="/register">{t.sections.ctaButton}</Link>
+              <Link href="/register">Começar agora</Link>
             </Button>
-            <div className="relative mt-6 grid gap-4 text-sm text-black/70 sm:grid-cols-2 lg:max-w-md">
-              <p>💳 {t.hero.proof2}</p>
-              <p>📅 {t.hero.proof1}</p>
-            </div>
           </div>
         </div>
       </section>
@@ -1582,792 +152,458 @@ export default function HomePage() {
   );
 }
 
-function QrOrderingSection() {
-  const features = [
-    "Menu digital por QR",
-    "Pedidos por mesa",
-    "Chamar empregado",
-    "Pedir conta",
-    "Alertas no painel do restaurante",
-    "Gestão e impressão de QR Codes",
-    "Templates premium de QR",
-    "Ativar ou desativar funcionalidades",
-  ];
-
+function Header() {
   return (
-    <section
-      id="qr-ordering"
-      className="relative z-10 px-5 py-14 lg:px-8 lg:py-20"
+    <header className="sticky top-0 z-50 border-b border-[#DECDB4] bg-[#F1E9DD]/88 px-5 py-5 backdrop-blur-xl lg:px-8">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between">
+        <Link href="/" className="text-2xl font-semibold tracking-[-0.045em]">
+          <span style={{ color: brand.mesa }}>Mesa</span>
+          <span style={{ color: brand.link }}>Link</span>
+        </Link>
+
+        <div className="hidden items-center gap-8 text-sm text-[#5C5348] lg:flex">
+          <Link href="#platform">Produto</Link>
+          <Link href="#pricing">Preços</Link>
+          <Link href="/login">Entrar</Link>
+        </div>
+
+        <Link
+          href="/register"
+          className="rounded-full bg-[#17130F] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#2A2118]"
+        >
+          Começar
+        </Link>
+      </nav>
+    </header>
+  );
+}
+
+function HeroProduct() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 36, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.85, ease: "easeOut" }}
+      className="relative mx-auto max-w-6xl"
     >
-      <div className="mx-auto max-w-7xl">
-        <div className="relative overflow-hidden rounded-[36px] border border-cyan-300/20 bg-[#06111f] p-6 shadow-[0_0_100px_rgba(34,211,238,0.18)] lg:p-10">
-          <div className="absolute -right-20 top-10 h-64 w-64 rounded-full bg-cyan-500/25 blur-[80px]" />
-          <div className="absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-violet-500/25 blur-[80px]" />
+      <motion.div
+        animate={{ y: [-8, 8, -8] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        className="relative overflow-hidden rounded-[46px] border border-[#D6BE94] bg-[#FFF8ED] p-3 shadow-[0_45px_150px_rgba(71,47,24,0.22)]"
+      >
+        <div className="rounded-[38px] border border-[#E8D7BB] bg-[#FBF4EA] p-3">
+          <div className="overflow-hidden rounded-[32px] border border-[#E3CFAD] bg-white">
+            <div className="grid min-h-[610px] lg:grid-cols-[240px_1fr]">
+              <aside className="hidden border-r border-[#E7D7BF] bg-[#EFE4D4] p-7 lg:block">
+                <Logo />
 
-          <div className="relative grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-            <div>
-              <Badge purple>QR Ordering disponível</Badge>
-
-              <h2 className="mt-5 text-[40px] font-black leading-[0.92] tracking-[-0.05em] sm:text-6xl">
-                Os clientes pedem.
-                <span className="block bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">
-                  O restaurante controla.
-                </span>
-              </h2>
-
-              <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-300 lg:text-lg">
-                Transforme qualquer mesa numa experiência digital completa: menu
-                por QR, pedidos por mesa, chamada de empregado e pedido de
-                conta, tudo ligado ao painel do restaurante.
-              </p>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {features.map((feature) => (
-                  <div
-                    key={feature}
-                    className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-bold text-slate-200"
-                  >
-                    <span className="text-cyan-300">✓</span> {feature}
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 rounded-3xl border border-cyan-300/20 bg-cyan-500/10 p-5">
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">
-                  Add-on MesaLink
-                </p>
-                <p className="mt-2 text-3xl font-black text-white">+15€/mês</p>
-                <p className="mt-1 text-sm leading-relaxed text-slate-300">
-                  Sem mexer no plano principal. Ideal para restaurantes que
-                  querem vender e servir melhor à mesa.
-                </p>
-              </div>
-            </div>
-
-            <div className="relative mx-auto w-full max-w-[430px]">
-              <div className="absolute inset-0 translate-y-8 rounded-[48px] bg-cyan-500/25 blur-[90px]" />
-              <div className="relative rounded-[42px] border border-cyan-300/30 bg-gradient-to-b from-[#0b1b2c] via-[#071426] to-[#020617] p-4 shadow-2xl">
-                <div className="mx-auto mb-4 h-1.5 w-20 rounded-full bg-cyan-300/50" />
-
-                <div className="rounded-[32px] border border-white/10 bg-black/45 p-5 backdrop-blur-xl">
-                  <div className="mb-5 flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
-                        QR Ordering
-                      </p>
-                      <h3 className="mt-2 text-3xl font-black text-white">
-                        Mesa 12
-                      </h3>
-                      <p className="mt-1 text-sm text-slate-400">
-                        3 pedidos ativos · 1 alerta
-                      </p>
+                <div className="mt-9 space-y-2 text-sm">
+                  {[
+                    "Dashboard",
+                    "Reservas",
+                    "Mapa de mesas",
+                    "Clientes",
+                    "Campanhas",
+                    "POS",
+                    "Relatórios",
+                  ].map((item, index) => (
+                    <div
+                      key={item}
+                      className={
+                        index === 0
+                          ? "rounded-2xl bg-[#17130F] px-4 py-3 font-semibold text-white shadow-sm"
+                          : "rounded-2xl px-4 py-3 text-[#6B6258]"
+                      }
+                    >
+                      {item}
                     </div>
-                    <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-black text-green-300">
-                      LIVE
-                    </span>
-                  </div>
+                  ))}
+                </div>
 
-                  <div className="space-y-3">
-                    <QrMockItem
-                      icon="📲"
-                      title="Novo pedido"
-                      text="2x Francesinha · 1x Cola Zero"
-                      color="cyan"
-                    />
-                    <QrMockItem
-                      icon="🔔"
-                      title="Chamar empregado"
-                      text="Mesa 7 precisa de assistência"
-                      color="violet"
-                    />
-                    <QrMockItem
-                      icon="💳"
-                      title="Pedir conta"
-                      text="Mesa 4 pediu a conta"
-                      color="cyan"
-                    />
-                    <QrMockItem
-                      icon="✅"
-                      title="Pedido enviado"
-                      text="Alerta recebido no painel"
-                      color="violet"
-                    />
-                  </div>
+                <div className="mt-10 rounded-3xl border border-[#D6BE94] bg-[#FFF8ED] p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9B6F3B]">
+                    Serviço
+                  </p>
+                  <p className="mt-2 text-3xl font-semibold">74%</p>
+                  <p className="text-sm text-[#6B6258]">ocupação atual</p>
+                </div>
+              </aside>
 
-                  <div className="mt-5 grid grid-cols-3 gap-2">
-                    <Dash value="24" label="Pedidos" />
-                    <Dash value="6" label="Mesas" />
-                    <Dash value="3" label="Alertas" />
+              <div className="p-5 lg:p-9">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-[#7A7166]">Hoje · 19:42</p>
+                    <h3 className="text-5xl font-semibold tracking-[-0.07em]">
+                      Dashboard
+                    </h3>
+                  </div>
+                  <span className="rounded-full bg-[#EFE4D4] px-5 py-3 text-sm font-semibold">
+                    Serviço ativo
+                  </span>
+                </div>
+
+                <div className="mt-9 grid gap-4 sm:grid-cols-4">
+                  <Metric value="€3.840" label="Receita POS" />
+                  <Metric value="48" label="Reservas" />
+                  <Metric value="126" label="Clientes" />
+                  <Metric value="+31%" label="Retorno" />
+                </div>
+
+                <div className="mt-7 grid gap-5 lg:grid-cols-[1fr_1fr]">
+                  <MiniPanel title="Mapa de mesas">
+                    <MiniTableMap />
+                  </MiniPanel>
+
+                  <MiniPanel title="Crescimento ativo">
+                    {[
+                      ["Review Google", "+1"],
+                      ["Campanha VIP", "24 clientes"],
+                      ["Cliente recuperado", "€68"],
+                      ["Pedido QR", "Mesa 7"],
+                    ].map(([label, value]) => (
+                      <Row key={label} label={label} value={value} />
+                    ))}
+                  </MiniPanel>
+                </div>
+
+                <div className="mt-6 rounded-[28px] border border-[#E7D7BF] bg-[#FFF8ED] p-5">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold">Impacto estimado este mês</p>
+                    <p className="text-sm font-semibold text-[#9B6F3B]">
+                      +€1.240
+                    </p>
+                  </div>
+                  <div className="mt-4 h-3 overflow-hidden rounded-full bg-[#E8D7BB]">
+                    <motion.div
+                      initial={{ width: "20%" }}
+                      animate={{ width: "76%" }}
+                      transition={{ duration: 1.2, delay: 0.4 }}
+                      className="h-full rounded-full bg-[#B9965E]"
+                    />
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </motion.div>
+    </motion.div>
   );
 }
 
-function QrMockItem({
-  icon,
-  title,
-  text,
-  color,
-}: {
-  icon: string;
-  title: string;
-  text: string;
-  color: "cyan" | "violet";
-}) {
+function Ecosystem() {
+  const nodes = [
+    ["Reservas", "Todos os canais", "top-[9%] left-[6%]"],
+    ["Website", "Online 24/7", "top-[3%] left-[39%]"],
+    ["QR Ordering", "Pedidos na mesa", "top-[9%] right-[6%]"],
+    ["Marketing", "Atrair e fidelizar", "bottom-[15%] left-[7%]"],
+    ["POS", "Vendas e operação", "bottom-[15%] right-[7%]"],
+  ];
+
   return (
-    <div
-      className={
-        color === "cyan"
-          ? "rounded-2xl border border-cyan-300/20 bg-cyan-500/10 p-4"
-          : "rounded-2xl border border-violet-300/20 bg-violet-500/10 p-4"
-      }
-    >
-      <div className="flex items-start gap-3">
-        <span className="text-2xl">{icon}</span>
-        <div>
-          <p className="font-black text-white">{title}</p>
-          <p className="mt-1 text-sm text-slate-300">{text}</p>
-        </div>
+    <div className="relative mx-auto h-[640px] w-full max-w-[740px] overflow-hidden rounded-[52px] border border-[#D6BE94] bg-[#FFF8ED] p-7 shadow-[0_35px_130px_rgba(80,55,30,0.14)]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(185,150,94,0.24),transparent_45%)]" />
+      <div className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#D6BE94]/50" />
+
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 740 640" fill="none">
+        {[
+          "M370 150 C370 225 370 270 370 325",
+          "M170 190 C210 300 285 332 335 340",
+          "M570 190 C530 300 455 332 405 340",
+          "M170 450 C210 370 285 350 335 345",
+          "M570 450 C530 370 455 350 405 345",
+          "M370 390 C370 455 370 500 370 535",
+        ].map((d, i) => (
+          <motion.path
+            key={d}
+            d={d}
+            stroke="#B9965E"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            whileInView={{ pathLength: 1, opacity: 1 }}
+            transition={{ duration: 1, delay: i * 0.08 }}
+            viewport={{ once: true }}
+          />
+        ))}
+      </svg>
+
+      {nodes.map(([title, text, pos], i) => (
+        <motion.div
+          key={title}
+          initial={{ opacity: 0, y: 18, scale: 0.96 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          animate={{ y: [-4, 4, -4] }}
+          transition={{
+            opacity: { delay: i * 0.08 },
+            scale: { delay: i * 0.08 },
+            y: { duration: 5 + i, repeat: Infinity, ease: "easeInOut" },
+          }}
+          viewport={{ once: true }}
+          className={`absolute ${pos} w-[185px] rounded-[32px] border border-[#E2D2BA] bg-white/92 p-5 shadow-[0_24px_70px_rgba(80,55,30,0.10)] backdrop-blur`}
+        >
+          <h3 className="text-lg font-semibold tracking-[-0.035em]">{title}</h3>
+          <p className="mt-2 text-sm text-[#6B6258]">{text}</p>
+        </motion.div>
+      ))}
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        animate={{ y: [-7, 7, -7] }}
+        transition={{
+          opacity: { duration: 0.5 },
+          scale: { duration: 0.5 },
+          y: { duration: 5.5, repeat: Infinity, ease: "easeInOut" },
+        }}
+        viewport={{ once: true }}
+        className="absolute left-1/2 top-1/2 z-10 flex h-[205px] w-[250px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-[46px] border border-[#B9965E] bg-[#2A2118] text-white shadow-[0_35px_100px_rgba(80,55,30,0.26)]"
+      >
+        <p className="text-4xl font-semibold tracking-[-0.06em]">
+          <span className="text-[#C8A56A]">Mesa</span>
+          <span className="text-white">Link</span>
+        </p>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.32em] text-[#D8C5A5]">
+          Growth Engine
+        </p>
+      </motion.div>
+
+      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 rounded-full border border-[#D8C5A5] bg-[#F1E9DD] px-7 py-3 text-sm font-semibold text-[#17130F] shadow-[0_15px_40px_rgba(80,55,30,0.10)]">
+        Dados, relatórios e automações
       </div>
     </div>
   );
 }
 
-function LanguageSwitcher({
-  lang,
-  setLang,
-}: {
-  lang: Lang;
-  setLang: (lang: Lang) => void;
-}) {
+function MiniTableMap() {
+  const tables = [
+    ["2", "Livre"],
+    ["4", "Reserva"],
+    ["6", "Ocupada"],
+    ["2", "QR"],
+  ];
+
   return (
-    <div className="hidden rounded-full border border-cyan-300/20 bg-white/5 p-1 backdrop-blur md:flex">
-      {(Object.keys(languageLabels) as Lang[]).map((code) => (
-        <button
-          key={code}
-          type="button"
-          onClick={() => setLang(code)}
+    <div className="grid grid-cols-2 gap-3">
+      {tables.map(([pax, status], index) => (
+        <div
+          key={`${pax}-${status}-${index}`}
           className={
-            lang === code
-              ? "rounded-full bg-cyan-300 px-3 py-2 text-xs font-black text-black"
-              : "rounded-full px-3 py-2 text-xs font-black text-slate-400 hover:text-white"
+            status === "QR"
+              ? "rounded-2xl border border-[#B9965E] bg-[#FFF0CF] p-3"
+              : "rounded-2xl border border-[#E5D6C1] bg-white p-3"
           }
         >
-          {languageLabels[code]}
-        </button>
+          <div className="flex h-16 items-center justify-center rounded-full border border-current/10 bg-[#F8F0E6]">
+            <p className="text-lg font-semibold">{pax}</p>
+          </div>
+
+          <p className="mt-2 text-center text-xs text-[#6B6258]">
+            {status}
+          </p>
+        </div>
       ))}
     </div>
   );
 }
 
-function Background() {
+function TableEditor() {
+  const tables = [
+    ["2", "Livre"],
+    ["4", "Reserva"],
+    ["6", "Ocupada"],
+    ["2", "QR"],
+    ["8", "Conta"],
+    ["4", "Ocupada"],
+    ["2", "Livre"],
+    ["6", "Reserva"],
+  ];
+
   return (
-    <div className="pointer-events-none fixed inset-0 z-0">
-      <motion.div
-        animate={{ scale: [1, 1.18, 1], y: [0, 42, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[-140px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px] lg:h-[620px] lg:w-[620px]"
-      />
-      <motion.div
-        animate={{ x: [0, -35, 0], y: [0, 50, 0] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute right-[-140px] top-[420px] h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px] lg:h-[440px] lg:w-[440px]"
-      />
-      <motion.div
-        animate={{ x: [0, 22, 0], opacity: [0.12, 0.3, 0.12] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-[-120px] left-[-120px] h-[320px] w-[320px] rounded-full bg-blue-500/20 blur-[100px]"
-      />
-      <motion.div
-        animate={{ opacity: [0.12, 0.28, 0.12] }}
-        transition={{ duration: 4, repeat: Infinity }}
-        className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.08)_1px,transparent_1px)] bg-[size:44px_44px]"
-      />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.16),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
+    <div className="rounded-[44px] border border-[#D8C5A5] bg-[#FFF9F0] p-5 shadow-[0_30px_110px_rgba(80,55,30,0.14)]">
+      <div className="rounded-[36px] border border-[#E5D6C1] bg-white p-6">
+        <div className="mb-7 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-[#7A7166]">Sala Principal</p>
+            <h3 className="text-4xl font-semibold tracking-[-0.06em]">
+              Editor de mesas
+            </h3>
+          </div>
+          <span className="rounded-full bg-[#F1E9DD] px-4 py-2 text-sm font-semibold text-[#9B6F3B]">
+            Serviço ativo
+          </span>
+        </div>
+
+        <div className="grid grid-cols-4 gap-5">
+          {tables.map(([pax, status], index) => (
+            <motion.div
+              key={`${pax}-${status}-${index}`}
+              initial={{ opacity: 0, scale: 0.92 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.04 }}
+              viewport={{ once: true }}
+              className="flex flex-col items-center gap-3"
+            >
+              <div
+                className={
+                  status === "Conta"
+                    ? "flex h-24 w-24 items-center justify-center rounded-full bg-[#2A2118] text-white shadow-lg"
+                    : status === "QR"
+                      ? "flex h-24 w-24 items-center justify-center rounded-full border border-[#B9965E] bg-[#FFF0CF]"
+                      : "flex h-24 w-24 items-center justify-center rounded-full border border-[#E5D6C1] bg-[#F8F0E6]"
+                }
+              >
+                <p className="text-2xl font-semibold">{pax}</p>
+              </div>
+              <p className="text-xs font-semibold text-[#6B6258]">{status}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="mt-8 grid gap-3 sm:grid-cols-4">
+          <Metric value="18" label="Mesas" />
+          <Metric value="74%" label="Ocupação" />
+          <Metric value="9" label="Pedidos QR" />
+          <Metric value="4" label="Contas" />
+        </div>
+      </div>
     </div>
   );
 }
 
-function StickyBar({ t }: { t: Copy }) {
+function RoiSection() {
   return (
-    <section className="sticky top-0 z-30 border-y border-cyan-300/10 bg-[#020617]/80 px-5 py-4 backdrop-blur-2xl lg:hidden">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-300">
-            {t.sticky.label}
-          </p>
-          <p className="text-sm font-bold text-white">{t.sticky.text}</p>
+    <section className="px-5 py-20 lg:px-8">
+      <div className="mx-auto max-w-7xl rounded-[44px] bg-[#2A2118] p-8 text-white shadow-[0_35px_120px_rgba(34,26,19,0.22)] lg:p-12">
+        <div className="grid gap-12 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#D8C5A5]">
+              Retorno claro
+            </p>
+            <h2 className="mt-5 text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">
+              Os 79€ têm de pagar-se sozinhos.
+            </h2>
+            <p className="mt-6 text-lg leading-8 text-white/65">
+              Mais clientes recorrentes, menos trabalho manual, mais reviews e
+              serviço mais eficiente.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              ["+ clientes recorrentes", "Campanhas e recuperação trazem clientes de volta."],
+              ["+ reviews Google", "Pedidos automáticos melhoram reputação."],
+              ["- pressão na equipa", "QR Ordering reduz pedidos manuais."],
+              ["+ eficiência", "Mesas, pedidos, POS e CRM ficam ligados."],
+            ].map(([title, text]) => (
+              <div
+                key={title}
+                className="rounded-[30px] border border-white/10 bg-white/[0.06] p-6"
+              >
+                <h3 className="text-xl font-semibold text-[#D8C5A5]">{title}</h3>
+                <p className="mt-3 text-sm leading-6 text-white/65">{text}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <Link
-          href="/register"
-          className="rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 px-4 py-2 text-sm font-black text-black"
-        >
-          {t.sticky.start}
-        </Link>
       </div>
     </section>
   );
 }
 
-function Badge({
-  children,
-  purple,
-}: {
-  children: ReactNode;
-  purple?: boolean;
-}) {
+function PricingCard() {
   return (
-    <span
-      className={
-        purple
-          ? "relative inline-flex rounded-full border border-violet-300/30 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-violet-200"
-          : "relative inline-flex rounded-full border border-cyan-300/30 bg-cyan-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] text-cyan-200"
-      }
-    >
-      {children}
-    </span>
-  );
-}
+    <div className="rounded-[42px] bg-[#2A2118] p-8 text-white shadow-[0_35px_120px_rgba(24,21,18,0.24)]">
+      <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#D8C5A5]">
+        <span className="text-[#C8A56A]">Mesa</span>
+        <span className="text-white">Link</span> Growth
+      </p>
 
-function PhoneHero({ t }: { t: Copy }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 45, scale: 0.94 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.85, delay: 0.15 }}
-      className="relative mx-auto max-w-[340px] lg:max-w-[430px]"
-    >
-      <div className="absolute inset-0 translate-y-10 rounded-[48px] bg-cyan-500/25 blur-[80px]" />
-      <div className="absolute inset-0 translate-y-16 rounded-[48px] bg-violet-500/20 blur-[100px]" />
-
-      <motion.div
-        animate={{ y: [0, -12, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="relative rounded-[44px] border border-cyan-300/35 bg-gradient-to-b from-[#0b1b2c] via-[#071426] to-[#020617] p-3 shadow-2xl"
-      >
-        <div className="mx-auto mb-3 h-1.5 w-20 rounded-full bg-cyan-300/50" />
-
-        <div className="rounded-[34px] border border-white/10 bg-black/45 p-4 backdrop-blur-xl lg:p-5">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-400">MesaLink OS</p>
-              <h3 className="text-2xl font-black lg:text-3xl">Live Control</h3>
-            </div>
-            <span className="rounded-full bg-cyan-500/15 px-3 py-1 text-xs font-black text-cyan-300">
-              {t.phone.status}
-            </span>
-          </div>
-
-          <div className="mb-5 grid grid-cols-3 gap-2">
-            <Dash value="18" label={t.phone.reservations} />
-            <Dash value="64" label={t.phone.people} />
-            <Dash value="91%" label={t.phone.occupancy} />
-          </div>
-
-          <div className="mb-5 rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-4 shadow-[0_0_35px_rgba(34,211,238,0.18)]">
-            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
-              {t.phone.websiteActive}
-            </p>
-            <p className="text-2xl font-black text-cyan-200">
-              {t.phone.websiteLine}
-            </p>
-            <p className="mt-1 text-sm text-slate-300">{t.phone.websiteText}</p>
-          </div>
-
-          <div className="mb-5 rounded-2xl border border-violet-300/20 bg-violet-400/10 p-4">
-            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-violet-200">
-              {t.phone.platform}
-            </p>
-            <p className="text-sm font-bold text-white">
-              {t.phone.platformText}
-            </p>
-          </div>
-
-          <Reservation
-            time="20:00"
-            name="João Silva"
-            status={t.phone.bookingConfirmed}
-          />
-          <Reservation
-            time="20:30"
-            name="Ana Costa"
-            status={t.phone.bookingConfirmed}
-          />
-          <Reservation
-            time="21:00"
-            name="Pedro Santos"
-            status={t.phone.pending}
-            danger
-          />
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-function Dash({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-      <p className="text-2xl font-black">{value}</p>
-      <p className="text-[10px] text-cyan-300">{label}</p>
-    </div>
-  );
-}
-
-function Reservation({
-  time,
-  name,
-  status,
-  danger,
-}: {
-  time: string;
-  name: string;
-  status: string;
-  danger?: boolean;
-}) {
-  return (
-    <div className="mb-3 flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.04] p-3">
-      <div>
-        <p className="text-sm font-black text-cyan-300">{time}</p>
-        <p className="text-sm font-bold">{name}</p>
+      <div className="mt-5 flex items-end gap-2">
+        <span className="text-7xl font-semibold tracking-[-0.08em]">79€</span>
+        <span className="mb-3 text-white/65">/mês</span>
       </div>
-      <span
-        className={
-          danger
-            ? "rounded-full bg-red-500/15 px-2 py-1 text-[10px] font-black text-red-300"
-            : "rounded-full bg-green-500/15 px-2 py-1 text-[10px] font-black text-green-300"
-        }
-      >
-        {status}
-      </span>
-    </div>
-  );
-}
 
-function FlowNetwork({ t, hero }: { t: Copy; hero?: boolean }) {
-  const [qr, website, pos, reservations, marketing] = t.flow.nodes;
-  return (
-    <div
-      className={
-        hero
-          ? "relative mx-auto h-[560px] w-full max-w-[560px] overflow-hidden rounded-[40px] border border-cyan-300/10 bg-white/[0.035] p-4 backdrop-blur-2xl lg:h-[650px] lg:max-w-[640px]"
-          : "relative mx-auto mt-10 h-[560px] w-full max-w-sm overflow-hidden rounded-[40px] border border-cyan-300/10 bg-white/[0.035] p-4 backdrop-blur-2xl lg:h-[620px] lg:max-w-[560px]"
-      }
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(34,211,238,0.22),transparent_32%)]" />
-      <svg
-        className="absolute inset-0 h-full w-full"
-        viewBox="0 0 420 560"
-        fill="none"
-      >
-        <path
-          d="M210 260 C210 190 210 145 210 95"
-          stroke="rgba(34,211,238,.45)"
-          strokeWidth="2"
-        />
-        <path
-          d="M170 282 C95 282 80 210 70 160"
-          stroke="rgba(139,92,246,.35)"
-          strokeWidth="2"
-        />
-        <path
-          d="M250 282 C325 282 340 210 350 160"
-          stroke="rgba(34,211,238,.35)"
-          strokeWidth="2"
-        />
-        <path
-          d="M165 330 C100 330 80 400 70 455"
-          stroke="rgba(34,197,94,.35)"
-          strokeWidth="2"
-        />
-        <path
-          d="M255 330 C320 330 340 400 350 455"
-          stroke="rgba(251,191,36,.35)"
-          strokeWidth="2"
-        />
-        <path
-          d="M210 370 C210 420 210 460 210 500"
-          stroke="rgba(96,165,250,.38)"
-          strokeWidth="2"
-        />
-      </svg>
-
-      <FlowSource
-        top={hero ? 58 : 48}
-        left={hero ? 36 : 18}
-        icon={reservations.icon}
-        label={reservations.label}
-        text={reservations.text}
-      />
-      <FlowSource
-        top={hero ? 30 : 36}
-        left="50%"
-        center
-        icon={website.icon}
-        label={website.label}
-        text={website.text}
-        large
-      />
-      <FlowSource
-        top={hero ? 58 : 48}
-        right={hero ? 36 : 18}
-        icon={qr.icon}
-        label={qr.label}
-        text={qr.text}
-      />
-      <FlowSource
-        bottom={hero ? 110 : 82}
-        left={hero ? 36 : 18}
-        icon={marketing.icon}
-        label={marketing.label}
-        text={marketing.text}
-      />
-      <FlowSource
-        bottom={hero ? 110 : 82}
-        right={hero ? 36 : 18}
-        icon={pos.icon}
-        label={pos.label}
-        text={pos.text}
-      />
-
-      <motion.div
-        animate={{
-          scale: [1, 1.05, 1],
-          boxShadow: [
-            "0 0 40px rgba(34,211,238,.25)",
-            "0 0 90px rgba(167,139,250,.55)",
-            "0 0 40px rgba(34,211,238,.25)",
-          ],
-        }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[245px] z-10 flex h-36 w-36 -translate-x-1/2 flex-col items-center justify-center rounded-[40px] border border-cyan-300/30 bg-[#06111f]/95 text-center lg:top-[270px] lg:h-44 lg:w-44"
-      >
-        <span className="text-4xl">〽️</span>
-        <span className="mt-2 bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-xl font-black text-transparent lg:text-2xl">
-          {t.flow.center}
-        </span>
-        <motion.span
-          animate={{ opacity: [0.45, 1, 0.45] }}
-          transition={{ duration: 1.4, repeat: Infinity }}
-          className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400"
-        >
-          {t.flow.subtitle}
-        </motion.span>
-      </motion.div>
-
-      <motion.div
-        animate={{ y: [0, -5, 0], opacity: [0.88, 1, 0.88] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 rounded-full border border-cyan-400/20 bg-cyan-500/15 px-5 py-3 text-sm font-black text-cyan-200 shadow-[0_0_35px_rgba(34,211,238,0.18)]"
-      >
-        📊 {t.flow.bottom}
-      </motion.div>
-
-      <FlowParticle delay={0} fromX={210} fromY={90} />
-      <FlowParticle delay={0.8} fromX={70} fromY={160} />
-      <FlowParticle delay={1.6} fromX={350} fromY={160} />
-      <FlowParticle delay={2.4} fromX={70} fromY={455} />
-      <FlowParticle delay={3.2} fromX={350} fromY={455} />
-    </div>
-  );
-}
-
-function FlowSource({
-  top,
-  bottom,
-  left,
-  right,
-  center,
-  icon,
-  label,
-  text,
-  large,
-}: {
-  top?: number;
-  bottom?: number;
-  left?: number | string;
-  right?: number;
-  center?: boolean;
-  icon: string;
-  label: string;
-  text: string;
-  large?: boolean;
-}) {
-  return (
-    <motion.div
-      animate={{ y: [0, -5, 0] }}
-      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      style={{ top, bottom, left, right }}
-      className={
-        (center ? "absolute z-10 -translate-x-1/2 " : "absolute z-10 ") +
-        (large
-          ? "min-w-[150px] rounded-[28px] border border-white/10 bg-[#020617]/90 px-5 py-5 text-center backdrop-blur"
-          : "max-w-[150px] rounded-[24px] border border-white/10 bg-[#020617]/90 px-4 py-4 backdrop-blur")
-      }
-    >
-      <p className="text-3xl">{icon}</p>
-      <p className="mt-2 text-sm font-black leading-tight">{label}</p>
-      <p className="mt-2 text-xs leading-relaxed text-slate-400">{text}</p>
-    </motion.div>
-  );
-}
-
-function FlowParticle({
-  delay,
-  fromX,
-  fromY,
-}: {
-  delay: number;
-  fromX: number;
-  fromY: number;
-}) {
-  return (
-    <motion.div
-      initial={{ x: fromX, y: fromY, opacity: 0 }}
-      animate={{ x: 210, y: 330, opacity: [0, 1, 1, 0] }}
-      transition={{ duration: 2.8, repeat: Infinity, delay, ease: "easeInOut" }}
-      className="absolute z-20 h-3 w-3 rounded-full bg-cyan-300 shadow-[0_0_22px_rgba(34,211,238,1)]"
-    />
-  );
-}
-
-function HeroStat({
-  icon,
-  value,
-  label,
-}: {
-  icon: string;
-  value: string;
-  label: string;
-}) {
-  return (
-    <motion.div
-      whileInView={{ y: [12, 0], opacity: [0, 1] }}
-      viewport={{ once: true }}
-      className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur"
-    >
-      <p className="text-lg">{icon}</p>
-      <p className="mt-1 text-sm font-black text-cyan-300">{value}</p>
-      <p className="text-[10px] text-slate-400">{label}</p>
-    </motion.div>
-  );
-}
-
-function BigCard({
-  number,
-  title,
-  text,
-}: {
-  number: string;
-  title: string;
-  text: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45 }}
-      viewport={{ once: true, margin: "-80px" }}
-      className="relative overflow-hidden rounded-[30px] border border-cyan-300/20 bg-[#06111f] p-6 shadow-[0_0_45px_rgba(34,211,238,0.08)]"
-    >
-      <div className="absolute right-5 top-4 text-6xl font-black text-cyan-300/10">
-        {number}
+      <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.07] p-5">
+        <p className="text-sm text-white/70">
+          Basta recuperar <span className="font-semibold text-[#D8C5A5]">1 cliente</span>,
+          gerar <span className="font-semibold text-[#D8C5A5]"> 1 mesa extra</span> ou
+          poupar tempo de equipa para compensar o valor.
+        </p>
       </div>
-      <p className="mb-3 text-xs font-black text-cyan-300">{number}</p>
-      <h3 className="mb-3 text-2xl font-black">{title}</h3>
-      <p className="text-sm leading-relaxed text-slate-400">{text}</p>
-    </motion.div>
-  );
-}
 
-function AiItem({ title, text }: { title: string; text: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -22 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.45 }}
-      viewport={{ once: true }}
-      className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] p-4"
-    >
-      <h3 className="text-base font-black text-white">{title}</h3>
-      <p className="mt-1 text-sm text-slate-400">{text}</p>
-    </motion.div>
-  );
-}
-
-function Feature({
-  icon,
-  title,
-  text,
-}: {
-  icon: string;
-  title: string;
-  text: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.45 }}
-      viewport={{ once: true }}
-      className="rounded-[30px] border border-cyan-300/10 bg-[#06111f] p-6"
-    >
-      <p className="text-3xl">{icon}</p>
-      <h3 className="mt-4 text-2xl font-black">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-400">{text}</p>
-    </motion.div>
-  );
-}
-
-function TemplateCard({ name, text }: { name: string; text: string }) {
-  const style = name.toLowerCase();
-
-  const theme = {
-    premium: {
-      bg: "from-[#15110d] via-[#2a1b13] to-[#b7791f]",
-      accent: "bg-amber-300 text-black",
-      label: "Fine Dining",
-      title: "Aurora",
-      dish: "Signature Menu",
-    },
-    luxury: {
-      bg: "from-[#050505] via-[#151515] to-[#6f4e37]",
-      accent: "bg-white text-black",
-      label: "Luxury Bistro",
-      title: "Maison Noir",
-      dish: "Chef Experience",
-    },
-    minimal: {
-      bg: "from-[#f8fafc] via-[#e2e8f0] to-[#0f766e]",
-      accent: "bg-slate-950 text-white",
-      label: "Minimal Kitchen",
-      title: "Noma Verde",
-      dish: "Seasonal Plates",
-    },
-    social: {
-      bg: "from-[#111827] via-[#7c3aed] to-[#ec4899]",
-      accent: "bg-pink-300 text-black",
-      label: "Social Bar",
-      title: "Luna Club",
-      dish: "Cocktails & Food",
-    },
-  }[style] ?? {
-    bg: "from-slate-950 via-slate-800 to-cyan-900",
-    accent: "bg-cyan-300 text-black",
-    label: "Restaurant",
-    title: name,
-    dish: "Menu",
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45 }}
-      viewport={{ once: true }}
-      className="group overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.04] p-3 transition hover:-translate-y-1 hover:border-cyan-300/30 hover:bg-white/[0.07]"
-    >
-      <div
-        className={`relative h-56 overflow-hidden rounded-[22px] bg-gradient-to-br ${theme.bg} p-4`}
-      >
-        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-black/70 to-transparent" />
-
-        <div className="relative flex items-center justify-between text-[10px] font-black uppercase tracking-[0.22em] text-white/70">
-          <span>{theme.label}</span>
-          <span>Menu</span>
-        </div>
-
-        <div className="relative mt-10 max-w-[190px]">
-          <h3 className="text-3xl font-black leading-none text-white drop-shadow-lg">
-            {theme.title}
-          </h3>
-          <p className="mt-3 text-xs leading-relaxed text-white/75">
-            {theme.dish}
+      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        {features.map((feature) => (
+          <p key={feature} className="text-sm text-white/82">
+            ✓ {feature}
           </p>
-        </div>
-
-        <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-          <button
-            className={`rounded-full px-4 py-2 text-xs font-black ${theme.accent}`}
-          >
-            Book
-          </button>
-          <div className="rounded-2xl border border-white/15 bg-black/35 px-3 py-2 text-right backdrop-blur">
-            <p className="text-[10px] text-white/50">Today</p>
-            <p className="text-xs font-black text-white">19:30 · 21:00</p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="p-3">
-        <h3 className="text-xl font-black">{name}</h3>
-        <p className="mt-2 text-sm leading-relaxed text-slate-400">{text}</p>
-      </div>
-    </motion.div>
+      <Button
+        asChild
+        className="mt-8 h-14 w-full rounded-full bg-[#D8C5A5] text-base font-semibold text-[#17130F] hover:bg-[#E8D6B8]"
+      >
+        <Link href="/register">Começar teste gratuito</Link>
+      </Button>
+
+      <p className="mt-5 text-center text-sm text-white/55">
+        Preço de lançamento. Mantém para sempre.
+      </p>
+    </div>
   );
 }
 
-function PriceCard({
-  title,
-  price,
-  text,
-  items,
-  cta,
-  href,
-  highlighted,
-  popular,
-}: {
-  title: string;
-  price: string;
-  text: string;
-  items: string[];
-  cta: string;
-  href: string;
-  highlighted?: boolean;
-  popular: string;
-}) {
+function Logo() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45 }}
-      viewport={{ once: true }}
-      className={
-        highlighted
-          ? "relative overflow-hidden rounded-[32px] border border-cyan-300/30 bg-gradient-to-b from-cyan-300/20 to-white/[0.04] p-7 shadow-[0_0_80px_rgba(34,211,238,0.22)]"
-          : "relative overflow-hidden rounded-[32px] border border-cyan-300/10 bg-[#06111f] p-7"
-      }
-    >
-      {highlighted && (
-        <span className="mb-5 inline-flex rounded-full bg-cyan-300 px-3 py-1 text-xs font-black text-black">
-          {popular}
-        </span>
-      )}
-      <h3 className="text-2xl font-black">{title}</h3>
-      <p className="mt-4 text-5xl font-black text-cyan-300">{price}</p>
-      <p className="mt-4 text-sm leading-relaxed text-slate-400">{text}</p>
-      <ul className="mt-6 space-y-3 text-sm text-slate-300">
-        {items.map((item) => (
-          <li key={item}>✓ {item}</li>
-        ))}
-      </ul>
-      <Link
-        href={href}
-        className={
-          highlighted
-            ? "mt-7 inline-flex w-full justify-center rounded-full bg-cyan-300 px-5 py-3 text-sm font-black text-black hover:opacity-90"
-            : "mt-7 inline-flex w-full justify-center rounded-full border border-cyan-300/20 bg-white/5 px-5 py-3 text-sm font-black text-white hover:bg-white/10"
-        }
-      >
-        {cta}
-      </Link>
-    </motion.div>
+    <p className="text-xl font-semibold tracking-[-0.04em]">
+      <span className="text-[#C8A56A]">Mesa</span>
+      <span className="text-[#17130F]">Link</span>
+    </p>
+  );
+}
+
+function Label({ children }: { children: ReactNode }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#9B6F3B]">
+      {children}
+    </p>
+  );
+}
+
+function SoftBackground() {
+  return (
+    <>
+      <div className="absolute left-[-160px] top-[-120px] h-[420px] w-[420px] rounded-full bg-[#E4D0AE]/45 blur-[90px]" />
+      <div className="absolute right-[-180px] top-[120px] h-[520px] w-[520px] rounded-full bg-[#D8C5A5]/38 blur-[115px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.66),transparent_40%)]" />
+    </>
+  );
+}
+
+function Metric({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-[24px] border border-[#E5D6C1] bg-white p-4">
+      <p className="text-2xl font-semibold tracking-[-0.05em]">{value}</p>
+      <p className="mt-1 text-sm text-[#7A7166]">{label}</p>
+    </div>
+  );
+}
+
+function MiniPanel({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="rounded-[30px] border border-[#E5D6C1] bg-[#FFF9F0] p-5">
+      <h4 className="font-semibold">{title}</h4>
+      <div className="mt-4 space-y-3 text-sm">{children}</div>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-4 rounded-2xl bg-white px-4 py-3">
+      <span>{label}</span>
+      <span className="text-[#9B6F3B]">{value}</span>
+    </div>
   );
 }

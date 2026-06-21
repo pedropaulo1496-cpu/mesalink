@@ -12,7 +12,9 @@ export function ImageUploadField({
   onChange: (url: string) => void;
   compact?: boolean;
 }) {
-  const [canShowPreview, setCanShowPreview] = useState(Boolean(value?.startsWith("http")));
+  const [canShowPreview, setCanShowPreview] = useState(
+    Boolean(value?.startsWith("http")),
+  );
 
   useEffect(() => {
     setCanShowPreview(Boolean(value?.startsWith("http")));
@@ -21,17 +23,18 @@ export function ImageUploadField({
   return (
     <div className="space-y-3">
       {value?.startsWith("http") && canShowPreview && (
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+        <div className="relative overflow-hidden rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] shadow-[0_12px_34px_rgba(80,55,30,0.045)]">
           <img
             src={value}
             alt="Imagem carregada"
             onError={() => setCanShowPreview(false)}
             className={compact ? "h-28 w-full object-cover" : "h-48 w-full object-cover"}
           />
+
           <button
             type="button"
             onClick={() => onChange("")}
-            className="absolute right-2 top-2 rounded-full bg-black/75 px-3 py-1 text-xs font-black text-white backdrop-blur"
+            className="absolute right-3 top-3 rounded-full bg-[#16120E] px-3 py-1 text-xs font-semibold text-white shadow-lg"
           >
             Remover
           </button>
@@ -42,17 +45,19 @@ export function ImageUploadField({
         endpoint="websiteImage"
         appearance={{
           container: compact
-            ? "border border-white/10 rounded-2xl bg-black/20 p-4 min-h-[132px]"
-            : "border border-white/10 rounded-3xl bg-black/20 p-6 min-h-[210px]",
-          uploadIcon: "text-white/70",
-          label: "text-white font-bold text-sm text-center",
-          allowedContent: "text-white/35 text-xs text-center",
+            ? "border border-dashed border-[#D6C3A5] rounded-[24px] bg-[#FFF9F0] p-4 min-h-[132px] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+            : "border border-dashed border-[#D6C3A5] rounded-[28px] bg-[#FFF9F0] p-6 min-h-[210px] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
+          uploadIcon: "text-[#C8A56A]",
+          label: "text-[#16120E] font-semibold text-sm text-center",
+          allowedContent: "text-[#9B8F82] text-xs text-center",
           button:
-            "bg-white text-black font-black shadow-lg rounded-full px-5 py-2 hover:bg-zinc-200 [color:#000!important]",
+            "bg-[#16120E] text-white font-semibold shadow-lg rounded-full px-5 py-2 hover:bg-[#2A2118] [color:#fff!important]",
         }}
         content={{
           label() {
-            return compact ? "Arrastar foto" : "Arrasta uma imagem ou clica para escolher";
+            return compact
+              ? "Arrastar foto"
+              : "Arrasta uma imagem ou clica para escolher";
           },
           allowedContent() {
             return compact ? "PNG, JPG ou WEBP" : "PNG, JPG ou WEBP até 8MB";

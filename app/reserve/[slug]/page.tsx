@@ -138,20 +138,47 @@ async function createPublicReservation(formData: FormData) {
     }
   }
 
-  const customer = await prisma.customer.upsert({
+const normalizedPhone = phone.trim();
+const normalizedEmail = email?.trim().toLowerCase() || null;
+
+const customerByPhone = await prisma.customer.findFirst({
+  where: {
+    phone: normalizedPhone,
+  },
+});
+
+const customerByEmail = normalizedEmail
+  ? await prisma.customer.findFirst({
+      where: {
+        email: normalizedEmail,
+      },
+    })
+  : null;
+
+let customer = customerByEmail || customerByPhone;
+
+if (customer) {
+  customer = await prisma.customer.update({
     where: {
-      phone,
+      id: customer.id,
     },
-    update: {
+    data: {
       name: customerName,
-      email: email || null,
-    },
-    create: {
-      name: customerName,
-      phone,
-      email: email || null,
+      ...(customer.phone ? {} : { phone: normalizedPhone }),
+      ...(normalizedEmail && !customer.email
+        ? { email: normalizedEmail }
+        : {}),
     },
   });
+} else {
+  customer = await prisma.customer.create({
+    data: {
+      name: customerName,
+      phone: normalizedPhone,
+      email: normalizedEmail,
+    },
+  });
+}
 
   await prisma.$executeRaw`
     INSERT INTO "Reservation"
@@ -188,6 +215,35 @@ async function createPublicReservation(formData: FormData) {
       )
   `;
 
+  await prisma.customer.update({
+  where: {
+    id: customer.id,
+  },
+  data: {
+    lastReservationAt: date,
+    lastVisitAt: date,
+  },
+});
+
+ await prisma.marketingAction.updateMany({
+  where: {
+    customerId: customer.id,
+    restaurantId: restaurant.id,
+    status: {
+      in: ["SENT", "OPENED", "CLICKED"],
+    },
+    type: {
+      in: ["INACTIVE_RECOVERY", "BIRTHDAY"],
+    },
+  },
+  data: {
+    status: "CONVERTED",
+    convertedAt: new Date(),
+    estimatedRevenue:
+      guests * (restaurant.averageTicket ?? 25),
+  },
+});
+
   const shouldSendEmail =
     restaurant.plan === "PRO" &&
     Boolean(email) &&
@@ -203,33 +259,38 @@ async function createPublicReservation(formData: FormData) {
             ? `Pedido de reserva recebido - ${restaurant.name}`
             : `Reserva confirmada - ${restaurant.name}`,
         html: `
-          <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.5;">
-            <h1>${
-              status === "PENDING"
-                ? "Pedido de reserva recebido"
-                : "Reserva confirmada"
-            }</h1>
-            <p>Olá ${customerName},</p>
-            <p>${
-              status === "PENDING"
-                ? "Recebemos o seu pedido de reserva. O restaurante irá confirmar ou recusar em breve."
-                : "A sua reserva foi confirmada com sucesso."
-            }</p>
-            <div style="margin: 24px 0; padding: 16px; border: 1px solid #eee; border-radius: 12px; background: #fafafa;">
-              <p><strong>Restaurante:</strong> ${restaurant.name}</p>
-              <p><strong>Data:</strong> ${date.toLocaleDateString("pt-PT")}</p>
-              <p><strong>Hora:</strong> ${date.toLocaleTimeString("pt-PT", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}</p>
-              <p><strong>Pessoas:</strong> ${guests}</p>
-              <p><strong>Estado:</strong> ${
-                status === "PENDING" ? "Pendente de aprovação" : "Confirmada"
-              }</p>
+          <div style="margin:0;background:#F5EFE6;padding:32px;font-family:Arial,sans-serif;color:#16120E;line-height:1.5;">
+            <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #E1D0B8;border-radius:24px;padding:28px;">
+              <p style="margin:0 0 14px;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#9B6F3B;">MesaLink</p>
+              <h1 style="margin:0;font-size:28px;line-height:1.1;color:#16120E;">
+                ${
+                  status === "PENDING"
+                    ? "Pedido de reserva recebido"
+                    : "Reserva confirmada"
+                }
+              </h1>
+              <p style="margin:18px 0 0;color:#6B6258;">Olá ${customerName},</p>
+              <p style="margin:10px 0 0;color:#6B6258;">
+                ${
+                  status === "PENDING"
+                    ? "Recebemos o seu pedido de reserva. O restaurante irá confirmar ou recusar em breve."
+                    : "A sua reserva foi confirmada com sucesso."
+                }
+              </p>
+              <div style="margin:24px 0;padding:18px;border:1px solid #E1D0B8;border-radius:18px;background:#FFF9F0;">
+                <p><strong>Restaurante:</strong> ${restaurant.name}</p>
+                <p><strong>Data:</strong> ${date.toLocaleDateString("pt-PT")}</p>
+                <p><strong>Hora:</strong> ${date.toLocaleTimeString("pt-PT", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}</p>
+                <p><strong>Pessoas:</strong> ${guests}</p>
+                <p><strong>Estado:</strong> ${
+                  status === "PENDING" ? "Pendente de aprovação" : "Confirmada"
+                }</p>
+              </div>
+              <p style="font-size:12px;color:#9B8F82;">Este email foi enviado automaticamente pelo MesaLink.</p>
             </div>
-            <p style="font-size: 13px; color: #666;">
-              Este email foi enviado automaticamente pelo MesaLink.
-            </p>
           </div>
         `,
       });

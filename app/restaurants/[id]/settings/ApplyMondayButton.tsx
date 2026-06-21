@@ -55,7 +55,7 @@ export default function ApplyMondayButton() {
     <button
       type="button"
       onClick={applyMondayToAll}
-      className="whitespace-nowrap rounded-full border border-cyan-300/25 bg-cyan-500/10 px-4 py-2 text-xs font-black text-cyan-300 transition hover:bg-cyan-300 hover:text-black"
+      className="whitespace-nowrap rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-2 text-xs font-semibold text-[#9B6F3B] transition hover:border-[#C8A56A] hover:bg-white hover:text-[#16120E]"
     >
       Aplicar Segunda a todos
     </button>

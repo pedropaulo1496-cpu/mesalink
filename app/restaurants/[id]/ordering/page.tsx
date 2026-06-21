@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import ProductImageUpload from "@/components/ProductImageUpload";
 import OrderingLiveOrders from "@/components/OrderingLiveOrders";
+import RestaurantSidebar from "@/components/RestaurantSidebar";
 
 const TABS = [
   { key: "orders", label: "Pedidos" },
@@ -409,7 +410,7 @@ const canUseQrOrdering =
 
   if (!restaurant) {
     return (
-      <main className="min-h-screen bg-[#020617] p-6 text-white">
+      <main className="min-h-screen bg-[#FFF9F0] p-6 text-[#16120E]">
         Restaurante não encontrado
       </main>
     );
@@ -436,107 +437,138 @@ const canUseQrOrdering =
   );
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020617] pb-24 text-white">
-      <Background />
+    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
+        <RestaurantSidebar
+  id={id}
+  restaurantName={restaurant.name}
+  active="QR Ordering"
+/>
 
-      <div className="relative z-10 mx-auto max-w-7xl space-y-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-        <header className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-xl lg:p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <Link href={`/restaurants/${id}`} className="text-2xl font-black">
-                Mesa
-                <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                  Link
-                </span>
-              </Link>
-
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <h1 className="text-3xl font-black leading-none tracking-[-0.04em] sm:text-4xl">
+        <div className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+          <header className="border-b border-[#E1D0B8] pb-6">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
                   QR Ordering
-                </h1>
+                </p>
 
-                <span className="rounded-full border border-green-300/20 bg-green-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-green-300">
-                  {qrStatusLabel}
-                </span>
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  <h1 className="text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
+                    Pedidos à mesa
+                  </h1>
+
+                  <span
+                    className={
+                      canUseQrOrdering
+                        ? "rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-3 py-1 text-xs font-semibold text-[#3F6A4D]"
+                        : "rounded-full border border-[#E7B7A8] bg-[#FFF0EA] px-3 py-1 text-xs font-semibold text-[#A14E36]"
+                    }
+                  >
+                    {qrStatusLabel}
+                  </span>
+                </div>
+
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">
+                  Gere o menu digital, recebe pedidos por mesa e prepara QR Codes
+                  para cada zona do restaurante.
+                </p>
               </div>
 
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-                Gira o menu digital, receba pedidos por mesa e prepare QR Codes
-                para cada mesa.
-              </p>
-            </div>
-
-            <Link
-              href={`/restaurants/${id}`}
-              className="w-fit rounded-full border border-cyan-300/20 bg-white/[0.04] px-4 py-2 text-sm font-black text-slate-200 transition hover:border-cyan-300/50 hover:bg-cyan-400/10 hover:text-white"
-            >
-              Voltar
-            </Link>
-          </div>
-        </header>
-
-        <nav className="rounded-[24px] border border-cyan-300/10 bg-white/[0.04] p-2 backdrop-blur-xl">
-          <div className="grid gap-2 sm:grid-cols-4">
-            {TABS.map((tab) => {
-              const isActive = activeTab === tab.key;
-
-              return (
+              <div className="flex flex-wrap gap-2">
                 <Link
-                  key={tab.key}
-                  href={`/restaurants/${id}/ordering?tab=${tab.key}`}
-                  className={`rounded-2xl px-4 py-3 text-center text-xs font-black uppercase tracking-[0.14em] transition ${
-                    isActive
-                      ? "bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-black"
-                      : "border border-white/10 bg-[#020617]/50 text-slate-400 hover:border-cyan-300/30 hover:text-white"
-                  }`}
+                  href={`/restaurants/${id}/ordering/print?template=premium&size=medium`}
+                  target="_blank"
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-5 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
                 >
-                  {tab.label}
+                  Imprimir QRs
                 </Link>
-              );
-            })}
-          </div>
-        </nav>
 
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            label="Mesas abertas"
-            value={restaurant.orderingTableSessions.length}
-            sub="sessões QR"
-          />
-          <MetricCard
-            label="Pedidos ativos"
-            value={activeOrders}
-            sub="por preparar/entregar"
-          />
-          <MetricCard
-            label="Produtos"
-            value={totalProducts}
-            sub={`${activeProducts} ativos`}
-          />
-          <MetricCard
-            label="Mesas"
-            value={restaurant.tables.length}
-            sub="QR Codes"
-          />
-        </section>
+                <Link
+                  href={`/restaurants/${id}/tables`}
+                  className="inline-flex h-11 items-center justify-center rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+                >
+                  Abrir sala
+                </Link>
+              </div>
+            </div>
+          </header>
 
-        {activeTab === "orders" && (
-          <OrdersTab
-            restaurantId={restaurant.id}
-            sessions={restaurant.orderingTableSessions}
-          />
-        )}
+          <nav className="mt-6 rounded-[26px] border border-[#E1D0B8] bg-white p-2 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+            <div className="grid gap-2 sm:grid-cols-4">
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.key;
 
-        {activeTab === "menu" && <MenuTab restaurant={restaurant} />}
+                return (
+                  <Link
+                    key={tab.key}
+                    href={`/restaurants/${id}/ordering?tab=${tab.key}`}
+                    className={`rounded-2xl px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.14em] transition ${
+                      isActive
+                        ? "bg-[#16120E] text-white"
+                        : "border border-[#E8DCCB] bg-[#FFF9F0] text-[#6B6258] hover:border-[#C8A56A] hover:bg-white hover:text-[#16120E]"
+                    }`}
+                  >
+                    {tab.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
 
-        {activeTab === "qr" && <QrTab restaurant={restaurant} />}
+          <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              label="Mesas abertas"
+              value={restaurant.orderingTableSessions.length}
+              sub="sessões QR"
+            />
+            <MetricCard
+              label="Pedidos ativos"
+              value={activeOrders}
+              sub="por preparar/entregar"
+            />
+            <MetricCard
+              label="Produtos"
+              value={totalProducts}
+              sub={`${activeProducts} ativos`}
+            />
+            <MetricCard
+              label="Mesas"
+              value={restaurant.tables.length}
+              sub="QR Codes"
+            />
+          </section>
 
-        {activeTab === "settings" && <SettingsTab restaurant={restaurant} />}
+          <section className="mt-5">
+            {activeTab === "orders" && (
+              <OrdersTab
+                restaurantId={restaurant.id}
+                sessions={restaurant.orderingTableSessions}
+              />
+            )}
+
+            {activeTab === "menu" && <MenuTab restaurant={restaurant} />}
+
+            {activeTab === "qr" && <QrTab restaurant={restaurant} />}
+
+            {activeTab === "settings" && <SettingsTab restaurant={restaurant} />}
+          </section>
+        </div>
       </div>
 
       <BottomNav id={id} activeTab={activeTab} />
     </main>
   );
+}
+
+function safeDate(value: any) {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toISOString();
 }
 
 function OrdersTab({
@@ -546,39 +578,115 @@ function OrdersTab({
   restaurantId: string;
   sessions: any[];
 }) {
-  const pendingActions = sessions.filter(
+  const safeSessions = sessions.map((session) => ({
+    id: session.id,
+    restaurantId: session.restaurantId,
+    tableNumber: session.tableNumber,
+    status: session.status,
+    subtotal: Number(session.subtotal ?? 0),
+    vatTotal: Number(session.vatTotal ?? 0),
+    total: Number(session.total ?? 0),
+    notes: session.notes,
+    createdAt: safeDate(session.createdAt),
+    updatedAt: safeDate(session.updatedAt),
+    openedAt: safeDate(session.openedAt),
+    closedAt: safeDate(session.closedAt),
+    requestedWaiterAt: safeDate(session.requestedWaiterAt),
+    requestedBillAt: safeDate(session.requestedBillAt),
+    orders: (session.orders || []).map((order: any) => ({
+      id: order.id,
+      restaurantId: order.restaurantId,
+      tableNumber: order.tableNumber,
+      status: order.status,
+      subtotal: Number(order.subtotal ?? 0),
+      vatTotal: Number(order.vatTotal ?? 0),
+      total: Number(order.total ?? 0),
+      notes: order.notes,
+      createdAt: safeDate(order.createdAt),
+      updatedAt: safeDate(order.updatedAt),
+      items: (order.items || []).map((item: any) => ({
+        id: item.id,
+        orderId: item.orderId,
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice ?? 0),
+        vatRate: Number(item.vatRate ?? 0),
+        lineTotal: Number(item.lineTotal ?? 0),
+      })),
+    })),
+  }));
+
+  const pendingActions = safeSessions.filter(
     (session) => session.requestedWaiterAt || session.requestedBillAt
   );
 
   return (
-    <section className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
+    <section className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
             Pedidos
           </p>
 
-          <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
             Mesas com pedidos QR
           </h2>
 
           {pendingActions.length > 0 && (
-            <p className="mt-2 text-sm font-bold text-red-300">
+            <p className="mt-2 text-sm font-bold text-[#A14E36]">
               {pendingActions.length} alerta(s) pendente(s)
             </p>
           )}
         </div>
 
-        <span className="rounded-full border border-cyan-300/15 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-300">
+        <span className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
           Atualiza automaticamente
         </span>
       </div>
 
-      <OrderingLiveOrders
-        restaurantId={restaurantId}
-        initialSessions={sessions}
-      />
+      <div className="ordering-soft-skin mt-5">
+        <OrderingSoftSkin />
+        <OrderingLiveOrders
+          restaurantId={restaurantId}
+          initialSessions={safeSessions}
+        />
+      </div>
     </section>
+  );
+}
+
+function OrderingSoftSkin() {
+  return (
+    <style>{`
+      .ordering-soft-skin [class*="bg-slate"],
+      .ordering-soft-skin [class*="bg-\#020617"],
+      .ordering-soft-skin [class*="bg-\[\#020617"],
+      .ordering-soft-skin [class*="bg-gray"],
+      .ordering-soft-skin [class*="bg-zinc"] {
+        background: #FFF9F0 !important;
+      }
+
+      .ordering-soft-skin [class*="text-slate"],
+      .ordering-soft-skin [class*="text-gray"],
+      .ordering-soft-skin [class*="text-zinc"] {
+        color: #6B6258 !important;
+      }
+
+      .ordering-soft-skin [class*="text-white"] {
+        color: #16120E !important;
+      }
+
+      .ordering-soft-skin [class*="border-slate"],
+      .ordering-soft-skin [class*="border-white"],
+      .ordering-soft-skin [class*="border-cyan"] {
+        border-color: #E1D0B8 !important;
+      }
+
+      .ordering-soft-skin [class*="rounded"] {
+        border-radius: 24px;
+      }
+    `}</style>
   );
 }
 
@@ -602,10 +710,10 @@ function OrderStatusButton({
       <input type="hidden" name="status" value={status} />
 
       <button
-        className={`h-9 rounded-full border px-4 text-xs font-black uppercase tracking-[0.14em] transition ${
+        className={`h-9 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.14em] transition ${
           danger
-            ? "border-red-300/20 bg-red-400/10 text-red-300 hover:bg-red-400/20"
-            : "border-cyan-300/20 bg-cyan-400/10 text-cyan-300 hover:bg-cyan-400/20"
+            ? "border-red-300/20 bg-[#FFF0EA] text-[#A14E36] hover:bg-[#FFE7DE]"
+            : "border-[#E1D0B8] bg-[#FFF9F0] text-[#9B6F3B] hover:bg-[#FFF9F0]"
         }`}
       >
         {children}
@@ -618,12 +726,12 @@ function MenuTab({ restaurant }: { restaurant: any }) {
   return (
     <section className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
       <div className="space-y-5">
-        <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+        <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
             Categoria
           </p>
 
-          <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
             Criar categoria
           </h2>
 
@@ -633,28 +741,28 @@ function MenuTab({ restaurant }: { restaurant: any }) {
             <input
               name="name"
               placeholder="Ex: Entradas, Bebidas, Sobremesas"
-              className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="position"
               type="number"
               placeholder="Ordem da categoria"
-              className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
-            <button className="h-12 w-full rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-sm font-black text-black transition hover:opacity-90">
+            <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:opacity-90">
               Criar categoria
             </button>
           </form>
         </div>
 
-        <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+        <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
             Produto
           </p>
 
-          <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
             Adicionar produto
           </h2>
 
@@ -663,7 +771,7 @@ function MenuTab({ restaurant }: { restaurant: any }) {
 
             <select
               name="categoryId"
-              className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none focus:border-cyan-300/40"
+              className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             >
               <option value="">Escolher categoria</option>
               {restaurant.orderingCategories.map((category: any) => (
@@ -676,13 +784,13 @@ function MenuTab({ restaurant }: { restaurant: any }) {
             <input
               name="name"
               placeholder="Nome do produto"
-              className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="description"
               placeholder="Descrição curta"
-              className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
@@ -690,19 +798,19 @@ function MenuTab({ restaurant }: { restaurant: any }) {
               type="number"
               step="0.01"
               placeholder="Preço"
-              className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="sku"
               placeholder="SKU / Código interno"
-              className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <select
               name="vatRate"
               defaultValue="23"
-              className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none focus:border-cyan-300/40"
+              className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             >
               <option value="0">IVA 0%</option>
               <option value="6">IVA 6%</option>
@@ -714,53 +822,53 @@ function MenuTab({ restaurant }: { restaurant: any }) {
               name="sortOrder"
               type="number"
               placeholder="Ordem no menu"
-              className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="allergens"
               placeholder="Alergénios. Ex: glúten, leite, frutos secos"
-              className="h-12 w-full rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <ProductImageUpload />
 
-            <label className="flex items-center gap-3 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 py-3 text-sm font-bold text-slate-300">
+            <label className="flex items-center gap-3 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-3 text-sm font-bold text-[#6B6258]">
               <input
                 name="featured"
                 type="checkbox"
-                className="h-4 w-4 accent-cyan-300"
+                className="h-4 w-4 accent-[#16120E]"
               />
               Produto em destaque
             </label>
 
-            <button className="h-12 w-full rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-sm font-black text-black transition hover:opacity-90">
+            <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:opacity-90">
               Adicionar produto
             </button>
           </form>
         </div>
       </div>
 
-      <div className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
+      <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
               Menu digital
             </p>
 
-            <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
               Produtos do QR Ordering
             </h2>
           </div>
 
-          <p className="text-xs font-bold text-slate-500">
+          <p className="text-xs font-bold text-[#6B6258]">
             Use “abrir” para editar os produtos.
           </p>
         </div>
 
         <div className="mt-6 space-y-3">
           {restaurant.orderingCategories.length === 0 ? (
-            <div className="rounded-[24px] border border-dashed border-cyan-300/15 bg-[#020617]/60 p-6 text-sm text-slate-400">
+            <div className="rounded-[24px] border border-dashed border-[#E1D0B8] bg-[#FFF9F0] p-6 text-sm text-[#6B6258]">
               Cria a primeira categoria para começar o menu digital.
             </div>
           ) : (
@@ -791,36 +899,36 @@ function CategoryCard({
   return (
     <details
       open={open}
-      className="group rounded-[24px] border border-cyan-300/10 bg-[#020617]/60 p-4"
+      className="group rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-4"
     >
       <summary className="flex cursor-pointer list-none flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/15 bg-cyan-400/10 text-sm font-black text-cyan-300 transition group-open:rotate-90">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] text-sm font-semibold text-[#9B6F3B] transition group-open:rotate-90">
             →
           </div>
 
           <div className="min-w-0">
-            <h3 className="truncate text-xl font-black">{category.name}</h3>
-            <p className="mt-0.5 text-xs font-bold text-slate-500">
+            <h3 className="truncate text-xl font-semibold">{category.name}</h3>
+            <p className="mt-0.5 text-xs font-bold text-[#6B6258]">
               Ordem {category.position} · {category.products.length} produtos
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-          <span className="rounded-full border border-cyan-300/15 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-300">
+          <span className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
             {category.products.length} produtos
           </span>
 
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-300">
+          <span className="rounded-full border border-[#E8DCCB] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6B6258]">
             Abrir
           </span>
         </div>
       </summary>
 
-      <div className="mt-4 space-y-4 border-t border-white/10 pt-4">
-        <details className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <summary className="cursor-pointer list-none text-sm font-black text-cyan-300">
+      <div className="mt-4 space-y-4 border-t border-[#E8DCCB] pt-4">
+        <details className="rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4">
+          <summary className="cursor-pointer list-none text-sm font-semibold text-[#9B6F3B]">
             Editar categoria
           </summary>
 
@@ -834,17 +942,17 @@ function CategoryCard({
             <input
               name="name"
               defaultValue={category.name}
-              className="h-11 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none focus:border-cyan-300/40"
+              className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             />
 
             <input
               name="position"
               type="number"
               defaultValue={category.position}
-              className="h-11 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none focus:border-cyan-300/40"
+              className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             />
 
-            <button className="h-11 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 text-sm font-black text-black">
+            <button className="h-11 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white">
               Guardar
             </button>
           </form>
@@ -852,7 +960,7 @@ function CategoryCard({
 
         <div className="space-y-2">
           {category.products.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-white/10 p-4 text-sm text-slate-500">
+            <p className="rounded-2xl border border-dashed border-[#E8DCCB] p-4 text-sm text-[#6B6258]">
               Ainda sem produtos.
             </p>
           ) : (
@@ -867,22 +975,22 @@ function CategoryCard({
         </div>
 
         <details className="pt-1">
-          <summary className="inline-flex cursor-pointer list-none rounded-full border border-red-300/20 bg-red-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-red-300 transition hover:bg-red-400/20">
+          <summary className="inline-flex cursor-pointer list-none rounded-full border border-red-300/20 bg-[#FFF0EA] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#A14E36] transition hover:bg-[#FFE7DE]">
             Eliminar categoria
           </summary>
 
           <form
             action={deleteCategory}
-            className="mt-3 rounded-2xl border border-red-300/20 bg-red-400/10 p-4"
+            className="mt-3 rounded-2xl border border-red-300/20 bg-[#FFF0EA] p-4"
           >
             <input type="hidden" name="restaurantId" value={restaurantId} />
             <input type="hidden" name="categoryId" value={category.id} />
 
-            <p className="text-sm font-bold text-red-100">
+            <p className="text-sm font-bold text-[#A14E36]">
               Isto vai eliminar a categoria “{category.name}” e todos os produtos dentro dela.
             </p>
 
-            <label className="mt-3 flex items-center gap-2 text-xs font-bold text-red-200">
+            <label className="mt-3 flex items-center gap-2 text-xs font-bold text-[#A14E36]">
               <input
                 name="confirmDelete"
                 type="checkbox"
@@ -891,7 +999,7 @@ function CategoryCard({
               Confirmo que quero apagar a categoria e os produtos
             </label>
 
-            <button className="mt-3 rounded-full border border-red-300/30 bg-red-400/20 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-red-200 transition hover:bg-red-400/30">
+            <button className="mt-3 rounded-full border border-red-300/30 bg-red-400/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#A14E36] transition hover:bg-[#FFE7DE]">
               Apagar definitivamente
             </button>
           </form>
@@ -912,12 +1020,12 @@ function ProductCard({
     <details
       className={`rounded-2xl border ${
         product.active
-          ? "border-white/10 bg-white/[0.04]"
-          : "border-red-300/10 bg-red-400/[0.04] opacity-70"
+          ? "border-[#E8DCCB] bg-white"
+          : "border-red-300/10 bg-[#FFF0EA] opacity-70"
       }`}
     >
       <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] items-center gap-3 p-3 sm:grid-cols-[56px_1fr_auto]">
-        <div className="hidden h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-[#020617]/70 sm:block">
+        <div className="hidden h-12 w-12 overflow-hidden rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] sm:block">
           {product.imageUrl ? (
             <img
               src={product.imageUrl}
@@ -925,7 +1033,7 @@ function ProductCard({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs font-black text-slate-600">
+            <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-[#9B8F82]">
               IMG
             </div>
           )}
@@ -933,22 +1041,22 @@ function ProductCard({
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate font-black text-white">{product.name}</p>
+            <p className="truncate font-semibold text-[#16120E]">{product.name}</p>
 
             {!product.active && (
-              <span className="rounded-full border border-red-300/20 bg-red-400/10 px-2 py-0.5 text-[9px] font-black uppercase text-red-300">
+              <span className="rounded-full border border-red-300/20 bg-[#FFF0EA] px-2 py-0.5 text-[9px] font-semibold uppercase text-[#A14E36]">
                 Inativo
               </span>
             )}
 
             {product.featured && (
-              <span className="rounded-full border border-yellow-300/20 bg-yellow-400/10 px-2 py-0.5 text-[9px] font-black uppercase text-yellow-300">
+              <span className="rounded-full border border-yellow-300/20 bg-[#FFF9F0] px-2 py-0.5 text-[9px] font-semibold uppercase text-[#9B6F3B]">
                 Destaque
               </span>
             )}
           </div>
 
-          <p className="mt-1 truncate text-xs font-bold text-slate-500">
+          <p className="mt-1 truncate text-xs font-bold text-[#6B6258]">
             {product.sku ? `${product.sku} · ` : ""}
             Ordem {product.sortOrder}
             {product.allergens ? ` · Alergénios: ${product.allergens}` : ""}
@@ -956,17 +1064,17 @@ function ProductCard({
         </div>
 
         <div className="shrink-0 text-right">
-          <p className="text-lg font-black text-cyan-300">
+          <p className="text-lg font-semibold text-[#9B6F3B]">
             {Number(product.price).toFixed(2)}€
           </p>
 
-          <span className="mt-1 inline-flex rounded-full border border-cyan-300/15 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-black text-cyan-300">
+          <span className="mt-1 inline-flex rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-2 py-0.5 text-[10px] font-semibold text-[#9B6F3B]">
             IVA {product.vatRate}%
           </span>
         </div>
       </summary>
 
-      <div className="border-t border-white/10 p-4">
+      <div className="border-t border-[#E8DCCB] p-4">
         <form action={updateProduct} className="grid gap-3">
           <input type="hidden" name="restaurantId" value={restaurantId} />
           <input type="hidden" name="productId" value={product.id} />
@@ -975,14 +1083,14 @@ function ProductCard({
             <input
               name="name"
               defaultValue={product.name}
-              className="h-11 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none focus:border-cyan-300/40"
+              className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             />
 
             <input
               name="description"
               defaultValue={product.description || ""}
               placeholder="Descrição"
-              className="h-11 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
@@ -990,13 +1098,13 @@ function ProductCard({
               type="number"
               step="0.01"
               defaultValue={Number(product.price)}
-              className="h-11 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none focus:border-cyan-300/40"
+              className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             />
 
             <select
               name="vatRate"
               defaultValue={product.vatRate}
-              className="h-11 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none focus:border-cyan-300/40"
+              className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             >
               <option value="0">IVA 0%</option>
               <option value="6">IVA 6%</option>
@@ -1008,7 +1116,7 @@ function ProductCard({
               name="sku"
               defaultValue={product.sku || ""}
               placeholder="SKU"
-              className="h-11 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
@@ -1016,14 +1124,14 @@ function ProductCard({
               type="number"
               defaultValue={product.sortOrder}
               placeholder="Ordem"
-              className="h-11 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="allergens"
               defaultValue={product.allergens || ""}
               placeholder="Alergénios"
-              className="h-11 rounded-2xl border border-cyan-300/10 bg-[#020617]/70 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <div className="lg:col-span-2">
@@ -1031,18 +1139,18 @@ function ProductCard({
             </div>
           </div>
 
-          <label className="flex items-center gap-3 text-sm font-bold text-slate-300">
+          <label className="flex items-center gap-3 text-sm font-bold text-[#6B6258]">
             <input
               name="featured"
               type="checkbox"
               defaultChecked={product.featured}
-              className="h-4 w-4 accent-cyan-300"
+              className="h-4 w-4 accent-[#16120E]"
             />
             Produto em destaque
           </label>
 
           <div className="flex flex-wrap gap-2">
-            <button className="h-10 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 text-xs font-black text-black">
+            <button className="h-10 rounded-full bg-[#16120E] px-5 text-xs font-semibold text-white">
               Guardar alterações
             </button>
           </div>
@@ -1054,7 +1162,7 @@ function ProductCard({
             <input type="hidden" name="productId" value={product.id} />
             <input type="hidden" name="active" value={String(product.active)} />
 
-            <button className="h-9 rounded-full border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-slate-300 transition hover:border-cyan-300/40 hover:text-cyan-300">
+            <button className="h-9 rounded-full border border-[#E8DCCB] bg-white px-4 text-xs font-semibold uppercase text-[#6B6258] transition hover:border-[#C8A56A] hover:text-[#9B6F3B]">
               {product.active ? "Desativar" : "Ativar"}
             </button>
           </form>
@@ -1064,25 +1172,25 @@ function ProductCard({
               <input type="hidden" name="restaurantId" value={restaurantId} />
               <input type="hidden" name="productId" value={product.id} />
 
-              <button className="h-9 rounded-full border border-yellow-300/20 bg-yellow-400/10 px-4 text-xs font-black uppercase text-yellow-300">
+              <button className="h-9 rounded-full border border-yellow-300/20 bg-[#FFF9F0] px-4 text-xs font-semibold uppercase text-[#9B6F3B]">
                 Remover imagem
               </button>
             </form>
           )}
 
           <details className="rounded-full">
-            <summary className="flex h-9 cursor-pointer list-none items-center rounded-full border border-red-300/20 bg-red-400/10 px-4 text-xs font-black uppercase text-red-300">
+            <summary className="flex h-9 cursor-pointer list-none items-center rounded-full border border-red-300/20 bg-[#FFF0EA] px-4 text-xs font-semibold uppercase text-[#A14E36]">
               Eliminar
             </summary>
 
             <form
               action={deleteProduct}
-              className="mt-2 rounded-2xl border border-red-300/20 bg-red-400/10 p-3"
+              className="mt-2 rounded-2xl border border-red-300/20 bg-[#FFF0EA] p-3"
             >
               <input type="hidden" name="restaurantId" value={restaurantId} />
               <input type="hidden" name="productId" value={product.id} />
 
-              <label className="flex items-center gap-2 text-xs font-bold text-red-200">
+              <label className="flex items-center gap-2 text-xs font-bold text-[#A14E36]">
                 <input
                   name="confirmDelete"
                   type="checkbox"
@@ -1091,7 +1199,7 @@ function ProductCard({
                 Confirmar eliminação
               </label>
 
-              <button className="mt-2 h-9 rounded-full border border-red-300/30 bg-red-400/20 px-4 text-xs font-black uppercase text-red-200">
+              <button className="mt-2 h-9 rounded-full border border-red-300/30 bg-red-400/20 px-4 text-xs font-semibold uppercase text-[#A14E36]">
                 Eliminar produto
               </button>
             </form>
@@ -1108,7 +1216,7 @@ function QrTab({ restaurant }: { restaurant: any }) {
     "http://localhost:3000";
 
   const templates = [
-    { key: "premium", name: "Premium Dark" },
+    { key: "premium", name: "Premium Black" },
     { key: "minimal", name: "Minimal White" },
     { key: "mesalink", name: "MesaLink" },
   ];
@@ -1120,31 +1228,31 @@ function QrTab({ restaurant }: { restaurant: any }) {
   ];
 
   return (
-    <section className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
+    <section className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
             QR Codes
           </p>
 
-          <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
             Gestão de QR Codes
           </h2>
 
-          <p className="mt-2 max-w-2xl text-sm font-bold text-slate-500">
+          <p className="mt-2 max-w-2xl text-sm font-bold text-[#6B6258]">
             Gere mesas, escolhe template/tamanho e imprime QR Codes sem ocupar a página toda.
           </p>
         </div>
 
-        <span className="rounded-full border border-cyan-300/15 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-300">
+        <span className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
           {restaurant.tables.length} mesas
         </span>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="space-y-4">
-          <div className="rounded-[24px] border border-cyan-300/10 bg-[#020617]/60 p-4">
-            <h3 className="text-lg font-black">Adicionar mesas</h3>
+          <div className="rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
+            <h3 className="text-lg font-semibold">Adicionar mesas</h3>
 
             <form
               action={createQrTables}
@@ -1159,7 +1267,7 @@ function QrTab({ restaurant }: { restaurant: any }) {
                 max="100"
                 defaultValue="10"
                 placeholder="Quantidade"
-                className="h-12 rounded-2xl border border-cyan-300/10 bg-[#020617]/80 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
               />
 
               <input
@@ -1169,44 +1277,44 @@ function QrTab({ restaurant }: { restaurant: any }) {
                 max="50"
                 defaultValue="2"
                 placeholder="Capacidade padrão"
-                className="h-12 rounded-2xl border border-cyan-300/10 bg-[#020617]/80 px-4 text-sm font-bold text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
               />
 
-              <button className="h-12 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-5 text-sm font-black text-black">
+              <button className="h-12 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white">
                 Gerar mesas
               </button>
             </form>
 
-            <p className="mt-3 text-xs font-bold text-slate-600">
+            <p className="mt-3 text-xs font-bold text-[#9B8F82]">
               As mesas criadas aqui também aparecem na gestão de sala.
             </p>
           </div>
 
-          <div className="rounded-[24px] border border-cyan-300/10 bg-[#020617]/60 p-4">
-  <h3 className="text-lg font-black">Impressão rápida</h3>
+          <div className="rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
+  <h3 className="text-lg font-semibold">Impressão rápida</h3>
 
   <div className="mt-4 space-y-3">
     {templates.map((template) => (
       <div
         key={template.key}
-        className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+        className="rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4"
       >
         <div
           className={`rounded-2xl border p-4 ${
             template.key === "premium"
-              ? "border-cyan-300/20 bg-[#020617] text-white"
+              ? "border-[#16120E] bg-[#16120E] text-white"
               : template.key === "minimal"
-              ? "border-slate-200 bg-white text-black"
-              : "border-violet-300/20 bg-gradient-to-br from-[#020617] via-[#06111f] to-[#1b1035] text-white"
+              ? "border-[#E1D0B8] bg-white text-[#16120E]"
+              : "border-[#D6C3A5] bg-gradient-to-br from-[#FFFDF8] via-[#FFF9F0] to-[#EFE5D6] text-[#16120E]"
           }`}
         >
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-60">
             MesaLink QR Ordering
           </p>
 
-          <p className="mt-2 text-2xl font-black">Mesa 1</p>
+          <p className="mt-2 text-2xl font-semibold">Mesa 1</p>
 
-          <div className="mt-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-xs font-black text-black">
+          <div className="mt-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-xs font-semibold text-[#16120E] shadow-sm">
             QR
           </div>
 
@@ -1218,7 +1326,7 @@ function QrTab({ restaurant }: { restaurant: any }) {
         <a
           href={`/restaurants/${restaurant.id}/ordering/print?template=${template.key}&size=medium`}
           target="_blank"
-          className="mt-3 flex h-10 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 text-xs font-black uppercase tracking-[0.14em] text-black"
+          className="mt-3 flex h-10 items-center justify-center rounded-full bg-[#16120E] text-xs font-semibold uppercase tracking-[0.14em] text-white"
         >
           Imprimir todas
         </a>
@@ -1228,23 +1336,23 @@ function QrTab({ restaurant }: { restaurant: any }) {
 </div>
         </div>
 
-        <div className="rounded-[24px] border border-cyan-300/10 bg-[#020617]/60 p-4">
+        <div className="rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h3 className="text-lg font-black">Mesas QR</h3>
-              <p className="mt-1 text-xs font-bold text-slate-500">
+              <h3 className="text-lg font-semibold">Mesas QR</h3>
+              <p className="mt-1 text-xs font-bold text-[#6B6258]">
                 Lista compacta para restaurantes com muitas mesas.
               </p>
             </div>
 
-            <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-300">
+            <span className="w-fit rounded-full border border-[#E8DCCB] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6B6258]">
               {restaurant.tables.length} total
             </span>
           </div>
 
           <div className="mt-4 max-h-[620px] space-y-2 overflow-y-auto pr-1">
             {restaurant.tables.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-cyan-300/15 p-5 text-sm font-bold text-slate-500">
+              <div className="rounded-2xl border border-dashed border-[#E1D0B8] p-5 text-sm font-bold text-[#6B6258]">
                 Ainda não tens mesas criadas.
               </div>
             ) : (
@@ -1254,25 +1362,25 @@ function QrTab({ restaurant }: { restaurant: any }) {
                 return (
                   <details
                     key={table.id}
-                    className="rounded-2xl border border-white/10 bg-white/[0.03] p-3"
+                    className="rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-3"
                   >
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                       <div>
-                        <p className="font-black text-white">
+                        <p className="font-semibold text-[#16120E]">
                           Mesa {table.number}
                         </p>
-                        <p className="text-xs font-bold text-slate-500">
+                        <p className="text-xs font-bold text-[#6B6258]">
                           {table.capacity} lugares
                         </p>
                       </div>
 
-                      <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase text-slate-300">
+                      <span className="rounded-full border border-[#E8DCCB] px-3 py-1 text-[10px] font-semibold uppercase text-[#6B6258]">
                         Abrir
                       </span>
                     </summary>
 
-                    <div className="mt-3 border-t border-white/10 pt-3">
-                      <div className="break-all rounded-xl border border-white/10 bg-black/20 p-3 text-[10px] font-bold text-slate-500">
+                    <div className="mt-3 border-t border-[#E8DCCB] pt-3">
+                      <div className="break-all rounded-xl border border-[#E8DCCB] bg-black/20 p-3 text-[10px] font-bold text-[#6B6258]">
                         {url}
                       </div>
 
@@ -1280,7 +1388,7 @@ function QrTab({ restaurant }: { restaurant: any }) {
                         <a
                           href={url}
                           target="_blank"
-                          className="flex h-10 items-center justify-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 text-xs font-black text-cyan-300"
+                          className="flex h-10 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-xs font-semibold text-[#9B6F3B]"
                         >
                           Abrir QR
                         </a>
@@ -1288,25 +1396,25 @@ function QrTab({ restaurant }: { restaurant: any }) {
                         <a
                           href={`/restaurants/${restaurant.id}/ordering/print?table=${table.number}&template=premium&size=medium`}
                           target="_blank"
-                          className="flex h-10 items-center justify-center rounded-full border border-violet-300/20 bg-violet-400/10 px-3 text-xs font-black text-violet-300"
+                          className="flex h-10 items-center justify-center rounded-full border border-violet-300/20 bg-[#FFF9F0] px-3 text-xs font-semibold text-[#9B6F3B]"
                         >
                           Imprimir
                         </a>
                       </div>
 
                       <details className="mt-3">
-                        <summary className="cursor-pointer list-none text-xs font-black uppercase tracking-[0.14em] text-red-300">
+                        <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.14em] text-[#A14E36]">
                           Remover mesa
                         </summary>
 
                         <form
                           action={deleteQrTable}
-                          className="mt-2 rounded-2xl border border-red-300/20 bg-red-400/10 p-3"
+                          className="mt-2 rounded-2xl border border-red-300/20 bg-[#FFF0EA] p-3"
                         >
                           <input type="hidden" name="restaurantId" value={restaurant.id} />
                           <input type="hidden" name="tableId" value={table.id} />
 
-                          <label className="flex items-center gap-2 text-xs font-bold text-red-200">
+                          <label className="flex items-center gap-2 text-xs font-bold text-[#A14E36]">
                             <input
                               name="confirmDelete"
                               type="checkbox"
@@ -1315,7 +1423,7 @@ function QrTab({ restaurant }: { restaurant: any }) {
                             Confirmo que quero remover esta mesa
                           </label>
 
-                          <button className="mt-2 rounded-full border border-red-300/30 bg-red-400/20 px-4 py-2 text-xs font-black uppercase text-red-200">
+                          <button className="mt-2 rounded-full border border-red-300/30 bg-red-400/20 px-4 py-2 text-xs font-semibold uppercase text-[#A14E36]">
                             Remover
                           </button>
                         </form>
@@ -1334,17 +1442,17 @@ function QrTab({ restaurant }: { restaurant: any }) {
 
 function SettingsTab({ restaurant }: { restaurant: any }) {
   return (
-    <section className="rounded-[28px] border border-cyan-300/10 bg-white/[0.04] p-5 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6">
+    <section className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
       <div>
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
           Definições
         </p>
 
-        <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
+        <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
           QR Ordering
         </h2>
 
-        <p className="mt-2 text-sm font-bold text-slate-500">
+        <p className="mt-2 text-sm font-bold text-[#6B6258]">
           Personaliza o comportamento do QR Ordering.
         </p>
       </div>
@@ -1356,13 +1464,13 @@ function SettingsTab({ restaurant }: { restaurant: any }) {
           value={restaurant.id}
         />
 
-        <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4">
           <div>
-            <p className="font-black text-white">
+            <p className="font-semibold text-[#16120E]">
               Ativar QR Ordering
             </p>
 
-            <p className="text-xs font-bold text-slate-500">
+            <p className="text-xs font-bold text-[#6B6258]">
               Permite pedidos através do QR Code.
             </p>
           </div>
@@ -1371,17 +1479,17 @@ function SettingsTab({ restaurant }: { restaurant: any }) {
             type="checkbox"
             name="qrOrderingEnabled"
             defaultChecked={restaurant.qrOrderingEnabled}
-            className="h-5 w-5 accent-cyan-400"
+            className="h-5 w-5 accent-[#16120E]"
           />
         </label>
 
-        <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4">
           <div>
-            <p className="font-black text-white">
+            <p className="font-semibold text-[#16120E]">
               Permitir chamar empregado
             </p>
 
-            <p className="text-xs font-bold text-slate-500">
+            <p className="text-xs font-bold text-[#6B6258]">
               Mostra o botão de assistência ao cliente.
             </p>
           </div>
@@ -1390,17 +1498,17 @@ function SettingsTab({ restaurant }: { restaurant: any }) {
             type="checkbox"
             name="qrAllowWaiterCall"
             defaultChecked={restaurant.qrAllowWaiterCall}
-            className="h-5 w-5 accent-cyan-400"
+            className="h-5 w-5 accent-[#16120E]"
           />
         </label>
 
-        <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4">
           <div>
-            <p className="font-black text-white">
+            <p className="font-semibold text-[#16120E]">
               Permitir pedir conta
             </p>
 
-            <p className="text-xs font-bold text-slate-500">
+            <p className="text-xs font-bold text-[#6B6258]">
               Mostra o botão para solicitar a conta.
             </p>
           </div>
@@ -1409,11 +1517,11 @@ function SettingsTab({ restaurant }: { restaurant: any }) {
             type="checkbox"
             name="qrAllowBillRequest"
             defaultChecked={restaurant.qrAllowBillRequest}
-            className="h-5 w-5 accent-cyan-400"
+            className="h-5 w-5 accent-[#16120E]"
           />
         </label>
 
-        <button className="h-12 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-6 text-sm font-black text-black">
+        <button className="h-12 rounded-full bg-[#16120E] px-6 text-sm font-semibold text-white">
           Guardar definições
         </button>
       </form>
@@ -1432,18 +1540,18 @@ function statusLabel(status: string) {
 
 function statusClass(status: string) {
   if (status === "DELIVERED") {
-    return "border-green-300/20 bg-green-400/10 text-green-300";
+    return "border-green-300/20 bg-[#ECF7EC] text-[#3F6A4D]";
   }
 
   if (status === "PREPARING" || status === "READY") {
-    return "border-yellow-300/20 bg-yellow-400/10 text-yellow-300";
+    return "border-yellow-300/20 bg-[#FFF9F0] text-[#9B6F3B]";
   }
 
   if (status === "CANCELLED") {
-    return "border-red-300/20 bg-red-400/10 text-red-300";
+    return "border-red-300/20 bg-[#FFF0EA] text-[#A14E36]";
   }
 
-  return "border-cyan-300/20 bg-cyan-400/10 text-cyan-300";
+  return "border-[#E1D0B8] bg-[#FFF9F0] text-[#9B6F3B]";
 }
 
 function formatTime(value: Date | string) {
@@ -1475,35 +1583,35 @@ function MetricCard({
   sub: string;
 }) {
   return (
-    <div className="rounded-2xl border border-cyan-300/15 bg-[#020617]/60 px-4 py-3">
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+    <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-3">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6B6258]">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-black leading-none text-cyan-300">
+      <p className="mt-1 text-2xl font-semibold leading-none text-[#9B6F3B]">
         {value}
       </p>
-      <p className="mt-1 text-[10px] font-bold text-slate-500">{sub}</p>
+      <p className="mt-1 text-[10px] font-bold text-[#6B6258]">{sub}</p>
     </div>
   );
 }
 
 function BottomNav({ id, activeTab }: { id: string; activeTab: string }) {
   const items = [
-    { key: "orders", href: `/restaurants/${id}/ordering?tab=orders`, icon: "📲", label: "Pedidos" },
-    { key: "menu", href: `/restaurants/${id}/ordering?tab=menu`, icon: "☰", label: "Menu" },
-    { key: "qr", href: `/restaurants/${id}/ordering?tab=qr`, icon: "▦", label: "QR" },
-    { key: "tables", href: `/restaurants/${id}/tables`, icon: "▦", label: "Sala" },
-    { key: "home", href: `/restaurants/${id}`, icon: "⌂", label: "Home" },
+    { key: "orders", href: `/restaurants/${id}/ordering?tab=orders`, icon: "P", label: "Pedidos" },
+    { key: "menu", href: `/restaurants/${id}/ordering?tab=menu`, icon: "M", label: "Menu" },
+    { key: "qr", href: `/restaurants/${id}/ordering?tab=qr`, icon: "QR", label: "QR" },
+    { key: "tables", href: `/restaurants/${id}/tables`, icon: "S", label: "Sala" },
+    { key: "home", href: `/restaurants/${id}`, icon: "D", label: "Home" },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-cyan-300/10 bg-[#020617]/90 px-4 py-3 backdrop-blur-2xl lg:hidden">
-      <div className="grid grid-cols-5 text-center text-xs font-bold text-slate-400">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E1D0B8] bg-[#FFF9F0]/90 px-4 py-3 backdrop-blur-2xl lg:hidden">
+      <div className="grid grid-cols-5 text-center text-xs font-bold text-[#6B6258]">
         {items.map((item) => (
           <Link
             key={item.key}
             href={item.href}
-            className={activeTab === item.key ? "text-cyan-300" : ""}
+            className={activeTab === item.key ? "text-[#9B6F3B]" : ""}
           >
             <p className="text-xl">{item.icon}</p>
             {item.label}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
@@ -20,17 +21,26 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#070504] text-[#fff7ea]">
-      <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-8">
-        <h1 className="text-center text-4xl font-black">
-          Mesa<span className="text-[#f0c36a]">Link</span>
-        </h1>
+    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-10">
+        <div className="mb-8 text-center">
+          <Link href="/" className="text-3xl font-semibold tracking-[-0.05em]">
+            <span className="text-[#C8A56A]">Mesa</span>
+            <span className="text-[#16120E]">Link</span>
+          </Link>
+        </div>
 
-        <div className="mt-10 rounded-[2rem] border border-[#f0c36a]/10 bg-[#15100b] p-8">
-          <h2 className="text-3xl font-black">Recuperar password</h2>
+        <div className="rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)] sm:p-8">
+          <Link href="/login" className="text-sm font-semibold text-[#6B6258] hover:text-[#16120E]">
+            ← Voltar ao login
+          </Link>
+
+          <h1 className="mt-6 text-4xl font-semibold tracking-[-0.055em]">
+            Recuperar password
+          </h1>
 
           {sent ? (
-            <p className="mt-4 text-[#a99a82]">
+            <p className="mt-4 rounded-2xl border border-[#9CCB9B] bg-[#ECF7EC] p-4 text-sm leading-6 text-[#3F6A4D]">
               Se existir uma conta com esse email, enviámos um link para recuperar a password.
             </p>
           ) : (
@@ -40,12 +50,12 @@ export default function ForgotPasswordPage() {
                 type="email"
                 required
                 placeholder="O teu email"
-                className="w-full rounded-2xl border border-[#f0c36a]/10 bg-black/25 px-5 py-4 text-[#fff7ea] outline-none placeholder:text-[#a99a82]"
+                className="h-14 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
               />
 
               <button
                 type="submit"
-                className="w-full rounded-2xl bg-[#f0c36a] px-5 py-4 font-black text-black"
+                className="flex h-14 w-full items-center justify-center rounded-full bg-[#16120E] font-semibold text-white transition hover:bg-[#2A2118]"
               >
                 Enviar link
               </button>

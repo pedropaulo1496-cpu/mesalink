@@ -1,31 +1,40 @@
 "use client";
 
+import { useState } from "react";
+
 export default function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
   async function copy() {
     await navigator.clipboard.writeText(text);
-    alert("Link copiado!");
+
+    setCopied(true);
+
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
   }
 
   return (
     <button
       onClick={copy}
       className="
-        h-12
+        h-11
         w-full
-        rounded-2xl
-        bg-gradient-to-r
-        from-cyan-300
-        via-blue-400
-        to-violet-500
+        rounded-full
+        bg-[#16120E]
         px-5
-        font-black
-        text-black
-        transition
-        hover:opacity-90
-        shadow-[0_0_30px_rgba(96,165,250,0.35)]
+        text-sm
+        font-semibold
+        text-white
+        transition-all
+        duration-200
+        hover:bg-[#2A2118]
+        hover:scale-[1.01]
+        active:scale-[0.99]
       "
     >
-      Copiar link
+      {copied ? "Link copiado ✓" : "Copiar link"}
     </button>
   );
 }

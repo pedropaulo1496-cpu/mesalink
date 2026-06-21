@@ -10,6 +10,8 @@ export default async function PublicOrderingPage({
   const { restaurantId, tableNumber } = await params;
   const table = Number(tableNumber);
 
+  if (Number.isNaN(table)) notFound();
+
   const restaurant = await prisma.restaurant.findUnique({
     where: { id: restaurantId },
     include: {
@@ -25,35 +27,35 @@ export default async function PublicOrderingPage({
     },
   });
 
-  if (!restaurant || Number.isNaN(table)) notFound();
+  if (!restaurant) notFound();
 
   const categories = restaurant.orderingCategories
-  .map((category) => ({
-    id: category.id,
-    name: category.name,
-    products: category.products.map((product) => ({
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      price: Number(product.price),
-      vatRate: product.vatRate,
-      imageUrl: product.imageUrl,
-      allergens: product.allergens,
-      featured: product.featured,
-    })),
-  }))
-  .filter((category) => category.products.length > 0);
+    .map((category) => ({
+      id: category.id,
+      name: category.name,
+      products: category.products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: Number(product.price),
+        vatRate: Number(product.vatRate),
+        imageUrl: product.imageUrl,
+        allergens: product.allergens,
+        featured: Boolean(product.featured),
+      })),
+    }))
+    .filter((category) => category.products.length > 0);
 
   return (
     <PublicOrderingClient
-  restaurantId={restaurant.id}
-  restaurantName={restaurant.name}
-  tableNumber={table}
-  categories={categories}
-  qrOrderingEnabled={restaurant.qrOrderingEnabled}
-  qrAllowWaiterCall={restaurant.qrAllowWaiterCall}
-  qrAllowBillRequest={restaurant.qrAllowBillRequest}
-  qrWelcomeMessage={restaurant.qrWelcomeMessage}
-/>
+      restaurantId={restaurant.id}
+      restaurantName={restaurant.name}
+      tableNumber={table}
+      categories={categories}
+      qrOrderingEnabled={Boolean(restaurant.qrOrderingEnabled)}
+      qrAllowWaiterCall={Boolean(restaurant.qrAllowWaiterCall)}
+      qrAllowBillRequest={Boolean(restaurant.qrAllowBillRequest)}
+      qrWelcomeMessage={restaurant.qrWelcomeMessage}
+    />
   );
 }

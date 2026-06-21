@@ -1,7 +1,12 @@
 import DayPicker from "./DayPicker";
-import Link from "next/link";
+import RestaurantSidebar from "@/components/RestaurantSidebar";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
+import { sendReviewEmail } from "@/lib/send-review-email";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 function isLunch(date: Date) {
   return date.getHours() < 17;
@@ -23,16 +28,16 @@ function getStatusLabel(status: string) {
 
 function getStatusClass(status: string) {
   const classes: Record<string, string> = {
-    PENDING: "border-yellow-300/30 bg-yellow-400/10 text-yellow-200",
-    CONFIRMED: "border-cyan-300/30 bg-cyan-400/10 text-cyan-200",
-    SEATED: "border-green-300/30 bg-green-400/10 text-green-200",
-    FINISHED: "border-slate-300/30 bg-slate-400/10 text-slate-300",
-    NO_SHOW: "border-orange-300/30 bg-orange-400/10 text-orange-200",
-    CANCELLED: "border-red-300/30 bg-red-400/10 text-red-200",
-    REJECTED: "border-red-300/30 bg-red-400/10 text-red-200",
+    PENDING: "bg-[#FFF1D0] text-[#9B6F3B]",
+    CONFIRMED: "bg-[#ECF7EC] text-[#3F6A4D]",
+    SEATED: "bg-[#EFE5D6] text-[#16120E]",
+    FINISHED: "bg-[#F3EEE6] text-[#6B6258]",
+    NO_SHOW: "bg-[#FFF0EA] text-[#A14E36]",
+    CANCELLED: "bg-[#FFF0EA] text-[#A14E36]",
+    REJECTED: "bg-[#FFF0EA] text-[#A14E36]",
   };
 
-  return classes[status] ?? "border-slate-300/30 bg-slate-400/10 text-slate-300";
+  return classes[status] ?? "bg-[#F3EEE6] text-[#6B6258]";
 }
 
 function getApprovalReasonLabel(reason: string | null) {
@@ -53,10 +58,153 @@ async function updateReservationStatus(formData: FormData) {
   const status = String(formData.get("status"));
   const day = String(formData.get("day"));
 
-  await prisma.reservation.update({
-    where: { id: reservationId },
-    data: { status },
+ const reservation = await prisma.reservation.update({
+  where: { id: reservationId },
+  data: { status },
+  include: {
+    restaurant: true,
+    customer: true,
+  },
+});
+
+if (status === "FINISHED" && reservation.customerId) {
+  const currentCustomer = await prisma.customer.findUnique({
+    where: {
+      id: reservation.customerId,
+    },
   });
+
+  if (currentCustomer) {
+    const previousVipTier = currentCustomer.vipTier;
+
+    const totalVisits = (currentCustomer.totalVisits ?? 0) + 1;
+
+    let vipTier: string | null = null;
+
+    if (totalVisits >= 50) {
+      vipTier = "PLATINUM";
+    } else if (totalVisits >= 20) {
+      vipTier = "GOLD";
+    } else if (totalVisits >= 10) {
+      vipTier = "SILVER";
+    } else if (totalVisits >= 5) {
+      vipTier = "BRONZE";
+    }
+
+    const upgradedVipTier =
+      vipTier &&
+      vipTier !== previousVipTier;
+
+    await prisma.customer.update({
+      where: {
+        id: reservation.customerId,
+      },
+      data: {
+        lastVisitAt: new Date(),
+        lastReservationAt: reservation.date,
+        visitCount: totalVisits,
+        totalVisits,
+        vipTier,
+      },
+    });
+
+    if (
+  upgradedVipTier &&
+  currentCustomer.email &&
+  reservation.restaurant &&
+  process.env.RESEND_API_KEY
+) {
+
+  const vipBenefit =
+  vipTier === "PLATINUM"
+    ? reservation.restaurant.platinumVipOffer
+    : vipTier === "GOLD"
+      ? reservation.restaurant.goldVipOffer
+      : vipTier === "SILVER"
+        ? reservation.restaurant.silverVipOffer
+        : reservation.restaurant.bronzeVipOffer;
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  const reserveUrl = `${baseUrl}/reserve/${reservation.restaurant.slug}`;
+
+  await resend.emails.send({
+    from: "MesaLink <info@mesalink.pt>",
+    to: currentCustomer.email,
+    subject: `${currentCustomer.name}, atingiu o nível ${vipTier}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px;">
+        <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #E1D0B8;border-radius:28px;padding:32px;">
+          <p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#9B6F3B;font-weight:700;margin:0;">
+            ${reservation.restaurant.name}
+          </p>
+
+          <h1 style="font-size:30px;line-height:1.1;margin:16px 0;color:#16120E;">
+            Parabéns, ${currentCustomer.name}.
+          </h1>
+
+          <p style="font-size:15px;line-height:1.8;color:#6B6258;margin:0;">
+            Acabou de atingir o nível <strong>${vipTier}</strong> no nosso Clube VIP.
+          </p>
+
+          ${
+            vipBenefit
+              ? `
+                <div style="margin-top:20px;padding:18px;border-radius:18px;background:#FFF9F0;border:1px solid #E1D0B8;">
+                  <p style="margin:0;font-size:13px;font-weight:700;color:#9B6F3B;text-transform:uppercase;letter-spacing:1.5px;">
+                    Benefício VIP
+                  </p>
+
+                  <p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:#16120E;">
+                    ${vipBenefit}
+                  </p>
+                </div>
+              `
+              : ""
+          }
+
+          <a
+            href="${reserveUrl}"
+            style="display:inline-block;margin-top:24px;background:#16120E;color:white;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;font-size:14px;"
+          >
+            Reservar mesa
+          </a>
+
+          <p style="margin-top:28px;font-size:12px;line-height:1.5;color:#8A7C6D;">
+            Recebeu este email porque aceitou receber comunicações deste restaurante.
+          </p>
+        </div>
+      </div>
+    `,
+  });
+
+await prisma.marketingAction.create({
+  data: {
+    restaurantId: reservation.restaurant.id,
+    customerId: currentCustomer.id,
+    type: "VIP_UPGRADE",
+    status: "SENT",
+    sentAt: new Date(),
+    estimatedRevenue: 0,
+  },
+});
+}
+  }
+}
+
+  if (
+    status === "FINISHED" &&
+    reservation.email &&
+    reservation.restaurant
+  ) {
+    await sendReviewEmail({
+      to: reservation.email,
+      customerName: reservation.customerName,
+      restaurantName: reservation.restaurant.name,
+      reservationId: reservation.id,
+    });
+  }
 
   redirect(`/restaurants/${restaurantId}/day?day=${day}`);
 }
@@ -75,7 +223,7 @@ export default async function DayPage({
     day ??
     `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}-${String(new Date().getDate()).padStart(2, "0")}`;
 
   const dayStart = new Date(selectedDay);
@@ -86,11 +234,12 @@ export default async function DayPage({
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
+    include: { tables: true },
   });
 
   if (!restaurant) {
     return (
-      <main className="min-h-screen bg-[#020617] p-6 text-white">
+      <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
         Restaurante não encontrado
       </main>
     );
@@ -99,48 +248,50 @@ export default async function DayPage({
   const reservations = await prisma.reservation.findMany({
     where: {
       restaurantId: id,
-      date: {
-        gte: dayStart,
-        lte: dayEnd,
-      },
-      status: {
-        notIn: ["CANCELLED", "REJECTED"],
-      },
+      date: { gte: dayStart, lte: dayEnd },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
     },
-    include: {
-      table: true,
-    },
-    orderBy: {
-      date: "asc",
-    },
+    include: { table: true },
+    orderBy: { date: "asc" },
   });
 
   const lunchReservations = reservations.filter((reservation) =>
-    isLunch(new Date(reservation.date))
+    isLunch(new Date(reservation.date)),
   );
 
   const dinnerReservations = reservations.filter(
-    (reservation) => !isLunch(new Date(reservation.date))
+    (reservation) => !isLunch(new Date(reservation.date)),
   );
 
   const totalGuests = reservations.reduce(
     (total, reservation) => total + reservation.guests,
-    0
+    0,
   );
 
   const pendingReservations = reservations.filter(
-    (reservation) => reservation.status === "PENDING"
+    (reservation) => reservation.status === "PENDING",
   );
 
   const seatedReservations = reservations.filter(
-    (reservation) => reservation.status === "SEATED"
+    (reservation) => reservation.status === "SEATED",
   );
 
-  const pendingGuests = pendingReservations.reduce(
-    (total, reservation) => total + reservation.guests,
-    0
-  );
+  const totalCapacity =
+    restaurant.reservationMode === "CAPACITY" && restaurant.totalCapacity
+      ? restaurant.totalCapacity
+      : restaurant.tables.reduce((total, table) => total + table.capacity, 0);
 
+  const occupancyRate =
+    totalCapacity > 0 ? Math.round((totalGuests / totalCapacity) * 100) : 0;
+
+  const occupancyColor =
+    occupancyRate >= 90
+      ? "bg-[#A14E36]"
+      : occupancyRate >= 70
+        ? "bg-[#C8A56A]"
+        : "bg-[#3F6A4D]";
+
+  const estimatedRevenue = totalGuests * 35;
 
   const formattedDate = new Date(selectedDay).toLocaleDateString("pt-PT", {
     weekday: "long",
@@ -148,295 +299,322 @@ export default async function DayPage({
     month: "long",
   });
 
-  function ReservationCard({
+  function ReservationRow({
     reservation,
   }: {
     reservation: (typeof reservations)[number];
   }) {
     const reasonLabel = getApprovalReasonLabel(reservation.approvalReason);
+    const status = String(reservation.status);
 
     return (
-      <div className="rounded-2xl border border-cyan-300/10 bg-[#020617]/55 px-4 py-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 flex-1 items-start gap-3">
-            <p className="w-16 shrink-0 text-xl font-black leading-none text-cyan-300 sm:text-2xl">
-              {new Date(reservation.date).toLocaleTimeString("pt-PT", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
+      <div className="grid gap-3 border-b border-[#E8DCCB] px-4 py-3 last:border-b-0 lg:grid-cols-[72px_1fr_auto] lg:items-center">
+        <div>
+          <p className="text-lg font-semibold">
+            {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        </div>
 
-            <div className="min-w-0 flex-1">
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <p className="min-w-0 break-words text-base font-black leading-tight text-white sm:text-lg">
-                  {reservation.customerName}
-                </p>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate font-semibold">{reservation.customerName}</p>
 
-                {reasonLabel && (
-                  <span className="shrink-0 rounded-full bg-violet-400/10 px-2 py-0.5 text-[10px] font-bold leading-4 text-violet-200">
-                    {reasonLabel}
-                  </span>
-                )}
-              </div>
+            <span
+              className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${getStatusClass(
+                status,
+              )}`}
+            >
+              {getStatusLabel(status)}
+            </span>
 
-              <p className="mt-1 text-xs font-medium text-slate-400 sm:text-sm">
-                {reservation.guests} pessoas ·{" "}
-                {reservation.table
-                  ? `Mesa ${reservation.table.number}`
-                  : "Sem mesa"}
-              </p>
-            </div>
+            {reasonLabel && (
+              <span className="rounded-full bg-[#FFF1D0] px-2.5 py-1 text-[10px] font-semibold text-[#9B6F3B]">
+                {reasonLabel}
+              </span>
+            )}
           </div>
 
-          <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
-            {reservation.status === "PENDING" && (
-              <>
-                <StatusButton
-                  restaurantId={id}
-                  reservationId={reservation.id}
-                  day={selectedDay}
-                  status="CONFIRMED"
-                  label="Aprovar"
-                  variant="primary"
-                />
-                <StatusButton
-                  restaurantId={id}
-                  reservationId={reservation.id}
-                  day={selectedDay}
-                  status="REJECTED"
-                  label="Recusar"
-                  variant="red"
-                />
-              </>
-            )}
+          <p className="mt-1 truncate text-xs text-[#6B6258]">
+            {reservation.guests} pessoas
+            {reservation.table
+              ? ` · Mesa ${reservation.table.number}`
+              : " · Sem mesa"}
+            {reservation.source === "PUBLIC" ? " · Online" : " · Manual"}
+            {reservation.notes ? ` · ${reservation.notes}` : ""}
+          </p>
+        </div>
 
-            {reservation.status === "CONFIRMED" && (
-              <>
-                <StatusButton
-                  restaurantId={id}
-                  reservationId={reservation.id}
-                  day={selectedDay}
-                  status="SEATED"
-                  label="Sentar"
-                  variant="primary"
-                />
-                <StatusButton
-                  restaurantId={id}
-                  reservationId={reservation.id}
-                  day={selectedDay}
-                  status="NO_SHOW"
-                  label="No-show"
-                  variant="orange"
-                />
-              </>
-            )}
-
-            {reservation.status === "SEATED" && (
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          {reservation.status === "PENDING" && (
+            <>
               <StatusButton
                 restaurantId={id}
                 reservationId={reservation.id}
                 day={selectedDay}
-                status="FINISHED"
-                label="Finalizar"
+                status="CONFIRMED"
+                label="Aprovar"
                 variant="primary"
               />
-            )}
-          </div>
+              <StatusButton
+                restaurantId={id}
+                reservationId={reservation.id}
+                day={selectedDay}
+                status="REJECTED"
+                label="Recusar"
+                variant="danger"
+              />
+            </>
+          )}
+
+          {reservation.status === "CONFIRMED" && (
+            <>
+              <StatusButton
+                restaurantId={id}
+                reservationId={reservation.id}
+                day={selectedDay}
+                status="SEATED"
+                label="Sentar"
+                variant="primary"
+              />
+              <StatusButton
+                restaurantId={id}
+                reservationId={reservation.id}
+                day={selectedDay}
+                status="NO_SHOW"
+                label="No-show"
+                variant="outline"
+              />
+            </>
+          )}
+
+          {reservation.status === "SEATED" && (
+  <div className="flex flex-col items-start gap-1 lg:items-end">
+    <StatusButton
+      restaurantId={id}
+      reservationId={reservation.id}
+      day={selectedDay}
+      status="FINISHED"
+      label="Finalizar"
+      variant="primary"
+    />
+
+    {reservation.email && (
+      <p className="max-w-[220px] text-right text-[11px] leading-4 text-[#7A6F62]">
+        Ao finalizar, o cliente recebe automaticamente um pedido de avaliação.
+      </p>
+    )}
+  </div>
+)}
         </div>
       </div>
     );
   }
 
-  function StatusButton({
-    restaurantId,
-    reservationId,
-    day,
-    status,
-    label,
-    variant,
-  }: {
-    restaurantId: string;
-    reservationId: string;
-    day: string;
-    status: string;
-    label: string;
-    variant: "primary" | "red" | "orange";
-  }) {
-    const className =
-      variant === "primary"
-        ? "rounded-full bg-cyan-300 px-4 py-2 text-xs font-black text-black hover:opacity-90"
-        : variant === "red"
-          ? "rounded-full border border-red-300/30 bg-red-400/10 px-4 py-2 text-xs font-black text-red-200 hover:bg-red-400/20"
-          : "rounded-full border border-orange-300/30 bg-orange-400/10 px-4 py-2 text-xs font-black text-orange-200 hover:bg-orange-400/20";
-
-    return (
-      <form action={updateReservationStatus}>
-        <input type="hidden" name="restaurantId" value={restaurantId} />
-        <input type="hidden" name="reservationId" value={reservationId} />
-        <input type="hidden" name="status" value={status} />
-        <input type="hidden" name="day" value={day} />
-        <button className={className}>{label}</button>
-      </form>
-    );
-  }
-
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute left-1/2 top-[-180px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px]" />
-        <div className="absolute right-[-160px] top-[360px] h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(125,211,252,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.06)_1px,transparent_1px)] bg-[size:44px_44px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.14),transparent_35%),linear-gradient(to_bottom,#020617,#050816_35%,#020617)]" />
-      </div>
+    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
+        <RestaurantSidebar
+  id={id}
+  restaurantName={restaurant.name}
+  active="Serviço do dia"
+/>
 
-      <div className="relative z-10 mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <header className="rounded-[24px] border border-cyan-300/10 bg-white/[0.04] p-4 shadow-[0_0_35px_rgba(34,211,238,0.06)] backdrop-blur-xl">
-  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-    <div>
-      <Link
-        href={`/restaurants/${id}`}
-        className="text-sm font-bold text-slate-400 hover:text-white"
-      >
-        ← Dashboard
-      </Link>
+        <section className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+          <header className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
+                Serviço do dia
+              </p>
 
-      <div className="mt-3 flex flex-wrap items-end gap-3">
-        <h1 className="text-3xl font-black tracking-[-0.04em] text-white">
-  Serviço
-</h1>
+              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
+                {restaurant.name}
+              </h1>
 
-        <p className="pb-1 text-sm font-bold text-slate-400">
-          {restaurant.name} · {formattedDate}
-        </p>
-      </div>
-    </div>
+              <p className="mt-3 text-sm capitalize text-[#6B6258]">
+                {formattedDate}
+              </p>
+            </div>
 
-    <div className="w-full sm:w-auto">
-  <DayPicker restaurantId={id} selectedDay={selectedDay} />
-</div>
-  </div>
-</header>
+            <DayPicker restaurantId={id} selectedDay={selectedDay} />
+          </header>
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <StatBox label="Reservas" value={reservations.length} />
-          <StatBox label="Pessoas" value={totalGuests} />
-          <StatBox label="Sentados" value={seatedReservations.length} />
-          <StatBox label="Pendentes" value={pendingReservations.length} highlighted />
-                 </section>
+          <section className="mt-6 rounded-[32px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+            <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div className="grid gap-4 sm:grid-cols-4">
+                <CompactMetric label="Covers" value={totalGuests} sub={`${totalCapacity || 0} lugares`} />
+                <CompactMetric label="Sentados" value={seatedReservations.length} sub="em sala" />
+                <CompactMetric label="Pendentes" value={pendingReservations.length} sub="aprovação" />
+                <CompactMetric label="Receita" value={`${estimatedRevenue}€`} sub="estimada" />
+              </div>
 
-        {pendingReservations.length > 0 && (
-          <ServiceSection
-            title="Pendentes"
-            label={`${pendingReservations.length} reservas · ${pendingGuests} pessoas`}
-            warning
-          >
-            {pendingReservations.map((reservation) => (
-              <ReservationCard key={reservation.id} reservation={reservation} />
-            ))}
-          </ServiceSection>
-        )}
+              <div className="min-w-[220px]">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-[#6B6258]">Ocupação</span>
+                  <span className="font-semibold">{occupancyRate}%</span>
+                </div>
 
-        <ServiceSection title="Almoço" label={`${lunchReservations.length} reservas`}>
-          {lunchReservations.length > 0 ? (
-            lunchReservations.map((reservation) => (
-              <ReservationCard key={reservation.id} reservation={reservation} />
-            ))
-          ) : (
-            <EmptyState text="Sem reservas ao almoço." />
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#E8DCCB]">
+                  <div
+                    className={`h-full rounded-full ${occupancyColor}`}
+                    style={{ width: `${Math.min(occupancyRate, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {pendingReservations.length > 0 && (
+            <section className="mt-6 rounded-[28px] border border-[#D8C5A5] bg-[#FFF9F0] p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <SectionLabel>Ação necessária</SectionLabel>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.055em]">
+                    Reservas pendentes
+                  </h2>
+                </div>
+
+                <span className="rounded-full bg-[#16120E] px-4 py-2 text-sm font-semibold text-white">
+                  {pendingReservations.length} pendente
+                  {pendingReservations.length === 1 ? "" : "s"}
+                </span>
+              </div>
+
+              <div className="mt-4 overflow-hidden rounded-[22px] border border-[#E8DCCB] bg-white">
+                {pendingReservations.map((reservation) => (
+                  <ReservationRow key={reservation.id} reservation={reservation} />
+                ))}
+              </div>
+            </section>
           )}
-        </ServiceSection>
 
-        <ServiceSection title="Jantar" label={`${dinnerReservations.length} reservas`}>
-          {dinnerReservations.length > 0 ? (
-            dinnerReservations.map((reservation) => (
-              <ReservationCard key={reservation.id} reservation={reservation} />
-            ))
-          ) : (
-            <EmptyState text="Sem reservas ao jantar." />
-          )}
-        </ServiceSection>
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <ServiceSection
+              title="Almoço"
+              label={`${lunchReservations.length} reservas`}
+            >
+              {lunchReservations.length > 0 ? (
+                lunchReservations.map((reservation) => (
+                  <ReservationRow key={reservation.id} reservation={reservation} />
+                ))
+              ) : (
+                <EmptyState text="Sem reservas ao almoço." />
+              )}
+            </ServiceSection>
+
+            <ServiceSection
+              title="Jantar"
+              label={`${dinnerReservations.length} reservas`}
+            >
+              {dinnerReservations.length > 0 ? (
+                dinnerReservations.map((reservation) => (
+                  <ReservationRow key={reservation.id} reservation={reservation} />
+                ))
+              ) : (
+                <EmptyState text="Sem reservas ao jantar." />
+              )}
+            </ServiceSection>
+          </div>
+        </section>
       </div>
     </main>
+  );
+}
+
+function StatusButton({
+  restaurantId,
+  reservationId,
+  day,
+  status,
+  label,
+  variant,
+}: {
+  restaurantId: string;
+  reservationId: string;
+  day: string;
+  status: string;
+  label: string;
+  variant: "primary" | "danger" | "outline";
+}) {
+  const className =
+    variant === "primary"
+      ? "rounded-full bg-[#16120E] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#2A2118]"
+      : variant === "danger"
+        ? "rounded-full border border-[#E7B7A8] bg-[#FFF0EA] px-3 py-1.5 text-xs font-semibold text-[#A14E36] transition hover:bg-white"
+        : "rounded-full border border-[#C8A56A] bg-[#FFF9F0] px-3 py-1.5 text-xs font-semibold text-[#16120E] transition hover:bg-white";
+
+  return (
+    <form action={updateReservationStatus}>
+      <input type="hidden" name="restaurantId" value={restaurantId} />
+      <input type="hidden" name="reservationId" value={reservationId} />
+      <input type="hidden" name="status" value={status} />
+      <input type="hidden" name="day" value={day} />
+      <button className={className}>{label}</button>
+    </form>
+  );
+}
+
+function CompactMetric({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: number | string;
+  sub: string;
+}) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-semibold tracking-[-0.055em]">{value}</p>
+      <p className="mt-1 text-xs text-[#6B6258]">{sub}</p>
+    </div>
   );
 }
 
 function ServiceSection({
   title,
   label,
-  warning,
   children,
 }: {
   title: string;
   label: string;
-  warning?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <section
-      className={
-        warning
-          ? "rounded-[32px] border border-yellow-300/20 bg-yellow-400/10 p-4 shadow-[0_0_55px_rgba(250,204,21,0.12)] lg:p-6"
-          : "rounded-[32px] border border-cyan-300/10 bg-white/[0.04] p-4 shadow-[0_0_55px_rgba(34,211,238,0.06)] backdrop-blur-xl lg:p-6"
-      }
-    >
-      <div className="mb-5 flex items-center justify-between gap-4">
+    <section className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-            Serviço
-          </p>
-          <h2 className="mt-1 text-3xl font-black tracking-[-0.04em]">
+          <SectionLabel>Serviço</SectionLabel>
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.055em]">
             {title}
           </h2>
         </div>
 
-        <span className="shrink-0 rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-200">
+        <span className="rounded-full bg-[#EFE5D6] px-3 py-1.5 text-xs font-semibold text-[#9B6F3B]">
           {label}
         </span>
       </div>
 
-      <div className="grid gap-3">{children}</div>
+      <div className="overflow-hidden rounded-[22px] border border-[#E8DCCB] bg-[#FFF9F0]">
+        {children}
+      </div>
     </section>
   );
 }
 
 function EmptyState({ text }: { text: string }) {
+  return <p className="p-5 text-sm text-[#6B6258]">{text}</p>;
+}
+
+function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-2xl border border-cyan-300/10 bg-white/[0.04] p-5 text-slate-400">
-      {text}
+    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
+      {children}
     </p>
-  );
-}
-
-function StatBox({
-  label,
-  value,
-  highlighted,
-}: {
-  label: string;
-  value: number | string;
-  highlighted?: boolean;
-}) {
-  return (
-    <div
-      className={
-        highlighted
-          ? "rounded-[24px] border border-violet-300/20 bg-violet-400/10 p-5 shadow-[0_0_36px_rgba(167,139,250,0.12)]"
-          : "rounded-[24px] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl"
-      }
-    >
-      <p className="text-xs font-bold text-slate-400">{label}</p>
-      <p className="mt-2 text-2xl font-black text-cyan-300">{value}</p>
-    </div>
-  );
-}
-
-function MiniInfo({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-        {label}
-      </p>
-      <p className="mt-1 font-black text-white">{value}</p>
-    </div>
   );
 }

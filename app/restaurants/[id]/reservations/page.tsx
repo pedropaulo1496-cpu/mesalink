@@ -4,307 +4,499 @@ import { canAccessApp } from "@/lib/check-subscription";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { ReactNode } from "react";
+import RestaurantSidebar from "@/components/RestaurantSidebar";
+
+function isLunch(date: Date) {
+  return date.getHours() < 17;
+}
+
+async function updateReservationStatus(formData: FormData) {
+  "use server";
+
+  const restaurantId = String(formData.get("restaurantId"));
+  const reservationId = String(formData.get("reservationId"));
+  const status = String(formData.get("status"));
+
+  await prisma.reservation.update({
+    where: { id: reservationId },
+    data: { status },
+  });
+
+  redirect(`/restaurants/${restaurantId}/reservations`);
+}
+
+function getApprovalReasonLabel(reason: string | null) {
+  const labels: Record<string, string> = {
+    LARGE_GROUP: "Grupo grande",
+    TABLE_MERGE: "Junção de mesas",
+    CAPACITY_LIMIT: "Limite de capacidade",
+  };
+
+  return reason ? labels[reason] ?? reason : null;
+}
+
+function monthKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  return `${year}-${month}`;
+}
+
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getMonthDays(year: number, month: number) {
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
+  const start = new Date(firstDay);
+  const startOffset = (start.getDay() + 6) % 7;
+  start.setDate(start.getDate() - startOffset);
+
+  const days: Date[] = [];
+
+  for (let i = 0; i < 42; i++) {
+    const day = new Date(start);
+    day.setDate(start.getDate() + i);
+    days.push(day);
+  }
+
+  return {
+    days,
+    firstDay,
+    lastDay,
+  };
+}
 
 export default async function ReservationsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ month?: string }>;
 }) {
   const session = await getServerSession(authOptions);
-
   if (!session?.user?.email) redirect("/login");
 
   const hasAccess = await canAccessApp(session.user.email);
   if (!hasAccess) redirect("/billing");
 
   const { id } = await params;
+  const query = searchParams ? await searchParams : {};
+
+    const currentDate = query.month ? new Date(`${query.month}-01`) : new Date();
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const { days } = getMonthDays(year, month);
+
+  const calendarStart = days[0];
+  const calendarEnd = days[days.length - 1];
+
+  const previousMonth = monthKey(new Date(year, month - 1, 1));
+  const nextMonth = monthKey(new Date(year, month + 1, 1));
+  const thisMonth = monthKey(new Date());
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
+      tables: true,
       reservations: {
-        orderBy: { date: "desc" },
+        where: {
+          date: {
+            gte: calendarStart,
+            lte: calendarEnd,
+          },
+          status: {
+            notIn: ["CANCELLED", "REJECTED"],
+          },
+        },
+        include: {
+          table: true,
+        },
+        orderBy: {
+          date: "asc",
+        },
       },
     },
   });
 
   if (!restaurant) {
     return (
-      <main className="min-h-screen bg-[#020617] p-6 text-white">
+      <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
         Restaurante não encontrado.
       </main>
     );
   }
 
-  const now = new Date();
+  const totalCapacity =
+    restaurant.reservationMode === "CAPACITY" && restaurant.totalCapacity
+      ? restaurant.totalCapacity
+      : restaurant.tables.reduce((total, table) => total + table.capacity, 0);
 
-  const activeReservations = restaurant.reservations.filter(
-    (reservation) =>
-      !["CANCELLED", "REJECTED", "NO_SHOW"].includes(
-        String(reservation.status)
-      )
-  );
+  const reservationsByDay = new Map<
+    string,
+    typeof restaurant.reservations
+  >();
 
-  const upcomingReservations = activeReservations.filter(
-    (reservation) => new Date(reservation.date) >= now
-  );
+  for (const reservation of restaurant.reservations) {
+    const key = dateKey(new Date(reservation.date));
 
-  const pastReservations = activeReservations.filter(
-    (reservation) => new Date(reservation.date) < now
-  );
+    if (!reservationsByDay.has(key)) {
+      reservationsByDay.set(key, []);
+    }
+
+    reservationsByDay.get(key)?.push(reservation);
+  }
 
   const pendingReservations = restaurant.reservations.filter(
-    (reservation) => reservation.status === "PENDING"
+    (reservation) => reservation.status === "PENDING",
   );
 
-const publicReservations = restaurant.reservations.filter((reservation) => {
-  const item = reservation as typeof reservation & { source?: string };
-  return item.source === "PUBLIC";
-});
-  const totalGuests = activeReservations.reduce(
-    (total, reservation) => total + reservation.guests,
-    0
-  );
-
-  const reservationsToShow = restaurant.reservations.slice(0, 80);
+  const monthName = currentDate.toLocaleDateString("pt-PT", {
+    month: "long",
+    year: "numeric",
+  });
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
-      <Background />
+    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
+        <RestaurantSidebar
+  id={id}
+  restaurantName={restaurant.name}
+  active="Reservas"
+/>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-5 py-8 sm:px-8">
-        <header className="flex flex-col justify-between gap-6 border-b border-cyan-300/10 pb-8 lg:flex-row lg:items-center">
-          <div>
-            <Link
-              href={`/restaurants/${id}`}
-              className="text-sm font-bold text-slate-400 hover:text-white"
-            >
-              ← Voltar ao dashboard
-            </Link>
+        <section className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+          <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+  <div>
+    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
+      Reservas
+    </p>
 
-            <p className="mt-8 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-              MesaLink OS · Reservations
-            </p>
+    <h1 className="mt-2 text-4xl font-semibold capitalize tracking-[-0.065em] sm:text-5xl">
+      {monthName}
+    </h1>
+  </div>
 
-            <h1 className="mt-3 text-5xl font-black tracking-[-0.06em]">
-              Reservas
-            </h1>
+  <div className="flex items-center gap-2 rounded-full border border-[#E1D0B8] bg-white p-1.5 shadow-[0_14px_40px_rgba(80,55,30,0.05)]">
+    <Link
+      href={`/restaurants/${id}/reservations?month=${previousMonth}`}
+      className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF9F0] text-lg font-semibold transition hover:bg-[#EFE5D6]"
+    >
+      ←
+    </Link>
 
-            <p className="mt-2 text-slate-400">{restaurant.name}</p>
-          </div>
+    <Link
+      href={`/restaurants/${id}/reservations?month=${thisMonth}`}
+      className="flex h-10 items-center justify-center rounded-full px-5 text-sm font-semibold transition hover:bg-[#FFF9F0]"
+    >
+      Hoje
+    </Link>
 
-          <Link
-            href={`/restaurants/${id}/reservations/new`}
-            className="rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-6 py-3 font-black text-black shadow-[0_0_50px_rgba(96,165,250,0.35)] hover:opacity-90"
-          >
-            + Nova reserva
-          </Link>
-        </header>
+    <Link
+      href={`/restaurants/${id}/reservations?month=${nextMonth}`}
+      className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF9F0] text-lg font-semibold transition hover:bg-[#EFE5D6]"
+    >
+      →
+    </Link>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <StatCard label="Total" value={restaurant.reservations.length} />
-          <StatCard label="Futuras" value={upcomingReservations.length} />
-          <StatCard label="Pendentes" value={pendingReservations.length} tone="yellow" />
-          <StatCard label="Online" value={publicReservations.length} tone="blue" />
-          <StatCard label="Pessoas" value={totalGuests} tone="violet" />
-        </section>
+    <div className="mx-1 h-7 w-px bg-[#E1D0B8]" />
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="overflow-hidden rounded-[2rem] border border-cyan-300/15 bg-white/[0.04] shadow-[0_0_70px_rgba(34,211,238,0.08)] backdrop-blur-2xl">
-            <div className="border-b border-white/10 p-5">
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-                Últimas reservas
-              </p>
-              <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
-                Histórico e próximas reservas
-              </h2>
-            </div>
+    <Link
+      href={`/restaurants/${id}/reservations/new`}
+      className="flex h-10 items-center justify-center rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+    >
+      + Nova reserva
+    </Link>
+  </div>
+</header>
 
-            <div>
-              {reservationsToShow.map((reservation) => (
-                <ReservationRow key={reservation.id} reservation={reservation} />
-              ))}
-
-              {reservationsToShow.length === 0 && (
-                <div className="p-8 text-sm text-slate-400">
-                  Ainda não há reservas. Comece por criar uma reserva manual ou
-                  partilhar o link público.
+          {pendingReservations.length > 0 && (
+            <section className="mt-6 rounded-[28px] border border-[#D8C5A5] bg-[#FFF9F0] p-5">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div>
+                  <SectionLabel>Aprovações</SectionLabel>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.055em]">
+                    Reservas que precisam de decisão
+                  </h2>
                 </div>
-              )}
-            </div>
-          </div>
 
-          <aside className="space-y-5">
-            <InfoCard
-              title="Próxima reserva"
-              text={
-                upcomingReservations[0]
-                  ? `${upcomingReservations[0].customerName} · ${upcomingReservations[0].guests} pessoas`
-                  : "Sem próximas reservas."
-              }
-            />
+                <span className="w-fit rounded-full bg-[#16120E] px-4 py-2 text-sm font-semibold text-white">
+                  {pendingReservations.length} pendente
+                  {pendingReservations.length === 1 ? "" : "s"}
+                </span>
+              </div>
 
-            <InfoCard
-              title="Reservas pendentes"
-              text={
-                pendingReservations.length > 0
-                  ? `${pendingReservations.length} reserva(s) precisam de resposta.`
-                  : "Não existem reservas pendentes."
-              }
-            />
+              <div className="mt-4 grid gap-3 xl:grid-cols-3">
+                {pendingReservations.slice(0, 6).map((reservation) => (
+                  <PendingApproval
+                    key={reservation.id}
+                    restaurantId={id}
+                    reservation={reservation}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
-            <div className="rounded-[2rem] border border-cyan-300/15 bg-white/[0.04] p-6 backdrop-blur-2xl">
-              <h3 className="text-2xl font-black tracking-[-0.04em]">
-                Ações rápidas
-              </h3>
+          <section className="mt-6 rounded-[32px] border border-[#E1D0B8] bg-white p-5 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 
-              <div className="mt-5 grid gap-3">
-                <SideLink href={`/restaurants/${id}/reservations/new`}>
-                  + Criar reserva manual
-                </SideLink>
-                <SideLink href={`/restaurants/${id}/calendar`}>
-                  Ver calendário
-                </SideLink>
-                <SideLink href={`/restaurants/${id}/day`}>
-                  Serviço de hoje
-                </SideLink>
-                <SideLink href={`/reserve/${restaurant.slug}`}>
-                  Página pública
-                </SideLink>
+              <div className="flex flex-wrap gap-4 text-sm text-[#6B6258]">
+                <LegendDot color="bg-[#ECF7EC]" label="Baixa ocupação" />
+                <LegendDot color="bg-[#FFF1D0]" label="Média" />
+                <LegendDot color="bg-[#FFF0EA]" label="Alta" />
               </div>
             </div>
-          </aside>
+
+            <div className="mt-6 grid grid-cols-7 border-y border-l border-[#E8DCCB] text-center text-xs font-semibold uppercase tracking-[0.16em] text-[#6B6258]">
+              {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => (
+                <div key={day} className="border-r border-[#E8DCCB] px-3 py-3">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 border-l border-[#E8DCCB]">
+              {days.map((day, index) => {
+                const key = dateKey(day);
+                const dayReservations = reservationsByDay.get(key) ?? [];
+                const dayGuests = dayReservations.reduce(
+                  (total, reservation) => total + reservation.guests,
+                  0,
+                );
+
+                const lunchGuests = dayReservations
+                  .filter((reservation) => isLunch(new Date(reservation.date)))
+                  .reduce((total, reservation) => total + reservation.guests, 0);
+
+                const dinnerGuests = dayReservations
+                  .filter((reservation) => !isLunch(new Date(reservation.date)))
+                  .reduce((total, reservation) => total + reservation.guests, 0);
+
+                const pendingCount = dayReservations.filter(
+                  (reservation) => reservation.status === "PENDING",
+                ).length;
+
+                const occupancy =
+                  totalCapacity > 0
+                    ? Math.round((dayGuests / totalCapacity) * 100)
+                    : 0;
+
+                const isCurrentMonth = day.getMonth() === month;
+                const isTodayDate = key === dateKey(new Date());
+
+                return (
+                  <CalendarDay
+  key={`${key}-${day.getMonth()}-${day.getDate()}`}
+                    restaurantId={id}
+                    date={day}
+                    isCurrentMonth={isCurrentMonth}
+                    isToday={isTodayDate}
+                    lunchGuests={lunchGuests}
+                    dinnerGuests={dinnerGuests}
+                    reservations={dayReservations.length}
+                    pending={pendingCount}
+                    occupancy={occupancy}
+                  />
+                );
+              })}
+            </div>
+          </section>
         </section>
-      </section>
+      </div>
     </main>
   );
 }
 
-function ReservationRow({
+function CalendarDay({
+  restaurantId,
+  date,
+  isCurrentMonth,
+  isToday,
+  lunchGuests,
+  dinnerGuests,
+  reservations,
+  pending,
+  occupancy,
+}: {
+  restaurantId: string;
+  date: Date;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  lunchGuests: number;
+  dinnerGuests: number;
+  reservations: number;
+  pending: number;
+  occupancy: number;
+}) {
+  const key = dateKey(date);
+
+  const hasActivity = reservations > 0 || lunchGuests > 0 || dinnerGuests > 0;
+
+  const occupancyBar =
+    occupancy >= 90
+      ? "bg-[#A14E36]"
+      : occupancy >= 60
+        ? "bg-[#C8A56A]"
+        : "bg-[#3F6A4D]";
+
+  return (
+    <a
+      href={`/restaurants/${restaurantId}/day?day=${key}`}
+      className={`min-h-[118px] border-b border-r border-[#E8DCCB] p-3 transition hover:bg-white ${
+        isCurrentMonth ? "bg-[#FFFDF8]" : "bg-[#F3EEE6] opacity-45"
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <span
+          className={
+            isToday
+              ? "flex h-7 w-7 items-center justify-center rounded-full bg-[#16120E] text-xs font-semibold text-white"
+              : "text-sm font-semibold text-[#6B6258]"
+          }
+        >
+          {date.getDate()}
+        </span>
+
+        {pending > 0 && (
+          <span className="rounded-full bg-[#FFF1D0] px-2 py-1 text-[10px] font-semibold text-[#9B6F3B]">
+            {pending}
+          </span>
+        )}
+      </div>
+
+      {hasActivity ? (
+        <div className="mt-4 space-y-2">
+          <CompactService label="Almoço" value={lunchGuests} />
+          <CompactService label="Jantar" value={dinnerGuests} />
+
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#E8DCCB]">
+            <div
+              className={`h-full rounded-full ${occupancyBar}`}
+              style={{ width: `${Math.min(occupancy, 100)}%` }}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="mt-8 h-1.5 rounded-full bg-[#E8DCCB]/60" />
+      )}
+    </a>
+  );
+}
+
+function CompactService({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between rounded-xl bg-[#F7F0E7] px-2.5 py-1.5 text-xs">
+      <span className="text-[#6B6258]">{label}</span>
+      <span className="font-semibold text-[#16120E]">{value}</span>
+    </div>
+  );
+}
+
+function PendingApproval({
+  restaurantId,
   reservation,
 }: {
+  restaurantId: string;
   reservation: {
+    id: string;
     customerName: string;
     guests: number;
     date: Date | string;
-    status: string | null;
-    source?: string;
-    phone: string;
-    email: string | null;
+    approvalReason?: string | null;
   };
 }) {
-  const date = new Date(reservation.date);
-
-  const status = String(reservation.status);
-
-  const statusStyle =
-    status === "PENDING"
-      ? "border-yellow-300/20 bg-yellow-400/10 text-yellow-300"
-      : status === "CONFIRMED"
-      ? "border-green-300/20 bg-green-400/10 text-green-300"
-      : status === "CANCELLED"
-      ? "border-red-300/20 bg-red-400/10 text-red-300"
-      : "border-cyan-300/20 bg-cyan-400/10 text-cyan-300";
+  const reason = getApprovalReasonLabel(reservation.approvalReason ?? null);
 
   return (
-    <div className="grid gap-4 border-b border-white/10 p-5 last:border-b-0 md:grid-cols-[120px_1fr_auto] md:items-center">
-      <div>
-        <p className="text-2xl font-black text-cyan-300">
-          {date.toLocaleTimeString("pt-PT", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </p>
-        <p className="mt-1 text-xs font-bold text-slate-500">
-          {date.toLocaleDateString("pt-PT")}
-        </p>
-      </div>
+    <div className="rounded-2xl border border-[#E8DCCB] bg-white p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-semibold">{reservation.customerName}</p>
+          <p className="mt-1 text-xs text-[#6B6258]">
+            {new Date(reservation.date).toLocaleDateString("pt-PT")} ·{" "}
+            {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}{" "}
+            · {reservation.guests} pessoas
+          </p>
 
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-black text-white">{reservation.customerName}</p>
-
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
-            {(reservation as typeof reservation & { source?: string }).source === "PUBLIC"
-  ? "Online"
-  : "Manual"}
-          </span>
+          {reason && (
+            <span className="mt-2 inline-flex rounded-full bg-[#FFF1D0] px-2.5 py-1 text-[10px] font-semibold text-[#9B6F3B]">
+              {reason}
+            </span>
+          )}
         </div>
 
-        <p className="mt-1 text-sm text-slate-400">
-          {reservation.guests} pessoas · {reservation.phone}
-          {reservation.email ? ` · ${reservation.email}` : ""}
-        </p>
+        <div className="flex gap-2">
+          <StatusIconButton
+            restaurantId={restaurantId}
+            reservationId={reservation.id}
+            status="CONFIRMED"
+            label="✓"
+            variant="primary"
+          />
+          <StatusIconButton
+            restaurantId={restaurantId}
+            reservationId={reservation.id}
+            status="REJECTED"
+            label="×"
+            variant="danger"
+          />
+        </div>
       </div>
-
-      <span
-        className={`w-fit rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.16em] ${statusStyle}`}
-      >
-        {status}
-      </span>
     </div>
   );
 }
 
-function StatCard({
+function StatusIconButton({
+  restaurantId,
+  reservationId,
+  status,
   label,
-  value,
-  tone,
+  variant,
 }: {
+  restaurantId: string;
+  reservationId: string;
+  status: string;
   label: string;
-  value: number;
-  tone?: "yellow" | "blue" | "violet";
+  variant: "primary" | "danger";
 }) {
-  const color =
-    tone === "yellow"
-      ? "text-yellow-300"
-      : tone === "blue"
-      ? "text-blue-300"
-      : tone === "violet"
-      ? "text-violet-300"
-      : "text-cyan-300";
+  const className =
+    variant === "primary"
+      ? "flex h-8 w-8 items-center justify-center rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+      : "flex h-8 w-8 items-center justify-center rounded-full border border-[#E7B7A8] bg-[#FFF0EA] text-sm font-semibold text-[#A14E36] transition hover:bg-white";
 
   return (
-    <div className="rounded-[1.5rem] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl">
-      <p className="text-xs font-bold text-slate-400">{label}</p>
-      <p className={`mt-2 text-3xl font-black ${color}`}>{value}</p>
+    <form action={updateReservationStatus}>
+      <input type="hidden" name="restaurantId" value={restaurantId} />
+      <input type="hidden" name="reservationId" value={reservationId} />
+      <input type="hidden" name="status" value={status} />
+      <button className={className}>{label}</button>
+    </form>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`h-3 w-3 rounded-full ${color}`} />
+      <span>{label}</span>
     </div>
   );
 }
 
-function InfoCard({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="rounded-[2rem] border border-cyan-300/15 bg-white/[0.04] p-6 backdrop-blur-2xl">
-      <h3 className="text-xl font-black">{title}</h3>
-      <p className="mt-3 text-sm leading-6 text-slate-400">{text}</p>
-    </div>
-  );
-}
 
-function SideLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
+function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <Link
-      href={href}
-      className="flex items-center justify-between rounded-2xl border border-cyan-300/10 bg-black/25 p-4 text-sm font-black text-white hover:border-cyan-300/40 hover:bg-cyan-400/10"
-    >
-      <span>{children}</span>
-      <span className="text-cyan-300">→</span>
-    </Link>
-  );
-}
-
-function Background() {
-  return (
-    <div className="pointer-events-none fixed inset-0 z-0">
-      <div className="absolute left-1/2 top-[-180px] h-[460px] w-[460px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[120px]" />
-      <div className="absolute right-[-160px] top-[280px] h-[360px] w-[360px] rounded-full bg-violet-500/15 blur-[110px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.15),transparent_35%),linear-gradient(to_bottom,#020617,#050816_45%,#020617)]" />
-    </div>
+    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
+      {children}
+    </p>
   );
 }

@@ -2,25 +2,23 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative border-t border-cyan-300/10 bg-[#020617] text-white">
+    <footer className="border-t border-[#E1D0B8] bg-[#EFE5D6] text-[#16120E]">
       <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-14">
         <div className="grid gap-10 md:grid-cols-[1.4fr_0.8fr_0.8fr]">
           <div>
-            <h3 className="text-2xl font-black tracking-tight">
-              Mesa
-              <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                Link
-              </span>
+            <h3 className="text-2xl font-semibold tracking-[-0.05em]">
+              <span className="text-[#C8A56A]">Mesa</span>
+              <span className="text-[#16120E]">Link</span>
             </h3>
 
-            <p className="mt-4 max-w-sm text-sm leading-6 text-slate-400">
+            <p className="mt-4 max-w-sm text-sm leading-6 text-[#6B6258]">
               Transforme Google Maps, Instagram e website num sistema
               inteligente de reservas.
             </p>
           </div>
 
           <div>
-            <h4 className="mb-4 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+            <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
               Links
             </h4>
 
@@ -32,7 +30,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="mb-4 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+            <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
               Legal
             </h4>
 
@@ -43,7 +41,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-4 border-t border-cyan-300/10 pt-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
+        <div className="mt-10 flex flex-col gap-4 border-t border-[#E1D0B8] pt-6 text-sm text-[#6B6258] md:flex-row md:items-center md:justify-between">
           <p>© 2026 MesaLink. Todos os direitos reservados.</p>
           <p>info@mesalink.pt</p>
         </div>
@@ -62,7 +60,7 @@ function FooterLink({
   return (
     <Link
       href={href}
-      className="block text-sm text-slate-400 transition hover:text-white"
+      className="block text-sm text-[#6B6258] transition hover:text-[#16120E]"
     >
       {children}
     </Link>

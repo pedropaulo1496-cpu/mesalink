@@ -23,11 +23,11 @@ export default function DayPicker({
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-full border border-cyan-300/20 bg-[#06111f]/80 p-2 backdrop-blur-xl">
+    <div className="flex items-center gap-2 rounded-full border border-[#E1D0B8] bg-white p-2 shadow-[0_14px_40px_rgba(80,55,30,0.06)]">
       <button
         type="button"
         onClick={() => changeDay(-1)}
-        className="flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/20 bg-cyan-400/10 text-cyan-300 transition hover:bg-cyan-300 hover:text-black"
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] text-[#16120E] transition hover:bg-[#EFE5D6]"
       >
         ←
       </button>
@@ -36,27 +36,25 @@ export default function DayPicker({
         type="date"
         value={selectedDay}
         onChange={(e) =>
-          router.push(
-            `/restaurants/${restaurantId}/day?day=${e.target.value}`
-          )
+          router.push(`/restaurants/${restaurantId}/day?day=${e.target.value}`)
         }
-        className="h-11 rounded-full border border-cyan-300/20 bg-[#020617] px-4 text-center text-sm font-bold text-white outline-none transition hover:border-cyan-300/50"
+        className="h-11 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-center text-sm font-semibold text-[#16120E] outline-none transition hover:border-[#C8A56A]"
       />
 
       <button
         type="button"
         onClick={() => changeDay(1)}
-        className="flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/20 bg-cyan-400/10 text-cyan-300 transition hover:bg-cyan-300 hover:text-black"
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] text-[#16120E] transition hover:bg-[#EFE5D6]"
       >
         →
       </button>
 
-      <div className="hidden border-l border-cyan-300/10 pl-4 pr-2 md:block">
-        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-300">
-          Live Day
+      <div className="hidden border-l border-[#E1D0B8] pl-4 pr-2 md:block">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
+          Dia
         </p>
 
-        <p className="text-sm font-bold text-white">
+        <p className="text-sm font-semibold text-[#16120E]">
           {date.toLocaleDateString("pt-PT", {
             weekday: "short",
             day: "2-digit",

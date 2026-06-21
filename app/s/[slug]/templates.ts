@@ -10,23 +10,23 @@ export function getWebsiteTemplate(value?: string | null): WebsiteTemplate {
 export function getTemplateTheme(template: WebsiteTemplate, primaryColor: string) {
   const themes = {
     PREMIUM: {
-      page: "bg-[#120b07] text-white",
-      sectionDark: "bg-[#120b07] text-white",
-      sectionLight: "bg-[#f4eadf] text-[#1d120b]",
-      card: "border-white/10 bg-white/[0.06]",
+      page: "bg-[#F5EFE6] text-[#16120E]",
+      sectionDark: "bg-[#F5EFE6] text-[#16120E]",
+      sectionLight: "bg-[#FFF9F0] text-[#16120E]",
+      card: "border-[#E1D0B8] bg-white",
       accent: primaryColor,
-      eyebrow: "text-amber-200/60",
-      muted: "text-white/60",
+      eyebrow: "text-[#9B6F3B]",
+      muted: "text-[#6B6258]",
     },
 
     LUXURY: {
-      page: "bg-black text-[#f5ead7]",
-      sectionDark: "bg-black text-[#f5ead7]",
-      sectionLight: "bg-[#15100a] text-[#f5ead7]",
-      card: "border-[#d4af37]/20 bg-[#d4af37]/[0.06]",
-      accent: "#d4af37",
-      eyebrow: "text-[#d4af37]/70",
-      muted: "text-[#f5ead7]/60",
+      page: "bg-[#16120E] text-[#F5EFE6]",
+      sectionDark: "bg-[#16120E] text-[#F5EFE6]",
+      sectionLight: "bg-[#241B13] text-[#F5EFE6]",
+      card: "border-[#C8A56A]/25 bg-white/[0.06]",
+      accent: "#C8A56A",
+      eyebrow: "text-[#C8A56A]",
+      muted: "text-[#F5EFE6]/60",
     },
 
     MINIMAL: {
@@ -40,13 +40,13 @@ export function getTemplateTheme(template: WebsiteTemplate, primaryColor: string
     },
 
     SOCIAL: {
-      page: "bg-[#0f0715] text-white",
-      sectionDark: "bg-[#0f0715] text-white",
-      sectionLight: "bg-[#1a0b24] text-white",
-      card: "border-pink-300/15 bg-pink-400/[0.06]",
-      accent: "#ec4899",
-      eyebrow: "text-pink-300/70",
-      muted: "text-white/60",
+      page: "bg-[#F5EFE6] text-[#16120E]",
+      sectionDark: "bg-[#F5EFE6] text-[#16120E]",
+      sectionLight: "bg-[#FFF9F0] text-[#16120E]",
+      card: "border-[#E1D0B8] bg-white",
+      accent: "#A14E36",
+      eyebrow: "text-[#A14E36]",
+      muted: "text-[#6B6258]",
     },
   };
 
