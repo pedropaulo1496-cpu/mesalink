@@ -2948,71 +2948,30 @@ function FiscalSettingsView({
   value={integration.creditNoteSerieId ?? "Não configurada"}
 />
 
-<div className="mt-8 w-full rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6">
-  <h3 className="text-xl font-black text-[#0E0D0C]">
-    Séries fiscais
-  </h3>
+<div className="mt-8 w-full rounded-[28px] border border-[#E8E0D4] bg-[#FCFBF9] p-6">
+  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="max-w-2xl">
+      <h3 className="text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
+        Séries fiscais
+      </h3>
 
-  <p className="mt-1 text-sm font-medium text-[#7D746A]">
-    Escolhe as séries Moloni obrigatórias para ativar o POS.
-  </p>
+      <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
+        Escolhe as séries Moloni obrigatórias para ativar o POS. Se ainda não
+        tiveres séries, cria-as primeiro no Moloni e comunica-as à AT.
+      </p>
+    </div>
 
-  <div className="mt-5 rounded-2xl border border-[#E8E0D4] bg-white p-5">
-  <p className="font-black text-[#0E0D0C]">
-    Ainda não tem séries fiscais?
-  </p>
+    <a
+      href="https://admin.moloni.pt/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex h-12 shrink-0 items-center justify-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
+    >
+      Abrir Moloni
+    </a>
+  </div>
 
-  <p className="mt-1 text-sm font-medium leading-6 text-[#7D746A]">
-    Abra o Moloni, crie as séries fiscais e comunique-as à AT. Depois volte ao
-    MesaLink e selecione as séries abaixo.
-  </p>
-
-  <ol className="mt-3 space-y-1 text-sm font-bold text-[#7D746A]">
-    <li>1. Abrir Moloni</li>
-    <li>2. Ir a Configurações → Séries de documentos</li>
-    <li>3. Criar/comunicar série à AT</li>
-    <li>4. Voltar ao MesaLink e guardar as séries</li>
-  </ol>
-
-<div className="mt-5 rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-5">
-  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
-    Recomendação MesaLink
-  </p>
-
-  <h4 className="mt-2 text-lg font-black text-[#0E0D0C]">
-    Moloni ON é suficiente para começar
-  </h4>
-
-  <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
-    Para utilizar a faturação integrada do MesaLink, recomendamos o plano Moloni ON.
-    Inclui ligações SAF-T, comunicação de séries à AT, clientes, artigos e documentos fiscais.
-  </p>
-
-  <p className="mt-2 text-sm font-black text-[#8B5E22]">
-    Se precisar de mais funcionalidades, pode fazer upgrade diretamente no Moloni.
-  </p>
-
-  <a
-    href="https://www.molonion.pt/molonion-vs-moloni/"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="mt-4 inline-flex h-12 items-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
-  >
-    Ver planos Moloni
-  </a>
-</div>  
-
-  <a
-    href="https://moloni.pt/"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="mt-5 inline-flex h-12 items-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
-  >
-    Abrir Moloni
-  </a>
-</div>
-
-  <div className="mt-5 grid w-full gap-4 lg:grid-cols-3">
+  <div className="mt-6 grid gap-4 xl:grid-cols-3">
     <FiscalSerieSelect
       label="Fatura"
       value={invoiceSerieId}
@@ -3033,6 +2992,51 @@ function FiscalSettingsView({
       options={documentSets}
       onChange={onChangeCreditNoteSerieId}
     />
+  </div>
+
+  <div className="mt-6 grid gap-4 xl:grid-cols-2">
+    <div className="rounded-2xl border border-[#E8E0D4] bg-white p-5">
+      <p className="font-black text-[#0E0D0C]">
+        Ainda não tem séries fiscais?
+      </p>
+
+      <ol className="mt-3 space-y-1 text-sm font-medium leading-6 text-[#7D746A]">
+        <li>1. Abrir Moloni</li>
+        <li>2. Ir a Configurações → Séries de documentos</li>
+        <li>3. Criar/comunicar série à AT</li>
+        <li>4. Voltar ao MesaLink e guardar as séries</li>
+      </ol>
+    </div>
+
+    <div className="rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-5">
+      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
+        Recomendação MesaLink
+      </p>
+
+      <h4 className="mt-2 text-lg font-black text-[#0E0D0C]">
+        Moloni ON é suficiente para começar
+      </h4>
+
+      <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
+        Recomendamos o plano Moloni ON para usar faturação integrada no
+        MesaLink. Inclui API, SAF-T, comunicação de séries à AT, clientes,
+        artigos e documentos fiscais.
+      </p>
+
+      <p className="mt-3 text-sm font-black text-[#8B5E22]">
+        Se precisar de mais documentos ou funcionalidades, pode fazer upgrade
+        diretamente no Moloni.
+      </p>
+
+      <a
+        href="https://www.molonion.pt/molonion-vs-moloni/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-flex h-12 items-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
+      >
+        Ver planos Moloni
+      </a>
+    </div>
   </div>
 
   <button
