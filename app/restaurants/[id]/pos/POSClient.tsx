@@ -2948,82 +2948,106 @@ function FiscalSettingsView({
   value={integration.creditNoteSerieId ?? "Não configurada"}
 />
 
-<div className="mt-8 w-full rounded-[28px] border border-[#E8E0D4] bg-[#FCFBF9] p-6">
-  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-    <div className="max-w-2xl">
-      <h3 className="text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
-        Séries fiscais
-      </h3>
+<div className="col-span-full mt-8 w-full rounded-[32px] border border-[#E8E0D4] bg-[#FCFBF9] p-6 lg:p-8">
+  <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+    <div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
+            Configuração obrigatória
+          </p>
 
-      <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
-        Escolhe as séries Moloni obrigatórias para ativar o POS. Se ainda não
-        tiveres séries, cria-as primeiro no Moloni e comunica-as à AT.
-      </p>
+          <h3 className="mt-2 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
+            Séries fiscais
+          </h3>
+
+          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-[#7D746A]">
+            Para ativar o POS em modo real, escolhe as séries Moloni usadas para
+            Fatura, Fatura Simplificada e Nota de Crédito.
+          </p>
+        </div>
+
+        <a
+          href="https://admin.moloni.pt/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-12 shrink-0 items-center justify-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
+        >
+          Abrir Moloni
+        </a>
+      </div>
+
+      <div className="mt-7 grid gap-4 lg:grid-cols-3">
+        <FiscalSerieSelect
+          label="Fatura"
+          value={invoiceSerieId}
+          options={documentSets}
+          onChange={onChangeInvoiceSerieId}
+        />
+
+        <FiscalSerieSelect
+          label="Fatura Simplificada"
+          value={simplifiedInvoiceSerieId}
+          options={documentSets}
+          onChange={onChangeSimplifiedInvoiceSerieId}
+        />
+
+        <FiscalSerieSelect
+          label="Nota de Crédito"
+          value={creditNoteSerieId}
+          options={documentSets}
+          onChange={onChangeCreditNoteSerieId}
+        />
+      </div>
+
+      <div className="mt-7 rounded-2xl border border-[#E8E0D4] bg-white p-5">
+        <p className="font-black text-[#0E0D0C]">
+          Ainda não tem séries fiscais?
+        </p>
+
+        <div className="mt-3 grid gap-3 text-sm font-medium leading-6 text-[#7D746A] md:grid-cols-2">
+          <div>
+            <p>1. Abrir Moloni</p>
+            <p>2. Ir a Configurações → Séries de documentos</p>
+          </div>
+
+          <div>
+            <p>3. Criar/comunicar série à AT</p>
+            <p>4. Voltar ao MesaLink e guardar as séries</p>
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={onSaveSeries}
+        disabled={
+          savingSeries ||
+          !invoiceSerieId ||
+          !simplifiedInvoiceSerieId ||
+          !creditNoteSerieId
+        }
+        className="mt-7 h-12 rounded-xl bg-[#11100F] px-6 text-sm font-black text-white disabled:opacity-40"
+      >
+        {savingSeries ? "A guardar..." : "Guardar séries"}
+      </button>
     </div>
 
-    <a
-      href="https://admin.moloni.pt/"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex h-12 shrink-0 items-center justify-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
-    >
-      Abrir Moloni
-    </a>
-  </div>
-
-  <div className="mt-6 grid gap-4 xl:grid-cols-3">
-    <FiscalSerieSelect
-      label="Fatura"
-      value={invoiceSerieId}
-      options={documentSets}
-      onChange={onChangeInvoiceSerieId}
-    />
-
-    <FiscalSerieSelect
-      label="Fatura Simplificada"
-      value={simplifiedInvoiceSerieId}
-      options={documentSets}
-      onChange={onChangeSimplifiedInvoiceSerieId}
-    />
-
-    <FiscalSerieSelect
-      label="Nota de Crédito"
-      value={creditNoteSerieId}
-      options={documentSets}
-      onChange={onChangeCreditNoteSerieId}
-    />
-  </div>
-
-  <div className="mt-6 grid gap-4 xl:grid-cols-2">
-    <div className="rounded-2xl border border-[#E8E0D4] bg-white p-5">
-      <p className="font-black text-[#0E0D0C]">
-        Ainda não tem séries fiscais?
-      </p>
-
-      <ol className="mt-3 space-y-1 text-sm font-medium leading-6 text-[#7D746A]">
-        <li>1. Abrir Moloni</li>
-        <li>2. Ir a Configurações → Séries de documentos</li>
-        <li>3. Criar/comunicar série à AT</li>
-        <li>4. Voltar ao MesaLink e guardar as séries</li>
-      </ol>
-    </div>
-
-    <div className="rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-5">
+    <aside className="rounded-[28px] border border-[#D8AE62] bg-[#FFF8EC] p-6">
       <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
         Recomendação MesaLink
       </p>
 
-      <h4 className="mt-2 text-lg font-black text-[#0E0D0C]">
+      <h4 className="mt-3 text-xl font-black leading-tight text-[#0E0D0C]">
         Moloni ON é suficiente para começar
       </h4>
 
-      <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
+      <p className="mt-3 text-sm font-medium leading-6 text-[#7D746A]">
         Recomendamos o plano Moloni ON para usar faturação integrada no
         MesaLink. Inclui API, SAF-T, comunicação de séries à AT, clientes,
         artigos e documentos fiscais.
       </p>
 
-      <p className="mt-3 text-sm font-black text-[#8B5E22]">
+      <p className="mt-4 text-sm font-black leading-6 text-[#8B5E22]">
         Se precisar de mais documentos ou funcionalidades, pode fazer upgrade
         diretamente no Moloni.
       </p>
@@ -3032,25 +3056,12 @@ function FiscalSettingsView({
         href="https://www.molonion.pt/molonion-vs-moloni/"
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 inline-flex h-12 items-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
+        className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
       >
         Ver planos Moloni
       </a>
-    </div>
+    </aside>
   </div>
-
-  <button
-    onClick={onSaveSeries}
-    disabled={
-      savingSeries ||
-      !invoiceSerieId ||
-      !simplifiedInvoiceSerieId ||
-      !creditNoteSerieId
-    }
-    className="mt-6 h-12 rounded-xl bg-[#11100F] px-6 text-sm font-black text-white disabled:opacity-40"
-  >
-    {savingSeries ? "A guardar..." : "Guardar séries"}
-  </button>
 </div>
         </div>
       )}
