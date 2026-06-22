@@ -9,12 +9,29 @@ export async function GET(
   try {
     const { id: restaurantId } = await params;
 
+    const integration = await prisma.fiscalIntegration.findUnique({
+      where: { restaurantId },
+    });
+
+    if (!integration?.companyId) {
+      return NextResponse.json(
+        { error: "Empresa Moloni não configurada." },
+        { status: 400 },
+      );
+    }
+
     const token = await getValidMoloniToken(restaurantId);
 
     const response = await fetch(
-      `https://api.moloni.pt/v1/companies/getAll/?access_token=${token}`,
+      `https://api.moloni.pt/v1/documentSets/getAll/?access_token=${token}`,
       {
         method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          company_id: String(integration.companyId),
+        }),
       },
     );
 
@@ -22,7 +39,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error("MOLONI COMPANIES ERROR:", error);
+    console.error(error);
 
     return NextResponse.json(
       { error: error?.message ?? "Erro interno." },

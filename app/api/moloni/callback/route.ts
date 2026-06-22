@@ -47,6 +47,17 @@ const redirectUri = `${baseRedirectUri}?restaurantId=${restaurantId}`;
 
     const response = await fetch(tokenUrl);
     const data = await response.json();
+    const companiesResponse = await fetch(
+  `https://api.moloni.pt/v1/companies/getAll/?access_token=${data.access_token}`,
+  {
+    method: "POST",
+  },
+);
+
+const companies = await companiesResponse.json();
+
+const companyId =
+  companies?.[0]?.company_id?.toString() ?? null;
 
     if (!response.ok || !data?.access_token) {
       return NextResponse.json(
@@ -63,6 +74,7 @@ const redirectUri = `${baseRedirectUri}?restaurantId=${restaurantId}`;
       create: {
         restaurantId,
         provider: "MOLONI",
+        companyId,
         clientId: developerId,
         clientSecret,
         accessToken: data.access_token,

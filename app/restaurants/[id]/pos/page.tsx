@@ -16,6 +16,7 @@ export default async function RestaurantPOSPage({
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
+       fiscalIntegration: true,
       posCashRegisters: {
         include: {
           payments: true,
@@ -232,6 +233,7 @@ export default async function RestaurantPOSPage({
         todayPayments={todayPayments}
         pendingOrders={pendingOrders}
         qrAlerts={qrAlerts}
+        fiscalIntegration={restaurant.fiscalIntegration}
       />
     </main>
   );

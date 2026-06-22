@@ -302,6 +302,7 @@ export default function POSClient({
   todayPayments,
   pendingOrders,
   qrAlerts,
+  fiscalIntegration,
 }: {
   restaurantId: string;
   restaurantName: string;
@@ -312,12 +313,16 @@ export default function POSClient({
   todayPayments: POSTodayPayment[];
   pendingOrders: QRPendingOrder[];
   qrAlerts: QRAlert[];
+  fiscalIntegration: {
+  active: boolean;
+  companyId: string | null;
+} | null;
 }) {
   const [report, setReport] = useState<POSReport | null>(null);
 const [loadingReport, setLoadingReport] = useState(false);
   const [documents, setDocuments] = useState<FiscalDocument[]>([]);
 const [loadingDocuments, setLoadingDocuments] = useState(false);
-const [fiscalIntegration, setFiscalIntegration] = useState<any>(null);
+const [loadedFiscalIntegration, setLoadedFiscalIntegration] = useState<any>(null);
 const [loadingFiscal, setLoadingFiscal] = useState(false);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
@@ -368,6 +373,14 @@ const [loadingFiscal, setLoadingFiscal] = useState(false);
   const [showCashMovementModal, setShowCashMovementModal] =
   useState(false);
 
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+
+const [invoiceVat, setInvoiceVat] = useState("");
+const [invoiceName, setInvoiceName] = useState("");
+const [invoiceEmail, setInvoiceEmail] = useState("");
+
+const [creatingInvoice, setCreatingInvoice] = useState(false);
+
 const [cashMovementType, setCashMovementType] =
   useState<"IN" | "OUT">("OUT");
 
@@ -379,6 +392,10 @@ const [cashMovementReason, setCashMovementReason] =
 
 const [savingCashMovement, setSavingCashMovement] =
   useState(false);
+
+  const fiscalReady = Boolean(
+  fiscalIntegration?.active && fiscalIntegration?.companyId,
+);
 
   const selectedTable = useMemo(
     () => tables.find((table) => table.id === selectedTableId) ?? null,
@@ -949,6 +966,75 @@ async function applyDiscount(data: {
   router.refresh();
 }
 
+async function createInvoiceAndCloseTable() {
+  if (!selectedSession) return;
+
+  try {
+    setCreatingInvoice(true);
+
+    const customerResponse = await fetch(
+      `/api/restaurants/${restaurantId}/fiscal/customers/create`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          vat: invoiceVat,
+          name: invoiceName,
+          email: invoiceEmail,
+        }),
+      },
+    );
+
+    const customerData = await customerResponse.json();
+
+    if (!customerResponse.ok) {
+      throw new Error(customerData?.error ?? "Erro cliente.");
+    }
+
+    const invoiceResponse = await fetch(
+      `/api/restaurants/${restaurantId}/fiscal/invoices/create`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionId: selectedSession.id,
+          customerId: String(
+            customerData.customerId ??
+              customerData.customer_id,
+          ),
+          withVatNumber: invoiceVat.trim().length > 0,
+        }),
+      },
+    );
+
+    const invoiceData = await invoiceResponse.json();
+
+    if (!invoiceResponse.ok) {
+      throw new Error(
+        invoiceData?.error ?? "Erro ao emitir fatura.",
+      );
+    }
+
+    await closeTableWithPayment();
+
+    setInvoiceModalOpen(false);
+
+    setInvoiceVat("");
+    setInvoiceName("");
+    setInvoiceEmail("");
+
+    alert("Fatura emitida com sucesso.");
+  } catch (error: any) {
+    alert(error?.message ?? "Erro.");
+  } finally {
+    setCreatingInvoice(false);
+  }
+}
+
   async function closeTableWithPayment() {
     if (!selectedSession) return;
 
@@ -1197,15 +1283,15 @@ async function rejectQrOrder(orderId: string) {
     );
 
     if (!response.ok) {
-      setFiscalIntegration(null);
+      setLoadedFiscalIntegration(null);
       return;
     }
 
     const data = await response.json();
 
-    setFiscalIntegration(data.integration);
+    setLoadedFiscalIntegration(data.integration);
   } catch {
-    setFiscalIntegration(null);
+    setLoadedFiscalIntegration(null);
   } finally {
     setLoadingFiscal(false);
   }
@@ -1404,7 +1490,7 @@ onCashOut={() => {
 
         {!selectedTableId && posTab === "FISCAL" && (
   <FiscalSettingsView
-    integration={fiscalIntegration}
+    integration={loadedFiscalIntegration ?? fiscalIntegration}
     loading={loadingFiscal}
   />
 )}
@@ -1548,6 +1634,10 @@ onCashOut={() => {
 
       {paymentOpen && selectedSession && selectedTable && (
         <PaymentModal
+        fiscalReady={fiscalReady}
+onCreateInvoice={() => {
+  setInvoiceModalOpen(true);
+}}
   tableNumber={selectedTable.number}
   total={Number(selectedSession.remainingAmount ?? selectedSession.totalAmount ?? 0)}
   guestCount={selectedSession.guestCount ?? 1}
@@ -1597,6 +1687,20 @@ onCashOut={() => {
     onChangeReason={setCashMovementReason}
     onClose={() => setShowCashMovementModal(false)}
     onConfirm={createCashMovement}
+  />
+)}
+
+{invoiceModalOpen && (
+  <InvoiceModal
+    vat={invoiceVat}
+    name={invoiceName}
+    email={invoiceEmail}
+    loading={creatingInvoice}
+    onChangeVat={setInvoiceVat}
+    onChangeName={setInvoiceName}
+    onChangeEmail={setInvoiceEmail}
+    onClose={() => setInvoiceModalOpen(false)}
+    onConfirm={createInvoiceAndCloseTable}
   />
 )}
 
@@ -4504,6 +4608,80 @@ function PartialPaymentModal({
   );
 }
 
+function InvoiceModal({
+  vat,
+  name,
+  email,
+  loading,
+  onChangeVat,
+  onChangeName,
+  onChangeEmail,
+  onClose,
+  onConfirm,
+}: {
+  vat: string;
+  name: string;
+  email: string;
+  loading: boolean;
+  onChangeVat: (value: string) => void;
+  onChangeName: (value: string) => void;
+  onChangeEmail: (value: string) => void;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-md rounded-3xl bg-white p-6">
+        <h3 className="text-2xl font-black">
+          Emitir fatura
+        </h3>
+
+        <div className="mt-5 space-y-4">
+          <input
+            placeholder="NIF"
+            value={vat}
+            onChange={(e) => onChangeVat(e.target.value)}
+            className="h-12 w-full rounded-xl border px-4"
+          />
+
+          <input
+            placeholder="Nome"
+            value={name}
+            onChange={(e) => onChangeName(e.target.value)}
+            className="h-12 w-full rounded-xl border px-4"
+          />
+
+          <input
+            placeholder="Email"
+            value={email}
+            onChange={(e) => onChangeEmail(e.target.value)}
+            className="h-12 w-full rounded-xl border px-4"
+          />
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-2">
+          <button
+            onClick={onClose}
+            className="h-12 rounded-xl border"
+          >
+            Cancelar
+          </button>
+
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="h-12 rounded-xl bg-[#11100F] font-black text-white"
+          >
+            {loading
+              ? "A emitir..."
+              : "Emitir fatura"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PaymentModal({
   tableNumber,
   total,
@@ -4515,6 +4693,8 @@ function PaymentModal({
   onChangeMethod,
   onClose,
   onConfirm,
+  fiscalReady,
+  onCreateInvoice,
 }: {
   tableNumber: number;
   total: number;
@@ -4522,10 +4702,12 @@ function PaymentModal({
   splitCount: number;
   method: PaymentMethod;
   loading: boolean;
+  fiscalReady: boolean;
   onChangeSplitCount: (value: number) => void;
   onChangeMethod: (method: PaymentMethod) => void;
   onClose: () => void;
   onConfirm: () => void;
+  onCreateInvoice: () => void;
 }) {
   const safeSplit = Math.max(1, splitCount);
   const splitAmount = total / safeSplit;
@@ -4622,9 +4804,25 @@ function PaymentModal({
           })}
         </div>
 
-        <button onClick={onConfirm} disabled={loading} className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-[#C99B4F] text-sm font-black text-white shadow-[0_16px_34px_rgba(201,155,79,0.28)] transition hover:bg-[#B98A3E] disabled:opacity-50">
-          {loading ? "A fechar..." : "Fechar mesa"}
-        </button>
+        <div className="mt-6 grid gap-2">
+  {fiscalReady && (
+    <button
+      onClick={onCreateInvoice}
+      disabled={loading}
+      className="flex h-14 w-full items-center justify-center rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] text-sm font-black text-[#8B5E22] transition hover:bg-[#FBF4E8] disabled:opacity-50"
+    >
+      Cobrar e emitir fatura
+    </button>
+  )}
+
+  <button
+    onClick={onConfirm}
+    disabled={loading}
+    className="flex h-14 w-full items-center justify-center rounded-2xl bg-[#C99B4F] text-sm font-black text-white shadow-[0_16px_34px_rgba(201,155,79,0.28)] transition hover:bg-[#B98A3E] disabled:opacity-50"
+  >
+    {loading ? "A fechar..." : fiscalReady ? "Cobrar sem fatura" : "Fechar mesa"}
+  </button>
+</div>
       </div>
     </div>
   );
@@ -4668,7 +4866,7 @@ function DiscountModal({
   loading,
   target,
   onClose,
-  onConfirm,
+    onConfirm,
 }: {
   loading: boolean;
   target: DiscountTarget;
