@@ -86,7 +86,20 @@ export default async function RestaurantPOSPage({
           },
         },
       },
-    },
+
+        printJobs: {
+  where: {
+    status: "PENDING",
+  },
+  include: {
+    productionCenter: true,
+  },
+  orderBy: {
+    createdAt: "asc",
+  },
+},
+
+      },
   });
 
   if (!restaurant) notFound();
@@ -215,6 +228,15 @@ export default async function RestaurantPOSPage({
     requestedBillAt: session.requestedBillAt,
   }));
 
+  const printJobs = restaurant.printJobs.map((job) => ({
+  ...job,
+  createdAt: job.createdAt.toISOString(),
+  updatedAt: job.updatedAt.toISOString(),
+  printedAt: job.printedAt
+    ? job.printedAt.toISOString()
+    : null,
+}));
+
   return (
     <main className="flex h-screen overflow-hidden bg-[#F6F1EA] text-[#171412]">
       <RestaurantSidebar
@@ -234,6 +256,7 @@ export default async function RestaurantPOSPage({
         pendingOrders={pendingOrders}
         qrAlerts={qrAlerts}
         fiscalIntegration={restaurant.fiscalIntegration}
+        printJobs={printJobs}
       />
     </main>
   );

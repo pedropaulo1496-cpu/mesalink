@@ -141,6 +141,7 @@ type POSTab =
   | "CASH"
   | "SERVICE"
   | "KITCHEN"
+  | "PRODUCTION"
   | "HISTORY"
   | "FISCAL"
   | "DOCUMENTS"
@@ -321,6 +322,7 @@ export default function POSClient({
   pendingOrders,
   qrAlerts,
   fiscalIntegration,
+  printJobs,
 }: {
   restaurantId: string;
   restaurantName: string;
@@ -338,6 +340,8 @@ export default function POSClient({
   simplifiedInvoiceSerieId?: string | null;
   creditNoteSerieId?: string | null;
 } | null;
+
+  printJobs: any[];
 }) {
   const [report, setReport] = useState<POSReport | null>(null);
 const [loadingReport, setLoadingReport] = useState(false);
@@ -1783,6 +1787,10 @@ onCashOut={() => {
           />
         )}
 
+        {!selectedTableId && posTab === "PRODUCTION" && (
+  <ProductionView jobs={printJobs} />
+)}
+
         {!selectedTableId && posTab === "HISTORY" && (
           <HistoryView payments={historyPayments} loading={loadingHistory} />
         )}
@@ -2280,6 +2288,57 @@ function QrOrdersView({
   );
 }
 
+function ProductionView({
+  jobs,
+}: {
+  jobs: any[];
+}) {
+  return (
+    <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-5">
+      <div className="mb-5">
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
+          Produção
+        </p>
+
+        <h2 className="mt-1 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
+          Tickets pendentes
+        </h2>
+      </div>
+
+      {jobs.length === 0 ? (
+        <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6 text-center">
+          <p className="font-bold text-[#7D746A]">
+            Sem tickets pendentes
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-3 xl:grid-cols-2">
+          {jobs.map((job) => (
+            <div
+              key={job.id}
+              className="rounded-[20px] border border-[#E8E0D4] bg-[#FCFBF9] p-4"
+            >
+              <p className="text-sm font-black text-[#0E0D0C]">
+                {job.title}
+              </p>
+
+              <p className="mt-1 text-xs font-bold text-[#8B7C68]">
+                {job.productionCenter?.name ?? "Sem produção"}
+              </p>
+
+              <div className="mt-3 rounded-xl bg-white p-3">
+                <pre className="overflow-x-auto text-xs">
+                  {JSON.stringify(job.payload, null, 2)}
+                </pre>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 
 function POSTabs({
   activeTab,
@@ -2293,6 +2352,7 @@ function POSTabs({
     { key: "CASH", label: "Caixa" },
     { key: "SERVICE", label: "Serviço" },
     { key: "KITCHEN", label: "QR Orders" },
+{ key: "PRODUCTION", label: "Produção" },
     { key: "HISTORY", label: "Histórico" },
     { key: "FISCAL", label: "Faturação" },
 { key: "DOCUMENTS", label: "Documentos" },
@@ -2966,7 +3026,7 @@ function FiscalSettingsView({
     </div>
 
     <a
-      href="https://admin.moloni.pt/"
+      href="https://moloni.pt/"
       target="_blank"
       rel="noopener noreferrer"
       className="inline-flex h-12 shrink-0 items-center justify-center rounded-xl bg-[#11100F] px-6 text-sm font-black text-white transition hover:opacity-90"

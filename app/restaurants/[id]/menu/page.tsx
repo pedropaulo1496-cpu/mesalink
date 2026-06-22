@@ -10,6 +10,75 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
+async function createProductionCenter(formData: FormData) {
+  "use server";
+
+  const restaurantId = String(formData.get("restaurantId"));
+  const name = String(formData.get("name") || "").trim();
+  const printerName = String(formData.get("printerName") || "").trim();
+  const position = Number(formData.get("position") || 0);
+
+  if (!restaurantId || !name) return;
+
+  await prisma.productionCenter.create({
+    data: {
+      restaurantId,
+      name,
+      printerName,
+      position,
+      active: true,
+    },
+  });
+
+  revalidatePath(`/restaurants/${restaurantId}/menu`);
+}
+
+async function updateProductionCenter(formData: FormData) {
+  "use server";
+
+  const restaurantId = String(formData.get("restaurantId"));
+  const productionCenterId = String(formData.get("productionCenterId"));
+  const name = String(formData.get("name") || "").trim();
+  const printerName = String(formData.get("printerName") || "").trim();
+  const position = Number(formData.get("position") || 0);
+  const active = String(formData.get("active")) === "on";
+
+  if (!restaurantId || !productionCenterId || !name) return;
+
+  await prisma.productionCenter.update({
+    where: { id: productionCenterId },
+    data: {
+      name,
+      printerName,
+      position,
+      active,
+    },
+  });
+
+  revalidatePath(`/restaurants/${restaurantId}/menu`);
+}
+
+async function deleteProductionCenter(formData: FormData) {
+  "use server";
+
+  const restaurantId = String(formData.get("restaurantId"));
+  const productionCenterId = String(formData.get("productionCenterId"));
+  const confirmDelete = String(formData.get("confirmDelete") || "") === "on";
+
+  if (!restaurantId || !productionCenterId || !confirmDelete) return;
+
+  await prisma.orderingProduct.updateMany({
+    where: { productionCenterId },
+    data: { productionCenterId: null },
+  });
+
+  await prisma.productionCenter.delete({
+    where: { id: productionCenterId },
+  });
+
+  revalidatePath(`/restaurants/${restaurantId}/menu`);
+}
+
 async function createCategory(formData: FormData) {
   "use server";
 
@@ -82,7 +151,8 @@ async function createProduct(formData: FormData) {
   const sortOrder = Number(formData.get("sortOrder") || 0);
   const allergens = String(formData.get("allergens") || "").trim();
   const imageUrl = String(formData.get("imageUrl") || "").trim();
-  const productionCenter = String(formData.get("productionCenter") || "KITCHEN");
+  const productionCenterId =
+  String(formData.get("productionCenterId") || "") || null;
   const printName = String(formData.get("printName") || "").trim();
 
   if (!restaurantId || !categoryId || !name || !price) return;
@@ -98,7 +168,7 @@ async function createProduct(formData: FormData) {
       sortOrder,
       allergens,
       imageUrl,
-      productionCenter,
+      productionCenterId,
       printName,
       featured: String(formData.get("featured")) === "on",
       active: true,
@@ -124,7 +194,8 @@ async function updateProduct(formData: FormData) {
   const sortOrder = Number(formData.get("sortOrder") || 0);
   const allergens = String(formData.get("allergens") || "").trim();
   const imageUrl = String(formData.get(`imageUrl-${productId}`) || "").trim();
-  const productionCenter = String(formData.get("productionCenter") || "KITCHEN");
+  const productionCenterId =
+  String(formData.get("productionCenterId") || "") || null;
   const printName = String(formData.get("printName") || "").trim();
 
   if (!restaurantId || !productId || !name || !price) return;
@@ -139,7 +210,7 @@ async function updateProduct(formData: FormData) {
       sku,
       sortOrder,
       allergens,
-      productionCenter,
+      productionCenterId,
       printName,
       featured: String(formData.get("featured")) === "on",
       active: String(formData.get("active")) === "on",
@@ -190,15 +261,24 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
 
   const { id } = await params;
 
-  const restaurant = await prisma.restaurant.findUnique({
-    where: { id },
-    include: {
-      orderingCategories: {
+ const restaurant = await prisma.restaurant.findUnique({
+  where: { id },
+  include: {
+    productionCenters: {
+      orderBy: {
+        position: "asc",
+      },
+    },
+
+    orderingCategories: {
         orderBy: [{ position: "asc" }, { name: "asc" }],
         include: {
           products: {
-            orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-          },
+  orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+  include: {
+    productionCenter: true,
+  },
+},
         },
       },
     },
@@ -287,8 +367,9 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
 
           <section className="mt-5 grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
             <div className="space-y-5">
-              <CreateCategoryCard restaurantId={restaurant.id} />
-              <CreateProductCard restaurant={restaurant} />
+<ProductionCenterCard restaurant={restaurant} />
+<CreateCategoryCard restaurantId={restaurant.id} />
+<CreateProductCard restaurant={restaurant} />
             </div>
 
             <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
@@ -316,11 +397,12 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
                 ) : (
                   restaurant.orderingCategories.map((category, index) => (
                     <CategoryCard
-                      key={category.id}
-                      category={category}
-                      restaurantId={restaurant.id}
-                      open={index === 0}
-                    />
+  key={category.id}
+  category={category}
+  restaurantId={restaurant.id}
+  productionCenters={restaurant.productionCenters}
+  open={index === 0}
+/>
                   ))
                 )}
               </div>
@@ -329,6 +411,172 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
         </div>
       </div>
     </main>
+  );
+}
+
+function ProductionCenterCard({ restaurant }: { restaurant: any }) {
+  return (
+    <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
+        Produção
+      </p>
+
+      <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
+        Centros de produção
+      </h2>
+
+      <p className="mt-2 text-sm leading-6 text-[#6B6258]">
+        Cria zonas como Cozinha, Bar, Sala 1 ou Cozinha 2. Depois associas cada
+        produto a uma destas zonas.
+      </p>
+
+      <form action={createProductionCenter} className="mt-5 space-y-3">
+        <input type="hidden" name="restaurantId" value={restaurant.id} />
+
+        <input
+          name="name"
+          placeholder="Ex: Cozinha, Bar, Sala 1"
+          className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
+        />
+
+        <input
+          name="printerName"
+          placeholder="Impressora associada. Ex: Epson Cozinha"
+          className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
+        />
+
+        <input
+          name="position"
+          type="number"
+          placeholder="Ordem"
+          className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
+        />
+
+        <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:opacity-90">
+          Criar produção
+        </button>
+      </form>
+
+      <div className="mt-5 space-y-2">
+        {restaurant.productionCenters.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-[#E8DCCB] bg-[#FFF9F0] p-4 text-sm text-[#6B6258]">
+            Ainda não tens centros de produção.
+          </p>
+        ) : (
+          restaurant.productionCenters.map((center: any) => (
+            <details
+              key={center.id}
+              className="rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4"
+            >
+              <summary className="cursor-pointer list-none">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-[#16120E]">
+                      {center.name}
+                    </p>
+
+                    <p className="mt-1 text-xs font-semibold text-[#6B6258]">
+                      Impressora: {center.printerName || "Não definida"} · Ordem{" "}
+                      {center.position}
+                    </p>
+                  </div>
+
+                  <ChannelBadge
+                    label={center.active ? "Ativa" : "Inativa"}
+                    active={center.active}
+                  />
+                </div>
+              </summary>
+
+              <form
+                action={updateProductionCenter}
+                className="mt-4 space-y-3 border-t border-[#E8DCCB] pt-4"
+              >
+                <input type="hidden" name="restaurantId" value={restaurant.id} />
+                <input
+                  type="hidden"
+                  name="productionCenterId"
+                  value={center.id}
+                />
+
+                <input
+                  name="name"
+                  defaultValue={center.name}
+                  className="h-11 w-full rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
+                />
+
+                <input
+                  name="printerName"
+                  defaultValue={center.printerName || ""}
+                  placeholder="Impressora"
+                  className="h-11 w-full rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
+                />
+
+                <input
+                  name="position"
+                  type="number"
+                  defaultValue={center.position}
+                  className="h-11 w-full rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
+                />
+
+                <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3 text-sm font-bold text-[#6B6258]">
+                  <span>Ativa</span>
+                  <input
+                    name="active"
+                    type="checkbox"
+                    defaultChecked={center.active}
+                    className="h-4 w-4 accent-[#16120E]"
+                  />
+                </label>
+
+                <button className="h-10 w-full rounded-full bg-[#16120E] text-xs font-semibold text-white">
+                  Guardar produção
+                </button>
+              </form>
+
+              <details className="mt-3">
+                <summary className="inline-flex cursor-pointer list-none rounded-full border border-red-300/20 bg-[#FFF0EA] px-4 py-2 text-xs font-semibold uppercase text-[#A14E36]">
+                  Eliminar produção
+                </summary>
+
+                <form
+                  action={deleteProductionCenter}
+                  className="mt-3 rounded-2xl border border-red-300/20 bg-[#FFF0EA] p-3"
+                >
+                  <input
+                    type="hidden"
+                    name="restaurantId"
+                    value={restaurant.id}
+                  />
+                  <input
+                    type="hidden"
+                    name="productionCenterId"
+                    value={center.id}
+                  />
+
+                  <p className="text-xs font-bold text-[#A14E36]">
+                    Os produtos associados ficam sem produção.
+                  </p>
+
+                  <label className="mt-3 flex items-center gap-2 text-xs font-bold text-[#A14E36]">
+                    <input
+                      name="confirmDelete"
+                      type="checkbox"
+                      className="h-4 w-4 accent-red-400"
+                    />
+                    Confirmo que quero apagar
+                  </label>
+
+                  <button className="mt-3 h-9 rounded-full border border-red-300/30 bg-red-400/20 px-4 text-xs font-semibold uppercase text-[#A14E36]">
+                    Apagar
+                  </button>
+                </form>
+              </details>
+            </details>
+          ))
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -447,13 +695,19 @@ function CreateProductCard({ restaurant }: { restaurant: any }) {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <select
-            name="productionCenter"
-            defaultValue="KITCHEN"
-            className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
-          >
-            <option value="KITCHEN">Produção: Cozinha</option>
-            <option value="BAR">Produção: Bar</option>
-          </select>
+  name="productionCenterId"
+  defaultValue=""
+  className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
+>
+  <option value="">Sem produção</option>
+
+  {restaurant.productionCenters.map((center: any) => (
+    <option key={center.id} value={center.id}>
+      {center.name}
+      {center.printerName ? ` · ${center.printerName}` : ""}
+    </option>
+  ))}
+</select>
 
           <input
             name="printName"
@@ -483,10 +737,12 @@ function CreateProductCard({ restaurant }: { restaurant: any }) {
 function CategoryCard({
   category,
   restaurantId,
+  productionCenters,
   open,
 }: {
   category: any;
   restaurantId: string;
+  productionCenters: any[];
   open: boolean;
 }) {
   const activeProducts = category.products.filter((product: any) => product.active).length;
@@ -568,10 +824,11 @@ function CategoryCard({
           ) : (
             category.products.map((product: any) => (
               <ProductCard
-                key={product.id}
-                product={product}
-                restaurantId={restaurantId}
-              />
+  key={product.id}
+  product={product}
+  restaurantId={restaurantId}
+  productionCenters={productionCenters}
+/>
             ))
           )}
         </div>
@@ -614,9 +871,11 @@ function CategoryCard({
 function ProductCard({
   product,
   restaurantId,
+  productionCenters,
 }: {
   product: any;
   restaurantId: string;
+  productionCenters: any[];
 }) {
   return (
     <details
@@ -647,10 +906,10 @@ function ProductCard({
 
             {!product.active && <ChannelBadge label="Inativo" active={false} />}
             {product.featured && <ChannelBadge label="Destaque" active />}
-            <ChannelBadge
-              label={product.productionCenter === "BAR" ? "Bar" : "Cozinha"}
-              active
-            />
+           <ChannelBadge
+  label={product.productionCenter?.name || "Sem produção"}
+  active={!!product.productionCenter}
+/>
           </div>
 
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -739,13 +998,19 @@ function ProductCard({
             />
 
             <select
-              name="productionCenter"
-              defaultValue={product.productionCenter || "KITCHEN"}
-              className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
-            >
-              <option value="KITCHEN">Produção: Cozinha</option>
-              <option value="BAR">Produção: Bar</option>
-            </select>
+  name="productionCenterId"
+  defaultValue={product.productionCenterId || ""}
+  className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
+>
+  <option value="">Sem produção</option>
+
+  {productionCenters.map((center: any) => (
+    <option key={center.id} value={center.id}>
+      {center.name}
+      {center.printerName ? ` · ${center.printerName}` : ""}
+    </option>
+  ))}
+</select>
 
             <input
               name="printName"

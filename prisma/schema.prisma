@@ -188,6 +188,8 @@ model Restaurant {
   posTableTransfers POSTableTransfer[]
   posDiscountCodes  POSDiscountCode[]
   posCashMovements  POSCashMovement[]
+  productionCenters ProductionCenter[]
+  printJobs         PrintJob[]
 }
 
 model WebsiteMenu {
@@ -354,8 +356,11 @@ model OrderingProduct {
   activeInOrdering Boolean        @default(true)
   activeOnWebsite  Boolean        @default(true)
   posorderItems    POSOrderItem[]
-  productionCenter String         @default("KITCHEN")
-  printName        String?
+
+  productionCenterId String?
+  productionCenter   ProductionCenter? @relation(fields: [productionCenterId], references: [id])
+
+  printName String?
 }
 
 model OrderingOrder {
@@ -564,7 +569,8 @@ model POSOrder {
   kitchenNotes  String?
   customerNotes String?
 
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime   @default(now()) @updatedAt
+  printJobs PrintJob[]
 }
 
 model POSOrderItem {
@@ -583,7 +589,7 @@ model POSOrderItem {
   unitPrice Decimal @db.Decimal(10, 2)
 
   totalPrice Decimal @db.Decimal(10, 2)
-  vatRate Decimal @default(23) @db.Decimal(5, 2)
+  vatRate    Decimal @default(23) @db.Decimal(5, 2)
 
   paidQuantity   Int @default(0)
   voidedQuantity Int @default(0)
@@ -841,4 +847,60 @@ model POSCashMovement {
   @@index([restaurantId])
   @@index([cashRegisterId])
   @@index([type])
+}
+
+model ProductionCenter {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  name String
+
+  active Boolean @default(true)
+
+  printerName String?
+
+  position Int @default(0)
+
+  products OrderingProduct[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  printJobs PrintJob[]
+}
+
+model PrintJob {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  posOrderId String?
+  posOrder   POSOrder? @relation(fields: [posOrderId], references: [id], onDelete: Cascade)
+
+  productionCenterId String?
+  productionCenter   ProductionCenter? @relation(fields: [productionCenterId], references: [id])
+
+  status String @default("PENDING")
+  // PENDING
+  // PRINTED
+  // FAILED
+
+  type String @default("PRODUCTION")
+  // PRODUCTION
+  // CONSULTATION
+  // INVOICE
+
+  title   String
+  payload Json
+
+  printedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([restaurantId])
+  @@index([posOrderId])
+  @@index([productionCenterId])
+  @@index([status])
 }

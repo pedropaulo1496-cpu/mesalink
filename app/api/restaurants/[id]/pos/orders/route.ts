@@ -129,7 +129,7 @@ export async function POST(
       });
     }
 
-    await prisma.pOSOrder.create({
+    const order = await prisma.pOSOrder.create({
       data: {
         restaurantId,
         tableSessionId: session.id,
@@ -164,6 +164,73 @@ export async function POST(
         },
       },
     });
+
+    const createdOrder = await prisma.pOSOrder.findUnique({
+  where: { id: order.id },
+  include: {
+    items: {
+      include: {
+        product: {
+          include: {
+            productionCenter: true,
+          },
+        },
+      },
+    },
+  },
+});
+
+if (createdOrder) {
+  const groups = new Map<string, any[]>();
+
+  for (const item of createdOrder.items) {
+    const centerId = item.product?.productionCenterId || "NO_PRODUCTION";
+
+    if (!groups.has(centerId)) {
+      groups.set(centerId, []);
+    }
+
+    groups.get(centerId)?.push(item);
+  }
+
+  for (const [centerId, groupItems] of groups.entries()) {
+    const firstItem = groupItems[0];
+    const center = firstItem.product?.productionCenter;
+
+    await prisma.printJob.create({
+      data: {
+        restaurantId,
+        posOrderId: createdOrder.id,
+        productionCenterId: centerId === "NO_PRODUCTION" ? null : centerId,
+        status: "PENDING",
+        type: "PRODUCTION",
+        title: center?.name
+          ? `Pedido para ${center.name}`
+          : "Pedido sem produção",
+        payload: {
+          orderId: createdOrder.id,
+          tableId,
+          source: createdOrder.source,
+          productionCenter: center
+            ? {
+                id: center.id,
+                name: center.name,
+                printerName: center.printerName,
+              }
+            : null,
+          items: groupItems.map((item) => ({
+            id: item.id,
+            productId: item.productId,
+            name: item.productName,
+            quantity: item.quantity,
+            notes: item.notes,
+          })),
+          createdAt: createdOrder.createdAt,
+        },
+      },
+    });
+  }
+}
 
     await recalculateSession(session.id);
 
