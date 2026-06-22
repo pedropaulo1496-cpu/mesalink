@@ -2958,6 +2958,33 @@ function FiscalSettingsView({
     Escolhe as séries Moloni obrigatórias para ativar o POS.
   </p>
 
+  <div className="mt-5 rounded-2xl border border-[#E8E0D4] bg-white p-5">
+  <p className="font-black text-[#0E0D0C]">
+    Ainda não tem séries fiscais?
+  </p>
+
+  <p className="mt-1 text-sm font-medium leading-6 text-[#7D746A]">
+    Abra o Moloni, crie as séries fiscais e comunique-as à AT. Depois volte ao
+    MesaLink e selecione as séries abaixo.
+  </p>
+
+  <ol className="mt-3 space-y-1 text-sm font-bold text-[#7D746A]">
+    <li>1. Abrir Moloni</li>
+    <li>2. Ir a Configurações → Séries de documentos</li>
+    <li>3. Criar/comunicar série à AT</li>
+    <li>4. Voltar ao MesaLink e guardar as séries</li>
+  </ol>
+
+  <a
+    href="https://admin.moloni.pt/"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="mt-5 inline-flex h-12 items-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
+  >
+    Abrir Moloni
+  </a>
+</div>
+
   <div className="mt-5 grid gap-4 md:grid-cols-3">
     <FiscalSerieSelect
       label="Fatura"
