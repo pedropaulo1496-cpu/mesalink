@@ -2,8 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { getValidMoloniToken } from "@/lib/moloni";
 import { NextResponse } from "next/server";
 
-const DOCUMENT_SET_ID = "950393";
-
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -29,6 +27,17 @@ export async function POST(
         { status: 400 },
       );
     }
+
+    const documentSetId =
+  integration.invoiceSerieId ||
+  integration.simplifiedInvoiceSerieId;
+
+if (!documentSetId) {
+  return NextResponse.json(
+    { error: "Série Moloni não configurada." },
+    { status: 400 },
+  );
+}
 
     const session = await prisma.pOSTableSession.findFirst({
       where: {
@@ -85,7 +94,7 @@ export async function POST(
         },
         body: new URLSearchParams({
           company_id: String(integration.companyId),
-          document_set_id: DOCUMENT_SET_ID,
+          document_set_id: String(documentSetId),
           customer_id: String(customerId),
           date: new Date().toISOString().slice(0, 10),
           expiration_date: new Date().toISOString().slice(0, 10),
