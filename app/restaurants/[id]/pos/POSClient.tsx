@@ -532,12 +532,7 @@ const expectedCash =
   const qrAttentionCount = pendingOrders.length + qrAlerts.length;
 
   function selectTable(tableId: string) {
-    if (!fiscalReady) {
-  setPosTab("FISCAL");
-  alert("Configura primeiro a faturação Moloni.");
-  return;
-}
-
+    
   if (!openCashRegister) {
     setPosTab("CASH");
     alert("Tens de abrir a caixa antes de abrir mesas.");
@@ -558,11 +553,6 @@ const expectedCash =
 }
 
   function quickSale() {
-    if (!fiscalReady) {
-  setPosTab("FISCAL");
-  alert("Configura primeiro a faturação Moloni.");
-  return;
-}
 
   if (!openCashRegister) {
     setPosTab("CASH");
@@ -875,11 +865,7 @@ const expectedCash =
 }
 
   function openPayment() {
-    if (!fiscalReady) {
-  setPosTab("FISCAL");
-  alert("Configura primeiro a faturação Moloni.");
-  return;
-}
+    
     const paymentTotal = Number(
       selectedSession?.remainingAmount ?? selectedSession?.totalAmount ?? grandTotal,
     );
@@ -1264,11 +1250,7 @@ setInvoiceAddress("");
   }
 
   async function openCashRegisterAction() {
-    if (!fiscalReady) {
-  setPosTab("FISCAL");
-  alert("Configura primeiro a faturação Moloni.");
-  return;
-}
+    
     const amount = Number(openingAmount.replace(",", ".") || 0);
 
     setSavingCashRegister(true);
@@ -2966,7 +2948,7 @@ function FiscalSettingsView({
   value={integration.creditNoteSerieId ?? "Não configurada"}
 />
 
-<div className="mt-8 rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6">
+<div className="mt-8 w-full rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6">
   <h3 className="text-xl font-black text-[#0E0D0C]">
     Séries fiscais
   </h3>
@@ -3030,7 +3012,7 @@ function FiscalSettingsView({
   </a>
 </div>
 
-  <div className="mt-5 grid gap-4 md:grid-cols-3">
+  <div className="mt-5 grid w-full gap-4 lg:grid-cols-3">
     <FiscalSerieSelect
       label="Fatura"
       value={invoiceSerieId}
