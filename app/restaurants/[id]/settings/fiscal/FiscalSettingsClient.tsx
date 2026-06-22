@@ -26,6 +26,7 @@ type FiscalDocument = {
 type DocumentSet = {
   document_set_id: number;
   name: string;
+  document_set_at_codes?: unknown[];
 };
 
 export default function FiscalSettingsClient({
@@ -123,6 +124,15 @@ export default function FiscalSettingsClient({
   useEffect(() => {
     loadDocumentSets();
   }, [connected]);
+
+  const selectedInvoiceSerie = documentSets.find(
+  (set) => String(set.document_set_id) === invoiceSerieId,
+);
+
+const selectedSerieNotReady =
+  selectedInvoiceSerie &&
+  Array.isArray(selectedInvoiceSerie.document_set_at_codes) &&
+  selectedInvoiceSerie.document_set_at_codes.length === 0;
 
   return (
     <div className="flex-1 p-8">
@@ -224,12 +234,29 @@ export default function FiscalSettingsClient({
                 />
               </div>
 
+              {selectedSerieNotReady && (
+  <div className="mt-5 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-5">
+    <p className="font-black text-[#8B5E22]">
+      Série ainda não comunicada à AT
+    </p>
+    <p className="mt-1 text-sm font-medium text-[#7D746A]">
+      Esta série existe no Moloni, mas ainda não tem códigos AT/ATCUD.
+      O restaurante deve ir ao Moloni &gt; Configurações &gt; Séries de
+      documentos e comunicar/ativar a série fiscal antes de emitir faturas.
+    </p>
+  </div>
+)}
+
               <button
                 onClick={saveSeries}
-                disabled={saving || documentSets.length === 0}
+                disabled={saving || documentSets.length === 0 || Boolean(selectedSerieNotReady)}
                 className="mt-6 h-12 rounded-xl bg-[#171412] px-6 text-sm font-black text-white transition hover:opacity-90 disabled:opacity-50"
               >
-                {saving ? "A guardar..." : "Guardar séries"}
+                {saving
+  ? "A guardar..."
+  : selectedSerieNotReady
+    ? "Série não comunicada à AT"
+    : "Guardar séries"}
               </button>
             </div>
           )}
@@ -320,6 +347,10 @@ function Select({
             value={String(option.document_set_id)}
           >
             {option.name}
+{Array.isArray(option.document_set_at_codes) &&
+option.document_set_at_codes.length === 0
+  ? " — não comunicada à AT"
+  : ""}
           </option>
         ))}
       </select>

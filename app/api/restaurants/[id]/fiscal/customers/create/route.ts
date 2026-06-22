@@ -10,10 +10,11 @@ export async function POST(
     const { id: restaurantId } = await params;
 
     const {
-      vat,
-      name,
-      email,
-    } = await request.json();
+  vat,
+  name,
+  email,
+  address,
+} = await request.json();
 
     const integration = await prisma.fiscalIntegration.findUnique({
       where: {
@@ -44,6 +45,7 @@ export async function POST(
   name: name || "Consumidor Final",
   vat,
   email: email ?? "",
+  address: address ?? "",
   country_id: "1",
 
   language_id: "1",

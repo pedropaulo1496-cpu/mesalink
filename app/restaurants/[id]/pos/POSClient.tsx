@@ -25,7 +25,9 @@ type FiscalDocument = {
   id: string;
   documentType: string;
   documentNumber?: string | null;
+  status?: string;
   totalAmount: number;
+  pdfUrl?: string | null;
   issuedAt?: string | null;
   createdAt: string;
 };
@@ -179,6 +181,15 @@ type POSHistoryPayment = {
   method: string;
   status: string;
   createdAt: string | Date;
+
+  fiscalDocument?: {
+    id: string;
+    documentNumber?: string | null;
+    documentType: string;
+    status: string;
+    pdfUrl?: string | null;
+  } | null;
+
   tableSession?: {
     guestCount?: number | null;
     table?: {
@@ -228,6 +239,13 @@ type QRAlert = {
   tableNumber: number;
   requestedWaiterAt?: string | Date | null;
   requestedBillAt?: string | Date | null;
+};
+
+type FiscalReport = {
+  invoices: number;
+  simplifiedInvoices: number;
+  creditNotes: number;
+  total: number;
 };
 
 function formatMoney(value: number) {
@@ -322,6 +340,14 @@ export default function POSClient({
 const [loadingReport, setLoadingReport] = useState(false);
   const [documents, setDocuments] = useState<FiscalDocument[]>([]);
 const [loadingDocuments, setLoadingDocuments] = useState(false);
+const [fiscalReport, setFiscalReport] = useState<FiscalReport>({
+  invoices: 0,
+  simplifiedInvoices: 0,
+  creditNotes: 0,
+  total: 0,
+});
+
+const [loadingFiscalReport, setLoadingFiscalReport] = useState(false);
 const [loadedFiscalIntegration, setLoadedFiscalIntegration] = useState<any>(null);
 const [loadingFiscal, setLoadingFiscal] = useState(false);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
@@ -378,8 +404,21 @@ const [loadingFiscal, setLoadingFiscal] = useState(false);
 const [invoiceVat, setInvoiceVat] = useState("");
 const [invoiceName, setInvoiceName] = useState("");
 const [invoiceEmail, setInvoiceEmail] = useState("");
+const [invoiceCustomerType, setInvoiceCustomerType] =
+  useState<"FINAL_CONSUMER" | "VAT">("FINAL_CONSUMER");
+
+const [invoiceAddress, setInvoiceAddress] = useState("");
 
 const [creatingInvoice, setCreatingInvoice] = useState(false);
+
+const [creditNoteDocument, setCreditNoteDocument] =
+  useState<FiscalDocument | null>(null);
+
+const [creditNoteReason, setCreditNoteReason] =
+  useState("Anulação de documento");
+
+const [creatingCreditNote, setCreatingCreditNote] =
+  useState(false);
 
 const [cashMovementType, setCashMovementType] =
   useState<"IN" | "OUT">("OUT");
@@ -393,8 +432,14 @@ const [cashMovementReason, setCashMovementReason] =
 const [savingCashMovement, setSavingCashMovement] =
   useState(false);
 
-  const fiscalReady = Boolean(
-  fiscalIntegration?.active && fiscalIntegration?.companyId,
+ const activeFiscalIntegration =
+  loadedFiscalIntegration ?? fiscalIntegration;
+
+const fiscalReady = Boolean(
+  activeFiscalIntegration?.active &&
+    activeFiscalIntegration?.companyId &&
+    (activeFiscalIntegration?.invoiceSerieId ||
+      activeFiscalIntegration?.simplifiedInvoiceSerieId),
 );
 
   const selectedTable = useMemo(
@@ -966,32 +1011,138 @@ async function applyDiscount(data: {
   router.refresh();
 }
 
-async function createInvoiceAndCloseTable() {
-  if (!selectedSession) return;
+async function createCreditNote() {
+  if (!creditNoteDocument) return;
 
   try {
-    setCreatingInvoice(true);
+    setCreatingCreditNote(true);
 
-    const customerResponse = await fetch(
-      `/api/restaurants/${restaurantId}/fiscal/customers/create`,
+    const response = await fetch(
+      `/api/restaurants/${restaurantId}/fiscal/credit-notes/create`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          vat: invoiceVat,
-          name: invoiceName,
-          email: invoiceEmail,
+          documentId: creditNoteDocument.id,
+          reason: creditNoteReason,
         }),
       },
     );
 
-    const customerData = await customerResponse.json();
+    const data = await response.json();
 
-    if (!customerResponse.ok) {
-      throw new Error(customerData?.error ?? "Erro cliente.");
+    if (!response.ok) {
+      throw new Error(data?.error ?? "Erro ao emitir nota de crédito.");
     }
+
+    setCreditNoteDocument(null);
+    setCreditNoteReason("Anulação de documento");
+
+    alert("Nota de crédito emitida com sucesso.");
+
+    loadDocuments();
+  } catch (error: any) {
+    alert(error?.message ?? "Erro.");
+  } finally {
+    setCreatingCreditNote(false);
+  }
+}
+
+async function fetchVatData() {
+  if (!invoiceVat.trim()) {
+    alert("Indica primeiro o NIF.");
+    return;
+  }
+
+  const response = await fetch(
+    `/api/fiscal/nif?nif=${encodeURIComponent(invoiceVat.trim())}`,
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    alert(data?.error ?? "Erro ao obter dados.");
+    return;
+  }
+
+  const record =
+    data?.records?.[invoiceVat] ??
+    data?.records?.[invoiceVat.trim()] ??
+    data?.record ??
+    data;
+
+  setInvoiceName(record?.title ?? record?.name ?? "");
+  setInvoiceAddress(record?.address ?? "");
+}
+
+async function createInvoiceAndCloseTable() {
+  if (!selectedSession) return;
+  if (invoiceCustomerType === "VAT") {
+  const cleanVat = invoiceVat.trim();
+
+  if (!/^\d{9}$/.test(cleanVat)) {
+    alert("O NIF deve ter 9 dígitos.");
+    return;
+  }
+
+  if (!invoiceName.trim()) {
+    alert("Indica o nome fiscal do cliente.");
+    return;
+  }
+}
+
+  try {
+    setCreatingInvoice(true);
+
+    const fiscalVat =
+  invoiceCustomerType === "FINAL_CONSUMER" ? "999999990" : invoiceVat.trim();
+
+const fiscalName =
+  invoiceCustomerType === "FINAL_CONSUMER"
+    ? "Consumidor Final"
+    : invoiceName.trim();
+
+const searchResponse = await fetch(
+  `/api/restaurants/${restaurantId}/fiscal/customers/search`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ vat: fiscalVat }),
+  },
+);
+
+const searchData = await searchResponse.json();
+
+let customerId =
+  searchData?.customer?.customer_id ??
+  searchData?.customer?.id ??
+  null;
+
+if (!customerId) {
+  const customerResponse = await fetch(
+    `/api/restaurants/${restaurantId}/fiscal/customers/create`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        vat: fiscalVat,
+        name: fiscalName,
+        email: invoiceEmail,
+        address: invoiceAddress,
+      }),
+    },
+  );
+
+  const customerData = await customerResponse.json();
+
+  if (!customerResponse.ok) {
+    throw new Error(customerData?.error ?? "Erro cliente.");
+  }
+
+  customerId = customerData.customerId ?? customerData.customer_id;
+}
 
     const invoiceResponse = await fetch(
       `/api/restaurants/${restaurantId}/fiscal/invoices/create`,
@@ -1002,11 +1153,8 @@ async function createInvoiceAndCloseTable() {
         },
         body: JSON.stringify({
           sessionId: selectedSession.id,
-          customerId: String(
-            customerData.customerId ??
-              customerData.customer_id,
-          ),
-          withVatNumber: invoiceVat.trim().length > 0,
+          customerId: String(customerId),
+withVatNumber: invoiceCustomerType === "VAT",
         }),
       },
     );
@@ -1014,10 +1162,23 @@ async function createInvoiceAndCloseTable() {
     const invoiceData = await invoiceResponse.json();
 
     if (!invoiceResponse.ok) {
-      throw new Error(
-        invoiceData?.error ?? "Erro ao emitir fatura.",
-      );
-    }
+  const detailsText = Array.isArray(invoiceData?.details)
+    ? invoiceData.details.join(" ")
+    : "";
+
+  if (
+    detailsText.includes("document_set_wsat_id") ||
+    detailsText.includes("document_set_id")
+  ) {
+    throw new Error(
+      "A série Moloni deste restaurante ainda não está comunicada à AT. Vai ao Moloni > Configurações > Séries de documentos e comunica/ativa a série fiscal.",
+    );
+  }
+
+  throw new Error(
+    invoiceData?.error ?? "Erro ao emitir fatura.",
+  );
+}
 
     await closeTableWithPayment();
 
@@ -1026,6 +1187,9 @@ async function createInvoiceAndCloseTable() {
     setInvoiceVat("");
     setInvoiceName("");
     setInvoiceEmail("");
+
+    setInvoiceCustomerType("FINAL_CONSUMER");
+setInvoiceAddress("");
 
     alert("Fatura emitida com sucesso.");
   } catch (error: any) {
@@ -1320,6 +1484,37 @@ async function rejectQrOrder(orderId: string) {
   }
 }
 
+async function loadFiscalReport() {
+  setLoadingFiscalReport(true);
+
+  try {
+    const response = await fetch(
+      `/api/restaurants/${restaurantId}/fiscal/report`,
+    );
+
+    if (!response.ok) {
+      setFiscalReport({
+        invoices: 0,
+        simplifiedInvoices: 0,
+        creditNotes: 0,
+        total: 0,
+      });
+      return;
+    }
+
+    const data = await response.json();
+
+    setFiscalReport({
+      invoices: Number(data.invoices ?? 0),
+      simplifiedInvoices: Number(data.simplifiedInvoices ?? 0),
+      creditNotes: Number(data.creditNotes ?? 0),
+      total: Number(data.total ?? 0),
+    });
+  } finally {
+    setLoadingFiscalReport(false);
+  }
+}
+
 async function loadReport() {
   setLoadingReport(true);
 
@@ -1349,10 +1544,11 @@ async function loadReport() {
     loadHistory();
   }, [posTab]);
 
-  useEffect(() => {
+ useEffect(() => {
   if (posTab !== "DOCUMENTS") return;
 
   loadDocuments();
+  loadFiscalReport();
 }, [posTab]);
 
  useEffect(() => {
@@ -1497,9 +1693,14 @@ onCashOut={() => {
 
 {!selectedTableId && posTab === "DOCUMENTS" && (
   <FiscalDocumentsView
-    documents={documents}
-    loading={loadingDocuments}
-  />
+  documents={documents}
+  loading={loadingDocuments}
+  report={fiscalReport}
+  loadingReport={loadingFiscalReport}
+  onCreateCreditNote={(document) => {
+    setCreditNoteDocument(document);
+  }}
+/>
 )}
 
 {!selectedTableId && posTab === "STATS" && (
@@ -1694,13 +1895,29 @@ onCreateInvoice={() => {
   <InvoiceModal
     vat={invoiceVat}
     name={invoiceName}
+    address={invoiceAddress}
     email={invoiceEmail}
+    customerType={invoiceCustomerType}
     loading={creatingInvoice}
     onChangeVat={setInvoiceVat}
     onChangeName={setInvoiceName}
+    onChangeAddress={setInvoiceAddress}
     onChangeEmail={setInvoiceEmail}
+    onChangeCustomerType={setInvoiceCustomerType}
+    onFetchVatData={fetchVatData}
     onClose={() => setInvoiceModalOpen(false)}
     onConfirm={createInvoiceAndCloseTable}
+  />
+)}
+
+{creditNoteDocument && (
+  <CreditNoteModal
+    document={creditNoteDocument}
+    reason={creditNoteReason}
+    loading={creatingCreditNote}
+    onChangeReason={setCreditNoteReason}
+    onClose={() => setCreditNoteDocument(null)}
+    onConfirm={createCreditNote}
   />
 )}
 
@@ -2391,6 +2608,25 @@ function HistoryView({
                         minute: "2-digit",
                       })}
                     </p>
+                    {payment.fiscalDocument && (
+  <div className="mt-3 rounded-xl border border-[#E8E0D4] bg-white px-3 py-2">
+    <p className="text-xs font-black text-[#0E0D0C]">
+      Documento fiscal:{" "}
+      {payment.fiscalDocument.documentNumber ?? "Sem número"}
+    </p>
+
+    {payment.fiscalDocument.pdfUrl && (
+      <a
+        href={payment.fiscalDocument.pdfUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-1 inline-block text-xs font-black text-[#B58A45] hover:underline"
+      >
+        Abrir PDF
+      </a>
+    )}
+  </div>
+)}
                   </div>
 
                   <p className="text-xl font-black tracking-[-0.04em] text-[#0E0D0C]">
@@ -2588,12 +2824,37 @@ function ReportRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function FiscalMetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-4">
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7C68]">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function FiscalDocumentsView({
   documents,
   loading,
+  report,
+  loadingReport,
+  onCreateCreditNote,
 }: {
   documents: FiscalDocument[];
   loading: boolean;
+  report: FiscalReport;
+  loadingReport: boolean;
+  onCreateCreditNote: (document: FiscalDocument) => void;
 }) {
   return (
     <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-6">
@@ -2605,12 +2866,68 @@ function FiscalDocumentsView({
         <h2 className="mt-2 text-[32px] font-black tracking-[-0.05em] text-[#0E0D0C]">
           Documentos fiscais
         </h2>
-      </div>
+</div>
+
+<div className="mb-6 grid gap-3 md:grid-cols-4">
+  <FiscalMetricCard
+    label="Faturas"
+    value={loadingReport ? "..." : String(report.invoices)}
+  />
+
+  <FiscalMetricCard
+    label="Simplificadas"
+    value={loadingReport ? "..." : String(report.simplifiedInvoices)}
+  />
+
+  <FiscalMetricCard
+    label="Notas crédito"
+    value={loadingReport ? "..." : String(report.creditNotes)}
+  />
+
+  <FiscalMetricCard
+    label="Total faturado"
+    value={loadingReport ? "..." : formatMoney(report.total)}
+  />
+</div>
+
+<div className="mb-6 rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-5">
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
+        SAF-T mensal
+      </p>
+
+      <h3 className="mt-2 text-xl font-black text-[#0E0D0C]">
+        Exportação SAF-T feita no Moloni
+      </h3>
+
+      <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#7D746A]">
+        Como os documentos fiscais são emitidos através da conta Moloni do
+        restaurante, o ficheiro SAF-T deve ser exportado diretamente no Moloni.
+      </p>
+
+      <p className="mt-3 text-sm font-black text-[#8B5E22]">
+        Menu no Moloni: A. Tributária → Ficheiro SAF-T(PT)
+      </p>
+
+      <p className="mt-1 text-xs font-bold text-[#8B7C68]">
+        Prazo habitual: até dia 5 do mês seguinte.
+      </p>
+    </div>
+
+    <a
+      href="https://www.moloni.pt/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="shrink-0 rounded-xl bg-[#11100F] px-4 py-3 text-xs font-black text-white transition hover:opacity-90"
+    >
+      Abrir Moloni
+    </a>
+  </div>
+</div>
 
       {loading ? (
-        <p className="text-sm text-[#7D746A]">
-          A carregar documentos...
-        </p>
+        <p className="text-sm text-[#7D746A]">A carregar documentos...</p>
       ) : documents.length === 0 ? (
         <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6">
           <p className="font-black text-[#0E0D0C]">
@@ -2627,7 +2944,7 @@ function FiscalDocumentsView({
               key={doc.id}
               className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-4"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="font-black text-[#0E0D0C]">
                     {doc.documentNumber ?? "Sem número"}
@@ -2636,11 +2953,33 @@ function FiscalDocumentsView({
                   <p className="text-xs text-[#7D746A]">
                     {doc.documentType}
                   </p>
+
+                  {doc.pdfUrl && (
+                    <a
+                      href={doc.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-block text-xs font-black text-[#B58A45] hover:underline"
+                    >
+                      Abrir PDF
+                    </a>
+                  )}
                 </div>
 
-                <p className="font-black text-[#0E0D0C]">
-                  €{doc.totalAmount.toFixed(2)}
-                </p>
+                <div className="text-right">
+                  <p className="font-black text-[#0E0D0C]">
+                    €{doc.totalAmount.toFixed(2)}
+                  </p>
+
+                  {doc.documentType !== "CREDIT_NOTE" && (
+                    <button
+                     onClick={() => onCreateCreditNote(doc)}
+                      className="mt-3 rounded-xl border border-[#F0D4C8] bg-[#FFF7F3] px-3 py-2 text-xs font-black text-[#B4583C] hover:bg-[#FFECE3]"
+                    >
+                      Nota de crédito
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -4138,6 +4477,14 @@ function CartLineEditorModal({
     item?.discountAmount ? String(item.discountAmount) : "",
   );
   const [notes, setNotes] = useState(item?.notes ?? "");
+  const [creditNoteDocument, setCreditNoteDocument] =
+  useState<FiscalDocument | null>(null);
+
+const [creditNoteReason, setCreditNoteReason] =
+  useState("Anulação de documento");
+
+const [creatingCreditNote, setCreatingCreditNote] =
+  useState(false);
 
   useEffect(() => {
     if (!item) return;
@@ -4608,56 +4955,190 @@ function PartialPaymentModal({
   );
 }
 
+function CreditNoteModal({
+  document,
+  reason,
+  loading,
+  onChangeReason,
+  onClose,
+  onConfirm,
+}: {
+  document: FiscalDocument;
+  reason: string;
+  loading: boolean;
+  onChangeReason: (value: string) => void;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+        <p className="text-xs font-black uppercase tracking-[0.3em] text-[#B58A45]">
+          Nota de crédito
+        </p>
+
+        <h3 className="mt-3 text-3xl font-black text-[#0E0D0C]">
+          Anular documento
+        </h3>
+
+        <p className="mt-2 text-sm text-[#7D746A]">
+          Documento: {document.documentNumber ?? "Sem número"} ·{" "}
+          {formatMoney(document.totalAmount)}
+        </p>
+
+        <div className="mt-5">
+          <label className="mb-2 block text-xs font-black uppercase tracking-[0.2em] text-[#7D746A]">
+            Motivo
+          </label>
+
+          <textarea
+            value={reason}
+            onChange={(event) => onChangeReason(event.target.value)}
+            className="min-h-28 w-full rounded-2xl border border-[#E8E0D4] p-4 text-sm outline-none focus:border-[#B58A45]"
+          />
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-2">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="h-12 rounded-xl border border-[#E8E0D4] font-black"
+          >
+            Cancelar
+          </button>
+
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="h-12 rounded-xl bg-[#B4583C] font-black text-white disabled:opacity-50"
+          >
+            {loading ? "A emitir..." : "Emitir NC"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function InvoiceModal({
   vat,
   name,
+  address,
   email,
+  customerType,
   loading,
   onChangeVat,
   onChangeName,
+  onChangeAddress,
   onChangeEmail,
+  onChangeCustomerType,
+  onFetchVatData,
   onClose,
   onConfirm,
 }: {
   vat: string;
   name: string;
+  address: string;
   email: string;
+  customerType: "FINAL_CONSUMER" | "VAT";
   loading: boolean;
   onChangeVat: (value: string) => void;
   onChangeName: (value: string) => void;
+  onChangeAddress: (value: string) => void;
   onChangeEmail: (value: string) => void;
+  onChangeCustomerType: (
+    value: "FINAL_CONSUMER" | "VAT",
+  ) => void;
+  onFetchVatData: () => void;
   onClose: () => void;
   onConfirm: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-md rounded-3xl bg-white p-6">
-        <h3 className="text-2xl font-black">
-          Emitir fatura
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-xl">
+        <h3 className="text-3xl font-black">
+          Emitir documento
         </h3>
 
-        <div className="mt-5 space-y-4">
-          <input
-            placeholder="NIF"
-            value={vat}
-            onChange={(e) => onChangeVat(e.target.value)}
-            className="h-12 w-full rounded-xl border px-4"
-          />
+        <p className="mt-2 text-sm text-[#6B6B6B]">
+          Escolhe o tipo de cliente e os dados fiscais.
+        </p>
 
-          <input
-            placeholder="Nome"
-            value={name}
-            onChange={(e) => onChangeName(e.target.value)}
-            className="h-12 w-full rounded-xl border px-4"
-          />
+        <div className="mt-6 grid gap-2">
+          <button
+            onClick={() =>
+              onChangeCustomerType("FINAL_CONSUMER")
+            }
+            className={
+              customerType === "FINAL_CONSUMER"
+                ? "rounded-xl border border-[#C99B4F] bg-[#FFF8EC] px-4 py-3 text-left font-black"
+                : "rounded-xl border px-4 py-3 text-left"
+            }
+          >
+            Consumidor Final
+          </button>
 
-          <input
-            placeholder="Email"
-            value={email}
-            onChange={(e) => onChangeEmail(e.target.value)}
-            className="h-12 w-full rounded-xl border px-4"
-          />
+          <button
+            onClick={() => onChangeCustomerType("VAT")}
+            className={
+              customerType === "VAT"
+                ? "rounded-xl border border-[#C99B4F] bg-[#FFF8EC] px-4 py-3 text-left font-black"
+                : "rounded-xl border px-4 py-3 text-left"
+            }
+          >
+            Cliente com NIF
+          </button>
         </div>
+
+        {customerType === "VAT" && (
+          <div className="mt-6 space-y-4">
+            <div className="flex gap-2">
+              <input
+                placeholder="NIF"
+                value={vat}
+                onChange={(e) =>
+                  onChangeVat(e.target.value)
+                }
+                className="h-12 flex-1 rounded-xl border px-4"
+              />
+
+              <button
+                onClick={onFetchVatData}
+                type="button"
+                className="rounded-xl border px-4 font-black"
+              >
+                Obter dados
+              </button>
+            </div>
+
+            <input
+              placeholder="Nome"
+              value={name}
+              onChange={(e) =>
+                onChangeName(e.target.value)
+              }
+              className="h-12 w-full rounded-xl border px-4"
+            />
+
+            <input
+              placeholder="Morada Fiscal"
+              value={address}
+              onChange={(e) =>
+                onChangeAddress(e.target.value)
+              }
+              className="h-12 w-full rounded-xl border px-4"
+            />
+
+            <input
+              placeholder="Email"
+              value={email}
+              onChange={(e) =>
+                onChangeEmail(e.target.value)
+              }
+              className="h-12 w-full rounded-xl border px-4"
+            />
+          </div>
+        )}
 
         <div className="mt-6 grid grid-cols-2 gap-2">
           <button
@@ -4674,7 +5155,9 @@ function InvoiceModal({
           >
             {loading
               ? "A emitir..."
-              : "Emitir fatura"}
+              : customerType === "FINAL_CONSUMER"
+                ? "Emitir Fatura Simplificada"
+                : "Emitir Fatura"}
           </button>
         </div>
       </div>

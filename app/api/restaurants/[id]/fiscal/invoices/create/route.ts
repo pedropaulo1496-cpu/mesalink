@@ -39,19 +39,25 @@ if (!documentSetId) {
   );
 }
 
-    const session = await prisma.pOSTableSession.findFirst({
-      where: {
-        id: sessionId,
-        restaurantId,
+   const session = await prisma.pOSTableSession.findFirst({
+  where: {
+    id: sessionId,
+    restaurantId,
+  },
+  include: {
+    payments: {
+      orderBy: {
+        createdAt: "desc",
       },
+      take: 1,
+    },
+    orders: {
       include: {
-        orders: {
-          include: {
-            items: true,
-          },
-        },
+        items: true,
       },
-    });
+    },
+  },
+});
 
     if (!session) {
       return NextResponse.json(
@@ -141,20 +147,40 @@ if (!documentSetId) {
       data?.url ??
       null;
 
+      const latestPayment = session.payments?.[0] ?? null;
+
     await prisma.fiscalDocument.create({
-      data: {
-        restaurantId,
-        tableSessionId: session.id,
-        documentType: withVatNumber ? "INVOICE" : "SIMPLIFIED_INVOICE",
-        status: "ISSUED",
-        provider: "MOLONI",
-        externalId: documentId ? String(documentId) : null,
-        documentNumber: documentNumber ? String(documentNumber) : null,
-        pdfUrl: pdfUrl ? String(pdfUrl) : null,
-        totalAmount: Number(session.totalAmount ?? 0),
-        issuedAt: new Date(),
-      },
-    });
+  data: {
+    restaurantId,
+    tableSessionId: session.id,
+    paymentId: latestPayment?.id,
+
+    documentType: withVatNumber
+      ? "INVOICE"
+      : "SIMPLIFIED_INVOICE",
+
+    status: "ISSUED",
+    provider: "MOLONI",
+
+    externalId: documentId
+      ? String(documentId)
+      : null,
+
+    documentNumber: documentNumber
+      ? String(documentNumber)
+      : null,
+
+    pdfUrl: pdfUrl
+      ? String(pdfUrl)
+      : null,
+
+    totalAmount: Number(
+      session.totalAmount ?? 0,
+    ),
+
+    issuedAt: new Date(),
+  },
+});
 
     return NextResponse.json({
       success: true,
