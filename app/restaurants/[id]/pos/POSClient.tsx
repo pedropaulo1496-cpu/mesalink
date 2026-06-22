@@ -438,8 +438,9 @@ const [savingCashMovement, setSavingCashMovement] =
 const fiscalReady = Boolean(
   activeFiscalIntegration?.active &&
     activeFiscalIntegration?.companyId &&
-    (activeFiscalIntegration?.invoiceSerieId ||
-      activeFiscalIntegration?.simplifiedInvoiceSerieId),
+    activeFiscalIntegration?.invoiceSerieId &&
+    activeFiscalIntegration?.simplifiedInvoiceSerieId &&
+    activeFiscalIntegration?.creditNoteSerieId,
 );
 
   const selectedTable = useMemo(
@@ -518,6 +519,12 @@ const expectedCash =
   const qrAttentionCount = pendingOrders.length + qrAlerts.length;
 
   function selectTable(tableId: string) {
+    if (!fiscalReady) {
+  setPosTab("FISCAL");
+  alert("Configura primeiro a faturação Moloni.");
+  return;
+}
+
   if (!openCashRegister) {
     setPosTab("CASH");
     alert("Tens de abrir a caixa antes de abrir mesas.");
@@ -538,6 +545,12 @@ const expectedCash =
 }
 
   function quickSale() {
+    if (!fiscalReady) {
+  setPosTab("FISCAL");
+  alert("Configura primeiro a faturação Moloni.");
+  return;
+}
+
   if (!openCashRegister) {
     setPosTab("CASH");
     alert("Tens de abrir a caixa antes de iniciar venda rápida.");
@@ -849,6 +862,11 @@ const expectedCash =
 }
 
   function openPayment() {
+    if (!fiscalReady) {
+  setPosTab("FISCAL");
+  alert("Configura primeiro a faturação Moloni.");
+  return;
+}
     const paymentTotal = Number(
       selectedSession?.remainingAmount ?? selectedSession?.totalAmount ?? grandTotal,
     );
@@ -1233,6 +1251,11 @@ setInvoiceAddress("");
   }
 
   async function openCashRegisterAction() {
+    if (!fiscalReady) {
+  setPosTab("FISCAL");
+  alert("Configura primeiro a faturação Moloni.");
+  return;
+}
     const amount = Number(openingAmount.replace(",", ".") || 0);
 
     setSavingCashRegister(true);
