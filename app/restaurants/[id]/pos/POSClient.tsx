@@ -334,6 +334,9 @@ export default function POSClient({
   fiscalIntegration: {
   active: boolean;
   companyId: string | null;
+  invoiceSerieId?: string | null;
+  simplifiedInvoiceSerieId?: string | null;
+  creditNoteSerieId?: string | null;
 } | null;
 }) {
   const [report, setReport] = useState<POSReport | null>(null);
@@ -350,6 +353,12 @@ const [fiscalReport, setFiscalReport] = useState<FiscalReport>({
 const [loadingFiscalReport, setLoadingFiscalReport] = useState(false);
 const [loadedFiscalIntegration, setLoadedFiscalIntegration] = useState<any>(null);
 const [loadingFiscal, setLoadingFiscal] = useState(false);
+const [documentSets, setDocumentSets] = useState<any[]>([]);
+const [savingFiscalSeries, setSavingFiscalSeries] = useState(false);
+
+const [invoiceSerieId, setInvoiceSerieId] = useState("");
+const [simplifiedInvoiceSerieId, setSimplifiedInvoiceSerieId] = useState("");
+const [creditNoteSerieId, setCreditNoteSerieId] = useState("");
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     categories[0]?.id ?? null,
@@ -1477,10 +1486,66 @@ async function rejectQrOrder(orderId: string) {
     const data = await response.json();
 
     setLoadedFiscalIntegration(data.integration);
+    setInvoiceSerieId(data.integration?.invoiceSerieId ?? "");
+setSimplifiedInvoiceSerieId(data.integration?.simplifiedInvoiceSerieId ?? "");
+setCreditNoteSerieId(data.integration?.creditNoteSerieId ?? "");
   } catch {
     setLoadedFiscalIntegration(null);
   } finally {
     setLoadingFiscal(false);
+  }
+}
+
+async function loadDocumentSets() {
+  try {
+    const response = await fetch(
+      `/api/restaurants/${restaurantId}/fiscal/document-sets`,
+    );
+
+    if (!response.ok) {
+      setDocumentSets([]);
+      return;
+    }
+
+    const data = await response.json();
+
+    setDocumentSets(data.documentSets ?? data ?? []);
+  } catch {
+    setDocumentSets([]);
+  }
+}
+
+async function saveFiscalSeries() {
+  try {
+    setSavingFiscalSeries(true);
+
+    const response = await fetch(
+      `/api/restaurants/${restaurantId}/fiscal/settings`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          invoiceSerieId,
+          simplifiedInvoiceSerieId,
+          creditNoteSerieId,
+          active: true,
+        }),
+      },
+    );
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      alert(data?.error ?? "Erro ao guardar séries.");
+      return;
+    }
+
+    alert("Séries guardadas.");
+    await loadFiscalSettings();
+  } finally {
+    setSavingFiscalSeries(false);
   }
 }
 
@@ -1584,6 +1649,7 @@ useEffect(() => {
   if (posTab !== "FISCAL") return;
 
   loadFiscalSettings();
+  loadDocumentSets();
 }, [posTab]);
 
 useEffect(() => {
@@ -1724,9 +1790,18 @@ onCashOut={() => {
 
         {!selectedTableId && posTab === "FISCAL" && (
   <FiscalSettingsView
-    integration={loadedFiscalIntegration ?? fiscalIntegration}
-    loading={loadingFiscal}
-  />
+  integration={loadedFiscalIntegration ?? fiscalIntegration}
+  loading={loadingFiscal}
+  documentSets={documentSets}
+  invoiceSerieId={invoiceSerieId}
+  simplifiedInvoiceSerieId={simplifiedInvoiceSerieId}
+  creditNoteSerieId={creditNoteSerieId}
+  savingSeries={savingFiscalSeries}
+  onChangeInvoiceSerieId={setInvoiceSerieId}
+  onChangeSimplifiedInvoiceSerieId={setSimplifiedInvoiceSerieId}
+  onChangeCreditNoteSerieId={setCreditNoteSerieId}
+  onSaveSeries={saveFiscalSeries}
+/>
 )}
 
 {!selectedTableId && posTab === "DOCUMENTS" && (
@@ -2741,12 +2816,71 @@ function FiscalRequiredView({
   );
 }
 
+function FiscalSerieSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: any[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7C68]">
+        {label}
+      </label>
+
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-12 w-full rounded-xl border border-[#E8E0D4] bg-white px-4 text-sm font-black outline-none focus:border-[#B58A45]"
+      >
+        <option value="">Selecionar série</option>
+
+        {options.map((option) => (
+          <option
+            key={option.document_set_id}
+            value={String(option.document_set_id)}
+          >
+            {option.name ?? option.document_set_id}
+            {Array.isArray(option.document_set_at_codes) &&
+            option.document_set_at_codes.length === 0
+              ? " — não comunicada à AT"
+              : ""}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function FiscalSettingsView({
   integration,
   loading,
+  documentSets,
+  invoiceSerieId,
+  simplifiedInvoiceSerieId,
+  creditNoteSerieId,
+  savingSeries,
+  onChangeInvoiceSerieId,
+  onChangeSimplifiedInvoiceSerieId,
+  onChangeCreditNoteSerieId,
+  onSaveSeries,
 }: {
   integration: any;
   loading: boolean;
+  documentSets: any[];
+  invoiceSerieId: string;
+  simplifiedInvoiceSerieId: string;
+  creditNoteSerieId: string;
+  savingSeries: boolean;
+  onChangeInvoiceSerieId: (value: string) => void;
+  onChangeSimplifiedInvoiceSerieId: (value: string) => void;
+  onChangeCreditNoteSerieId: (value: string) => void;
+  onSaveSeries: () => void;
 }) {
   return (
     <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-6">
@@ -2759,6 +2893,21 @@ function FiscalSettingsView({
           Integração Moloni
         </h2>
       </div>
+
+      {integration &&
+  (!integration.invoiceSerieId ||
+    !integration.simplifiedInvoiceSerieId ||
+    !integration.creditNoteSerieId) && (
+    <div className="mb-6 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-5">
+      <p className="font-black text-[#8B5E22]">
+        Configuração incompleta
+      </p>
+      <p className="mt-1 text-sm font-medium text-[#7D746A]">
+        Para ativar o POS, tens de configurar a série de fatura, fatura
+        simplificada e nota de crédito.
+      </p>
+    </div>
+  )}
 
       {loading ? (
         <p>A carregar...</p>
@@ -2789,6 +2938,62 @@ function FiscalSettingsView({
             label="Série Fatura"
             value={integration.invoiceSerieId ?? "-"}
           />
+
+          <InfoCard
+  label="Série fatura simplificada"
+  value={integration.simplifiedInvoiceSerieId ?? "Não configurada"}
+/>
+
+<InfoCard
+  label="Série nota de crédito"
+  value={integration.creditNoteSerieId ?? "Não configurada"}
+/>
+
+<div className="mt-8 rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6">
+  <h3 className="text-xl font-black text-[#0E0D0C]">
+    Séries fiscais
+  </h3>
+
+  <p className="mt-1 text-sm font-medium text-[#7D746A]">
+    Escolhe as séries Moloni obrigatórias para ativar o POS.
+  </p>
+
+  <div className="mt-5 grid gap-4 md:grid-cols-3">
+    <FiscalSerieSelect
+      label="Fatura"
+      value={invoiceSerieId}
+      options={documentSets}
+      onChange={onChangeInvoiceSerieId}
+    />
+
+    <FiscalSerieSelect
+      label="Fatura Simplificada"
+      value={simplifiedInvoiceSerieId}
+      options={documentSets}
+      onChange={onChangeSimplifiedInvoiceSerieId}
+    />
+
+    <FiscalSerieSelect
+      label="Nota de Crédito"
+      value={creditNoteSerieId}
+      options={documentSets}
+      onChange={onChangeCreditNoteSerieId}
+    />
+  </div>
+
+  <button
+    onClick={onSaveSeries}
+    disabled={
+      savingSeries ||
+      !invoiceSerieId ||
+      !simplifiedInvoiceSerieId ||
+      !creditNoteSerieId
+    }
+    className="mt-6 h-12 rounded-xl bg-[#11100F] px-6 text-sm font-black text-white disabled:opacity-40"
+  >
+    {savingSeries ? "A guardar..." : "Guardar séries"}
+  </button>
+</div>
         </div>
       )}
     </section>
