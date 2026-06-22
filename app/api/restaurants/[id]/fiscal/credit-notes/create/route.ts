@@ -90,18 +90,18 @@ export async function POST(
     const token = await getValidMoloniToken(restaurantId);
 
     const products = items.map((item) => ({
-      name: item.productName,
-      qty: Number(item.quantity ?? 1),
-      price: Number(item.unitPrice ?? 0),
-      taxes: [
-        {
-          tax_id: 0,
-          value: 23,
-          order: 1,
-          cumulative: 0,
-        },
-      ],
-    }));
+  name: item.productName,
+  qty: Number(item.quantity ?? 1),
+  price: Number(item.unitPrice ?? 0),
+  taxes: [
+    {
+      tax_id: 0,
+      value: Number(item.vatRate ?? 23),
+      order: 1,
+      cumulative: 0,
+    },
+  ],
+}));
 
     const response = await fetch(
       `https://api.moloni.pt/v1/creditNotes/insert/?access_token=${token}`,

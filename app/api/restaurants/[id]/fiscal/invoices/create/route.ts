@@ -77,19 +77,23 @@ if (!documentSetId) {
 
     const token = await getValidMoloniToken(restaurantId);
 
-    const products = items.map((item) => ({
-      name: item.productName,
-      qty: Number(item.quantity ?? 1),
-      price: Number(item.unitPrice ?? 0),
-      taxes: [
-        {
-          tax_id: 0,
-          value: 23,
-          order: 1,
-          cumulative: 0,
-        },
-      ],
-    }));
+    const products = items.map((item) => {
+  const vatRate = Number((item as any).vatRate ?? 23);
+
+  return {
+    name: item.productName,
+    qty: Number(item.quantity ?? 1),
+    price: Number(item.unitPrice ?? 0),
+    taxes: [
+      {
+        tax_id: 0,
+        value: vatRate,
+        order: 1,
+        cumulative: 0,
+      },
+    ],
+  };
+});
 
     const response = await fetch(
       `https://api.moloni.pt/v1/invoices/insert/?access_token=${token}`,

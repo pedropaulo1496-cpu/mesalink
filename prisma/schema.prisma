@@ -583,6 +583,7 @@ model POSOrderItem {
   unitPrice Decimal @db.Decimal(10, 2)
 
   totalPrice Decimal @db.Decimal(10, 2)
+  vatRate Decimal @default(23) @db.Decimal(5, 2)
 
   paidQuantity   Int @default(0)
   voidedQuantity Int @default(0)

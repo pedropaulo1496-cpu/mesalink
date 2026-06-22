@@ -452,6 +452,10 @@ const fiscalReady = Boolean(
     activeFiscalIntegration?.creditNoteSerieId,
 );
 
+  const experimentalMode = !fiscalReady;
+
+const canUsePOS = fiscalReady || experimentalMode;
+
   const selectedTable = useMemo(
     () => tables.find((table) => table.id === selectedTableId) ?? null,
     [tables, selectedTableId],
@@ -1712,12 +1716,25 @@ useEffect(() => {
         </header>
 
 {!loadingFiscal && !fiscalReady && posTab !== "FISCAL" && (
-  <FiscalRequiredView
-    onConfigure={() => setPosTab("FISCAL")}
-  />
+  <div className="mb-4 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-4">
+    <p className="text-sm font-black text-[#8B5E22]">
+      Modo experimental ativo
+    </p>
+    <p className="mt-1 text-xs font-bold text-[#7D746A]">
+      Podes testar mesas, pedidos e pagamentos. Este modo não emite documentos fiscais válidos.
+      Para faturar legalmente, liga o Moloni e configura as séries fiscais.
+    </p>
+
+    <button
+      onClick={() => setPosTab("FISCAL")}
+      className="mt-3 rounded-xl bg-[#11100F] px-4 py-3 text-xs font-black text-white"
+    >
+      Configurar Moloni
+    </button>
+  </div>
 )}
 
-{(fiscalReady || posTab === "FISCAL") && (
+{(canUsePOS || posTab === "FISCAL") && (
   <>
 
         {!selectedTableId && qrAttentionCount > 0 && posTab !== "KITCHEN" && (
@@ -1833,7 +1850,7 @@ onCashOut={() => {
 )}
       </div>
 
-      {fiscalReady && (
+      {canUsePOS && (
   <CartPanel
   restaurantName={restaurantName}
   selectedTable={selectedTable}
@@ -2975,8 +2992,36 @@ function FiscalSettingsView({
     <li>4. Voltar ao MesaLink e guardar as séries</li>
   </ol>
 
+<div className="mt-5 rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-5">
+  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
+    Recomendação MesaLink
+  </p>
+
+  <h4 className="mt-2 text-lg font-black text-[#0E0D0C]">
+    Moloni ON é suficiente para começar
+  </h4>
+
+  <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
+    Para utilizar a faturação integrada do MesaLink, recomendamos o plano Moloni ON.
+    Inclui ligações SAF-T, comunicação de séries à AT, clientes, artigos e documentos fiscais.
+  </p>
+
+  <p className="mt-2 text-sm font-black text-[#8B5E22]">
+    Se precisar de mais funcionalidades, pode fazer upgrade diretamente no Moloni.
+  </p>
+
   <a
-    href="https://admin.moloni.pt/"
+    href="https://www.molonion.pt/molonion-vs-moloni/"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="mt-4 inline-flex h-12 items-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
+  >
+    Ver planos Moloni
+  </a>
+</div>  
+
+  <a
+    href="https://moloni.pt/"
     target="_blank"
     rel="noopener noreferrer"
     className="mt-5 inline-flex h-12 items-center rounded-xl bg-[#11100F] px-5 text-sm font-black text-white transition hover:opacity-90"
