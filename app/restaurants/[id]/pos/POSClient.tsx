@@ -1538,6 +1538,12 @@ async function loadReport() {
   }
 }
 
+useEffect(() => {
+  if (posTab !== "HISTORY") return;
+
+  loadHistory();
+}, [posTab]);
+
   useEffect(() => {
     if (posTab !== "HISTORY") return;
 
@@ -1615,6 +1621,15 @@ useEffect(() => {
             )}
           </div>
         </header>
+
+{!loadingFiscal && !fiscalReady && posTab !== "FISCAL" && (
+  <FiscalRequiredView
+    onConfigure={() => setPosTab("FISCAL")}
+  />
+)}
+
+{(fiscalReady || posTab === "FISCAL") && (
+  <>
 
         {!selectedTableId && qrAttentionCount > 0 && posTab !== "KITCHEN" && (
           <button
@@ -1716,9 +1731,12 @@ onCashOut={() => {
             onAddProduct={addProduct}
           />
         )}
+          </>
+)}
       </div>
 
-      <CartPanel
+      {fiscalReady && (
+  <CartPanel
   restaurantName={restaurantName}
   selectedTable={selectedTable}
   selectedSession={selectedSession}
@@ -1763,6 +1781,7 @@ onCashOut={() => {
     setEditingCartProductId(item.productId);
   }}
 />
+)}
 
       {openingTable && (
         <OpenTableModal
@@ -2662,6 +2681,39 @@ function HistoryView({
           })}
         </div>
       )}
+    </section>
+  );
+}
+
+function FiscalRequiredView({
+  onConfigure,
+}: {
+  onConfigure: () => void;
+}) {
+  return (
+    <section className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-8 text-center">
+      <div className="max-w-xl">
+        <p className="text-[11px] font-black uppercase tracking-[0.36em] text-[#9B6F3B]">
+          Configuração obrigatória
+        </p>
+
+        <h2 className="mt-3 text-[34px] font-black tracking-[-0.06em] text-[#0E0D0C]">
+          Configure a faturação antes de usar o POS
+        </h2>
+
+        <p className="mt-3 text-sm font-medium leading-6 text-[#7D746A]">
+          Para abrir mesas, cobrar ou fechar vendas, o restaurante tem de ligar
+          a conta Moloni e escolher as séries fiscais de Fatura, Fatura
+          Simplificada e Nota de Crédito.
+        </p>
+
+        <button
+          onClick={onConfigure}
+          className="mt-7 rounded-2xl bg-[#11100F] px-7 py-4 text-sm font-black text-white"
+        >
+          Configurar Moloni
+        </button>
+      </div>
     </section>
   );
 }
