@@ -245,19 +245,19 @@ export default async function RestaurantPage({
     ? revenueToday / paymentsToday.length
     : 0;
 
-  const paidTodaySessionGuests = Array.from(
-    paymentsToday
-      .reduce((map: Map<string, number>, payment: any) => {
-        const sessionId = payment.tableSessionId ?? payment.tableSession?.id;
-        if (!sessionId || map.has(String(sessionId))) return map;
+ const paidTodaySessionGuests = Array.from<number>(
+  paymentsToday
+    .reduce((map: Map<string, number>, payment: any) => {
+      const sessionId = payment.tableSessionId ?? payment.tableSession?.id;
+      if (!sessionId || map.has(String(sessionId))) return map;
 
-        const guests = Number(payment.tableSession?.guestCount ?? 0);
-        if (guests > 0) map.set(String(sessionId), guests);
+      const guests = Number(payment.tableSession?.guestCount ?? 0);
+      if (guests > 0) map.set(String(sessionId), guests);
 
-        return map;
-      }, new Map<string, number>())
-      .values(),
-  ).reduce((sum, guests) => sum + guests, 0);
+      return map;
+    }, new Map<string, number>())
+    .values(),
+).reduce((sum: number, guests: number) => sum + guests, 0);
 
   const tableReservations = restaurant.tables.flatMap((table) =>
     table.reservations.map((reservation) => ({

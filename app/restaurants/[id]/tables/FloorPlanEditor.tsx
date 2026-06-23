@@ -34,7 +34,7 @@ type Room = {
 
 const MAP_WIDTH = 1500;
 const MAP_HEIGHT = 900;
-const TABLE_SIZE = 108;
+const TABLE_SIZE = 104;
 const GRID_SIZE = 30;
 
 function clamp(value: number, min: number, max: number) {
@@ -49,33 +49,33 @@ function getStatusMeta(status: string, selected?: boolean) {
   if (selected) {
     return {
       label: "Selecionada",
-      card: "border-[#11100F] bg-[#11100F] text-white shadow-[0_28px_60px_rgba(17,16,15,0.25)] ring-4 ring-[#C8A56A]/30",
-      dot: "bg-[#C8A56A]",
-      text: "text-white/70",
+      card: "border-[#C89B4B] bg-[#16120E] text-[#16120E] shadow-[0_30px_70px_rgba(80,55,30,0.32)] ring-4 ring-[#C89B4B]/25",
+      dot: "bg-[#D8AE62]",
+      text: "text-[#7D746A]",
     };
   }
 
   if (status === "SEATED") {
     return {
       label: "Sentada",
-      card: "border-[#7EA36A] bg-[#ECF7EC] text-[#11100F] shadow-[0_18px_38px_rgba(126,163,106,0.16)]",
-      dot: "bg-[#7EA36A]",
-      text: "text-[#5D6E55]",
+      card: "border-[#70A06C] bg-[linear-gradient(145deg,#F4FBF2,#FFFFFF)] text-[#11100F] shadow-[0_22px_50px_rgba(112,160,108,0.18)]",
+      dot: "bg-[#70A06C]",
+      text: "text-[#5D7557]",
     };
   }
 
   if (status === "CONFIRMED") {
     return {
       label: "Reservada",
-      card: "border-[#D8AE62] bg-[#FFF3D8] text-[#11100F] shadow-[0_18px_38px_rgba(216,174,98,0.16)]",
-      dot: "bg-[#D8AE62]",
+      card: "border-[#D8AE62] bg-[linear-gradient(145deg,#FFF7E7,#FFFFFF)] text-[#11100F] shadow-[0_22px_50px_rgba(216,174,98,0.18)]",
+      dot: "bg-[#E6A70E]",
       text: "text-[#8A6A34]",
     };
   }
 
   return {
     label: "Livre",
-    card: "border-[#E3D2BB] bg-white/90 text-[#11100F] shadow-[0_18px_38px_rgba(80,55,30,0.09)]",
+    card: "border-[#E3D2BB] bg-[linear-gradient(145deg,#FFFFFF,#FBF4E9)] text-[#11100F] shadow-[0_24px_55px_rgba(80,55,30,0.11)]",
     dot: "bg-[#D9C7AA]",
     text: "text-[#7D746A]",
   };
@@ -462,8 +462,8 @@ export default function FloorPlanEditor({
             onPointerUp={handlePointerUp}
             className={`absolute flex flex-col items-center justify-center rounded-[34px] border-2 border-dashed text-center transition ${
               isSelected
-                ? "border-[#11100F] bg-[#11100F] text-white shadow-[0_28px_60px_rgba(17,16,15,0.25)] ring-4 ring-[#C8A56A]/30"
-                : "border-[#D8AE62] bg-[#FFF3D8] text-[#11100F] shadow-[0_18px_38px_rgba(216,174,98,0.16)]"
+                ? "border-[#C89B4B] bg-[#16120E] text-white shadow-[0_28px_70px_rgba(80,55,30,0.28)] ring-4 ring-[#C89B4B]/25"
+                : "border-[#D8AE62] bg-[linear-gradient(145deg,#FFF3D8,#FFFFFF)] text-[#16120E] shadow-[0_22px_46px_rgba(216,174,98,0.18)]"
             }`}
             style={{ left: minX, top: minY, width, height: TABLE_SIZE }}
           >
@@ -494,11 +494,15 @@ export default function FloorPlanEditor({
           onPointerDown={(event) => handleTablePointerDown(event, table)}
           onPointerUp={handlePointerUp}
           onDoubleClick={() => toggleShape(table.id)}
-          className={`absolute flex h-[108px] w-[108px] touch-none select-none flex-col items-center justify-center border text-center transition hover:-translate-y-0.5 ${
-            table.shape === "round" ? "rounded-full" : "rounded-[30px]"
-          } ${status.card}`}
+          className={`absolute flex h-[104px] w-[104px] touch-none select-none flex-col items-center justify-center border text-center transition hover:-translate-y-0.5 ${
+            table.shape === "round" ? "rounded-full" : "rounded-[28px]"
+           } ${status.card}`}
           style={{ left: table.x, top: table.y }}
         >
+          <span className="pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 rounded-full border border-[#E1C99D] bg-[#FFF8EC] shadow-sm" />
+          <span className="pointer-events-none absolute -bottom-2 left-1/2 h-3 w-12 -translate-x-1/2 rounded-full border border-[#E1C99D] bg-[#FFF8EC] shadow-sm" />
+          <span className="pointer-events-none absolute -left-2 top-1/2 h-12 w-3 -translate-y-1/2 rounded-full border border-[#E1C99D] bg-[#FFF8EC] shadow-sm" />
+          <span className="pointer-events-none absolute -right-2 top-1/2 h-12 w-3 -translate-y-1/2 rounded-full border border-[#E1C99D] bg-[#FFF8EC] shadow-sm" />
           <span className="absolute right-3 top-2 text-[10px] opacity-40">⋮⋮</span>
           <span className={`absolute left-3 top-3 h-2.5 w-2.5 rounded-full ${status.dot}`} />
 
@@ -506,14 +510,14 @@ export default function FloorPlanEditor({
             {table.number}
           </p>
 
-          <p className={`mt-1 text-[11px] font-bold ${status.text}`}>
+          <p className={`mt-1 text-[10px] font-bold ${status.text}`}>
             {table.capacity} lugares
           </p>
 
           {reservation && (
             <div className="mt-2 max-w-[86px] rounded-full bg-white px-2 py-1 text-[10px] font-black leading-tight text-[#11100F] shadow-sm">
               <span className="block truncate">{reservation.customerName.split(" ")[0]}</span>
-              <span className="block text-[9px] text-[#7D746A]">{reservation.startTime}</span>
+              <span className="block text-[9px] text-[#6B6258]">{reservation.startTime}</span>
             </div>
           )}
         </div>
@@ -522,26 +526,26 @@ export default function FloorPlanEditor({
   }
 
   return (
-    <section className="overflow-hidden rounded-[34px] border border-[#E1D0B8] bg-white shadow-[0_24px_80px_rgba(80,55,30,0.08)]">
-      <div className="grid min-h-[calc(100vh-220px)] xl:grid-cols-[340px_minmax(0,1fr)]">
-        <aside className="hidden border-r border-[#E8DCCB] bg-[#FFF9F0] p-4 xl:block">
+    <section className="overflow-hidden rounded-[34px] border border-[#E1D0B8] bg-white shadow-[0_30px_90px_rgba(80,55,30,0.12)]">
+      <div className="grid min-h-[calc(100vh-190px)] xl:grid-cols-[310px_minmax(0,1fr)]">
+        <aside className="hidden border-r border-[#E8DCCB] bg-[#FFF9F0] p-3 text-[#16120E] xl:block">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Hoje</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#B58A45]">Hoje</p>
               <h2 className="mt-1 text-2xl font-black tracking-[-0.05em]">Reservas</h2>
             </div>
 
             <button
               type="button"
               onClick={() => setShowReservations((value) => !value)}
-              className="rounded-full border border-[#E1D0B8] bg-white px-3 py-1 text-[10px] font-black uppercase text-[#6B6258]"
+              className="rounded-full border border-[#E8DCCB] bg-white px-3 py-1 text-[10px] font-black uppercase text-[#6B6258] hover:bg-[#FFF9F0]"
             >
               {showReservations ? "Ocultar" : "Mostrar"}
             </button>
           </div>
 
           {showReservations && (
-            <div className="mt-4 max-h-[520px] space-y-2 overflow-y-auto pr-1">
+            <div className="mt-3 max-h-[260px] space-y-2 overflow-y-auto pr-1">
               {reservations.length === 0 ? (
                 <EmptyState title="Sem reservas" text="As reservas de hoje aparecem aqui para associar a mesas." />
               ) : (
@@ -556,13 +560,13 @@ export default function FloorPlanEditor({
                     className={`w-full rounded-2xl border p-3 text-left transition ${
                       selectedReservationId === reservation.id
                         ? "border-[#11100F] bg-[#11100F] text-white shadow-[0_18px_38px_rgba(17,16,15,0.16)]"
-                        : "border-[#E8DCCB] bg-white hover:border-[#C8A56A]"
+                        : "border-[#E8DCCB] bg-white text-[#16120E] hover:border-[#C8A56A] hover:bg-[#FFF9F0]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-black">{reservation.customerName}</p>
-                        <p className={`mt-1 text-xs font-bold ${selectedReservationId === reservation.id ? "text-white/60" : "text-[#6B6258]"}`}>
+                        <p className={`mt-1 text-xs font-bold ${selectedReservationId === reservation.id ? "text-white/65" : "text-[#6B6258]"}`}>
                           {reservation.startTime} · {reservation.guests} pessoas
                         </p>
                       </div>
@@ -579,7 +583,7 @@ export default function FloorPlanEditor({
 
           {assignedReservations.length > 0 && (
             <div className="mt-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">Associadas</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#B58A45]">Associadas</p>
 
               <div className="mt-3 space-y-2">
                 {assignedReservations.slice(0, 5).map((reservation) => {
@@ -608,24 +612,24 @@ export default function FloorPlanEditor({
           )}
 
 
-          <div className="mt-5 rounded-[24px] border border-[#E8DCCB] bg-white p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">
+          <div className="mt-3 rounded-[22px] border border-[#E8DCCB] bg-white p-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#B58A45]">
               {selectedTable ? "Mesa selecionada" : "Resumo da sala"}
             </p>
 
-            <h3 className="mt-2 text-2xl font-black tracking-[-0.05em] text-[#11100F]">
+            <h3 className="mt-2 text-2xl font-black tracking-[-0.05em] text-[#16120E]">
               {selectedTable ? `Mesa ${selectedTable.number}` : safeRooms.find((room) => room.id === activeRoomId)?.name ?? "Sala"}
             </h3>
 
             {!selectedTable ? (
-              <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <InspectorStat label="Mesas" value={activeRoomTables.length} />
                 <InspectorStat label="Lugares" value={totalCapacity} />
                 <InspectorStat label="Por sentar" value={unassignedReservations.length} />
                 <InspectorStat label="Associadas" value={assignedReservations.length} />
               </div>
             ) : (
-              <div className="mt-4 space-y-3">
+              <div className="mt-3 space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <InspectorStat label="Lugares" value={selectedTable.capacity} />
                   <InspectorStat label="Formato" value={selectedTable.shape === "round" ? "Redonda" : "Quadrada"} />
@@ -639,7 +643,7 @@ export default function FloorPlanEditor({
                   <select
                     value={selectedTable.roomId ?? safeRooms[0].id}
                     onChange={(event) => moveSelectedTableToRoom(event.target.value)}
-                    className="mt-2 h-10 w-full rounded-2xl border border-[#E1D0B8] bg-white px-3 text-sm font-black text-[#11100F] outline-none"
+                    className="mt-2 h-9 w-full rounded-2xl border border-[#E8DCCB] bg-white px-3 text-xs font-black text-[#16120E] outline-none"
                   >
                     {safeRooms.map((room) => (
                       <option key={room.id} value={room.id}>
@@ -653,7 +657,7 @@ export default function FloorPlanEditor({
                   <button
                     type="button"
                     onClick={() => toggleShape(selectedTable.id)}
-                    className="h-10 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] text-xs font-black text-[#11100F]"
+                    className="h-9 rounded-full border border-[#E8DCCB] bg-[#FFF9F0] text-xs font-black text-[#16120E]"
                   >
                     Mudar formato
                   </button>
@@ -661,7 +665,7 @@ export default function FloorPlanEditor({
                   <button
                     type="button"
                     onClick={() => splitOneTable(selectedTable.id)}
-                    className="h-10 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] text-xs font-black text-[#11100F]"
+                    className="h-9 rounded-full border border-[#E8DCCB] bg-[#FFF9F0] text-xs font-black text-[#16120E]"
                   >
                     Separar
                   </button>
@@ -674,7 +678,7 @@ export default function FloorPlanEditor({
                     <select
                       value={selectedReservationId}
                       onChange={(event) => setSelectedReservationId(event.target.value)}
-                      className="h-10 w-full rounded-2xl border border-[#E1D0B8] bg-white px-3 text-sm font-black text-[#11100F] outline-none"
+                      className="h-9 w-full rounded-2xl border border-[#E8DCCB] bg-white px-3 text-xs font-black text-[#16120E] outline-none"
                     >
                       <option value="">Escolher reserva</option>
                       {reservations.map((reservation) => (
@@ -688,7 +692,7 @@ export default function FloorPlanEditor({
                       type="button"
                       disabled={!selectedReservationId || !selectedTableId}
                       onClick={assignSelected}
-                      className="h-10 w-full rounded-full bg-[#11100F] text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-[#B8B1A8]"
+                      className="h-9 w-full rounded-full bg-[#11100F] text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-[#B8B1A8]"
                     >
                       Associar à mesa
                     </button>
@@ -698,7 +702,7 @@ export default function FloorPlanEditor({
                 <button
                   type="button"
                   onClick={() => setTableToDelete(selectedTable)}
-                  className="h-10 w-full rounded-full border border-[#E7B7A8] bg-[#FFF0EA] text-sm font-black text-[#A14E36]"
+                  className="h-9 w-full rounded-full border border-[#E7B7A8] bg-[#FFF0EA] text-sm font-black text-[#A14E36]"
                 >
                   Eliminar mesa
                 </button>
@@ -707,8 +711,8 @@ export default function FloorPlanEditor({
           </div>
         </aside>
 
-        <div className="min-w-0 bg-[#FCFAF6]">
-          <div className="border-b border-[#E8DCCB] bg-white/90 p-4 backdrop-blur">
+        <div className="min-w-0 bg-white">
+          <div className="border-b border-[#E8DCCB] bg-white/90 p-3 text-[#16120E] backdrop-blur">
             <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
               <div className="flex flex-wrap items-center gap-2">
                 {safeRooms.map((room) => (
@@ -721,8 +725,8 @@ export default function FloorPlanEditor({
                     }}
                     className={`rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.12em] transition ${
                       activeRoomId === room.id
-                        ? "bg-[#11100F] text-white shadow-[0_14px_30px_rgba(17,16,15,0.18)]"
-                        : "border border-[#E1D0B8] bg-[#FFF9F0] text-[#6B6258] hover:bg-white hover:text-[#11100F]"
+                        ? "bg-[#11100F] text-white shadow-[0_14px_30px_rgba(17,16,15,0.16)]"
+                        : "border border-[#E8DCCB] bg-[#FFF9F0] text-[#6B6258] hover:bg-white hover:text-[#11100F]"
                     }`}
                   >
                     {room.name}
@@ -734,20 +738,20 @@ export default function FloorPlanEditor({
                   <input
                     name="name"
                     placeholder="+ Nova sala"
-                    className="h-9 w-32 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-xs font-bold outline-none placeholder:text-[#9B8F82]"
+                    className="h-9 w-32 rounded-full border border-[#E8DCCB] bg-[#FFF9F0] px-3 text-xs font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82]"
                   />
                 </form>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <div className="grid grid-cols-4 divide-x divide-[#E1D0B8] rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] text-center">
+                <div className="grid grid-cols-4 divide-x divide-[#E8DCCB] rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] text-center">
                   <MapStat value={activeRoomTables.length} label="Mesas" />
                   <MapStat value={totalCapacity} label="Lugares" />
                   <MapStat value={unassignedReservations.length} label="Por sentar" />
                   <MapStat value={groupedTables.length} label="Grupos" />
                 </div>
 
-                <button type="button" onClick={separateGroups} className="h-10 rounded-full border border-[#E1D0B8] bg-white px-4 text-xs font-black text-[#11100F] transition hover:bg-[#FFF9F0]">
+                <button type="button" onClick={separateGroups} className="h-9 rounded-full border border-[#E8DCCB] bg-[#FFF9F0] px-4 text-xs font-black text-[#16120E] transition hover:bg-white">
                   Separar grupos
                 </button>
 
@@ -755,7 +759,7 @@ export default function FloorPlanEditor({
                   <input type="hidden" name="restaurantId" value={restaurantId} />
                   <input type="hidden" name="layout" value={layoutValue} />
 
-                  <button className="h-10 rounded-full bg-[#11100F] px-5 text-xs font-black text-white transition hover:bg-[#2A2118]">
+                  <button className="h-9 rounded-full bg-[#11100F] px-5 text-xs font-black text-white transition hover:bg-[#2A2118]">
                     Guardar layout
                   </button>
                 </form>
@@ -765,7 +769,7 @@ export default function FloorPlanEditor({
             <div className="mt-3 flex flex-wrap items-center gap-4 text-xs font-bold text-[#6B6258]">
               <LegendDot color="bg-[#D9C7AA]" label={`${freeTables} livres`} />
               <LegendDot color="bg-[#D8AE62]" label={`${reservedTables} reservadas`} />
-              <LegendDot color="bg-[#7EA36A]" label={`${seatedTables} sentadas`} />
+              <LegendDot color="bg-[#70A06C]" label={`${seatedTables} sentadas`} />
               <LegendDot color="bg-[#11100F]" label="selecionada" />
               <span className="hidden text-[#9B8F82] md:inline">
                 Dica: arrasta mesas. Aproxima duas mesas para juntar. Duplo clique muda o formato.
@@ -773,10 +777,13 @@ export default function FloorPlanEditor({
             </div>
           </div>
 
-          <div className="relative h-[74vh] min-h-[720px] overflow-auto">
+          <div className="relative h-[76vh] min-h-[680px] overflow-auto bg-[#FBF6EC]">
             <div ref={stageRef} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} className="relative mx-auto" style={{ width: MAP_WIDTH, height: MAP_HEIGHT }}>
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(200,165,106,0.075)_1px,transparent_1px),linear-gradient(90deg,rgba(200,165,106,0.075)_1px,transparent_1px)] bg-[size:30px_30px]" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(216,174,98,0.12),transparent_35%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(200,165,106,0.10)_1px,transparent_1px),linear-gradient(90deg,rgba(200,165,106,0.09)_1px,transparent_1px)] bg-[size:34px_34px]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(216,174,98,0.14),transparent_28%),radial-gradient(circle_at_85%_10%,rgba(112,160,108,0.10),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.74),rgba(255,249,240,0.58))]" />
+              <div className="pointer-events-none absolute left-0 top-0 h-52 w-52 rounded-br-[90px] bg-[radial-gradient(circle_at_20%_20%,rgba(112,160,108,0.28),transparent_20%),radial-gradient(circle_at_46%_38%,rgba(112,160,108,0.20),transparent_22%),radial-gradient(circle_at_30%_65%,rgba(216,174,98,0.14),transparent_24%)] blur-[1px]" />
+              <div className="pointer-events-none absolute bottom-0 right-0 h-56 w-64 rounded-tl-[110px] bg-[radial-gradient(circle_at_70%_70%,rgba(112,160,108,0.25),transparent_22%),radial-gradient(circle_at_42%_48%,rgba(112,160,108,0.18),transparent_23%),radial-gradient(circle_at_72%_30%,rgba(216,174,98,0.14),transparent_26%)] blur-[1px]" />
+              <div className="pointer-events-none absolute bottom-0 left-[22%] h-14 w-[520px] rounded-t-[40px] border border-[#E1C99D] bg-[linear-gradient(180deg,#F1D8A8,#B98445)] opacity-70 shadow-[0_-10px_35px_rgba(80,55,30,0.12)]" />
 
               <ZoneLabel className="left-8 top-8">
                 {safeRooms.find((room) => room.id === activeRoomId)?.name ?? "Sala principal"}
@@ -788,7 +795,7 @@ export default function FloorPlanEditor({
 
               {activeRoomTables.length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
-                  <div className="rounded-[30px] border border-[#E1D0B8] bg-white p-8 shadow-[0_20px_60px_rgba(80,55,30,0.10)]">
+                  <div className="rounded-[28px] border border-[#E8DCCB] bg-white p-8 shadow-[0_20px_60px_rgba(80,55,30,0.10)]">
                     <p className="text-2xl font-black tracking-[-0.05em] text-[#16120E]">Sem mesas nesta sala</p>
                     <p className="mt-2 text-sm font-bold text-[#6B6258]">Cria mesas no topo da página ou move mesas de outra sala.</p>
                   </div>
@@ -802,7 +809,7 @@ export default function FloorPlanEditor({
 
       {tableToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_30px_90px_rgba(0,0,0,0.18)]">
+          <div className="w-full max-w-md rounded-[32px] border border-[#E8DCCB] bg-[#FFF9F0] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.18)]">
             <p className="text-xs font-black uppercase tracking-[0.22em] text-[#9B6F3B]">Confirmar eliminação</p>
 
             <h3 className="mt-3 text-3xl font-black tracking-[-0.06em] text-[#16120E]">
@@ -814,11 +821,11 @@ export default function FloorPlanEditor({
             </p>
 
             <div className="mt-6 flex gap-3">
-              <button type="button" onClick={() => setTableToDelete(null)} className="h-11 flex-1 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] text-sm font-black text-[#16120E]">
+              <button type="button" onClick={() => setTableToDelete(null)} className="h-11 flex-1 rounded-full border border-[#E8DCCB] bg-[#FFF9F0] text-sm font-black text-[#16120E]">
                 Cancelar
               </button>
 
-              <button type="button" onClick={confirmDeleteTable} className="h-11 flex-1 rounded-full bg-[#A14E36] text-sm font-black text-white">
+              <button type="button" onClick={confirmDeleteTable} className="h-11 flex-1 rounded-full bg-[#A14E36] text-sm font-black text-[#16120E]">
                 Eliminar
               </button>
             </div>
@@ -831,8 +838,8 @@ export default function FloorPlanEditor({
 
 function EmptyState({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-[#E1D0B8] bg-white p-4 text-sm">
-      <p className="font-black text-[#11100F]">{title}</p>
+    <div className="rounded-2xl border border-dashed border-[#E8DCCB] bg-white p-4 text-sm">
+      <p className="font-black text-[#16120E]">{title}</p>
       <p className="mt-1 text-xs font-bold leading-5 text-[#6B6258]">{text}</p>
     </div>
   );
@@ -841,7 +848,7 @@ function EmptyState({ title, text }: { title: string; text: string }) {
 function InspectorStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-2xl border border-[#E8DCCB] bg-white p-3">
-      <p className="text-xl font-black tracking-[-0.05em] text-[#11100F]">{value}</p>
+      <p className="text-xl font-black tracking-[-0.05em] text-[#16120E]">{value}</p>
       <p className="mt-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#6B6258]">{label}</p>
     </div>
   );
@@ -858,7 +865,7 @@ function MapStat({ value, label }: { value: number; label: string }) {
 
 function ZoneLabel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`absolute rounded-full border border-[#E1D0B8] bg-white/95 px-4 py-2 text-xs font-black text-[#6B6258] shadow-sm backdrop-blur ${className}`}>
+    <div className={`absolute rounded-full border border-[#E8DCCB] bg-white/95 px-4 py-2 text-xs font-black text-[#6B6258] shadow-sm backdrop-blur ${className}`}>
       {children}
     </div>
   );
