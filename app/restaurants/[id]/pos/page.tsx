@@ -140,6 +140,9 @@ export default async function RestaurantPOSPage({
 
         unitPrice: Number(item.unitPrice),
         totalPrice: Number(item.totalPrice),
+        vatRate: Number(item.vatRate ?? 23),
+paidQuantity: Number(item.paidQuantity ?? 0),
+voidedQuantity: Number(item.voidedQuantity ?? 0),
 
         discountValue:
           item.discountValue === null ? null : Number(item.discountValue),

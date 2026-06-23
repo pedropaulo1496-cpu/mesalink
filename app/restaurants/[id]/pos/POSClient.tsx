@@ -369,6 +369,7 @@ const [creditNoteSerieId, setCreditNoteSerieId] = useState("");
   );
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [sendingOrder, setSendingOrder] = useState(false);
   const [accountDrafts, setAccountDrafts] = useState<Record<string, number>>(
     {},
   );
@@ -655,10 +656,15 @@ const expectedCash =
   }
 
   async function sendOrder() {
-    if ((!selectedTable && !selectedIsQuickSale) || cart.length === 0) {
-      return;
-    }
+  if (sendingOrder) return;
 
+  if ((!selectedTable && !selectedIsQuickSale) || cart.length === 0) {
+    return;
+  }
+
+  setSendingOrder(true);
+
+  try {
     const response = await fetch(
       `/api/restaurants/${restaurantId}/pos/orders`,
       {
@@ -680,7 +686,10 @@ const expectedCash =
 
     setCart([]);
     router.refresh();
+  } finally {
+    setSendingOrder(false);
   }
+}
 
   function setAccountDraftQuantity(item: AccountLine, quantity: number) {
     const nextQuantity = Math.max(0, quantity);
@@ -1650,72 +1659,74 @@ useEffect(() => {
 
   return (
     <section className="flex h-screen flex-1 overflow-hidden bg-[#FBFAF7]">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-10 py-8">
-        <header className="mb-7 flex items-start justify-between gap-6">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.42em] text-[#B58A45]">
-              MESALINK POS
-            </p>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-8 py-7">
+        <header className="mb-5">
+          <div className="flex items-start justify-between gap-5">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.42em] text-[#B58A45]">
+                MESALINK POS
+              </p>
 
-            <h1 className="mt-2 text-[34px] font-black tracking-[-0.04em] text-[#0E0D0C]">
-              {!selectedTableId
-                ? "Mesas"
-                : selectedIsQuickSale
-                  ? "Venda rápida"
-                  : `Mesa ${selectedTable?.number}`}
-            </h1>
+              <h1 className="mt-2 text-[34px] font-black tracking-[-0.04em] text-[#0E0D0C]">
+                {!selectedTableId
+                  ? "Mesas"
+                  : selectedIsQuickSale
+                    ? "Venda rápida"
+                    : `Mesa ${selectedTable?.number}`}
+              </h1>
 
-            {selectedTableId ? (
-              <button
-                onClick={backToTables}
-                className="mt-3 text-sm font-bold text-[#8B7C68] hover:text-[#0E0D0C]"
-              >
-                ← Voltar às mesas
-              </button>
-            ) : (
-              <POSTabs activeTab={posTab} onChange={setPosTab} />
-            )}
-          </div>
-
-          <div className="flex items-center gap-4">
-            {!selectedTableId && (
-              <button className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white text-[#0E0D0C] shadow-[0_12px_30px_rgba(30,20,10,0.04)]">
-                <SearchIcon />
-              </button>
-            )}
+              {selectedTableId && (
+                <button
+                  onClick={backToTables}
+                  className="mt-3 text-sm font-bold text-[#8B7C68] hover:text-[#0E0D0C]"
+                >
+                  ← Voltar às mesas
+                </button>
+              )}
+            </div>
 
             {!selectedTableId ? (
               <button
-                onClick={quickSale}
-                className="h-14 rounded-2xl bg-[#11100F] px-7 text-sm font-black text-white shadow-[0_18px_35px_rgba(0,0,0,0.18)] transition hover:translate-y-[-1px]"
+                onClick={() =>
+                  router.push(`/restaurants/${restaurantId}/pos/print-bridge`)
+                }
+                className="mt-4 flex h-11 items-center gap-2 rounded-full bg-[#11100F] px-5 text-xs font-black uppercase tracking-[0.12em] text-white shadow-[0_14px_28px_rgba(0,0,0,0.14)] transition hover:translate-y-[-1px]"
               >
-                ⚡ Venda rápida
+                <span>🖨️</span>
+                <span>Impressoras</span>
               </button>
             ) : (
-              <div className="rounded-2xl border border-[#E8E0D4] bg-white px-5 py-3 text-sm font-black text-[#0E0D0C] shadow-[0_12px_30px_rgba(30,20,10,0.04)]">
+              <div className="mt-4 rounded-2xl border border-[#E8E0D4] bg-white px-5 py-3 text-sm font-black text-[#0E0D0C] shadow-[0_12px_30px_rgba(30,20,10,0.04)]">
                 {selectedIsQuickSale
                   ? "Sem mesa"
                   : `${selectedTable?.capacity} lugares`}
               </div>
             )}
           </div>
+
+          {!selectedTableId && (
+            <div className="mt-5">
+              <POSTabs activeTab={posTab} onChange={setPosTab} />
+            </div>
+          )}
         </header>
 
 {!loadingFiscal && !fiscalReady && posTab !== "FISCAL" && (
-  <div className="mb-4 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-4">
-    <p className="text-sm font-black text-[#8B5E22]">
-      Modo experimental ativo
-    </p>
-    <p className="mt-1 text-xs font-bold text-[#7D746A]">
-      Podes testar mesas, pedidos e pagamentos. Este modo não emite documentos fiscais válidos.
-      Para faturar legalmente, liga o Moloni e configura as séries fiscais.
-    </p>
+  <div className="mb-3 flex items-center justify-between gap-4 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] px-4 py-3">
+    <div>
+      <p className="text-xs font-black text-[#8B5E22]">
+        Modo experimental ativo
+      </p>
+      <p className="mt-0.5 text-[11px] font-bold text-[#7D746A]">
+        Testes de mesas, pedidos e pagamentos. Para faturação legal, configura Moloni.
+      </p>
+    </div>
 
     <button
       onClick={() => setPosTab("FISCAL")}
-      className="mt-3 rounded-xl bg-[#11100F] px-4 py-3 text-xs font-black text-white"
+      className="shrink-0 rounded-xl bg-[#11100F] px-4 py-2.5 text-[11px] font-black text-white"
     >
-      Configurar Moloni
+      Moloni
     </button>
   </div>
 )}
@@ -2459,7 +2470,7 @@ const filteredJobs =
   }
 
   return (
-    <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-5">
+    <section className="min-h-0 flex-1 overflow-y-auto rounded-3xl border border-[#E8E0D4] bg-white p-6">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
@@ -2871,7 +2882,7 @@ function ServiceView({
     .reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
 
   return (
-    <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-5">
+    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-[#E8E0D4] bg-white p-5 shadow-[0_18px_45px_rgba(30,20,10,0.04)]">
       <div className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
@@ -3897,8 +3908,8 @@ function TablesView({
   const freeTables = tables.length - openTables;
 
   return (
-    <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-5">
-      <div className="mb-5 flex items-center justify-between gap-4">
+    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-[#E8E0D4] bg-white p-5 shadow-[0_18px_45px_rgba(30,20,10,0.04)]">
+      <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <FilterPill active label="Todas" value={tables.length} />
           <FilterPill label="Abertas" value={openTables} dot />
@@ -3910,7 +3921,7 @@ function TablesView({
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+      <div className="grid flex-1 auto-rows-[112px] grid-cols-4 gap-3 overflow-y-auto pr-2 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
         {tables.map((table) => {
           const session = sessions.find((item) => item.tableId === table.id);
           const occupied = Boolean(session);
@@ -3924,8 +3935,8 @@ function TablesView({
               onClick={() => onSelect(table.id)}
               className={
                 occupied
-                  ? "flex h-[112px] flex-col justify-between rounded-xl border-2 border-[#11100F] bg-[#11100F] p-3 text-left text-white"
-                  : "flex h-[112px] flex-col justify-between rounded-xl border border-[#E8E0D4] bg-[#FCFBF9] p-3 text-left transition hover:border-[#C99B4F] hover:bg-[#FFF8EC]"
+                  ? "flex h-full flex-col justify-between rounded-[22px] border-2 border-[#11100F] bg-[#11100F] p-3.5 text-left text-white"
+                  : "flex h-full flex-col justify-between rounded-[22px] border border-[#E8E0D4] bg-[#FCFBF9] p-3.5 text-left transition hover:border-[#C99B4F] hover:bg-[#FFF8EC]"
               }
             >
               <div className="flex items-center justify-between">
@@ -3949,15 +3960,15 @@ function TablesView({
               </div>
 
               <div className="flex items-end justify-between">
-                <span className="text-4xl font-black leading-none tracking-[-0.08em]">
+                <span className="text-[38px] font-black leading-none tracking-[-0.08em]">
                   {table.number}
                 </span>
 
                 <span
                   className={
                     occupied
-                      ? "text-xs font-black text-[#C99B4F]"
-                      : "text-xs font-bold text-[#7D746A]"
+                      ? "text-[11px] font-black text-[#C99B4F]"
+                      : "text-[11px] font-bold text-[#7D746A]"
                   }
                 >
                   {occupied ? `${formatMoney(totalAmount)}` : "Livre"}

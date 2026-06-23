@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import FloorPlanEditor from "./FloorPlanEditor";
 import { authOptions } from "@/lib/auth";
 import { canUseTables } from "@/lib/check-subscription";
@@ -232,18 +231,6 @@ export default async function TablesPage({
 };
   });
 
-  const freeTables = tablesWithStatus.filter(
-    (table) => table.currentStatus === "FREE",
-  ).length;
-
-  const reservedTables = tablesWithStatus.filter(
-    (table) => table.currentStatus === "CONFIRMED",
-  ).length;
-
-  const seatedTables = tablesWithStatus.filter(
-    (table) => table.currentStatus === "SEATED",
-  ).length;
-
   const totalCapacity = restaurant.tables.reduce(
     (total, table) => total + table.capacity,
     0,
@@ -264,25 +251,26 @@ export default async function TablesPage({
 />
 
         <section className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-          <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
                 Sala
               </p>
 
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
-                Mapa de mesas
-              </h1>
+              <div className="mt-2 flex flex-wrap items-end gap-3">
+                <h1 className="text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
+                  Mapa de mesas
+                </h1>
 
-              <p className="mt-3 text-sm text-[#6B6258]">
-                {restaurant.name} · {restaurant.tables.length} mesas ·{" "}
-                {totalCapacity} lugares
-              </p>
+                <span className="mb-1 rounded-full border border-[#E1D0B8] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9B6F3B]">
+                  {restaurant.tables.length} mesas · {totalCapacity} lugares
+                </span>
+              </div>
             </div>
 
             <form
               action={createTables}
-              className="flex flex-wrap items-end gap-2 rounded-[26px] border border-[#E1D0B8] bg-white p-3 shadow-[0_14px_44px_rgba(80,55,30,0.045)]"
+              className="flex flex-wrap items-end gap-2 rounded-[24px] border border-[#E1D0B8] bg-white p-2 shadow-[0_14px_44px_rgba(80,55,30,0.045)]"
             >
               <input type="hidden" name="restaurantId" value={restaurant.id} />
 
@@ -291,7 +279,7 @@ export default async function TablesPage({
                   name="startNumber"
                   type="number"
                   defaultValue={nextTableNumber}
-                  className="h-10 w-20 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
+                  className="h-9 w-20 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
                   required
                 />
               </MiniField>
@@ -303,7 +291,7 @@ export default async function TablesPage({
                   min="1"
                   max="60"
                   defaultValue={6}
-                  className="h-10 w-20 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
+                  className="h-9 w-20 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
                   required
                 />
               </MiniField>
@@ -315,7 +303,7 @@ export default async function TablesPage({
                   min="1"
                   max="30"
                   defaultValue={2}
-                  className="h-10 w-20 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
+                  className="h-9 w-20 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
                   required
                 />
               </MiniField>
@@ -324,7 +312,7 @@ export default async function TablesPage({
                 <select
                   name="shape"
                   defaultValue="square"
-                  className="h-10 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
+                  className="h-9 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
                 >
                   <option value="square">Quadrada</option>
                   <option value="round">Redonda</option>
@@ -332,33 +320,25 @@ export default async function TablesPage({
               </MiniField>
 
               <MiniField label="Sala">
-  <select
-    name="roomId"
-    className="h-10 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
-  >
-    {restaurant.floorRooms.map((room) => (
-      <option key={room.id} value={room.id}>
-        {room.name}
-      </option>
-    ))}
-  </select>
-</MiniField>
+                <select
+                  name="roomId"
+                  className="h-9 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
+                >
+                  {restaurant.floorRooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.name}
+                    </option>
+                  ))}
+                </select>
+              </MiniField>
 
-              <button className="h-10 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
+              <button className="h-9 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
                 Criar
               </button>
             </form>
           </header>
 
-          <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <MetricCard label="Mesas" value={restaurant.tables.length} />
-            <MetricCard label="Lugares" value={totalCapacity} />
-            <MetricCard label="Livres" value={freeTables} tone="green" />
-            <MetricCard label="Reservadas" value={reservedTables} tone="yellow" />
-            <MetricCard label="Sentadas" value={seatedTables} tone="dark" />
-          </section>
-
-          <div className="mt-5">
+          <div className="mt-4">
             <FloorPlanEditor
   restaurantId={restaurant.id}
   rooms={restaurant.floorRooms}
@@ -394,41 +374,6 @@ function MiniField({
     </label>
   );
 }
-
-function MetricCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone?: "green" | "yellow" | "dark";
-}) {
-  const dot =
-    tone === "green"
-      ? "bg-[#86A969]"
-      : tone === "yellow"
-        ? "bg-[#FACC15]"
-        : tone === "dark"
-          ? "bg-[#16120E]"
-          : "bg-[#DCC9AE]";
-
-  return (
-    <div className="flex items-center justify-between rounded-[22px] border border-[#E1D0B8] bg-white px-4 py-3 shadow-[0_14px_44px_rgba(80,55,30,0.035)]">
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
-          {label}
-        </p>
-        <p className="mt-1 text-2xl font-semibold tracking-[-0.055em]">
-          {value}
-        </p>
-      </div>
-
-      <span className={`h-3.5 w-3.5 rounded-full ${dot}`} />
-    </div>
-  );
-}
-
 
 async function createRoom(formData: FormData) {
   "use server";

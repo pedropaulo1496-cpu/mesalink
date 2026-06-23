@@ -23,8 +23,21 @@ export async function GET(request: Request) {
     orderBy: {
       createdAt: "asc",
     },
-    take: 10,
+    take: 1,
   });
+
+  if (jobs.length > 0) {
+    await prisma.printJob.updateMany({
+      where: {
+        id: {
+          in: jobs.map((job) => job.id),
+        },
+      },
+      data: {
+        status: "PRINTING",
+      },
+    });
+  }
 
   return NextResponse.json({ jobs });
 }

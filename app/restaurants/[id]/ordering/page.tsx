@@ -12,7 +12,6 @@ import RestaurantSidebar from "@/components/RestaurantSidebar";
 
 const TABS = [
   { key: "orders", label: "Pedidos" },
-  { key: "menu", label: "Menu Digital" },
   { key: "qr", label: "QR Codes" },
   { key: "settings", label: "Definições" },
 ] as const;
@@ -495,7 +494,7 @@ const canUseQrOrdering =
           </header>
 
           <nav className="mt-6 rounded-[26px] border border-[#E1D0B8] bg-white p-2 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
-            <div className="grid gap-2 sm:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-3">
               {TABS.map((tab) => {
                 const isActive = activeTab === tab.key;
 
@@ -546,8 +545,6 @@ const canUseQrOrdering =
                 sessions={restaurant.orderingTableSessions}
               />
             )}
-
-            {activeTab === "menu" && <MenuTab restaurant={restaurant} />}
 
             {activeTab === "qr" && <QrTab restaurant={restaurant} />}
 
@@ -1598,7 +1595,6 @@ function MetricCard({
 function BottomNav({ id, activeTab }: { id: string; activeTab: string }) {
   const items = [
     { key: "orders", href: `/restaurants/${id}/ordering?tab=orders`, icon: "P", label: "Pedidos" },
-    { key: "menu", href: `/restaurants/${id}/ordering?tab=menu`, icon: "M", label: "Menu" },
     { key: "qr", href: `/restaurants/${id}/ordering?tab=qr`, icon: "QR", label: "QR" },
     { key: "tables", href: `/restaurants/${id}/tables`, icon: "S", label: "Sala" },
     { key: "home", href: `/restaurants/${id}`, icon: "D", label: "Home" },
@@ -1606,7 +1602,7 @@ function BottomNav({ id, activeTab }: { id: string; activeTab: string }) {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E1D0B8] bg-[#FFF9F0]/90 px-4 py-3 backdrop-blur-2xl lg:hidden">
-      <div className="grid grid-cols-5 text-center text-xs font-bold text-[#6B6258]">
+      <div className="grid grid-cols-4 text-center text-xs font-bold text-[#6B6258]">
         {items.map((item) => (
           <Link
             key={item.key}

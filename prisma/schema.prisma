@@ -19,6 +19,7 @@ model User {
   restaurants         Restaurant[]
   subscription        Subscription?
   passwordResetTokens PasswordResetToken[]
+  printBridgeDevices  PrintBridgeDevice[]
 }
 
 model Subscription {
@@ -191,6 +192,8 @@ model Restaurant {
   productProductionCenters ProductionCenter[]
   printJobs                PrintJob[]
   printers                 RestaurantPrinter[]
+  printBridgeToken         String?                 @unique
+  printBridgeRestaurants   PrintBridgeRestaurant[]
 }
 
 model WebsiteMenu {
@@ -858,8 +861,6 @@ model ProductionCenter {
 
   active Boolean @default(true)
 
-  printerName String?
-
   position Int @default(0)
 
   productLinks ProductProductionCenter[]
@@ -956,10 +957,70 @@ model RestaurantPrinter {
 
   productionCenters ProductionCenter[]
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  printJobs PrintJob[]
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+  printJobs      PrintJob[]
+  bridgeMappings PrintBridgePrinterMapping[]
 
   @@index([restaurantId])
   @@index([active])
+}
+
+model PrintBridgeDevice {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name  String
+  token String @unique
+
+  active Boolean @default(true)
+
+  lastSeenAt DateTime?
+
+  restaurants PrintBridgeRestaurant[]
+  mappings    PrintBridgePrinterMapping[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([token])
+  windowsPrinters Json?
+}
+
+model PrintBridgeRestaurant {
+  id String @id @default(cuid())
+
+  bridgeDeviceId String
+  bridgeDevice   PrintBridgeDevice @relation(fields: [bridgeDeviceId], references: [id], onDelete: Cascade)
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@unique([bridgeDeviceId, restaurantId])
+  @@index([restaurantId])
+}
+
+model PrintBridgePrinterMapping {
+  id String @id @default(cuid())
+
+  bridgeDeviceId String
+  bridgeDevice   PrintBridgeDevice @relation(fields: [bridgeDeviceId], references: [id], onDelete: Cascade)
+
+  restaurantPrinterId String
+  restaurantPrinter   RestaurantPrinter @relation(fields: [restaurantPrinterId], references: [id], onDelete: Cascade)
+
+  windowsPrinterName String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([bridgeDeviceId, restaurantPrinterId])
+  @@index([restaurantPrinterId])
 }

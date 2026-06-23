@@ -84,6 +84,7 @@ const companyId =
       },
       update: {
         provider: "MOLONI",
+        companyId,
         clientId: developerId,
         clientSecret,
         accessToken: data.access_token,
