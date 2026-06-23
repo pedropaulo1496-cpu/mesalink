@@ -89,7 +89,9 @@ export default async function RestaurantPOSPage({
 
         printJobs: {
   where: {
-    status: "PENDING",
+    status: {
+      in: ["PENDING", "FAILED"],
+    },
   },
   include: {
     productionCenter: true,

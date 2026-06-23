@@ -2288,57 +2288,328 @@ function QrOrdersView({
   );
 }
 
-function ProductionView({
-  jobs,
-}: {
-  jobs: any[];
-}) {
+function ProductionView({ jobs }: { jobs: any[] }) {
+  const [printerFilter, setPrinterFilter] = useState("ALL");
+  const printers = [
+  ...new Set(
+    jobs
+      .map((job) => job.productionCenter?.printer?.name)
+      .filter(Boolean),
+  ),
+];
+const filteredJobs =
+  printerFilter === "ALL"
+    ? jobs
+    : jobs.filter(
+        (job) =>
+          job.productionCenter?.printer?.name === printerFilter,
+      );
+  const router = useRouter();
+
+  async function updatePrintJob(jobId: string, status: "PRINTED" | "FAILED") {
+    const response = await fetch(`/api/print-jobs/${jobId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    if (!response.ok) {
+      alert("Erro ao atualizar impressão.");
+      return;
+    }
+
+    router.refresh();
+  }
+
+  function printJob(job: any) {
+    const items = job.payload?.items ?? [];
+    const centerName =
+      job.productionCenter?.name ??
+      job.payload?.productionCenter?.name ??
+      "Produção";
+
+    const printerName =
+      job.productionCenter?.printerName ??
+      job.payload?.productionCenter?.printerName ??
+      "Não definida";
+
+    const html = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>${centerName}</title>
+          <style>
+            body {
+              font-family: monospace;
+              width: 280px;
+              padding: 12px;
+              color: #000;
+            }
+
+            h1 {
+              font-size: 18px;
+              margin: 0 0 8px;
+              text-transform: uppercase;
+            }
+
+            .meta {
+              font-size: 12px;
+              margin-bottom: 10px;
+            }
+
+            .line {
+              border-top: 1px dashed #000;
+              margin: 10px 0;
+            }
+
+            .item {
+              margin: 8px 0;
+              font-size: 15px;
+              font-weight: bold;
+            }
+
+            .notes {
+              font-size: 12px;
+              margin-top: 2px;
+              font-weight: normal;
+            }
+
+            .footer {
+              margin-top: 12px;
+              font-size: 11px;
+              text-align: center;
+            }
+          </style>
+        </head>
+
+        <body>
+          <h1>${centerName}</h1>
+
+          <div class="meta">
+            Impressora: ${printerName}<br />
+            Origem: ${job.payload?.source ?? "POS"}<br />
+            Hora: ${new Date(job.createdAt).toLocaleTimeString("pt-PT", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
+
+          <div class="line"></div>
+
+          ${items
+            .map(
+              (item: any) => `
+                <div class="item">
+                  ${item.quantity}x ${item.name}
+                  ${
+                    item.notes
+                      ? `<div class="notes">Nota: ${item.notes}</div>`
+                      : ""
+                  }
+                </div>
+              `,
+            )
+            .join("")}
+
+          <div class="line"></div>
+
+          <div class="footer">
+            MesaLink POS
+          </div>
+
+          <script>
+            window.onload = function () {
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    const win = window.open("", "_blank", "width=420,height=700");
+
+    if (!win) {
+      alert("O browser bloqueou a janela de impressão.");
+      return;
+    }
+
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    setTimeout(async () => {
+  try {
+    await fetch(`/api/print-jobs/${job.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: "PRINTED",
+      }),
+    });
+
+    router.refresh();
+  } catch (error) {
+    console.error(error);
+  }
+}, 1500);
+  }
+
   return (
     <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-5">
-      <div className="mb-5">
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
-          Produção
-        </p>
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
+            Produção
+          </p>
 
-        <h2 className="mt-1 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
-          Tickets pendentes
-        </h2>
+          <h2 className="mt-1 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
+            Tickets pendentes
+          </h2>
+        </div>
+
+        <span className="rounded-full bg-[#11100F] px-4 py-2 text-xs font-black uppercase text-white">
+          {jobs.length} pendente{jobs.length === 1 ? "" : "s"}
+        </span>
       </div>
+
+      <div className="mb-4 flex gap-2 overflow-x-auto">
+  <button
+    onClick={() => setPrinterFilter("ALL")}
+    className={`rounded-full px-4 py-2 text-xs font-black ${
+      printerFilter === "ALL"
+        ? "bg-[#11100F] text-white"
+        : "bg-[#F3EEE8]"
+    }`}
+  >
+    Todas
+  </button>
+
+  {printers.map((printer) => (
+    <button
+      key={printer}
+      onClick={() => setPrinterFilter(printer)}
+      className={`rounded-full px-4 py-2 text-xs font-black ${
+        printerFilter === printer
+          ? "bg-[#11100F] text-white"
+          : "bg-[#F3EEE8]"
+      }`}
+    >
+      {printer}
+    </button>
+  ))}
+</div>
 
       {jobs.length === 0 ? (
         <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6 text-center">
-          <p className="font-bold text-[#7D746A]">
-            Sem tickets pendentes
-          </p>
+          <p className="font-bold text-[#7D746A]">Sem tickets pendentes</p>
         </div>
       ) : (
         <div className="grid gap-3 xl:grid-cols-2">
-          {jobs.map((job) => (
-            <div
-              key={job.id}
-              className="rounded-[20px] border border-[#E8E0D4] bg-[#FCFBF9] p-4"
-            >
-              <p className="text-sm font-black text-[#0E0D0C]">
-                {job.title}
-              </p>
+          {filteredJobs.map((job) => {
+            const items = job.payload?.items ?? [];
 
-              <p className="mt-1 text-xs font-bold text-[#8B7C68]">
-                {job.productionCenter?.name ?? "Sem produção"}
-              </p>
+            const centerName =
+              job.productionCenter?.name ??
+              job.payload?.productionCenter?.name ??
+              "Sem produção";
 
-              <div className="mt-3 rounded-xl bg-white p-3">
-                <pre className="overflow-x-auto text-xs">
-                  {JSON.stringify(job.payload, null, 2)}
-                </pre>
+            const printerName =
+              job.productionCenter?.printerName ??
+              job.payload?.productionCenter?.printerName ??
+              "Não definida";
+
+            return (
+              <div
+                key={job.id}
+                className="rounded-[22px] border border-[#E8E0D4] bg-[#FCFBF9] p-4"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-lg font-black tracking-[-0.04em] text-[#0E0D0C]">
+                      {centerName}
+                    </p>
+
+                    <p className="mt-1 text-xs font-bold text-[#8B7C68]">
+  Impressora:
+  <span className="ml-1 text-[#0E0D0C]">
+    {printerName}
+  </span>
+</p>
+
+<p className="mt-1 text-xs font-bold text-[#8B7C68]">
+  Método:
+  <span className="ml-1 text-[#0E0D0C]">
+    {job.productionCenter?.printer?.method ?? "BROWSER"}
+  </span>
+</p>
+                  </div>
+
+                  <span className="rounded-full bg-[#FFF8EC] px-3 py-1 text-[10px] font-black uppercase text-[#9B6F3B]">
+                    {job.status}
+                  </span>
+                </div>
+
+                <div className="mt-4 space-y-2 border-t border-[#E8E0D4] pt-4">
+                  {items.map((item: any) => (
+                    <div
+                      key={item.id}
+                      className="rounded-2xl bg-white px-4 py-3"
+                    >
+                      <p className="text-sm font-black text-[#0E0D0C]">
+                        {item.quantity}× {item.name}
+                      </p>
+
+                      {item.notes && (
+                        <p className="mt-1 text-xs font-bold text-[#9B6F3B]">
+                          Nota: {item.notes}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <p className="mt-3 text-[11px] font-bold text-[#8B7C68]">
+                  Criado às{" "}
+                  {new Date(job.createdAt).toLocaleTimeString("pt-PT", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => printJob(job)}
+                    className="h-10 rounded-xl border border-[#E8E0D4] bg-white text-xs font-black text-[#0E0D0C]"
+                  >
+                    Imprimir
+                  </button>
+
+                  <button
+                    onClick={() => updatePrintJob(job.id, "PRINTED")}
+                    className="h-10 rounded-xl bg-[#11100F] text-xs font-black text-white"
+                  >
+                    Impresso
+                  </button>
+
+                  <button
+                    onClick={() => updatePrintJob(job.id, "FAILED")}
+                    className="h-10 rounded-xl border border-red-300/20 bg-[#FFF0EA] text-xs font-black text-[#A14E36]"
+                  >
+                    Falhou
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </section>
   );
 }
-
 
 function POSTabs({
   activeTab,

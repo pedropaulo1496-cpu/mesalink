@@ -180,16 +180,17 @@ model Restaurant {
 
   posTableSessions POSTableSession[]
 
-  fiscalIntegration FiscalIntegration?
-  fiscalDocuments   FiscalDocument[]
-  posCashRegisters  POSCashRegister[]
-  posDiscounts      POSDiscount[]
-  posReceipts       POSReceipt[]
-  posTableTransfers POSTableTransfer[]
-  posDiscountCodes  POSDiscountCode[]
-  posCashMovements  POSCashMovement[]
-  productionCenters ProductionCenter[]
-  printJobs         PrintJob[]
+  fiscalIntegration        FiscalIntegration?
+  fiscalDocuments          FiscalDocument[]
+  posCashRegisters         POSCashRegister[]
+  posDiscounts             POSDiscount[]
+  posReceipts              POSReceipt[]
+  posTableTransfers        POSTableTransfer[]
+  posDiscountCodes         POSDiscountCode[]
+  posCashMovements         POSCashMovement[]
+  productProductionCenters ProductionCenter[]
+  printJobs                PrintJob[]
+  printers                 RestaurantPrinter[]
 }
 
 model WebsiteMenu {
@@ -357,10 +358,8 @@ model OrderingProduct {
   activeOnWebsite  Boolean        @default(true)
   posorderItems    POSOrderItem[]
 
-  productionCenterId String?
-  productionCenter   ProductionCenter? @relation(fields: [productionCenterId], references: [id])
-
-  printName String?
+  printName                String?
+  productProductionCenters ProductProductionCenter[]
 }
 
 model OrderingOrder {
@@ -863,11 +862,14 @@ model ProductionCenter {
 
   position Int @default(0)
 
-  products OrderingProduct[]
+  productLinks ProductProductionCenter[]
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   printJobs PrintJob[]
+  printerId String?
+  printer   RestaurantPrinter? @relation(fields: [printerId], references: [id])
 }
 
 model PrintJob {
@@ -879,8 +881,10 @@ model PrintJob {
   posOrderId String?
   posOrder   POSOrder? @relation(fields: [posOrderId], references: [id], onDelete: Cascade)
 
-  productionCenterId String?
+  productionCenterId String?           @map("productionCenterId")
   productionCenter   ProductionCenter? @relation(fields: [productionCenterId], references: [id])
+
+  productProductionCenters ProductProductionCenter[]
 
   status String @default("PENDING")
   // PENDING
@@ -896,11 +900,66 @@ model PrintJob {
   payload Json
 
   printedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  printerId String?
+  printer   RestaurantPrinter? @relation(fields: [printerId], references: [id])
 
   @@index([restaurantId])
   @@index([posOrderId])
   @@index([productionCenterId])
   @@index([status])
+}
+
+model ProductProductionCenter {
+  id String @id @default(cuid())
+
+  productId String
+  product   OrderingProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  productionCenterId String
+  productionCenter   ProductionCenter @relation(fields: [productionCenterId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime  @default(now())
+  printJob   PrintJob? @relation(fields: [printJobId], references: [id])
+  printJobId String?
+
+  @@unique([productId, productionCenterId])
+  @@index([productId])
+  @@index([productionCenterId])
+}
+
+model RestaurantPrinter {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  name String
+
+  type String @default("KITCHEN")
+  // KITCHEN
+  // BAR
+  // ROOM
+  // CASHIER
+  // OTHER
+
+  method String @default("BROWSER")
+  // BROWSER
+  // BRIDGE
+  // NETWORK
+
+  ipAddress String?
+  port      Int?
+
+  active Boolean @default(true)
+
+  productionCenters ProductionCenter[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  printJobs PrintJob[]
+
+  @@index([restaurantId])
+  @@index([active])
 }

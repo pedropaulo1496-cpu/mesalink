@@ -172,7 +172,11 @@ export async function POST(
       include: {
         product: {
           include: {
-            productionCenter: true,
+            productProductionCenters: {
+              include: {
+                productionCenter: true,
+              },
+            },
           },
         },
       },
@@ -184,24 +188,44 @@ if (createdOrder) {
   const groups = new Map<string, any[]>();
 
   for (const item of createdOrder.items) {
-    const centerId = item.product?.productionCenterId || "NO_PRODUCTION";
+    const centers = item.product?.productProductionCenters ?? [];
 
-    if (!groups.has(centerId)) {
-      groups.set(centerId, []);
+    if (centers.length === 0) {
+      if (!groups.has("NO_PRODUCTION")) {
+        groups.set("NO_PRODUCTION", []);
+      }
+
+      groups.get("NO_PRODUCTION")?.push(item);
+      continue;
     }
 
-    groups.get(centerId)?.push(item);
+    for (const link of centers) {
+      const centerId = link.productionCenterId;
+
+      if (!groups.has(centerId)) {
+        groups.set(centerId, []);
+      }
+
+      groups.get(centerId)?.push(item);
+    }
   }
 
   for (const [centerId, groupItems] of groups.entries()) {
     const firstItem = groupItems[0];
-    const center = firstItem.product?.productionCenter;
+
+    const center =
+      centerId === "NO_PRODUCTION"
+        ? null
+        : firstItem.product?.productProductionCenters?.find(
+            (link: any) => link.productionCenterId === centerId,
+          )?.productionCenter ?? null;
 
     await prisma.printJob.create({
       data: {
         restaurantId,
         posOrderId: createdOrder.id,
         productionCenterId: centerId === "NO_PRODUCTION" ? null : centerId,
+        printerId: center?.printerId ?? null,
         status: "PENDING",
         type: "PRODUCTION",
         title: center?.name
@@ -215,7 +239,7 @@ if (createdOrder) {
             ? {
                 id: center.id,
                 name: center.name,
-                printerName: center.printerName,
+                printerName: center.printer?.name,
               }
             : null,
           items: groupItems.map((item) => ({
