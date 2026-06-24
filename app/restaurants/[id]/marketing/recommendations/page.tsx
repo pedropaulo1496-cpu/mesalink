@@ -18,16 +18,12 @@ export default async function MarketingRecommendationsPage({
 
   const customers = await prisma.customer.findMany({
     where: {
-      marketingOptIn: true,
-      email: {
-        not: null,
-      },
-      reservations: {
-        some: {
-          restaurantId: id,
-        },
-      },
-    },
+  restaurantId: id,
+  marketingOptIn: true,
+  email: {
+    not: null,
+  },
+},
   });
 
   const averageTicket = Number(restaurant.averageTicket || 25);

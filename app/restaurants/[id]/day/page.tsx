@@ -130,7 +130,7 @@ if (status === "FINISHED" && reservation.customerId) {
   const reserveUrl = `${baseUrl}/reserve/${reservation.restaurant.slug}`;
 
   await resend.emails.send({
-    from: "MesaLink <info@mesalink.pt>",
+    from: "MesaLink <noreply@mesalink.pt>",
     to: currentCustomer.email,
     subject: `${currentCustomer.name}, atingiu o nível ${vipTier}`,
     html: `

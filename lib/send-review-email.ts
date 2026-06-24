@@ -19,7 +19,7 @@ export async function sendReviewEmail({
   const reviewUrl = `${baseUrl}/review/${reservationId}`;
 
   await resend.emails.send({
-    from: "MesaLink <info@mesalink.pt>",
+    from: "MesaLink <noreply@mesalink.pt>",
     to,
     subject: `Como foi a sua experiência no ${restaurantName}?`,
     html: `

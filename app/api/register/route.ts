@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     });
 
     await resend.emails.send({
-      from: "MesaLink <info@mesalink.pt>",
+      from: "MesaLink <noreply@mesalink.pt>",
       to: email,
       subject: "Bem-vindo ao MesaLink",
       html: `

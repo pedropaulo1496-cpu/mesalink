@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password/${token}`;
 
   await resend.emails.send({
-    from: "MesaLink <info@mesalink.pt>",
+    from: "MesaLink <noreply@mesalink.pt>",
     to: email,
     subject: "Recuperar password - MesaLink",
     html: `

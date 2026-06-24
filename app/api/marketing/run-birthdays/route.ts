@@ -28,15 +28,7 @@ async function runBirthdays() {
         },
       },
       include: {
-        reservations: {
-          orderBy: {
-            date: "desc",
-          },
-          take: 1,
-          include: {
-            restaurant: true,
-          },
-        },
+        restaurant: true,
       },
     });
 
@@ -45,16 +37,15 @@ async function runBirthdays() {
     let skipped = 0;
 
     for (const customer of customers) {
-      if (!customer.birthDate) continue;
+      if (!customer.birthDate || !customer.email) continue;
 
       const birthMonth = new Date(customer.birthDate).getMonth();
 
       if (birthMonth !== currentMonth) continue;
 
-      const lastReservation = customer.reservations[0];
-      const restaurant = lastReservation?.restaurant;
+      const restaurant = customer.restaurant;
 
-      if (!restaurant) {
+      if (!restaurant || !customer.restaurantId) {
         skipped++;
         continue;
       }
@@ -62,7 +53,7 @@ async function runBirthdays() {
       const existingAction = await prisma.marketingAction.findFirst({
         where: {
           customerId: customer.id,
-          restaurantId: restaurant.id,
+          restaurantId: customer.restaurantId,
           type: "BIRTHDAY",
           status: {
             in: ["SENT", "OPENED", "CLICKED"],
@@ -77,7 +68,7 @@ async function runBirthdays() {
 
       await prisma.marketingAction.create({
         data: {
-          restaurantId: restaurant.id,
+          restaurantId: customer.restaurantId,
           customerId: customer.id,
           type: "BIRTHDAY",
           status: "SENT",
@@ -92,8 +83,8 @@ async function runBirthdays() {
       const reserveUrl = `${baseUrl}/reserve/${restaurant.slug}`;
 
       await resend.emails.send({
-        from: "MesaLink <info@mesalink.pt>",
-        to: customer.email!,
+        from: "MesaLink <noreply@mesalink.pt>",
+        to: customer.email,
         subject: `${customer.name}, feliz aniversário`,
         html: `
           <div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px;">
@@ -107,19 +98,21 @@ async function runBirthdays() {
               </h1>
 
               <p style="font-size:15px;line-height:1.6;color:#6B6258;margin:0;">
-  Toda a equipa deseja-lhe um excelente dia. Esperamos recebê-lo novamente muito em breve.
-</p>
+                Toda a equipa deseja-lhe um excelente dia. Esperamos recebê-lo novamente muito em breve.
+              </p>
 
-              ${restaurant.birthdayOffer
-  ? `
-    <div style="margin-top:16px;padding:16px;border-radius:16px;background:#FFF9F0;border:1px solid #E1D0B8;">
-      <strong>Oferta especial 🎁</strong>
-      <p style="margin-top:8px;">
-        ${restaurant.birthdayOffer}
-      </p>
-    </div>
-  `
-  : ""}
+              ${
+                restaurant.birthdayOffer
+                  ? `
+                    <div style="margin-top:16px;padding:16px;border-radius:16px;background:#FFF9F0;border:1px solid #E1D0B8;">
+                      <strong>Oferta especial 🎁</strong>
+                      <p style="margin-top:8px;">
+                        ${restaurant.birthdayOffer}
+                      </p>
+                    </div>
+                  `
+                  : ""
+              }
 
               <a href="${reserveUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:white;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;font-size:14px;">
                 Reservar mesa
@@ -138,6 +131,7 @@ async function runBirthdays() {
 
     return NextResponse.json({
       success: true,
+      customersFound: customers.length,
       created,
       emailsSent,
       skipped,

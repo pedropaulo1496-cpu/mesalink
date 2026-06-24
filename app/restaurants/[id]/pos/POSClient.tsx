@@ -3253,11 +3253,54 @@ function FiscalSettingsView({
       {loading ? (
         <p>A carregar...</p>
       ) : !integration ? (
-        <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6">
-          <p className="font-black">
-            Integração não configurada.
-          </p>
-        </div>
+       <div className="rounded-[28px] border border-[#E8E0D4] bg-[#FCFBF9] p-8">
+  <p className="text-xs font-black uppercase tracking-[0.28em] text-[#B58A45]">
+    Configuração necessária
+  </p>
+
+  <h3 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#0E0D0C]">
+    Ligue o Moloni para emitir faturas legais
+  </h3>
+
+  <p className="mt-3 max-w-3xl text-sm font-medium leading-7 text-[#7D746A]">
+    O MesaLink usa o Moloni para emitir faturas certificadas, faturas simplificadas,
+    notas de crédito, QR Code fiscal e SAFT. Depois de configurado, pode emitir
+    documentos diretamente no POS.
+  </p>
+
+  <div className="mt-7 grid gap-3 md:grid-cols-2">
+    <SetupStep title="1. Criar conta Moloni" text="Crie ou aceda à conta Moloni do restaurante." />
+    <SetupStep title="2. Criar séries fiscais" text="No Moloni, crie séries para Fatura, Fatura Simplificada e Nota de Crédito." />
+    <SetupStep title="3. Comunicar séries à AT" text="As séries têm de estar comunicadas/ativas antes de emitir documentos reais." />
+    <SetupStep title="4. Ligar ao MesaLink" text="Depois de ligado, escolha as séries nesta página e guarde." />
+  </div>
+
+  <div className="mt-7 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-5">
+    <p className="font-black text-[#8B5E22]">Importante</p>
+    <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
+      Enquanto o Moloni não estiver configurado, o POS pode funcionar em modo
+      experimental, mas não deve ser usado para faturação legal.
+    </p>
+  </div>
+
+  <div className="mt-7 flex flex-wrap gap-3">
+    <a
+      href="https://www.moloni.pt/ac/root/logout/"
+      target="_blank"
+      className="rounded-full bg-[#11100F] px-6 py-3 text-sm font-black text-white"
+    >
+      Abrir Moloni
+    </a>
+
+    <a
+      href="https://www.moloni.pt/registo/"
+      target="_blank"
+      className="rounded-full border border-[#E8E0D4] bg-white px-6 py-3 text-sm font-black text-[#0E0D0C]"
+    >
+      Criar conta Moloni
+    </a>
+  </div>
+</div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           <InfoCard
@@ -6226,5 +6269,16 @@ function UserIcon() {
         strokeLinecap="round"
       />
     </svg>
+  );
+}
+
+function SetupStep({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-2xl border border-[#E8E0D4] bg-white p-5">
+      <p className="font-black text-[#0E0D0C]">{title}</p>
+      <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
+        {text}
+      </p>
+    </div>
   );
 }

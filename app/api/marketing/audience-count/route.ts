@@ -17,17 +17,13 @@ export async function GET(request: Request) {
 
   let count = 0;
 
-  const baseWhere = {
-    marketingOptIn: true,
-    email: {
-      not: null,
-    },
-    reservations: {
-      some: {
-        restaurantId,
-      },
-    },
-  };
+ const baseWhere = {
+  restaurantId,
+  marketingOptIn: true,
+  email: {
+    not: null,
+  },
+};
 
   if (segment === "ALL") {
     count = await prisma.customer.count({

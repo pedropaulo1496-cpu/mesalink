@@ -25,17 +25,13 @@ export async function POST(request: Request) {
     const sixtyDaysAgo = new Date();
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-    const baseWhere = {
-      marketingOptIn: true,
-      email: {
-        not: null,
-      },
-      reservations: {
-        some: {
-          restaurantId,
-        },
-      },
-    };
+   const baseWhere = {
+  restaurantId,
+  marketingOptIn: true,
+  email: {
+    not: null,
+  },
+};
 
     let customers = [];
 
@@ -128,7 +124,7 @@ export async function POST(request: Request) {
     for (const customer of customers) {
       try {
         await resend.emails.send({
-          from: "MesaLink <info@mesalink.pt>",
+          from: "MesaLink <noreply@mesalink.pt>",
           to: customer.email!,
           subject,
           html: `

@@ -96,13 +96,13 @@ export default async function MarketingPage({
   }
 
   const customers = await prisma.customer.findMany({
-    where: {
-      reservations: {
-        some: {
-          restaurantId: id,
-        },
-      },
-    },
+   where: {
+  restaurantId: id,
+  marketingOptIn: true,
+  email: {
+    not: null,
+  },
+},
     include: {
       reservations: {
         where: { restaurantId: id },

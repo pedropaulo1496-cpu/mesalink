@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import CopyButton from "@/components/CopyButton";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import UpgradeToGrowthButton from "@/components/UpgradeToGrowthButton";
+import DashboardRecoveryButton from "@/components/marketing/DashboardRecoveryButton";
 
 function money(value: number) {
   return `${value.toFixed(2)}€`;
@@ -149,7 +150,8 @@ export default async function RestaurantPage({
 
   const subscriptionPlan = String(subscription?.plan ?? "").toUpperCase();
   const subscriptionActive = subscription?.status === "ACTIVE";
-  const isGrowthPlan = subscriptionActive && subscriptionPlan === "GROWTH";
+const isGrowthPlan =
+  trialActive || (subscriptionActive && subscriptionPlan === "GROWTH");
   const isEssentialsPlan = subscriptionActive && subscriptionPlan === "ESSENTIALS";
   const billingLabel = trialActive
     ? "Trial"
@@ -585,6 +587,7 @@ export default async function RestaurantPage({
           <section className="mt-6 grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
             <ReservationsCompactCard reservations={nextReservations} />
             <MarketingRoiCard
+              restaurantId={id}
               isGrowth={isGrowthPlan}
               riskyCustomers={riskyCustomers}
               riskyRevenue={valueWithoutFlatVat(riskyRevenue, monthSalesStats)}
@@ -992,11 +995,13 @@ function ReservationMiniLine({ reservation }: { reservation: any }) {
 }
 
 function MarketingRoiCard({
+  restaurantId,
   isGrowth,
   riskyCustomers,
   riskyRevenue,
   averageTicket,
 }: {
+  restaurantId: string;
   isGrowth: boolean;
   riskyCustomers: any[];
   riskyRevenue: number;
@@ -1071,7 +1076,7 @@ function MarketingRoiCard({
         </div>
 
         <Link
-          href="marketing"
+          href={`/restaurants/${restaurantId}/marketing`}
           className="rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
         >
           Ver marketing
@@ -1085,7 +1090,7 @@ function MarketingRoiCard({
         <SmallStat value={`${roi}%`} label="ROI estimado" />
       </div>
 
-      <div className="mt-5 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
+           <div className="mt-5 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="font-semibold">Campanha recomendada</p>
@@ -1100,12 +1105,7 @@ function MarketingRoiCard({
         </div>
 
         <div className="mt-4">
-          <Link
-            href="marketing"
-            className="inline-flex rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
-          >
-            Recuperar clientes
-          </Link>
+          <DashboardRecoveryButton />
         </div>
       </div>
     </Panel>
