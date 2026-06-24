@@ -112,6 +112,7 @@ async function createReservation(formData: FormData) {
         id: customer.id,
       },
       data: {
+        restaurantId,
         name: customerName,
         phone,
         ...(normalizedEmail && {
@@ -125,14 +126,18 @@ async function createReservation(formData: FormData) {
     });
   } else {
     customer = await prisma.customer.create({
-      data: {
-        name: customerName,
-        phone,
-        email: normalizedEmail,
-        birthDate,
-        lastReservationAt: date,
-      },
-    });
+  data: {
+    restaurantId,
+    name: customerName,
+    phone,
+    email: normalizedEmail,
+    birthDate,
+    lastReservationAt: date,
+    source: "MANUAL_RESERVATION",
+    marketingOptIn: true,
+    marketingJoinedAt: new Date(),
+  },
+});
   }
 
   await prisma.reservation.create({
