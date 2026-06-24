@@ -8,15 +8,24 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 async function createPublicReservation(formData: FormData) {
   "use server";
 
-  const slug = String(formData.get("slug"));
-  const restaurantId = String(formData.get("restaurantId"));
+  const slug = String(formData.get("slug") || "");
+  const restaurantId = String(formData.get("restaurantId") || "");
   const tableIdValue = String(formData.get("tableId") ?? "");
-  const customerName = String(formData.get("customerName"));
-  const phone = String(formData.get("phone"));
-  const email = String(formData.get("email") ?? "");
+  const customerName = String(formData.get("customerName") || "").trim();
+  const phone = String(formData.get("phone") || "").trim();
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const birthDateValue = String(formData.get("birthDate") || "").trim();
   const guests = Number(formData.get("guests"));
   const date = new Date(String(formData.get("date")));
   const reservationMode = String(formData.get("reservationMode") ?? "TABLES");
+
+  if (!customerName || !phone || !email) {
+    redirect(`/reserve/${slug}?error=missing`);
+  }
+
+  const birthDate = birthDateValue
+    ? new Date(`${birthDateValue}T12:00:00`)
+    : null;
 
   if (date < new Date()) {
     redirect(`/reserve/${slug}?error=past`);
@@ -36,23 +45,25 @@ async function createPublicReservation(formData: FormData) {
   if (!restaurant) notFound();
 
   const subscription = restaurant.user?.subscription;
+  const plan = String(subscription?.plan || restaurant.plan || "").toUpperCase();
 
   const isTrialActive =
     subscription?.status === "TRIAL" &&
     subscription.trialEndsAt &&
     new Date() <= subscription.trialEndsAt;
 
-  const isPro =
-    subscription?.status === "ACTIVE" && subscription.plan === "PRO";
+  const isPaidPlan =
+    subscription?.status === "ACTIVE" &&
+    ["ESSENTIALS", "GROWTH", "PRO"].includes(plan);
 
-  const isUnlimited = isTrialActive || isPro;
+  const isUnlimited = isTrialActive || isPaidPlan;
 
   if (!isUnlimited) {
     const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     const startOfNextMonth = new Date(
       date.getFullYear(),
       date.getMonth() + 1,
-      1
+      1,
     );
 
     const coversThisMonthResult = await prisma.$queryRaw<
@@ -127,7 +138,7 @@ async function createPublicReservation(formData: FormData) {
 
     const bookedGuests = reservationsInPeriod.reduce(
       (total, reservation) => total + reservation.guests,
-      0
+      0,
     );
 
     const totalCapacity = restaurant.totalCapacity ?? 0;
@@ -138,47 +149,46 @@ async function createPublicReservation(formData: FormData) {
     }
   }
 
-const normalizedPhone = phone.trim();
-const normalizedEmail = email?.trim().toLowerCase() || null;
-
-const customerByPhone = await prisma.customer.findFirst({
-  where: {
-    phone: normalizedPhone,
-  },
-});
-
-const customerByEmail = normalizedEmail
-  ? await prisma.customer.findFirst({
-      where: {
-        email: normalizedEmail,
-      },
-    })
-  : null;
-
-let customer = customerByEmail || customerByPhone;
-
-if (customer) {
-  customer = await prisma.customer.update({
+  let customer = await prisma.customer.findFirst({
     where: {
-      id: customer.id,
-    },
-    data: {
-      name: customerName,
-      ...(customer.phone ? {} : { phone: normalizedPhone }),
-      ...(normalizedEmail && !customer.email
-        ? { email: normalizedEmail }
-        : {}),
+      restaurantId: restaurant.id,
+      OR: [{ email }, { phone }],
     },
   });
-} else {
-  customer = await prisma.customer.create({
-    data: {
-      name: customerName,
-      phone: normalizedPhone,
-      email: normalizedEmail,
-    },
-  });
-}
+
+  if (customer) {
+    customer = await prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        name: customerName,
+        phone,
+        email,
+        birthDate: birthDate || customer.birthDate,
+        marketingOptIn: true,
+        marketingJoinedAt: customer.marketingJoinedAt || new Date(),
+        lastReservationAt: date,
+        lastVisitAt: date,
+        source: customer.source || "PUBLIC_RESERVATION",
+      },
+    });
+  } else {
+    customer = await prisma.customer.create({
+      data: {
+        restaurantId: restaurant.id,
+        name: customerName,
+        phone,
+        email,
+        birthDate,
+        marketingOptIn: true,
+        marketingJoinedAt: new Date(),
+        lastReservationAt: date,
+        lastVisitAt: date,
+        source: "PUBLIC_RESERVATION",
+      },
+    });
+  }
 
   await prisma.$executeRaw`
     INSERT INTO "Reservation"
@@ -204,7 +214,7 @@ if (customer) {
         ${customer.id},
         ${customerName},
         ${phone},
-        ${email || null},
+        ${email},
         ${guests},
         ${date},
         ${status},
@@ -215,37 +225,26 @@ if (customer) {
       )
   `;
 
-  await prisma.customer.update({
-  where: {
-    id: customer.id,
-  },
-  data: {
-    lastReservationAt: date,
-    lastVisitAt: date,
-  },
-});
-
- await prisma.marketingAction.updateMany({
-  where: {
-    customerId: customer.id,
-    restaurantId: restaurant.id,
-    status: {
-      in: ["SENT", "OPENED", "CLICKED"],
+  await prisma.marketingAction.updateMany({
+    where: {
+      customerId: customer.id,
+      restaurantId: restaurant.id,
+      status: {
+        in: ["SENT", "OPENED", "CLICKED"],
+      },
+      type: {
+        in: ["INACTIVE_RECOVERY", "BIRTHDAY"],
+      },
     },
-    type: {
-      in: ["INACTIVE_RECOVERY", "BIRTHDAY"],
+    data: {
+      status: "CONVERTED",
+      convertedAt: new Date(),
+      estimatedRevenue: guests * (restaurant.averageTicket ?? 25),
     },
-  },
-  data: {
-    status: "CONVERTED",
-    convertedAt: new Date(),
-    estimatedRevenue:
-      guests * (restaurant.averageTicket ?? 25),
-  },
-});
+  });
 
   const shouldSendEmail =
-    restaurant.plan === "PRO" &&
+    ["ESSENTIALS", "GROWTH", "PRO"].includes(plan) &&
     Boolean(email) &&
     Boolean(process.env.RESEND_API_KEY);
 
@@ -301,10 +300,10 @@ if (customer) {
 
   redirect(
     `/reserve/${slug}/success?name=${encodeURIComponent(
-      customerName
+      customerName,
     )}&guests=${guests}&date=${encodeURIComponent(
-      date.toISOString()
-    )}&status=${status}`
+      date.toISOString(),
+    )}&status=${status}`,
   );
 }
 

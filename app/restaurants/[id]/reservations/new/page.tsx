@@ -8,12 +8,17 @@ async function createReservation(formData: FormData) {
 
   const restaurantId = String(formData.get("restaurantId"));
   const reservationMode = String(formData.get("reservationMode"));
-  const customerName = String(formData.get("customerName"));
-  const phone = String(formData.get("phone"));
+  const customerName = String(formData.get("customerName")).trim();
+  const phone = String(formData.get("phone")).trim();
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const birthDateValue = String(formData.get("birthDate") || "").trim();
   const guests = Number(formData.get("guests"));
   const dateValue = String(formData.get("date"));
   const timeValue = String(formData.get("time"));
   const notes = String(formData.get("notes") || "").trim();
+
+  const normalizedEmail = email || null;
+  const birthDate = birthDateValue ? new Date(`${birthDateValue}T12:00:00`) : null;
 
   const date = new Date(`${dateValue}T${timeValue}`);
 
@@ -92,40 +97,43 @@ async function createReservation(formData: FormData) {
     }
   }
 
- const email = String(formData.get("email") || "");
-const normalizedEmail = email.trim().toLowerCase() || null;
-
-let customer = await prisma.customer.findFirst({
-  where: {
-    OR: [
-      { phone },
-      ...(normalizedEmail ? [{ email: normalizedEmail }] : []),
-    ],
-  },
-});
-
-if (customer) {
-  customer = await prisma.customer.update({
+  let customer = await prisma.customer.findFirst({
     where: {
-      id: customer.id,
+      OR: [
+        ...(normalizedEmail ? [{ email: normalizedEmail }] : []),
+        { phone },
+      ],
     },
-    data: {
-      name: customerName,
-      phone,
-      ...(normalizedEmail && {
+  });
+
+  if (customer) {
+    customer = await prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        name: customerName,
+        phone,
+        ...(normalizedEmail && {
+          email: normalizedEmail,
+        }),
+        ...(birthDate && {
+          birthDate,
+        }),
+        lastReservationAt: date,
+      },
+    });
+  } else {
+    customer = await prisma.customer.create({
+      data: {
+        name: customerName,
+        phone,
         email: normalizedEmail,
-      }),
-    },
-  });
-} else {
-  customer = await prisma.customer.create({
-    data: {
-      name: customerName,
-      phone,
-      email: normalizedEmail,
-    },
-  });
-}
+        birthDate,
+        lastReservationAt: date,
+      },
+    });
+  }
 
   await prisma.reservation.create({
     data: {
@@ -215,7 +223,8 @@ export default async function NewReservationPage({
               <span className="font-semibold text-[#16120E]">
                 {restaurant.name}
               </span>
-              . A mesa será atribuída automaticamente.
+              . O email e a data de nascimento são opcionais, mas ajudam no CRM
+              e nas campanhas.
             </p>
 
             <div className="mt-8 grid gap-3">
@@ -224,7 +233,7 @@ export default async function NewReservationPage({
                 label="Mesa"
                 value={usesTables ? "Atribuição automática" : "Sem mesa atribuída"}
               />
-              <MiniCard label="Duração média" value="2 horas" />
+              <MiniCard label="CRM" value="Cliente atualizado automaticamente" />
             </div>
           </aside>
 
@@ -238,16 +247,16 @@ export default async function NewReservationPage({
               />
 
               {query.error === "no-table" && (
-  <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-4 text-sm font-semibold text-[#A14E36]">
-    Não existe nenhuma mesa disponível para esse número de pessoas nesse horário.
-  </div>
-)}
+                <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-4 text-sm font-semibold text-[#A14E36]">
+                  Não existe nenhuma mesa disponível para esse número de pessoas nesse horário.
+                </div>
+              )}
 
-{query.error === "conflict" && (
-  <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-4 text-sm font-semibold text-[#A14E36]">
-    Já existe uma reserva próxima nesse horário.
-  </div>
-)}
+              {query.error === "conflict" && (
+                <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-4 text-sm font-semibold text-[#A14E36]">
+                  Já existe uma reserva próxima nesse horário.
+                </div>
+              )}
 
               <FormSection title="Cliente">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -267,6 +276,29 @@ export default async function NewReservationPage({
                       className="input-premium"
                       required
                     />
+                  </Field>
+
+                  <Field label="Email recomendado">
+                    <input
+                      name="email"
+                      type="email"
+                      placeholder="Ex: cliente@email.com"
+                      className="input-premium"
+                    />
+                    <p className="mt-2 text-xs font-medium leading-5 text-[#8A7A68]">
+                      Recomendado para confirmações, campanhas e histórico do cliente.
+                    </p>
+                  </Field>
+
+                  <Field label="Data de nascimento recomendada">
+                    <input
+                      name="birthDate"
+                      type="date"
+                      className="input-premium"
+                    />
+                    <p className="mt-2 text-xs font-medium leading-5 text-[#8A7A68]">
+                      Recomendado para campanhas de aniversário e fidelização.
+                    </p>
                   </Field>
                 </div>
               </FormSection>

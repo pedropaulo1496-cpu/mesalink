@@ -344,8 +344,6 @@ export default async function RestaurantOrderingPage({
 trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         restaurantLimit: 1,
         priceMonthly: 0,
-        websiteAddon: false,
-        qrOrderingAddon: false,
       },
     }));
 
@@ -363,10 +361,10 @@ trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   subscription.trialEndsAt > now;
 
 const canUseQrOrdering =
-  subscription.qrOrderingAddon || Boolean(trialActive);
+  Boolean(trialActive) || (subscription.status === "ACTIVE" && ["ESSENTIALS", "GROWTH"].includes(String(subscription.plan || "").toUpperCase()));
 
   if (!canUseQrOrdering) {
-    redirect(`/billing?addon=qr-ordering&restaurantId=${id}`);
+    redirect(`/billing?restaurantId=${id}`);
   }
 
  const qrStatusLabel = canUseQrOrdering

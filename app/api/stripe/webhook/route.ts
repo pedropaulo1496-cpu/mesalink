@@ -3,23 +3,22 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import Stripe from "stripe";
 
+type Product = "ESSENTIALS" | "GROWTH";
+
+function getPriceMonthly(product: Product) {
+  return product === "GROWTH" ? 99 : 79;
+}
+
 export async function POST(req: Request) {
   const body = await req.text();
-
   const signature = (await headers()).get("stripe-signature");
 
-  if (!signature) {
-    return new Response("No signature", { status: 400 });
-  }
+  if (!signature) return new Response("No signature", { status: 400 });
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err) {
     console.error(err);
     return new Response("Webhook Error", { status: 400 });
@@ -27,62 +26,40 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-
     const userId = session.metadata?.userId;
-    const product = session.metadata?.product;
+    const product = session.metadata?.product as Product | undefined;
 
-    if (!userId) {
-      return new Response("Missing userId", { status: 400 });
-    }
+    if (!userId || !product) return new Response("Missing metadata", { status: 400 });
 
     await prisma.subscription.upsert({
       where: { userId },
       create: {
         userId,
-        plan: product === "PRO" ? "PRO" : "FREE",
+        plan: product,
         status: "ACTIVE",
         trialEndsAt: null,
         restaurantLimit: 1,
-        priceMonthly: product === "PRO" ? 10 : 0,
-        websiteAddon: product === "WEBSITE",
-        qrOrderingAddon: product === "QR_ORDERING",
+        priceMonthly: getPriceMonthly(product),
         stripeCustomerId: session.customer?.toString(),
-        stripeProSubscriptionId:
-          product === "PRO" ? session.subscription?.toString() : undefined,
-        stripeWebsiteSubscriptionId:
-          product === "WEBSITE" ? session.subscription?.toString() : undefined,
-        stripeQrOrderingSubscriptionId:
-          product === "QR_ORDERING"
-            ? session.subscription?.toString()
-            : undefined,
+        stripeSubscriptionId: session.subscription?.toString(),
       },
       update: {
+        plan: product,
         status: "ACTIVE",
         trialEndsAt: null,
+        restaurantLimit: 1,
+        priceMonthly: getPriceMonthly(product),
         stripeCustomerId: session.customer?.toString(),
-
-        ...(product === "PRO"
-          ? {
-              plan: "PRO",
-              priceMonthly: 10,
-              stripeProSubscriptionId: session.subscription?.toString(),
-            }
-          : {}),
-
-        ...(product === "WEBSITE"
-          ? {
-              websiteAddon: true,
-              stripeWebsiteSubscriptionId: session.subscription?.toString(),
-            }
-          : {}),
-
-        ...(product === "QR_ORDERING"
-          ? {
-              qrOrderingAddon: true,
-              stripeQrOrderingSubscriptionId: session.subscription?.toString(),
-            }
-          : {}),
+        stripeSubscriptionId: session.subscription?.toString(),
       },
+    });
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    const stripeSubscription = event.data.object as Stripe.Subscription;
+    await prisma.subscription.updateMany({
+      where: { stripeSubscriptionId: stripeSubscription.id },
+      data: { status: "CANCELED" },
     });
   }
 

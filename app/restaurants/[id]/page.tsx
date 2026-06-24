@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import CopyButton from "@/components/CopyButton";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import UpgradeToGrowthButton from "@/components/UpgradeToGrowthButton";
 
 function money(value: number) {
   return `${value.toFixed(2)}€`;
@@ -113,6 +114,58 @@ export default async function RestaurantPage({
 
   const hasAccess = await canAccessApp(session.user.email);
   if (!hasAccess) redirect("/billing");
+
+  const billingUser = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: { subscription: true },
+  });
+
+  const subscription = billingUser?.subscription;
+  const trialEndsAt = subscription?.trialEndsAt ?? null;
+  const nowForBilling = new Date();
+
+  const trialActive =
+    subscription?.status === "TRIAL" &&
+    trialEndsAt &&
+    trialEndsAt > nowForBilling;
+
+  const trialDaysTotal = 7;
+  const trialDaysLeft = trialEndsAt
+    ? Math.max(
+        0,
+        Math.ceil(
+          (trialEndsAt.getTime() - nowForBilling.getTime()) /
+            (1000 * 60 * 60 * 24),
+        ),
+      )
+    : 0;
+
+  const trialProgress = trialEndsAt
+    ? Math.min(
+        100,
+        Math.max(0, Math.round(((trialDaysTotal - trialDaysLeft) / trialDaysTotal) * 100)),
+      )
+    : 0;
+
+  const subscriptionPlan = String(subscription?.plan ?? "").toUpperCase();
+  const subscriptionActive = subscription?.status === "ACTIVE";
+  const isGrowthPlan = subscriptionActive && subscriptionPlan === "GROWTH";
+  const isEssentialsPlan = subscriptionActive && subscriptionPlan === "ESSENTIALS";
+  const billingLabel = trialActive
+    ? "Trial"
+    : subscriptionActive && subscriptionPlan === "GROWTH"
+      ? "Growth"
+      : subscriptionActive && subscriptionPlan === "ESSENTIALS"
+        ? "Essentials"
+        : "Subscrição";
+
+  const billingSubLabel = trialActive
+    ? `${trialDaysLeft} dia(s)`
+    : subscriptionActive
+      ? "Ativo"
+      : "Renovar";
+
+  const billingProgress = trialActive ? trialProgress : subscriptionActive ? 100 : 0;
 
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
@@ -481,6 +534,13 @@ export default async function RestaurantPage({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <SubscriptionStatusButton
+                restaurantId={id}
+                label={billingLabel}
+                subLabel={billingSubLabel}
+                progress={billingProgress}
+                expired={!trialActive && !subscriptionActive}
+              />
               <VatToggle id={id} includeVat={includeVat} />
               <SignOutButton />
             </div>
@@ -525,6 +585,7 @@ export default async function RestaurantPage({
           <section className="mt-6 grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
             <ReservationsCompactCard reservations={nextReservations} />
             <MarketingRoiCard
+              isGrowth={isGrowthPlan}
               riskyCustomers={riskyCustomers}
               riskyRevenue={valueWithoutFlatVat(riskyRevenue, monthSalesStats)}
               averageTicket={valueWithoutFlatVat(Number(restaurant.averageTicket || 25), monthSalesStats)}
@@ -545,6 +606,85 @@ export default async function RestaurantPage({
 
       <BottomNav id={id} />
     </main>
+  );
+}
+
+function SubscriptionStatusButton({
+  restaurantId,
+  label,
+  subLabel,
+  progress,
+  expired = false,
+}: {
+  restaurantId: string;
+  label: string;
+  subLabel: string;
+  progress: number;
+  expired?: boolean;
+}) {
+  return (
+    <Link
+      href={`/billing?restaurantId=${restaurantId}`}
+      className={`flex items-center gap-3 rounded-full border bg-white px-3 py-2 shadow-[0_12px_35px_rgba(80,55,30,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(80,55,30,0.10)] ${
+        expired
+          ? "border-[#E7B7A8] text-[#A14E36]"
+          : "border-[#E1D0B8] text-[#16120E]"
+      }`}
+    >
+      <div className="text-right">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B6258]">
+          {label}
+        </p>
+        <p className={`text-xs font-bold ${expired ? "text-[#A14E36]" : "text-[#9B6F3B]"}`}>
+          {subLabel}
+        </p>
+      </div>
+
+      <ProgressRing progress={progress} danger={expired} />
+    </Link>
+  );
+}
+
+function ProgressRing({
+  progress,
+  danger = false,
+}: {
+  progress: number;
+  danger?: boolean;
+}) {
+  const safeProgress = Math.max(0, Math.min(100, progress));
+  const radius = 17;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference - (safeProgress / 100) * circumference;
+
+  return (
+    <div className="relative flex h-11 w-11 items-center justify-center">
+      <svg viewBox="0 0 44 44" className="h-11 w-11 -rotate-90">
+        <circle
+          cx="22"
+          cy="22"
+          r={radius}
+          fill="none"
+          stroke="#E8DCCB"
+          strokeWidth="4"
+        />
+        <circle
+          cx="22"
+          cy="22"
+          r={radius}
+          fill="none"
+          stroke={danger ? "#C55A42" : "#C8A56A"}
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+        />
+      </svg>
+
+      <span className="absolute text-[10px] font-black text-[#16120E]">
+        {safeProgress}%
+      </span>
+    </div>
   );
 }
 
@@ -852,14 +992,66 @@ function ReservationMiniLine({ reservation }: { reservation: any }) {
 }
 
 function MarketingRoiCard({
+  isGrowth,
   riskyCustomers,
   riskyRevenue,
   averageTicket,
 }: {
+  isGrowth: boolean;
   riskyCustomers: any[];
   riskyRevenue: number;
   averageTicket: number;
 }) {
+  if (!isGrowth) {
+    return (
+      <Panel compact>
+        <div className="flex h-full flex-col">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <SectionLabel>Marketing Growth</SectionLabel>
+              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
+                Recupere clientes e aumente visitas recorrentes.
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">
+                Desbloqueie campanhas automáticas, clientes em risco,
+                aniversários, segmentação VIP e ROI das campanhas.
+              </p>
+            </div>
+
+            <span className="w-fit rounded-full border border-[#D8C5A5] bg-[#FFF9F0] px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#9B6F3B]">
+              Growth
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            <GrowthFeature text="Clientes em risco" />
+            <GrowthFeature text="Campanhas automáticas" />
+            <GrowthFeature text="Aniversários automáticos" />
+            <GrowthFeature text="ROI das campanhas" />
+          </div>
+
+          <div className="mt-auto pt-5">
+            <div className="flex flex-col gap-4 rounded-[24px] border border-[#D8C5A5] bg-[#FFF9F0] p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#9B6F3B]">
+                  Upgrade
+                </p>
+                <p className="mt-1 text-3xl font-semibold tracking-[-0.05em]">
+                  +20€/mês
+                </p>
+                <p className="mt-1 text-xs font-semibold text-[#6B6258]">
+                  Mantém a mesma data de renovação e o Stripe calcula a diferença.
+                </p>
+              </div>
+
+              <UpgradeToGrowthButton />
+            </div>
+          </div>
+        </div>
+      </Panel>
+    );
+  }
+
   const targetCustomers = riskyCustomers.length;
   const expectedRecoveredCustomers = Math.max(0, Math.round(targetCustomers * 0.18));
   const expectedRevenue = expectedRecoveredCustomers * averageTicket;
@@ -917,6 +1109,14 @@ function MarketingRoiCard({
         </div>
       </div>
     </Panel>
+  );
+}
+
+function GrowthFeature({ text }: { text: string }) {
+  return (
+    <div className="rounded-2xl border border-[#E1D0B8] bg-white px-4 py-3 text-sm font-semibold text-[#16120E]">
+      ✓ {text}
+    </div>
   );
 }
 

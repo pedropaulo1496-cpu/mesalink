@@ -12,8 +12,8 @@ export default function Footer() {
             </h3>
 
             <p className="mt-4 max-w-sm text-sm leading-6 text-[#6B6258]">
-              Transforme Google Maps, Instagram e website num sistema
-              inteligente de reservas.
+               Crescimento, visibilidade e controlo.
+               Tudo o que o restaurante precisa, num único sistema.
             </p>
           </div>
 

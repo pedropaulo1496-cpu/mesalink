@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { notFound, redirect } from "next/navigation";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import RecoveryAutomationCard from "@/components/marketing/RecoveryAutomationCard";
 import BirthdayAutomationCard from "@/components/marketing/BirthdayAutomationCard";
@@ -12,11 +14,86 @@ export default async function MarketingPage({
 }) {
   const { id } = await params;
 
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) redirect("/login");
+
+  const billingUser = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: { subscription: true },
+  });
+
+  const subscription = billingUser?.subscription;
+  const now = new Date();
+  const trialActive =
+    subscription?.status === "TRIAL" &&
+    subscription.trialEndsAt &&
+    subscription.trialEndsAt > now;
+
+  const hasGrowth =
+    subscription?.status === "ACTIVE" &&
+    String(subscription.plan ?? "").toUpperCase() === "GROWTH";
+
+  const canUseMarketing = Boolean(trialActive || hasGrowth);
+
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
   });
 
   if (!restaurant) notFound();
+
+  if (!canUseMarketing) {
+    return (
+      <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+        <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
+          <RestaurantSidebar
+            id={id}
+            restaurantName={restaurant.name}
+            active="Marketing"
+          />
+
+          <section className="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
+            <div className="w-full max-w-4xl overflow-hidden rounded-[44px] border border-[#E1D0B8] bg-white shadow-[0_28px_90px_rgba(80,55,30,0.08)]">
+              <div className="bg-[#17120D] p-8 text-white lg:p-10">
+                <p className="text-xs font-black uppercase tracking-[0.34em] text-[#D7B267]">
+                  MesaLink Growth
+                </p>
+
+                <h1 className="mt-5 text-5xl font-semibold leading-[0.92] tracking-[-0.07em]">
+                  Marketing disponível no plano Growth.
+                </h1>
+
+                <p className="mt-5 max-w-2xl text-sm leading-6 text-[#EADBC5]">
+                  O Essentials mantém reservas, website, QR Ordering, CRM e reviews.
+                  Para recuperar clientes, criar campanhas e aumentar visitas recorrentes,
+                  ative o Growth.
+                </p>
+              </div>
+
+              <div className="grid gap-4 p-6 sm:grid-cols-2 lg:p-8">
+                <LockedFeature title="Recuperação de clientes" text="Identifique clientes inativos e traga-os de volta." />
+                <LockedFeature title="Campanhas automáticas" text="Promova dias fracos, aniversários e ocasiões especiais." />
+                <LockedFeature title="Clientes em risco" text="Veja quem pode deixar de voltar e aja antes." />
+                <LockedFeature title="ROI Growth" text="Acompanhe receita recuperada e impacto das campanhas." />
+              </div>
+
+              <div className="flex flex-col gap-3 border-t border-[#E1D0B8] bg-[#FFF9F0] p-6 sm:flex-row sm:items-center sm:justify-between lg:p-8">
+                <p className="text-sm leading-6 text-[#6B6258]">
+                  Growth inclui tudo do Essentials + Marketing.
+                </p>
+
+                <Link
+                  href={`/billing?restaurantId=${id}`}
+                  className="inline-flex h-12 items-center justify-center rounded-full bg-[#16120E] px-6 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+                >
+                  Upgrade para Growth →
+                </Link>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    );
+  }
 
   const customers = await prisma.customer.findMany({
     where: {
@@ -45,7 +122,6 @@ export default async function MarketingPage({
     orderBy: { createdAt: "desc" },
   });
 
-  const now = new Date();
   const sixtyDaysAgo = new Date(now);
   sixtyDaysAgo.setDate(now.getDate() - 60);
 
@@ -625,6 +701,15 @@ const riskRevenue =
         </section>
       </div>
     </main>
+  );
+}
+
+function LockedFeature({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-5">
+      <p className="text-lg font-semibold tracking-[-0.04em]">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-[#6B6258]">{text}</p>
+    </div>
   );
 }
 

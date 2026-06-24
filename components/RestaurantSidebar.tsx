@@ -54,7 +54,7 @@ useEffect(() => {
   name: "POS",
   href: `/restaurants/${id}/pos`,
   icon: PosIcon,
-  badge: qrNotificationCount > 0 ? String(qrNotificationCount) : "NEW",
+  badge: qrNotificationCount > 0 ? String(qrNotificationCount) : undefined,
   alert: qrNotificationCount > 0,
 },
         { name: "Menu & Produtos", href: `/restaurants/${id}/menu`, icon: MenuIcon },
@@ -79,16 +79,8 @@ useEffect(() => {
           name: "Marketing",
           href: `/restaurants/${id}/marketing`,
           icon: MegaphoneIcon,
-          badge: "NEW",
         },
         { name: "Website", href: `/restaurants/${id}/website`, icon: GlobeIcon },
-      ],
-    },
-
-    {
-      title: "Inteligência",
-      items: [
-        { name: "IA", href: `/restaurants/${id}/ai`, icon: SparkIcon, soon: true },
       ],
     },
   ];
@@ -130,14 +122,29 @@ useEffect(() => {
         </div>
 
         <div className="relative z-10 mt-4 border-t border-[#DDC9AA] pt-4">
-          <NavItem
-            item={{
-              name: "Definições",
-              href: `/restaurants/${id}/settings`,
-              icon: SettingsIcon,
-            }}
-            active={active === "Definições"}
-          />
+          <p className="mb-2 px-4 text-[10px] font-black uppercase tracking-[0.28em] text-[#A88A57]">
+            Conta
+          </p>
+
+          <div className="flex flex-col gap-1.5">
+            <NavItem
+              item={{
+                name: "Billing",
+                href: `/billing?restaurantId=${id}`,
+                icon: BillingIcon,
+              }}
+              active={active === "Billing"}
+            />
+
+            <NavItem
+              item={{
+                name: "Definições",
+                href: `/restaurants/${id}/settings`,
+                icon: SettingsIcon,
+              }}
+              active={active === "Definições"}
+            />
+          </div>
         </div>
 
         <div className="relative z-10 mt-5 rounded-[24px] border border-[#E3D3BC] bg-[#FFF9F0]/92 p-4 shadow-[0_22px_60px_rgba(96,65,28,0.12)] backdrop-blur-xl">
@@ -365,11 +372,13 @@ function MenuIcon() {
   );
 }
 
-function SparkIcon() {
+function BillingIcon() {
   return (
     <IconSvg>
-      <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
-      <path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z" />
+      <rect x="4" y="5" width="16" height="14" rx="3" />
+      <path d="M4 9h16" />
+      <path d="M8 14h4" />
+      <path d="M15.5 14h.01" />
     </IconSvg>
   );
 }

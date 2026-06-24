@@ -1,58 +1,33 @@
 import { prisma } from "@/lib/prisma";
-import { hasTrialExpired } from "./subscription";
-
-export async function getUserSubscription(email: string) {
-  const user = await prisma.user.findUnique({
-    where: { email },
-    include: { subscription: true },
-  });
-
-  return user?.subscription || null;
-}
 
 export async function canAccessApp(email: string) {
-  const subscription = await getUserSubscription(email);
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      subscription: true,
+    },
+  });
+
+  if (!user) return false;
+
+  const subscription = user.subscription;
 
   if (!subscription) return false;
 
-  if (subscription.status === "CANCELLED") return false;
+  const now = new Date();
 
-  return true;
-}
-
-export async function canUsePro(email: string) {
-  const subscription = await getUserSubscription(email);
-
-  if (!subscription) return false;
-
-  if (
-    subscription.status === "TRIAL" &&
-    !hasTrialExpired(subscription.trialEndsAt)
-  ) {
-    return true;
-  }
-
-  return subscription.status === "ACTIVE" && subscription.plan === "PRO";
-}
-
-export async function canUseWebsite(email: string) {
-  const subscription = await getUserSubscription(email);
-
-  if (!subscription) return false;
-
-  if (
-    subscription.status === "TRIAL" &&
-    !hasTrialExpired(subscription.trialEndsAt)
-  ) {
-    return true;
-  }
-
-  return (
+  const isActive =
     subscription.status === "ACTIVE" &&
-    subscription.websiteAddon === true
-  );
-}
+    ["ESSENTIALS", "GROWTH"].includes(String(subscription.plan));
 
-export async function canUseTables(email: string) {
-  return canUsePro(email);
+  if (isActive) return true;
+
+  const trialActive =
+    subscription.status === "TRIAL" &&
+    subscription.trialEndsAt &&
+    subscription.trialEndsAt > now;
+
+  if (trialActive) return true;
+
+  return false;
 }

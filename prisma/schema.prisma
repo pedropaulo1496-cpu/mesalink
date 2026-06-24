@@ -25,21 +25,16 @@ model User {
 model Subscription {
   id String @id @default(cuid())
 
-  plan   String @default("FREE") // FREE, PRO
-  status String @default("TRIAL") // TRIAL, ACTIVE, CANCELLED, PAST_DUE
+  plan   String @default("ESSENTIALS") // TRIAL, ESSENTIALS, GROWTH
+  status String @default("TRIAL") // TRIAL, ACTIVE, CANCELED, PAST_DUE
 
   trialEndsAt DateTime?
 
   restaurantLimit Int @default(1)
   priceMonthly    Int @default(0)
 
-  websiteAddon    Boolean @default(false)
-  qrOrderingAddon Boolean @default(false)
-
-  stripeCustomerId               String?
-  stripeProSubscriptionId        String?
-  stripeWebsiteSubscriptionId    String?
-  stripeQrOrderingSubscriptionId String?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
@@ -194,6 +189,7 @@ model Restaurant {
   printers                 RestaurantPrinter[]
   printBridgeToken         String?                 @unique
   printBridgeRestaurants   PrintBridgeRestaurant[]
+  customers                Customer[]
 }
 
 model WebsiteMenu {
@@ -253,8 +249,11 @@ model Table {
 model Customer {
   id String @id @default(cuid())
 
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
   name  String
-  phone String  @unique
+  phone String
   email String?
 
   reservations Reservation[]
@@ -262,20 +261,32 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  marketingOptIn    Boolean           @default(false)
+  marketingOptIn    Boolean   @default(false)
   marketingJoinedAt DateTime?
-  birthDate         DateTime?
-  lastVisitAt       DateTime?
-  visitCount        Int               @default(0)
-  vipTier           String?
-  marketingActions  MarketingAction[]
-  totalVisits       Int               @default(0)
 
+  birthDate DateTime?
+
+  lastVisitAt       DateTime?
   lastReservationAt DateTime?
-  riskScore         Int               @default(0)
-  notes             String?
-  tags              String[]
-  posTableSessions  POSTableSession[]
+
+  visitCount  Int @default(0)
+  totalVisits Int @default(0)
+
+  vipTier   String?
+  riskScore Int     @default(0)
+
+  notes String?
+  tags  String[] @default([])
+
+  source String? // RESERVATION, MANUAL, IMPORT
+
+  marketingActions MarketingAction[]
+  posTableSessions POSTableSession[]
+
+  @@unique([restaurantId, email])
+  @@index([restaurantId])
+  @@index([email])
+  @@index([phone])
 }
 
 model Reservation {
@@ -982,12 +993,12 @@ model PrintBridgeDevice {
   restaurants PrintBridgeRestaurant[]
   mappings    PrintBridgePrinterMapping[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  windowsPrinters Json?
 
   @@index([userId])
   @@index([token])
-  windowsPrinters Json?
 }
 
 model PrintBridgeRestaurant {

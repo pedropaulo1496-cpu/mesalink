@@ -100,7 +100,7 @@ function generateTimesFromRange(range: string | null) {
     const minute = normalizedMinutes % 60;
 
     times.push(
-      `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
+      `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
     );
 
     currentMinutes += 30;
@@ -123,9 +123,7 @@ function getAvailableHoursForDay(restaurant: Restaurant, selectedDay: string) {
     ...generateTimesFromRange(dinner),
   ];
 
-  if (!open && hours.length === 0) {
-    return [];
-  }
+  if (!open && hours.length === 0) return [];
 
   return hours;
 }
@@ -172,7 +170,7 @@ function getTodayDateValue() {
 
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
     2,
-    "0"
+    "0",
   )}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
@@ -211,7 +209,7 @@ export default function ReserveForm({
     const date = new Date(`${selectedDay}T${selectedHour}:00`);
 
     return restaurant.tables.filter((table) =>
-      isTableAvailable(date, table.reservations)
+      isTableAvailable(date, table.reservations),
     );
   }, [restaurant.tables, selectedDay, selectedHour]);
 
@@ -505,30 +503,49 @@ export default function ReserveForm({
                   <StepTitle number="4" title="Dados da reserva" />
 
                   <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <input
-                      name="customerName"
-                      type="text"
-                      placeholder="Nome"
-                      className={inputClass}
-                      required
-                    />
+                    <Field label="Nome" required>
+                      <input
+                        name="customerName"
+                        type="text"
+                        placeholder="Nome completo"
+                        className={inputClass}
+                        required
+                      />
+                    </Field>
 
-                    <input
-                      name="phone"
-                      type="text"
-                      placeholder="Telefone"
-                      className={inputClass}
-                      required
-                    />
+                    <Field label="Telemóvel" required>
+                      <input
+                        name="phone"
+                        type="tel"
+                        placeholder="Telemóvel"
+                        className={inputClass}
+                        required
+                      />
+                    </Field>
 
-                    <input
-                      name="email"
-                      type="email"
-                      placeholder="Email"
-                      className={`${inputClass} md:col-span-2`}
-                      required
-                    />
+                    <Field label="Email" required>
+                      <input
+                        name="email"
+                        type="email"
+                        placeholder="Email"
+                        className={inputClass}
+                        required
+                      />
+                    </Field>
+
+                    <Field label="Data de nascimento" optional>
+                      <input
+                        name="birthDate"
+                        type="date"
+                        className={inputClass}
+                      />
+                    </Field>
                   </div>
+
+                  <p className="mt-3 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-3 text-xs leading-5 text-[#6B6258]">
+                    A data de nascimento é opcional e pode ser usada pelo restaurante
+                    para campanhas de aniversário e benefícios personalizados.
+                  </p>
 
                   <motion.button
                     whileHover={{ scale: 1.01 }}
@@ -554,6 +571,40 @@ export default function ReserveForm({
         </div>
       </motion.div>
     </main>
+  );
+}
+
+function Field({
+  label,
+  required,
+  optional,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  optional?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 flex items-center justify-between gap-3 text-sm font-semibold text-[#6B6258]">
+        <span>{label}</span>
+
+        {required && (
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
+            Obrigatório
+          </span>
+        )}
+
+        {optional && (
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B8F82]">
+            Opcional
+          </span>
+        )}
+      </span>
+
+      {children}
+    </label>
   );
 }
 
@@ -592,34 +643,6 @@ function StepTitle({ number, title }: { number: string; title: string }) {
   );
 }
 
-function SummaryItem({
-  label,
-  value,
-  highlight,
-}: {
-  label: string;
-  value: string;
-  highlight?: boolean;
-}) {
-  return (
-    <motion.div
-      whileHover={{ scale: 1.01 }}
-      className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4"
-    >
-      <p className="text-sm text-[#6B6258]">{label}</p>
-      <p
-        className={
-          highlight
-            ? "mt-1 font-semibold text-[#9B6F3B]"
-            : "mt-1 font-semibold text-[#16120E]"
-        }
-      >
-        {value}
-      </p>
-    </motion.div>
-  );
-}
-
 function Alert({
   tone,
   title,
@@ -633,8 +656,8 @@ function Alert({
     tone === "red"
       ? "border-[#E7B7A8] bg-[#FFF0EA] text-[#A14E36]"
       : tone === "yellow"
-      ? "border-[#D8C5A5] bg-[#FFF1D0] text-[#9B6F3B]"
-      : "border-[#BFD9C1] bg-[#ECF7EC] text-[#3F6A4D]";
+        ? "border-[#D8C5A5] bg-[#FFF1D0] text-[#9B6F3B]"
+        : "border-[#BFD9C1] bg-[#ECF7EC] text-[#3F6A4D]";
 
   return (
     <motion.div
