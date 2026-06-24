@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import FloorPlanEditor from "./FloorPlanEditor";
 import { authOptions } from "@/lib/auth";
-import { canUseTables } from "@/lib/check-subscription";
+import { canAccessApp } from "@/lib/check-subscription";
 import { getServerSession } from "next-auth";
 import type { ReactNode } from "react";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
@@ -121,7 +121,7 @@ export default async function TablesPage({
 
   if (!session?.user?.email) redirect("/login");
 
-  const hasTablesAccess = await canUseTables(session.user.email);
+  const hasTablesAccess = await canAccessApp(session.user.email);
   if (!hasTablesAccess) redirect("/billing?feature=tables");
 
   const { id } = await params;

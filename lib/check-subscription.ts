@@ -31,3 +31,11 @@ export async function canAccessApp(email: string) {
 
   return false;
 }
+
+export async function canUseTables(email: string) {
+  return canAccessApp(email);
+}
+
+export async function canUseWebsite(email: string) {
+  return canAccessApp(email);
+}
