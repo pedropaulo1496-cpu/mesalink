@@ -1,5 +1,4 @@
 import { authOptions } from "@/lib/auth";
-import { canAccessApp } from "@/lib/check-subscription";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
@@ -18,12 +17,6 @@ export default async function RestaurantWebsitePage({
 
   if (!session?.user?.email) {
     redirect("/login");
-  }
-
-  const hasWebsiteAccess = await canAccessApp(session.user.email);
-
-  if (!hasWebsiteAccess) {
-    redirect("/billing?addon=website");
   }
 
   const { id } = await params;
