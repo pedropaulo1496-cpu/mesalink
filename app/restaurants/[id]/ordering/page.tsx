@@ -551,7 +551,7 @@ const canUseQrOrdering =
         </div>
       </div>
 
-      <BottomNav id={id} activeTab={activeTab} />
+      <BottomNav id={id} />
     </main>
   );
 }
