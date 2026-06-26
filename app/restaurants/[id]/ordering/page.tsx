@@ -442,7 +442,7 @@ const canUseQrOrdering =
   active="QR Ordering"
 />
 
-        <div className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <div className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-7 lg:pt-7">
           <header className="border-b border-[#E1D0B8] pb-6">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
               <div>
@@ -1587,5 +1587,36 @@ function MetricCard({
       </p>
       <p className="mt-1 text-[10px] font-bold text-[#6B6258]">{sub}</p>
     </div>
+  );
+}
+
+function BottomNav({ id }: { id: string }) {
+  const items = [
+    { href: `/restaurants/${id}`, icon: "⌂", label: "Dash" },
+    { href: `/restaurants/${id}/day`, icon: "⚡", label: "Hoje" },
+    { href: `/restaurants/${id}/calendar`, icon: "📅", label: "Calend." },
+    { href: `/restaurants/${id}/pos`, icon: "💳", label: "POS" },
+    { href: `/restaurants/${id}/ordering`, icon: "📲", label: "QR" },
+    { href: `/restaurants/${id}/tables`, icon: "▦", label: "Sala" },
+    { href: `/restaurants/${id}/settings`, icon: "⚙️", label: "Def." },
+  ];
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E1D0B8] bg-[#F5EFE6]/95 px-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-2xl lg:hidden">
+      <div className="grid grid-cols-7">
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[#6B6258] active:bg-[#FFF9F0] active:text-[#16120E]"
+          >
+            <span className="text-[20px] leading-none">{item.icon}</span>
+            <span className="text-[9px] font-black leading-none">
+              {item.label}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </nav>
   );
 }
