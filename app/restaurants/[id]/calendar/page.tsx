@@ -137,37 +137,39 @@ export default async function CalendarPage({
   const emptyDays = Array.from({ length: firstDayOfWeek });
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020617] p-4 text-white lg:p-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-[34px] border border-cyan-300/10 bg-white/[0.04] p-6 shadow-[0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl">
+    <main className="relative min-h-screen overflow-x-hidden bg-[#020617] px-3 py-4 text-white sm:px-5 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
+        <header className="flex flex-col gap-5 rounded-[26px] border border-cyan-300/10 bg-white/[0.04] p-4 shadow-[0_0_55px_rgba(34,211,238,0.08)] backdrop-blur-xl sm:rounded-[34px] sm:p-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <Link
               href={`/restaurants/${id}`}
-              className="text-sm text-[#9e9e9e] hover:text-white"
+              className="inline-flex text-sm font-bold text-[#9e9e9e] hover:text-white"
             >
               ← Voltar ao dashboard
             </Link>
 
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">
-  MesaLink OS · Calendar
-</p>
+            <p className="mt-4 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300 sm:tracking-[0.28em]">
+              MesaLink OS · Calendar
+            </p>
 
-<h1 className="mt-3 text-5xl font-black tracking-[-0.05em]">
-  Calendário
-</h1>
+            <h1 className="mt-2 text-4xl font-black tracking-[-0.05em] sm:mt-3 sm:text-5xl">
+              Calendário
+            </h1>
 
-            <p className="mt-2 text-[#9e9e9e]">{restaurant.name}</p>
+            <p className="mt-2 text-sm font-medium text-[#9e9e9e] sm:text-base">
+              {restaurant.name}
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="grid grid-cols-[48px_1fr_48px] items-center gap-2 sm:flex sm:gap-3">
             <Link
               href={`/restaurants/${id}/calendar?year=${previousMonth.getFullYear()}&month=${previousMonth.getMonth()}`}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#2b2b2b] bg-[#181818] text-[#f0c36a] hover:border-[#f0c36a]"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#2b2b2b] bg-[#181818] text-[#f0c36a] transition hover:border-[#f0c36a]"
             >
               ←
             </Link>
 
-            <div className="rounded-full border border-[#2b2b2b] bg-[#181818] px-7 py-3 font-black text-[#f0c36a]">
+            <div className="flex h-12 items-center justify-center rounded-full border border-[#2b2b2b] bg-[#181818] px-3 text-center text-sm font-black capitalize text-[#f0c36a] sm:px-7 sm:text-base">
               {monthStart.toLocaleDateString("pt-PT", {
                 month: "long",
                 year: "numeric",
@@ -176,14 +178,14 @@ export default async function CalendarPage({
 
             <Link
               href={`/restaurants/${id}/calendar?year=${nextMonth.getFullYear()}&month=${nextMonth.getMonth()}`}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#2b2b2b] bg-[#181818] text-[#f0c36a] hover:border-[#f0c36a]"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#2b2b2b] bg-[#181818] text-[#f0c36a] transition hover:border-[#f0c36a]"
             >
               →
             </Link>
           </div>
         </header>
 
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           <StatCard label="Reservas no mês" value={monthReservations.length} />
           <StatCard label="Pessoas no mês" value={totalGuests} />
           <StatCard label="Pendentes" value={pendingReservations.length} />
@@ -198,6 +200,14 @@ export default async function CalendarPage({
         </section>
 
 <section className="grid gap-3 md:hidden">
+          <div className="flex items-center justify-between px-1">
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">
+              Dias do mês
+            </p>
+            <p className="text-xs font-bold text-slate-400">
+              Toca num dia para abrir
+            </p>
+          </div>
   {days.map((day) => {
     const isToday =
       day.getDate() === today.getDate() &&
@@ -223,6 +233,9 @@ export default async function CalendarPage({
       .reduce((total, reservation) => total + reservation.guests, 0);
 
     const totalDayGuests = lunchGuests + dinnerGuests;
+    const pendingCount = dayReservations.filter(
+      (reservation) => reservation.status === "PENDING"
+    ).length;
 
     return (
       <Link
@@ -230,8 +243,8 @@ export default async function CalendarPage({
         href={`/restaurants/${id}/day?day=${formatDay(day)}`}
         className={
           isToday
-            ? "rounded-2xl border border-cyan-300/30 bg-cyan-400/10 p-4 shadow-[0_0_35px_rgba(34,211,238,0.16)]"
-            : "rounded-2xl border border-cyan-300/10 bg-white/[0.04] p-4"
+            ? "rounded-3xl border border-cyan-300/30 bg-cyan-400/10 p-4 shadow-[0_0_35px_rgba(34,211,238,0.16)]"
+            : "rounded-3xl border border-cyan-300/10 bg-white/[0.04] p-4"
         }
       >
         <div className="flex items-center justify-between">
@@ -258,6 +271,12 @@ export default async function CalendarPage({
           <CalendarMeal label="Almoço" value={lunchGuests} active={lunchGuests > 0} />
           <CalendarMeal label="Jantar" value={dinnerGuests} active={dinnerGuests > 0} />
         </div>
+
+        {pendingCount > 0 && (
+          <div className="mt-3 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-3 py-2 text-xs font-black text-yellow-300">
+            {pendingCount} pendente{pendingCount > 1 ? "s" : ""}
+          </div>
+        )}
       </Link>
     );
   })}
@@ -379,8 +398,8 @@ function CalendarMeal({
     <div
       className={
         active
-          ? "flex justify-between rounded-lg border border-cyan-300/10 bg-cyan-400/10 px-2 py-1 text-cyan-100"
-          : "flex justify-between rounded-lg border border-white/5 bg-white/[0.03] px-2 py-1 text-slate-500"
+          ? "flex justify-between rounded-xl border border-cyan-300/10 bg-cyan-400/10 px-3 py-2 text-xs font-bold text-cyan-100 sm:px-2 sm:py-1"
+          : "flex justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2 text-xs font-bold text-slate-500 sm:px-2 sm:py-1"
       }
     >
       <span>{label}</span>
@@ -397,12 +416,12 @@ function StatCard({
   value: number | string;
 }) {
   return (
-    <div className="rounded-[24px] border border-cyan-300/10 bg-white/[0.04] p-5 backdrop-blur-xl">
-      <p className="text-xs font-bold text-slate-400">
+    <div className="rounded-[20px] border border-cyan-300/10 bg-white/[0.04] p-4 backdrop-blur-xl sm:rounded-[24px] sm:p-5">
+      <p className="text-[11px] font-bold text-slate-400 sm:text-xs">
         {label}
       </p>
 
-      <p className="mt-2 text-3xl font-black text-cyan-300">
+      <p className="mt-2 text-2xl font-black text-cyan-300 sm:text-3xl">
         {value}
       </p>
     </div>

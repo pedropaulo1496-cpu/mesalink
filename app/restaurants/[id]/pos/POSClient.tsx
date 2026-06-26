@@ -334,35 +334,36 @@ export default function POSClient({
   pendingOrders: QRPendingOrder[];
   qrAlerts: QRAlert[];
   fiscalIntegration: {
-  active: boolean;
-  companyId: string | null;
-  invoiceSerieId?: string | null;
-  simplifiedInvoiceSerieId?: string | null;
-  creditNoteSerieId?: string | null;
-} | null;
+    active: boolean;
+    companyId: string | null;
+    invoiceSerieId?: string | null;
+    simplifiedInvoiceSerieId?: string | null;
+    creditNoteSerieId?: string | null;
+  } | null;
 
   printJobs: any[];
 }) {
   const [report, setReport] = useState<POSReport | null>(null);
-const [loadingReport, setLoadingReport] = useState(false);
+  const [loadingReport, setLoadingReport] = useState(false);
   const [documents, setDocuments] = useState<FiscalDocument[]>([]);
-const [loadingDocuments, setLoadingDocuments] = useState(false);
-const [fiscalReport, setFiscalReport] = useState<FiscalReport>({
-  invoices: 0,
-  simplifiedInvoices: 0,
-  creditNotes: 0,
-  total: 0,
-});
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [fiscalReport, setFiscalReport] = useState<FiscalReport>({
+    invoices: 0,
+    simplifiedInvoices: 0,
+    creditNotes: 0,
+    total: 0,
+  });
 
-const [loadingFiscalReport, setLoadingFiscalReport] = useState(false);
-const [loadedFiscalIntegration, setLoadedFiscalIntegration] = useState<any>(null);
-const [loadingFiscal, setLoadingFiscal] = useState(false);
-const [documentSets, setDocumentSets] = useState<any[]>([]);
-const [savingFiscalSeries, setSavingFiscalSeries] = useState(false);
+  const [loadingFiscalReport, setLoadingFiscalReport] = useState(false);
+  const [loadedFiscalIntegration, setLoadedFiscalIntegration] =
+    useState<any>(null);
+  const [loadingFiscal, setLoadingFiscal] = useState(false);
+  const [documentSets, setDocumentSets] = useState<any[]>([]);
+  const [savingFiscalSeries, setSavingFiscalSeries] = useState(false);
 
-const [invoiceSerieId, setInvoiceSerieId] = useState("");
-const [simplifiedInvoiceSerieId, setSimplifiedInvoiceSerieId] = useState("");
-const [creditNoteSerieId, setCreditNoteSerieId] = useState("");
+  const [invoiceSerieId, setInvoiceSerieId] = useState("");
+  const [simplifiedInvoiceSerieId, setSimplifiedInvoiceSerieId] = useState("");
+  const [creditNoteSerieId, setCreditNoteSerieId] = useState("");
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     categories[0]?.id ?? null,
@@ -386,17 +387,25 @@ const [creditNoteSerieId, setCreditNoteSerieId] = useState("");
   const [openingAmount, setOpeningAmount] = useState("100");
   const [closingAmount, setClosingAmount] = useState("");
   const [savingCashRegister, setSavingCashRegister] = useState(false);
-  const [historyPayments, setHistoryPayments] = useState<POSHistoryPayment[]>([]);
+  const [historyPayments, setHistoryPayments] = useState<POSHistoryPayment[]>(
+    [],
+  );
   const [loadingHistory, setLoadingHistory] = useState(false);
-  const [handlingQrOrderId, setHandlingQrOrderId] = useState<string | null>(null);
-  const [handlingQrAlertId, setHandlingQrAlertId] = useState<string | null>(null);
+  const [handlingQrOrderId, setHandlingQrOrderId] = useState<string | null>(
+    null,
+  );
+  const [handlingQrAlertId, setHandlingQrAlertId] = useState<string | null>(
+    null,
+  );
   const [splitCount, setSplitCount] = useState(1);
   const [splitItemsOpen, setSplitItemsOpen] = useState(false);
   const [partialPaymentOpen, setPartialPaymentOpen] = useState(false);
   const [partialPaymentAmount, setPartialPaymentAmount] = useState(0);
   const [partialPaymentMethod, setPartialPaymentMethod] =
     useState<PaymentMethod>("CARD");
-  const [selectedSplitItems, setSelectedSplitItems] = useState<SplitPaymentItem[]>([]);
+  const [selectedSplitItems, setSelectedSplitItems] = useState<
+    SplitPaymentItem[]
+  >([]);
   const [partialPaymentLoading, setPartialPaymentLoading] = useState(false);
   const [discountOpen, setDiscountOpen] = useState(false);
   const [discountLoading, setDiscountLoading] = useState(false);
@@ -409,57 +418,54 @@ const [creditNoteSerieId, setCreditNoteSerieId] = useState("");
   });
   const [editingLine, setEditingLine] = useState<AccountLine | null>(null);
   const [savingLine, setSavingLine] = useState(false);
-  const [editingCartProductId, setEditingCartProductId] = useState<string | null>(null);
-  const [showCashMovementModal, setShowCashMovementModal] =
-  useState(false);
+  const [editingCartProductId, setEditingCartProductId] = useState<
+    string | null
+  >(null);
+  const [showCashMovementModal, setShowCashMovementModal] = useState(false);
 
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
 
-const [invoiceVat, setInvoiceVat] = useState("");
-const [invoiceName, setInvoiceName] = useState("");
-const [invoiceEmail, setInvoiceEmail] = useState("");
-const [invoiceCustomerType, setInvoiceCustomerType] =
-  useState<"FINAL_CONSUMER" | "VAT">("FINAL_CONSUMER");
+  const [invoiceVat, setInvoiceVat] = useState("");
+  const [invoiceName, setInvoiceName] = useState("");
+  const [invoiceEmail, setInvoiceEmail] = useState("");
+  const [invoiceCustomerType, setInvoiceCustomerType] = useState<
+    "FINAL_CONSUMER" | "VAT"
+  >("FINAL_CONSUMER");
 
-const [invoiceAddress, setInvoiceAddress] = useState("");
+  const [invoiceAddress, setInvoiceAddress] = useState("");
 
-const [creatingInvoice, setCreatingInvoice] = useState(false);
+  const [creatingInvoice, setCreatingInvoice] = useState(false);
 
-const [creditNoteDocument, setCreditNoteDocument] =
-  useState<FiscalDocument | null>(null);
+  const [creditNoteDocument, setCreditNoteDocument] =
+    useState<FiscalDocument | null>(null);
 
-const [creditNoteReason, setCreditNoteReason] =
-  useState("Anulação de documento");
+  const [creditNoteReason, setCreditNoteReason] = useState(
+    "Anulação de documento",
+  );
 
-const [creatingCreditNote, setCreatingCreditNote] =
-  useState(false);
+  const [creatingCreditNote, setCreatingCreditNote] = useState(false);
 
-const [cashMovementType, setCashMovementType] =
-  useState<"IN" | "OUT">("OUT");
+  const [cashMovementType, setCashMovementType] = useState<"IN" | "OUT">("OUT");
 
-const [cashMovementAmount, setCashMovementAmount] =
-  useState("");
+  const [cashMovementAmount, setCashMovementAmount] = useState("");
 
-const [cashMovementReason, setCashMovementReason] =
-  useState("");
+  const [cashMovementReason, setCashMovementReason] = useState("");
 
-const [savingCashMovement, setSavingCashMovement] =
-  useState(false);
+  const [savingCashMovement, setSavingCashMovement] = useState(false);
 
- const activeFiscalIntegration =
-  loadedFiscalIntegration ?? fiscalIntegration;
+  const activeFiscalIntegration = loadedFiscalIntegration ?? fiscalIntegration;
 
-const fiscalReady = Boolean(
-  activeFiscalIntegration?.active &&
+  const fiscalReady = Boolean(
+    activeFiscalIntegration?.active &&
     activeFiscalIntegration?.companyId &&
     activeFiscalIntegration?.invoiceSerieId &&
     activeFiscalIntegration?.simplifiedInvoiceSerieId &&
     activeFiscalIntegration?.creditNoteSerieId,
-);
+  );
 
   const experimentalMode = !fiscalReady;
 
-const canUsePOS = fiscalReady || experimentalMode;
+  const canUsePOS = fiscalReady || experimentalMode;
 
   const selectedTable = useMemo(
     () => tables.find((table) => table.id === selectedTableId) ?? null,
@@ -508,23 +514,24 @@ const canUsePOS = fiscalReady || experimentalMode;
   const registerTotal = cashTotal + cardTotal + transferTotal;
   const cashMovements = openCashRegister?.movements ?? [];
 
-const cashInTotal = cashMovements
-  .filter((movement) => movement.type === "IN")
-  .reduce((sum, movement) => sum + Number(movement.amount ?? 0), 0);
+  const cashInTotal = cashMovements
+    .filter((movement) => movement.type === "IN")
+    .reduce((sum, movement) => sum + Number(movement.amount ?? 0), 0);
 
-const cashOutTotal = cashMovements
-  .filter((movement) => movement.type === "OUT")
-  .reduce((sum, movement) => sum + Number(movement.amount ?? 0), 0);
+  const cashOutTotal = cashMovements
+    .filter((movement) => movement.type === "OUT")
+    .reduce((sum, movement) => sum + Number(movement.amount ?? 0), 0);
 
-const expectedCash =
-  Number(openCashRegister?.openingAmount ?? 0) +
-  cashTotal +
-  cashInTotal -
-  cashOutTotal;
+  const expectedCash =
+    Number(openCashRegister?.openingAmount ?? 0) +
+    cashTotal +
+    cashInTotal -
+    cashOutTotal;
 
   const total = cart.reduce((sum, item) => sum + getCartItemTotal(item), 0);
 
-  const sessionItems = selectedSession?.orders.flatMap((order) => order.items) ?? [];
+  const sessionItems =
+    selectedSession?.orders.flatMap((order) => order.items) ?? [];
   const accountLines = aggregateSessionItems(sessionItems);
   const editedExistingTotal = accountLines.reduce((sum, item) => {
     const quantity = accountDrafts[item.key] ?? item.quantity;
@@ -537,38 +544,36 @@ const expectedCash =
   const qrAttentionCount = pendingOrders.length + qrAlerts.length;
 
   function selectTable(tableId: string) {
-    
-  if (!openCashRegister) {
-    setPosTab("CASH");
-    alert("Tens de abrir a caixa antes de abrir mesas.");
-    return;
+    if (!openCashRegister) {
+      setPosTab("CASH");
+      alert("Tens de abrir a caixa antes de abrir mesas.");
+      return;
+    }
+
+    const table = tables.find((item) => item.id === tableId) ?? null;
+    const openSession = sessions.find((session) => session.tableId === tableId);
+
+    if (table && !openSession) {
+      setOpeningTable(table);
+      setGuestCount(Math.max(1, Math.min(table.capacity || 2, 2)));
+      return;
+    }
+
+    setSelectedTableId(tableId);
+    setSelectedCategoryId(categories[0]?.id ?? null);
   }
-
-  const table = tables.find((item) => item.id === tableId) ?? null;
-  const openSession = sessions.find((session) => session.tableId === tableId);
-
-  if (table && !openSession) {
-    setOpeningTable(table);
-    setGuestCount(Math.max(1, Math.min(table.capacity || 2, 2)));
-    return;
-  }
-
-  setSelectedTableId(tableId);
-  setSelectedCategoryId(categories[0]?.id ?? null);
-}
 
   function quickSale() {
+    if (!openCashRegister) {
+      setPosTab("CASH");
+      alert("Tens de abrir a caixa antes de iniciar venda rápida.");
+      return;
+    }
 
-  if (!openCashRegister) {
-    setPosTab("CASH");
-    alert("Tens de abrir a caixa antes de iniciar venda rápida.");
-    return;
+    setOpeningTable(null);
+    setSelectedTableId("quick-sale");
+    setSelectedCategoryId(categories[0]?.id ?? null);
   }
-
-  setOpeningTable(null);
-  setSelectedTableId("quick-sale");
-  setSelectedCategoryId(categories[0]?.id ?? null);
-}
 
   function backToTables() {
     setSelectedTableId(null);
@@ -656,40 +661,40 @@ const expectedCash =
   }
 
   async function sendOrder() {
-  if (sendingOrder) return;
+    if (sendingOrder) return;
 
-  if ((!selectedTable && !selectedIsQuickSale) || cart.length === 0) {
-    return;
-  }
-
-  setSendingOrder(true);
-
-  try {
-    const response = await fetch(
-      `/api/restaurants/${restaurantId}/pos/orders`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tableId: selectedTable?.id,
-          items: cart,
-        }),
-      },
-    );
-
-    if (!response.ok) {
-      alert("Erro ao enviar pedido.");
+    if ((!selectedTable && !selectedIsQuickSale) || cart.length === 0) {
       return;
     }
 
-    setCart([]);
-    router.refresh();
-  } finally {
-    setSendingOrder(false);
+    setSendingOrder(true);
+
+    try {
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/pos/orders`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tableId: selectedTable?.id,
+            items: cart,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        alert("Erro ao enviar pedido.");
+        return;
+      }
+
+      setCart([]);
+      router.refresh();
+    } finally {
+      setSendingOrder(false);
+    }
   }
-}
 
   function setAccountDraftQuantity(item: AccountLine, quantity: number) {
     const nextQuantity = Math.max(0, quantity);
@@ -828,59 +833,60 @@ const expectedCash =
     router.refresh();
   }
 
- async function transferTable(data: {
-  targetTableId: string;
-  transferAll: boolean;
-  items: {
-    itemId: string;
-    quantity: number;
-  }[];
-}) {
-  if (!selectedSession) return;
+  async function transferTable(data: {
+    targetTableId: string;
+    transferAll: boolean;
+    items: {
+      itemId: string;
+      quantity: number;
+    }[];
+  }) {
+    if (!selectedSession) return;
 
-  setTransferringTable(true);
+    setTransferringTable(true);
 
-  const response = await fetch(
-    `/api/restaurants/${restaurantId}/pos/transfer`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `/api/restaurants/${restaurantId}/pos/transfer`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sourceSessionId: selectedSession.id,
+          targetTableId: data.targetTableId,
+          transferAll: data.transferAll,
+          items: data.items,
+        }),
       },
-      body: JSON.stringify({
-        sourceSessionId: selectedSession.id,
-        targetTableId: data.targetTableId,
-        transferAll: data.transferAll,
-        items: data.items,
-      }),
-    },
-  );
+    );
 
-  const result = await response.json().catch(() => null);
+    const result = await response.json().catch(() => null);
 
-  if (!response.ok) {
-    alert(result?.error ?? "Erro ao transferir.");
+    if (!response.ok) {
+      alert(result?.error ?? "Erro ao transferir.");
+      setTransferringTable(false);
+      return;
+    }
+
     setTransferringTable(false);
-    return;
+    setTransferOpen(false);
+    setSelectedTableId(null);
+    setCart([]);
+    setAccountDrafts({});
+
+    router.refresh();
+
+    window.setTimeout(() => {
+      setSelectedTableId(data.targetTableId);
+    }, 150);
   }
 
-  setTransferringTable(false);
-  setTransferOpen(false);
-  setSelectedTableId(null);
-  setCart([]);
-  setAccountDrafts({});
-
-  router.refresh();
-
-  window.setTimeout(() => {
-    setSelectedTableId(data.targetTableId);
-  }, 150);
-}
-
   function openPayment() {
-    
     const paymentTotal = Number(
-      selectedSession?.remainingAmount ?? selectedSession?.totalAmount ?? grandTotal,
+      selectedSession?.remainingAmount ??
+        selectedSession?.totalAmount ??
+        grandTotal,
     );
 
     if (!selectedSession || paymentTotal <= 0) return;
@@ -901,281 +907,18 @@ const expectedCash =
       return;
     }
 
-setSplitCount(
-  Math.max(1, Number(selectedSession?.guestCount ?? 1))
-);
+    setSplitCount(Math.max(1, Number(selectedSession?.guestCount ?? 1)));
 
     setPaymentOpen(true);
   }
 
   async function handlePartialPayment() {
-  if (!selectedSession) return;
+    if (!selectedSession) return;
 
-  setPartialPaymentLoading(true);
-
-  const response = await fetch(
-    `/api/restaurants/${restaurantId}/pos/payments/partial`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sessionId: selectedSession.id,
-        method: partialPaymentMethod,
-        amount: partialPaymentAmount,
-        items: selectedSplitItems,
-      }),
-    },
-  );
-
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    alert(data?.error ?? "Erro ao receber pagamento parcial.");
-    setPartialPaymentLoading(false);
-    return;
-  }
-
-  setPartialPaymentLoading(false);
-  setPartialPaymentOpen(false);
-  setSelectedSplitItems([]);
-  setPartialPaymentAmount(0);
-
-  if (data?.closed) {
-    setSelectedTableId(null);
-    setCart([]);
-    setAccountDrafts({});
-  }
-
-  router.refresh();
-}
-
-async function updateLineItem(data: {
-  itemId: string;
-  quantity: number;
-  unitPrice: number;
-  discountPercentage: number;
-  discountAmount: number;
-  notes: string;
-}) {
-  setSavingLine(true);
-
-  const response = await fetch(
-    `/api/restaurants/${restaurantId}/pos/order-items/${data.itemId}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        quantity: data.quantity,
-        unitPrice: data.unitPrice,
-        discountPercentage: data.discountPercentage,
-        discountAmount: data.discountAmount,
-        notes: data.notes,
-      }),
-    },
-  );
-
-  const result = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    alert(result?.error ?? "Erro ao atualizar item.");
-    setSavingLine(false);
-    return;
-  }
-
-  setSavingLine(false);
-  setEditingLine(null);
-  setAccountDrafts({});
-  router.refresh();
-}
-
-async function applyDiscount(data: {
-  type: "AMOUNT" | "PERCENTAGE";
-  value: number;
-  reason: string;
-}) {
-  if (!selectedSession) return;
-
-  setDiscountLoading(true);
-
-  const response = await fetch(
-    `/api/restaurants/${restaurantId}/pos/discounts`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-  sessionId: selectedSession.id,
-  scope: discountTarget.scope,
-  mode: data.value <= 0 ? "REMOVE" : "SET",
-  type: data.type,
-  value: data.value,
-  reason: data.reason,
-  item: discountTarget.scope === "ITEM" ? discountTarget.item : undefined,
-}),
-    },
-  );
-
-  const result = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    alert(result?.error ?? "Erro ao aplicar desconto.");
-    setDiscountLoading(false);
-    return;
-  }
-
-  setDiscountLoading(false);
-  setDiscountOpen(false);
-  setDiscountTarget({ scope: "SESSION", discountType: null, discountValue: null });
-
-  if (result?.closed) {
-    setSelectedTableId(null);
-    setCart([]);
-    setAccountDrafts({});
-  }
-
-  router.refresh();
-}
-
-async function createCreditNote() {
-  if (!creditNoteDocument) return;
-
-  try {
-    setCreatingCreditNote(true);
+    setPartialPaymentLoading(true);
 
     const response = await fetch(
-      `/api/restaurants/${restaurantId}/fiscal/credit-notes/create`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          documentId: creditNoteDocument.id,
-          reason: creditNoteReason,
-        }),
-      },
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data?.error ?? "Erro ao emitir nota de crédito.");
-    }
-
-    setCreditNoteDocument(null);
-    setCreditNoteReason("Anulação de documento");
-
-    alert("Nota de crédito emitida com sucesso.");
-
-    loadDocuments();
-  } catch (error: any) {
-    alert(error?.message ?? "Erro.");
-  } finally {
-    setCreatingCreditNote(false);
-  }
-}
-
-async function fetchVatData() {
-  if (!invoiceVat.trim()) {
-    alert("Indica primeiro o NIF.");
-    return;
-  }
-
-  const response = await fetch(
-    `/api/fiscal/nif?nif=${encodeURIComponent(invoiceVat.trim())}`,
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    alert(data?.error ?? "Erro ao obter dados.");
-    return;
-  }
-
-  const record =
-    data?.records?.[invoiceVat] ??
-    data?.records?.[invoiceVat.trim()] ??
-    data?.record ??
-    data;
-
-  setInvoiceName(record?.title ?? record?.name ?? "");
-  setInvoiceAddress(record?.address ?? "");
-}
-
-async function createInvoiceAndCloseTable() {
-  if (!selectedSession) return;
-  if (invoiceCustomerType === "VAT") {
-  const cleanVat = invoiceVat.trim();
-
-  if (!/^\d{9}$/.test(cleanVat)) {
-    alert("O NIF deve ter 9 dígitos.");
-    return;
-  }
-
-  if (!invoiceName.trim()) {
-    alert("Indica o nome fiscal do cliente.");
-    return;
-  }
-}
-
-  try {
-    setCreatingInvoice(true);
-
-    const fiscalVat =
-  invoiceCustomerType === "FINAL_CONSUMER" ? "999999990" : invoiceVat.trim();
-
-const fiscalName =
-  invoiceCustomerType === "FINAL_CONSUMER"
-    ? "Consumidor Final"
-    : invoiceName.trim();
-
-const searchResponse = await fetch(
-  `/api/restaurants/${restaurantId}/fiscal/customers/search`,
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ vat: fiscalVat }),
-  },
-);
-
-const searchData = await searchResponse.json();
-
-let customerId =
-  searchData?.customer?.customer_id ??
-  searchData?.customer?.id ??
-  null;
-
-if (!customerId) {
-  const customerResponse = await fetch(
-    `/api/restaurants/${restaurantId}/fiscal/customers/create`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        vat: fiscalVat,
-        name: fiscalName,
-        email: invoiceEmail,
-        address: invoiceAddress,
-      }),
-    },
-  );
-
-  const customerData = await customerResponse.json();
-
-  if (!customerResponse.ok) {
-    throw new Error(customerData?.error ?? "Erro cliente.");
-  }
-
-  customerId = customerData.customerId ?? customerData.customer_id;
-}
-
-    const invoiceResponse = await fetch(
-      `/api/restaurants/${restaurantId}/fiscal/invoices/create`,
+      `/api/restaurants/${restaurantId}/pos/payments/partial`,
       {
         method: "POST",
         headers: {
@@ -1183,51 +926,315 @@ if (!customerId) {
         },
         body: JSON.stringify({
           sessionId: selectedSession.id,
-          customerId: String(customerId),
-withVatNumber: invoiceCustomerType === "VAT",
+          method: partialPaymentMethod,
+          amount: partialPaymentAmount,
+          items: selectedSplitItems,
         }),
       },
     );
 
-    const invoiceData = await invoiceResponse.json();
+    const data = await response.json().catch(() => null);
 
-    if (!invoiceResponse.ok) {
-  const detailsText = Array.isArray(invoiceData?.details)
-    ? invoiceData.details.join(" ")
-    : "";
+    if (!response.ok) {
+      alert(data?.error ?? "Erro ao receber pagamento parcial.");
+      setPartialPaymentLoading(false);
+      return;
+    }
 
-  if (
-    detailsText.includes("document_set_wsat_id") ||
-    detailsText.includes("document_set_id")
-  ) {
-    throw new Error(
-      "A série Moloni deste restaurante ainda não está comunicada à AT. Vai ao Moloni > Configurações > Séries de documentos e comunica/ativa a série fiscal.",
+    setPartialPaymentLoading(false);
+    setPartialPaymentOpen(false);
+    setSelectedSplitItems([]);
+    setPartialPaymentAmount(0);
+
+    if (data?.closed) {
+      setSelectedTableId(null);
+      setCart([]);
+      setAccountDrafts({});
+    }
+
+    router.refresh();
+  }
+
+  async function updateLineItem(data: {
+    itemId: string;
+    quantity: number;
+    unitPrice: number;
+    discountPercentage: number;
+    discountAmount: number;
+    notes: string;
+  }) {
+    setSavingLine(true);
+
+    const response = await fetch(
+      `/api/restaurants/${restaurantId}/pos/order-items/${data.itemId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          quantity: data.quantity,
+          unitPrice: data.unitPrice,
+          discountPercentage: data.discountPercentage,
+          discountAmount: data.discountAmount,
+          notes: data.notes,
+        }),
+      },
     );
+
+    const result = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      alert(result?.error ?? "Erro ao atualizar item.");
+      setSavingLine(false);
+      return;
+    }
+
+    setSavingLine(false);
+    setEditingLine(null);
+    setAccountDrafts({});
+    router.refresh();
   }
 
-  throw new Error(
-    invoiceData?.error ?? "Erro ao emitir fatura.",
-  );
-}
+  async function applyDiscount(data: {
+    type: "AMOUNT" | "PERCENTAGE";
+    value: number;
+    reason: string;
+  }) {
+    if (!selectedSession) return;
 
-    await closeTableWithPayment();
+    setDiscountLoading(true);
 
-    setInvoiceModalOpen(false);
+    const response = await fetch(
+      `/api/restaurants/${restaurantId}/pos/discounts`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionId: selectedSession.id,
+          scope: discountTarget.scope,
+          mode: data.value <= 0 ? "REMOVE" : "SET",
+          type: data.type,
+          value: data.value,
+          reason: data.reason,
+          item:
+            discountTarget.scope === "ITEM" ? discountTarget.item : undefined,
+        }),
+      },
+    );
 
-    setInvoiceVat("");
-    setInvoiceName("");
-    setInvoiceEmail("");
+    const result = await response.json().catch(() => null);
 
-    setInvoiceCustomerType("FINAL_CONSUMER");
-setInvoiceAddress("");
+    if (!response.ok) {
+      alert(result?.error ?? "Erro ao aplicar desconto.");
+      setDiscountLoading(false);
+      return;
+    }
 
-    alert("Fatura emitida com sucesso.");
-  } catch (error: any) {
-    alert(error?.message ?? "Erro.");
-  } finally {
-    setCreatingInvoice(false);
+    setDiscountLoading(false);
+    setDiscountOpen(false);
+    setDiscountTarget({
+      scope: "SESSION",
+      discountType: null,
+      discountValue: null,
+    });
+
+    if (result?.closed) {
+      setSelectedTableId(null);
+      setCart([]);
+      setAccountDrafts({});
+    }
+
+    router.refresh();
   }
-}
+
+  async function createCreditNote() {
+    if (!creditNoteDocument) return;
+
+    try {
+      setCreatingCreditNote(true);
+
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/fiscal/credit-notes/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            documentId: creditNoteDocument.id,
+            reason: creditNoteReason,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error ?? "Erro ao emitir nota de crédito.");
+      }
+
+      setCreditNoteDocument(null);
+      setCreditNoteReason("Anulação de documento");
+
+      alert("Nota de crédito emitida com sucesso.");
+
+      loadDocuments();
+    } catch (error: any) {
+      alert(error?.message ?? "Erro.");
+    } finally {
+      setCreatingCreditNote(false);
+    }
+  }
+
+  async function fetchVatData() {
+    if (!invoiceVat.trim()) {
+      alert("Indica primeiro o NIF.");
+      return;
+    }
+
+    const response = await fetch(
+      `/api/fiscal/nif?nif=${encodeURIComponent(invoiceVat.trim())}`,
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data?.error ?? "Erro ao obter dados.");
+      return;
+    }
+
+    const record =
+      data?.records?.[invoiceVat] ??
+      data?.records?.[invoiceVat.trim()] ??
+      data?.record ??
+      data;
+
+    setInvoiceName(record?.title ?? record?.name ?? "");
+    setInvoiceAddress(record?.address ?? "");
+  }
+
+  async function createInvoiceAndCloseTable() {
+    if (!selectedSession) return;
+    if (invoiceCustomerType === "VAT") {
+      const cleanVat = invoiceVat.trim();
+
+      if (!/^\d{9}$/.test(cleanVat)) {
+        alert("O NIF deve ter 9 dígitos.");
+        return;
+      }
+
+      if (!invoiceName.trim()) {
+        alert("Indica o nome fiscal do cliente.");
+        return;
+      }
+    }
+
+    try {
+      setCreatingInvoice(true);
+
+      const fiscalVat =
+        invoiceCustomerType === "FINAL_CONSUMER"
+          ? "999999990"
+          : invoiceVat.trim();
+
+      const fiscalName =
+        invoiceCustomerType === "FINAL_CONSUMER"
+          ? "Consumidor Final"
+          : invoiceName.trim();
+
+      const searchResponse = await fetch(
+        `/api/restaurants/${restaurantId}/fiscal/customers/search`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ vat: fiscalVat }),
+        },
+      );
+
+      const searchData = await searchResponse.json();
+
+      let customerId =
+        searchData?.customer?.customer_id ?? searchData?.customer?.id ?? null;
+
+      if (!customerId) {
+        const customerResponse = await fetch(
+          `/api/restaurants/${restaurantId}/fiscal/customers/create`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              vat: fiscalVat,
+              name: fiscalName,
+              email: invoiceEmail,
+              address: invoiceAddress,
+            }),
+          },
+        );
+
+        const customerData = await customerResponse.json();
+
+        if (!customerResponse.ok) {
+          throw new Error(customerData?.error ?? "Erro cliente.");
+        }
+
+        customerId = customerData.customerId ?? customerData.customer_id;
+      }
+
+      const invoiceResponse = await fetch(
+        `/api/restaurants/${restaurantId}/fiscal/invoices/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sessionId: selectedSession.id,
+            customerId: String(customerId),
+            withVatNumber: invoiceCustomerType === "VAT",
+          }),
+        },
+      );
+
+      const invoiceData = await invoiceResponse.json();
+
+      if (!invoiceResponse.ok) {
+        const detailsText = Array.isArray(invoiceData?.details)
+          ? invoiceData.details.join(" ")
+          : "";
+
+        if (
+          detailsText.includes("document_set_wsat_id") ||
+          detailsText.includes("document_set_id")
+        ) {
+          throw new Error(
+            "A série Moloni deste restaurante ainda não está comunicada à AT. Vai ao Moloni > Configurações > Séries de documentos e comunica/ativa a série fiscal.",
+          );
+        }
+
+        throw new Error(invoiceData?.error ?? "Erro ao emitir fatura.");
+      }
+
+      await closeTableWithPayment();
+
+      setInvoiceModalOpen(false);
+
+      setInvoiceVat("");
+      setInvoiceName("");
+      setInvoiceEmail("");
+
+      setInvoiceCustomerType("FINAL_CONSUMER");
+      setInvoiceAddress("");
+
+      alert("Fatura emitida com sucesso.");
+    } catch (error: any) {
+      alert(error?.message ?? "Erro.");
+    } finally {
+      setCreatingInvoice(false);
+    }
+  }
 
   async function closeTableWithPayment() {
     if (!selectedSession) return;
@@ -1263,7 +1270,6 @@ setInvoiceAddress("");
   }
 
   async function openCashRegisterAction() {
-    
     const amount = Number(openingAmount.replace(",", ".") || 0);
 
     setSavingCashRegister(true);
@@ -1293,44 +1299,44 @@ setInvoiceAddress("");
   }
 
   async function createCashMovement() {
-  if (!cashMovementAmount) return;
+    if (!cashMovementAmount) return;
 
-  try {
-    setSavingCashMovement(true);
+    try {
+      setSavingCashMovement(true);
 
-    const response = await fetch(
-      `/api/restaurants/${restaurantId}/pos/cash-movements`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/pos/cash-movements`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: cashMovementType,
+            amount: Number(cashMovementAmount),
+            reason: cashMovementReason,
+          }),
         },
-        body: JSON.stringify({
-          type: cashMovementType,
-          amount: Number(cashMovementAmount),
-          reason: cashMovementReason,
-        }),
-      },
-    );
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      alert(data?.error ?? "Erro ao guardar movimento.");
-      return;
+      if (!response.ok) {
+        alert(data?.error ?? "Erro ao guardar movimento.");
+        return;
+      }
+
+      setShowCashMovementModal(false);
+      setCashMovementAmount("");
+      setCashMovementReason("");
+
+      window.location.reload();
+    } catch {
+      alert("Erro ao guardar movimento.");
+    } finally {
+      setSavingCashMovement(false);
     }
-
-    setShowCashMovementModal(false);
-    setCashMovementAmount("");
-    setCashMovementReason("");
-
-    window.location.reload();
-  } catch {
-    alert("Erro ao guardar movimento.");
-  } finally {
-    setSavingCashMovement(false);
   }
-}
 
   async function closeCashRegisterAction() {
     if (!openCashRegister) return;
@@ -1365,52 +1371,52 @@ setInvoiceAddress("");
     router.refresh();
   }
 
-async function acceptQrOrder(orderId: string) {
-  if (!openCashRegister) {
-    setPosTab("CASH");
-    setCashModal("OPEN");
-    return;
-  }
+  async function acceptQrOrder(orderId: string) {
+    if (!openCashRegister) {
+      setPosTab("CASH");
+      setCashModal("OPEN");
+      return;
+    }
 
-  setHandlingQrOrderId(orderId);
+    setHandlingQrOrderId(orderId);
 
-  const response = await fetch(`/api/ordering/qr-orders/${orderId}/accept`, {
-    method: "POST",
-  });
+    const response = await fetch(`/api/ordering/qr-orders/${orderId}/accept`, {
+      method: "POST",
+    });
 
-  const text = await response.text();
+    const text = await response.text();
 
-  if (!response.ok) {
-    alert(text);
+    if (!response.ok) {
+      alert(text);
+      setHandlingQrOrderId(null);
+      return;
+    }
+
     setHandlingQrOrderId(null);
-    return;
+    router.refresh();
   }
 
-  setHandlingQrOrderId(null);
-  router.refresh();
-}
+  async function rejectQrOrder(orderId: string) {
+    const confirmed = window.confirm("Rejeitar este pedido QR?");
+    if (!confirmed) return;
 
-async function rejectQrOrder(orderId: string) {
-  const confirmed = window.confirm("Rejeitar este pedido QR?");
-  if (!confirmed) return;
+    setHandlingQrOrderId(orderId);
 
-  setHandlingQrOrderId(orderId);
+    const response = await fetch(`/api/ordering/qr-orders/${orderId}/reject`, {
+      method: "POST",
+    });
 
-  const response = await fetch(`/api/ordering/qr-orders/${orderId}/reject`, {
-    method: "POST",
-  });
+    const text = await response.text();
 
-  const text = await response.text();
+    if (!response.ok) {
+      alert(text);
+      setHandlingQrOrderId(null);
+      return;
+    }
 
-  if (!response.ok) {
-    alert(text);
     setHandlingQrOrderId(null);
-    return;
+    router.refresh();
   }
-
-  setHandlingQrOrderId(null);
-  router.refresh();
-}
 
   async function resolveQrAlert(alertId: string, type: "waiter" | "bill") {
     setHandlingQrAlertId(`${alertId}-${type}`);
@@ -1455,7 +1461,9 @@ async function rejectQrOrder(orderId: string) {
     setLoadingHistory(true);
 
     try {
-      const response = await fetch(`/api/restaurants/${restaurantId}/pos/history`);
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/pos/history`,
+      );
 
       if (!response.ok) {
         setHistoryPayments([]);
@@ -1470,166 +1478,162 @@ async function rejectQrOrder(orderId: string) {
   }
 
   async function loadFiscalSettings() {
-  setLoadingFiscal(true);
+    setLoadingFiscal(true);
 
-  try {
-    const response = await fetch(
-      `/api/restaurants/${restaurantId}/fiscal/settings`,
-    );
+    try {
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/fiscal/settings`,
+      );
 
-    if (!response.ok) {
+      if (!response.ok) {
+        setLoadedFiscalIntegration(null);
+        return;
+      }
+
+      const data = await response.json();
+
+      setLoadedFiscalIntegration(data.integration);
+      setInvoiceSerieId(data.integration?.invoiceSerieId ?? "");
+      setSimplifiedInvoiceSerieId(
+        data.integration?.simplifiedInvoiceSerieId ?? "",
+      );
+      setCreditNoteSerieId(data.integration?.creditNoteSerieId ?? "");
+    } catch {
       setLoadedFiscalIntegration(null);
-      return;
+    } finally {
+      setLoadingFiscal(false);
     }
-
-    const data = await response.json();
-
-    setLoadedFiscalIntegration(data.integration);
-    setInvoiceSerieId(data.integration?.invoiceSerieId ?? "");
-setSimplifiedInvoiceSerieId(data.integration?.simplifiedInvoiceSerieId ?? "");
-setCreditNoteSerieId(data.integration?.creditNoteSerieId ?? "");
-  } catch {
-    setLoadedFiscalIntegration(null);
-  } finally {
-    setLoadingFiscal(false);
   }
-}
 
-async function loadDocumentSets() {
-  try {
-    const response = await fetch(
-      `/api/restaurants/${restaurantId}/fiscal/document-sets`,
-    );
+  async function loadDocumentSets() {
+    try {
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/fiscal/document-sets`,
+      );
 
-    if (!response.ok) {
+      if (!response.ok) {
+        setDocumentSets([]);
+        return;
+      }
+
+      const data = await response.json();
+
+      setDocumentSets(data.documentSets ?? data ?? []);
+    } catch {
       setDocumentSets([]);
-      return;
     }
-
-    const data = await response.json();
-
-    setDocumentSets(data.documentSets ?? data ?? []);
-  } catch {
-    setDocumentSets([]);
   }
-}
 
-async function saveFiscalSeries() {
-  try {
-    setSavingFiscalSeries(true);
+  async function saveFiscalSeries() {
+    try {
+      setSavingFiscalSeries(true);
 
-    const response = await fetch(
-      `/api/restaurants/${restaurantId}/fiscal/settings`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/fiscal/settings`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            invoiceSerieId,
+            simplifiedInvoiceSerieId,
+            creditNoteSerieId,
+            active: true,
+          }),
         },
-        body: JSON.stringify({
-          invoiceSerieId,
-          simplifiedInvoiceSerieId,
-          creditNoteSerieId,
-          active: true,
-        }),
-      },
-    );
+      );
 
-    const data = await response.json().catch(() => null);
+      const data = await response.json().catch(() => null);
 
-    if (!response.ok) {
-      alert(data?.error ?? "Erro ao guardar séries.");
-      return;
+      if (!response.ok) {
+        alert(data?.error ?? "Erro ao guardar séries.");
+        return;
+      }
+
+      alert("Séries guardadas.");
+      await loadFiscalSettings();
+    } finally {
+      setSavingFiscalSeries(false);
     }
-
-    alert("Séries guardadas.");
-    await loadFiscalSettings();
-  } finally {
-    setSavingFiscalSeries(false);
   }
-}
 
   async function loadDocuments() {
-  setLoadingDocuments(true);
+    setLoadingDocuments(true);
 
-  try {
-    const response = await fetch(
-      `/api/restaurants/${restaurantId}/fiscal/documents`,
-    );
+    try {
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/fiscal/documents`,
+      );
 
-    if (!response.ok) {
+      if (!response.ok) {
+        setDocuments([]);
+        return;
+      }
+
+      const data = await response.json();
+
+      setDocuments(data.documents ?? []);
+    } catch {
       setDocuments([]);
-      return;
+    } finally {
+      setLoadingDocuments(false);
     }
-
-    const data = await response.json();
-
-    setDocuments(data.documents ?? []);
-  } catch {
-    setDocuments([]);
-  } finally {
-    setLoadingDocuments(false);
   }
-}
 
-async function loadFiscalReport() {
-  setLoadingFiscalReport(true);
+  async function loadFiscalReport() {
+    setLoadingFiscalReport(true);
 
-  try {
-    const response = await fetch(
-      `/api/restaurants/${restaurantId}/fiscal/report`,
-    );
+    try {
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/fiscal/report`,
+      );
 
-    if (!response.ok) {
+      if (!response.ok) {
+        setFiscalReport({
+          invoices: 0,
+          simplifiedInvoices: 0,
+          creditNotes: 0,
+          total: 0,
+        });
+        return;
+      }
+
+      const data = await response.json();
+
       setFiscalReport({
-        invoices: 0,
-        simplifiedInvoices: 0,
-        creditNotes: 0,
-        total: 0,
+        invoices: Number(data.invoices ?? 0),
+        simplifiedInvoices: Number(data.simplifiedInvoices ?? 0),
+        creditNotes: Number(data.creditNotes ?? 0),
+        total: Number(data.total ?? 0),
       });
-      return;
+    } finally {
+      setLoadingFiscalReport(false);
     }
-
-    const data = await response.json();
-
-    setFiscalReport({
-      invoices: Number(data.invoices ?? 0),
-      simplifiedInvoices: Number(data.simplifiedInvoices ?? 0),
-      creditNotes: Number(data.creditNotes ?? 0),
-      total: Number(data.total ?? 0),
-    });
-  } finally {
-    setLoadingFiscalReport(false);
   }
-}
 
-async function loadReport() {
-  setLoadingReport(true);
+  async function loadReport() {
+    setLoadingReport(true);
 
-  try {
-    const response = await fetch(
-      `/api/restaurants/${restaurantId}/pos/reports`,
-    );
+    try {
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/pos/reports`,
+      );
 
-    if (!response.ok) {
+      if (!response.ok) {
+        setReport(null);
+        return;
+      }
+
+      const data = await response.json();
+
+      setReport(data);
+    } catch {
       setReport(null);
-      return;
+    } finally {
+      setLoadingReport(false);
     }
-
-    const data = await response.json();
-
-    setReport(data);
-  } catch {
-    setReport(null);
-  } finally {
-    setLoadingReport(false);
   }
-}
-
-useEffect(() => {
-  if (posTab !== "HISTORY") return;
-
-  loadHistory();
-}, [posTab]);
 
   useEffect(() => {
     if (posTab !== "HISTORY") return;
@@ -1637,29 +1641,28 @@ useEffect(() => {
     loadHistory();
   }, [posTab]);
 
- useEffect(() => {
-  if (posTab !== "DOCUMENTS") return;
+  useEffect(() => {
+    if (posTab !== "HISTORY") return;
 
-  loadDocuments();
-  loadFiscalReport();
-}, [posTab]);
+    loadHistory();
+  }, [posTab]);
 
- useEffect(() => {
-  if (posTab !== "FISCAL") return;
+  useEffect(() => {
+    if (posTab !== "FISCAL") return;
 
-  loadFiscalSettings();
-  loadDocumentSets();
-}, [posTab]);
+    loadFiscalSettings();
+    loadDocumentSets();
+  }, [posTab]);
 
-useEffect(() => {
-  if (posTab !== "STATS") return;
+  useEffect(() => {
+    if (posTab !== "STATS") return;
 
-  loadReport();
-}, [posTab]);
+    loadReport();
+  }, [posTab]);
 
   return (
-    <section className="flex h-screen flex-1 overflow-hidden bg-[#FBFAF7]">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-8 py-7">
+    <section className="flex min-h-screen flex-1 flex-col overflow-hidden bg-[#FBFAF7] lg:h-screen lg:flex-row">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         <header className="mb-5">
           <div className="flex items-start justify-between gap-5">
             <div>
@@ -1711,193 +1714,193 @@ useEffect(() => {
           )}
         </header>
 
-{!loadingFiscal && !fiscalReady && posTab !== "FISCAL" && (
-  <div className="mb-3 flex items-center justify-between gap-4 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] px-4 py-3">
-    <div>
-      <p className="text-xs font-black text-[#8B5E22]">
-        Modo experimental ativo
-      </p>
-      <p className="mt-0.5 text-[11px] font-bold text-[#7D746A]">
-        Testes de mesas, pedidos e pagamentos. Para faturação legal, configura Moloni.
-      </p>
-    </div>
+        {!loadingFiscal && !fiscalReady && posTab !== "FISCAL" && (
+          <div className="mb-3 flex items-center justify-between gap-4 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] px-4 py-3">
+            <div>
+              <p className="text-xs font-black text-[#8B5E22]">
+                Modo experimental ativo
+              </p>
+              <p className="mt-0.5 text-[11px] font-bold text-[#7D746A]">
+                Testes de mesas, pedidos e pagamentos. Para faturação legal,
+                configura Moloni.
+              </p>
+            </div>
 
-    <button
-      onClick={() => setPosTab("FISCAL")}
-      className="shrink-0 rounded-xl bg-[#11100F] px-4 py-2.5 text-[11px] font-black text-white"
-    >
-      Moloni
-    </button>
-  </div>
-)}
-
-{(canUsePOS || posTab === "FISCAL") && (
-  <>
-
-        {!selectedTableId && qrAttentionCount > 0 && posTab !== "KITCHEN" && (
-          <button
-            onClick={() => setPosTab("KITCHEN")}
-            className="mb-4 flex h-12 w-fit animate-pulse items-center gap-3 rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] px-4 text-sm font-black text-[#9B6F3B] shadow-[0_12px_30px_rgba(201,155,79,0.12)]"
-          >
-            <span>🔔</span>
-            <span>
-              QR Orders: {qrAttentionCount} alerta
-              {qrAttentionCount === 1 ? "" : "s"} pendente
-              {qrAttentionCount === 1 ? "" : "s"}
-            </span>
-          </button>
+            <button
+              onClick={() => setPosTab("FISCAL")}
+              className="shrink-0 rounded-xl bg-[#11100F] px-4 py-2.5 text-[11px] font-black text-white"
+            >
+              Moloni
+            </button>
+          </div>
         )}
 
-        {!selectedTableId && posTab === "TABLES" && (
-          <TablesView
-            tables={tables}
-            sessions={sessions}
-            openTables={openTables}
-            onSelect={selectTable}
-          />
-        )}
+        {(canUsePOS || posTab === "FISCAL") && (
+          <>
+            {!selectedTableId &&
+              qrAttentionCount > 0 &&
+              posTab !== "KITCHEN" && (
+                <button
+                  onClick={() => setPosTab("KITCHEN")}
+                  className="mb-4 flex h-12 w-fit animate-pulse items-center gap-3 rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] px-4 text-sm font-black text-[#9B6F3B] shadow-[0_12px_30px_rgba(201,155,79,0.12)]"
+                >
+                  <span>🔔</span>
+                  <span>
+                    QR Orders: {qrAttentionCount} alerta
+                    {qrAttentionCount === 1 ? "" : "s"} pendente
+                    {qrAttentionCount === 1 ? "" : "s"}
+                  </span>
+                </button>
+              )}
 
-        {!selectedTableId && posTab === "CASH" && (
-          <CashRegisterView
-            openCashRegister={openCashRegister}
-            openingAmount={Number(openCashRegister?.openingAmount ?? 0)}
-            cashTotal={cashTotal}
-            cardTotal={cardTotal}
-            transferTotal={transferTotal}
-            registerTotal={registerTotal}
-            expectedCash={expectedCash}
-            onCashIn={() => {
-  setCashMovementType("IN");
-  setShowCashMovementModal(true);
-}}
-onCashOut={() => {
-  setCashMovementType("OUT");
-  setShowCashMovementModal(true);
-}}
-            onOpenCash={() => setCashModal("OPEN")}
-            onCloseCash={() => {
-              setClosingAmount(String(expectedCash.toFixed(2)));
-              setCashModal("CLOSE");
-            }}
-          />
-        )}
+            {!selectedTableId && posTab === "TABLES" && (
+              <TablesView
+                tables={tables}
+                sessions={sessions}
+                openTables={openTables}
+                onSelect={selectTable}
+              />
+            )}
 
-        {!selectedTableId && posTab === "SERVICE" && (
-          <ServiceView sessions={sessions} todayPayments={todayPayments} />
-        )}
+            {!selectedTableId && posTab === "CASH" && (
+              <CashRegisterView
+                openCashRegister={openCashRegister}
+                openingAmount={Number(openCashRegister?.openingAmount ?? 0)}
+                cashTotal={cashTotal}
+                cardTotal={cardTotal}
+                transferTotal={transferTotal}
+                registerTotal={registerTotal}
+                expectedCash={expectedCash}
+                onCashIn={() => {
+                  setCashMovementType("IN");
+                  setShowCashMovementModal(true);
+                }}
+                onCashOut={() => {
+                  setCashMovementType("OUT");
+                  setShowCashMovementModal(true);
+                }}
+                onOpenCash={() => setCashModal("OPEN")}
+                onCloseCash={() => {
+                  setClosingAmount(String(expectedCash.toFixed(2)));
+                  setCashModal("CLOSE");
+                }}
+              />
+            )}
 
-        {!selectedTableId && posTab === "KITCHEN" && (
-          <QrOrdersView
-            orders={pendingOrders}
-            alerts={qrAlerts}
-            loadingOrderId={handlingQrOrderId}
-            loadingAlertId={handlingQrAlertId}
-            onAccept={acceptQrOrder}
-            onReject={rejectQrOrder}
-            onResolveAlert={resolveQrAlert}
-          />
-        )}
+            {!selectedTableId && posTab === "SERVICE" && (
+              <ServiceView sessions={sessions} todayPayments={todayPayments} />
+            )}
 
-        {!selectedTableId && posTab === "PRODUCTION" && (
-  <ProductionView jobs={printJobs} />
-)}
+            {!selectedTableId && posTab === "KITCHEN" && (
+              <QrOrdersView
+                orders={pendingOrders}
+                alerts={qrAlerts}
+                loadingOrderId={handlingQrOrderId}
+                loadingAlertId={handlingQrAlertId}
+                onAccept={acceptQrOrder}
+                onReject={rejectQrOrder}
+                onResolveAlert={resolveQrAlert}
+              />
+            )}
 
-        {!selectedTableId && posTab === "HISTORY" && (
-          <HistoryView payments={historyPayments} loading={loadingHistory} />
-        )}
+            {!selectedTableId && posTab === "PRODUCTION" && (
+              <ProductionView jobs={printJobs} />
+            )}
 
-        {!selectedTableId && posTab === "FISCAL" && (
-  <FiscalSettingsView
-  integration={loadedFiscalIntegration ?? fiscalIntegration}
-  loading={loadingFiscal}
-  documentSets={documentSets}
-  invoiceSerieId={invoiceSerieId}
-  simplifiedInvoiceSerieId={simplifiedInvoiceSerieId}
-  creditNoteSerieId={creditNoteSerieId}
-  savingSeries={savingFiscalSeries}
-  onChangeInvoiceSerieId={setInvoiceSerieId}
-  onChangeSimplifiedInvoiceSerieId={setSimplifiedInvoiceSerieId}
-  onChangeCreditNoteSerieId={setCreditNoteSerieId}
-  onSaveSeries={saveFiscalSeries}
-/>
-)}
+            {!selectedTableId && posTab === "HISTORY" && (
+              <HistoryView
+                payments={historyPayments}
+                loading={loadingHistory}
+              />
+            )}
 
-{!selectedTableId && posTab === "DOCUMENTS" && (
-  <FiscalDocumentsView
-  documents={documents}
-  loading={loadingDocuments}
-  report={fiscalReport}
-  loadingReport={loadingFiscalReport}
-  onCreateCreditNote={(document) => {
-    setCreditNoteDocument(document);
-  }}
-/>
-)}
+            {!selectedTableId && posTab === "FISCAL" && (
+              <FiscalSettingsView
+                integration={loadedFiscalIntegration ?? fiscalIntegration}
+                loading={loadingFiscal}
+                documentSets={documentSets}
+                invoiceSerieId={invoiceSerieId}
+                simplifiedInvoiceSerieId={simplifiedInvoiceSerieId}
+                creditNoteSerieId={creditNoteSerieId}
+                savingSeries={savingFiscalSeries}
+                onChangeInvoiceSerieId={setInvoiceSerieId}
+                onChangeSimplifiedInvoiceSerieId={setSimplifiedInvoiceSerieId}
+                onChangeCreditNoteSerieId={setCreditNoteSerieId}
+                onSaveSeries={saveFiscalSeries}
+              />
+            )}
 
-{!selectedTableId && posTab === "STATS" && (
-  <StatsView report={report} loading={loadingReport} />
-)}
+            {!selectedTableId && posTab === "DOCUMENTS" && (
+              <FiscalDocumentsView />
+            )}
 
-        {selectedTableId && (
-          <ProductsView
-            categories={categories}
-            selectedCategoryId={selectedCategory?.id ?? null}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategoryId}
-            onAddProduct={addProduct}
-          />
-        )}
+            {!selectedTableId && posTab === "STATS" && (
+              <StatsView report={report} loading={loadingReport} />
+            )}
+
+            {selectedTableId && (
+              <ProductsView
+                categories={categories}
+                selectedCategoryId={selectedCategory?.id ?? null}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategoryId}
+                onAddProduct={addProduct}
+              />
+            )}
           </>
-)}
+        )}
       </div>
 
       {canUsePOS && (
-  <CartPanel
-  restaurantName={restaurantName}
-  selectedTable={selectedTable}
-  selectedSession={selectedSession}
-  isQuickSale={selectedIsQuickSale}
-  cart={cart}
-  total={total}
-  accountDrafts={accountDrafts}
-  savingAccount={savingAccount}
-  cancellingSession={cancellingSession}
-  onAddProduct={addProduct}
-  onRemoveOne={removeOne}
-  onRemoveAll={removeAll}
-  onSetAccountDraftQuantity={setAccountDraftQuantity}
-  onClearAccountDraft={clearAccountDraft}
-  onSaveAccountDraft={saveAccountDraft}
-  onSendOrder={sendOrder}
-  onCancelTableSession={cancelTableSession}
-  onTransferTable={() => setTransferOpen(true)}
-  onOpenSplitItems={() => setSplitItemsOpen(true)}
-  onOpenPayment={openPayment}
-  onOpenDiscount={() => {
-    const globalDiscount = selectedSession?.discounts?.find(
-      (discount) => !discount.orderItemId,
-    );
+        <CartPanel
+          restaurantName={restaurantName}
+          selectedTable={selectedTable}
+          selectedSession={selectedSession}
+          isQuickSale={selectedIsQuickSale}
+          cart={cart}
+          total={total}
+          accountDrafts={accountDrafts}
+          savingAccount={savingAccount}
+          cancellingSession={cancellingSession}
+          onAddProduct={addProduct}
+          onRemoveOne={removeOne}
+          onRemoveAll={removeAll}
+          onSetAccountDraftQuantity={setAccountDraftQuantity}
+          onClearAccountDraft={clearAccountDraft}
+          onSaveAccountDraft={saveAccountDraft}
+          onSendOrder={sendOrder}
+          onCancelTableSession={cancelTableSession}
+          onTransferTable={() => setTransferOpen(true)}
+          onOpenSplitItems={() => setSplitItemsOpen(true)}
+          onOpenPayment={openPayment}
+          onOpenDiscount={() => {
+            const globalDiscount = selectedSession?.discounts?.find(
+              (discount) => !discount.orderItemId,
+            );
 
-    setDiscountTarget({
-      scope: "SESSION",
-      discountType:
-        globalDiscount?.type === "AMOUNT" || globalDiscount?.type === "PERCENTAGE"
-          ? globalDiscount.type
-          : null,
-      discountValue:
-        globalDiscount?.value === undefined ? null : Number(globalDiscount.value),
-    });
+            setDiscountTarget({
+              scope: "SESSION",
+              discountType:
+                globalDiscount?.type === "AMOUNT" ||
+                globalDiscount?.type === "PERCENTAGE"
+                  ? globalDiscount.type
+                  : null,
+              discountValue:
+                globalDiscount?.value === undefined
+                  ? null
+                  : Number(globalDiscount.value),
+            });
 
-    setDiscountOpen(true);
-  }}
- onOpenItemDiscount={(item) => {
-  setEditingLine(item);
-}}
-  onOpenCartItemEditor={(item) => {
-    setEditingCartProductId(item.productId);
-  }}
-/>
-)}
+            setDiscountOpen(true);
+          }}
+          onOpenItemDiscount={(item) => {
+            setEditingLine(item);
+          }}
+          onOpenCartItemEditor={(item) => {
+            setEditingCartProductId(item.productId);
+          }}
+        />
+      )}
 
       {openingTable && (
         <OpenTableModal
@@ -1911,74 +1914,80 @@ onCashOut={() => {
       )}
 
       {splitItemsOpen && (
-  <SplitItemsModal
-    session={selectedSession}
-    onClose={() => setSplitItemsOpen(false)}
-    onReceive={({ amount, items }) => {
-  setPartialPaymentAmount(amount);
-  setPartialPaymentMethod("CARD");
-  setSelectedSplitItems(items);
-  setSplitItemsOpen(false);
-  setPartialPaymentOpen(true);
-}}
-  />
-)}
+        <SplitItemsModal
+          session={selectedSession}
+          onClose={() => setSplitItemsOpen(false)}
+          onReceive={({ amount, items }) => {
+            setPartialPaymentAmount(amount);
+            setPartialPaymentMethod("CARD");
+            setSelectedSplitItems(items);
+            setSplitItemsOpen(false);
+            setPartialPaymentOpen(true);
+          }}
+        />
+      )}
 
-{discountOpen && (
-  <DiscountModal
-    loading={discountLoading}
-    target={discountTarget}
-    onClose={() => {
-      setDiscountOpen(false);
-      setDiscountTarget({
-        scope: "SESSION",
-        discountType: null,
-        discountValue: null,
-      });
-    }}
-    onConfirm={applyDiscount}
-  />
-)}
+      {discountOpen && (
+        <DiscountModal
+          loading={discountLoading}
+          target={discountTarget}
+          onClose={() => {
+            setDiscountOpen(false);
+            setDiscountTarget({
+              scope: "SESSION",
+              discountType: null,
+              discountValue: null,
+            });
+          }}
+          onConfirm={applyDiscount}
+        />
+      )}
 
-{editingLine && (
-  <LineEditorModal
-    line={editingLine}
-    loading={savingLine}
-    onClose={() => setEditingLine(null)}
-    onConfirm={updateLineItem}
-  />
-)}
+      {editingLine && (
+        <LineEditorModal
+          line={editingLine}
+          loading={savingLine}
+          onClose={() => setEditingLine(null)}
+          onConfirm={updateLineItem}
+        />
+      )}
 
-{editingCartProductId && (
-  <CartLineEditorModal
-    item={cart.find((cartItem) => cartItem.productId === editingCartProductId) ?? null}
-    onClose={() => setEditingCartProductId(null)}
-    onConfirm={updateCartItem}
-  />
-)}
+      {editingCartProductId && (
+        <CartLineEditorModal
+          item={
+            cart.find(
+              (cartItem) => cartItem.productId === editingCartProductId,
+            ) ?? null
+          }
+          onClose={() => setEditingCartProductId(null)}
+          onConfirm={updateCartItem}
+        />
+      )}
 
-{partialPaymentOpen && (
-  <PartialPaymentModal
-    amount={partialPaymentAmount}
-    method={partialPaymentMethod}
-    loading={partialPaymentLoading}
-    onChangeMethod={setPartialPaymentMethod}
-    onClose={() => setPartialPaymentOpen(false)}
-    onConfirm={handlePartialPayment}
-  />
-)}
+      {partialPaymentOpen && (
+        <PartialPaymentModal
+          amount={partialPaymentAmount}
+          method={partialPaymentMethod}
+          loading={partialPaymentLoading}
+          onChangeMethod={setPartialPaymentMethod}
+          onClose={() => setPartialPaymentOpen(false)}
+          onConfirm={handlePartialPayment}
+        />
+      )}
 
       {paymentOpen && selectedSession && selectedTable && (
         <PaymentModal
-        fiscalReady={fiscalReady}
-onCreateInvoice={() => {
-  setInvoiceModalOpen(true);
-}}
-  tableNumber={selectedTable.number}
-  total={Number(selectedSession.remainingAmount ?? selectedSession.totalAmount ?? 0)}
-  guestCount={selectedSession.guestCount ?? 1}
-  splitCount={splitCount}
-  onChangeSplitCount={setSplitCount}
+          fiscalReady={fiscalReady}
+          onCreateInvoice={() => {
+            setInvoiceModalOpen(true);
+          }}
+          tableNumber={selectedTable.number}
+          total={Number(
+            selectedSession.remainingAmount ?? selectedSession.totalAmount ?? 0,
+          )}
+          guestCount={selectedSession.guestCount ?? 1}
+          splitCount={splitCount}
+          onChangeSplitCount={setSplitCount}
           method={paymentMethod}
           loading={closingPayment}
           onChangeMethod={setPaymentMethod}
@@ -2006,7 +2015,9 @@ onCreateInvoice={() => {
           amount={closingAmount}
           loading={savingCashRegister}
           expectedCash={expectedCash}
-          difference={Number(closingAmount.replace(",", ".") || 0) - expectedCash}
+          difference={
+            Number(closingAmount.replace(",", ".") || 0) - expectedCash
+          }
           onChangeAmount={setClosingAmount}
           onClose={() => setCashModal(null)}
           onConfirm={closeCashRegisterAction}
@@ -2014,63 +2025,60 @@ onCreateInvoice={() => {
       )}
 
       {showCashMovementModal && (
-  <CashMovementModal
-    type={cashMovementType}
-    amount={cashMovementAmount}
-    reason={cashMovementReason}
-    loading={savingCashMovement}
-    onChangeAmount={setCashMovementAmount}
-    onChangeReason={setCashMovementReason}
-    onClose={() => setShowCashMovementModal(false)}
-    onConfirm={createCashMovement}
-  />
-)}
+        <CashMovementModal
+          type={cashMovementType}
+          amount={cashMovementAmount}
+          reason={cashMovementReason}
+          loading={savingCashMovement}
+          onChangeAmount={setCashMovementAmount}
+          onChangeReason={setCashMovementReason}
+          onClose={() => setShowCashMovementModal(false)}
+          onConfirm={createCashMovement}
+        />
+      )}
 
-{invoiceModalOpen && (
-  <InvoiceModal
-    vat={invoiceVat}
-    name={invoiceName}
-    address={invoiceAddress}
-    email={invoiceEmail}
-    customerType={invoiceCustomerType}
-    loading={creatingInvoice}
-    onChangeVat={setInvoiceVat}
-    onChangeName={setInvoiceName}
-    onChangeAddress={setInvoiceAddress}
-    onChangeEmail={setInvoiceEmail}
-    onChangeCustomerType={setInvoiceCustomerType}
-    onFetchVatData={fetchVatData}
-    onClose={() => setInvoiceModalOpen(false)}
-    onConfirm={createInvoiceAndCloseTable}
-  />
-)}
+      {invoiceModalOpen && (
+        <InvoiceModal
+          vat={invoiceVat}
+          name={invoiceName}
+          address={invoiceAddress}
+          email={invoiceEmail}
+          customerType={invoiceCustomerType}
+          loading={creatingInvoice}
+          onChangeVat={setInvoiceVat}
+          onChangeName={setInvoiceName}
+          onChangeAddress={setInvoiceAddress}
+          onChangeEmail={setInvoiceEmail}
+          onChangeCustomerType={setInvoiceCustomerType}
+          onFetchVatData={fetchVatData}
+          onClose={() => setInvoiceModalOpen(false)}
+          onConfirm={createInvoiceAndCloseTable}
+        />
+      )}
 
-{creditNoteDocument && (
-  <CreditNoteModal
-    document={creditNoteDocument}
-    reason={creditNoteReason}
-    loading={creatingCreditNote}
-    onChangeReason={setCreditNoteReason}
-    onClose={() => setCreditNoteDocument(null)}
-    onConfirm={createCreditNote}
-  />
-)}
+      {creditNoteDocument && (
+        <CreditNoteModal
+          document={creditNoteDocument}
+          reason={creditNoteReason}
+          loading={creatingCreditNote}
+          onChangeReason={setCreditNoteReason}
+          onClose={() => setCreditNoteDocument(null)}
+          onConfirm={createCreditNote}
+        />
+      )}
 
       {transferOpen && (
-       <TransferTableModal
-  tables={tables}
-  sourceSession={selectedSession}
-  loading={transferringTable}
-  onClose={() => setTransferOpen(false)}
-  onTransfer={transferTable}
-/>
+        <TransferTableModal
+          tables={tables}
+          sourceSession={selectedSession}
+          loading={transferringTable}
+          onClose={() => setTransferOpen(false)}
+          onTransfer={transferTable}
+        />
       )}
     </section>
   );
 }
-
-
-
 
 function QrOrdersView({
   orders,
@@ -2154,10 +2162,12 @@ function QrOrdersView({
                         </p>
                         <p className="mt-1 text-xs font-bold text-[#8B7C68]">
                           Chamou empregado ·{" "}
-                          {new Date(alertItem.requestedWaiterAt).toLocaleTimeString(
-                            "pt-PT",
-                            { hour: "2-digit", minute: "2-digit" },
-                          )}
+                          {new Date(
+                            alertItem.requestedWaiterAt,
+                          ).toLocaleTimeString("pt-PT", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </p>
                       </div>
                       <span className="text-xl">🙋</span>
@@ -2168,7 +2178,9 @@ function QrOrdersView({
                       disabled={loadingAlertId === key}
                       className="mt-4 h-10 w-full rounded-xl bg-[#11100F] text-xs font-black text-white transition hover:bg-[#2A2723] disabled:opacity-50"
                     >
-                      {loadingAlertId === key ? "A resolver..." : "Marcar resolvido"}
+                      {loadingAlertId === key
+                        ? "A resolver..."
+                        : "Marcar resolvido"}
                     </button>
                   </div>,
                 );
@@ -2189,10 +2201,12 @@ function QrOrdersView({
                         </p>
                         <p className="mt-1 text-xs font-bold text-[#8B7C68]">
                           Pediu a conta ·{" "}
-                          {new Date(alertItem.requestedBillAt).toLocaleTimeString(
-                            "pt-PT",
-                            { hour: "2-digit", minute: "2-digit" },
-                          )}
+                          {new Date(
+                            alertItem.requestedBillAt,
+                          ).toLocaleTimeString("pt-PT", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </p>
                       </div>
                       <span className="text-xl">🧾</span>
@@ -2203,7 +2217,9 @@ function QrOrdersView({
                       disabled={loadingAlertId === key}
                       className="mt-4 h-10 w-full rounded-xl bg-[#11100F] text-xs font-black text-white transition hover:bg-[#2A2723] disabled:opacity-50"
                     >
-                      {loadingAlertId === key ? "A resolver..." : "Marcar resolvido"}
+                      {loadingAlertId === key
+                        ? "A resolver..."
+                        : "Marcar resolvido"}
                     </button>
                   </div>,
                 );
@@ -2302,19 +2318,16 @@ function QrOrdersView({
 function ProductionView({ jobs }: { jobs: any[] }) {
   const [printerFilter, setPrinterFilter] = useState("ALL");
   const printers = [
-  ...new Set(
-    jobs
-      .map((job) => job.productionCenter?.printer?.name)
-      .filter(Boolean),
-  ),
-];
-const filteredJobs =
-  printerFilter === "ALL"
-    ? jobs
-    : jobs.filter(
-        (job) =>
-          job.productionCenter?.printer?.name === printerFilter,
-      );
+    ...new Set(
+      jobs.map((job) => job.productionCenter?.printer?.name).filter(Boolean),
+    ),
+  ];
+  const filteredJobs =
+    printerFilter === "ALL"
+      ? jobs
+      : jobs.filter(
+          (job) => job.productionCenter?.printer?.name === printerFilter,
+        );
   const router = useRouter();
 
   async function updatePrintJob(jobId: string, status: "PRINTED" | "FAILED") {
@@ -2451,22 +2464,22 @@ const filteredJobs =
     win.document.write(html);
     win.document.close();
     setTimeout(async () => {
-  try {
-    await fetch(`/api/print-jobs/${job.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status: "PRINTED",
-      }),
-    });
+      try {
+        await fetch(`/api/print-jobs/${job.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: "PRINTED",
+          }),
+        });
 
-    router.refresh();
-  } catch (error) {
-    console.error(error);
-  }
-}, 1500);
+        router.refresh();
+      } catch (error) {
+        console.error(error);
+      }
+    }, 1500);
   }
 
   return (
@@ -2488,31 +2501,29 @@ const filteredJobs =
       </div>
 
       <div className="mb-4 flex gap-2 overflow-x-auto">
-  <button
-    onClick={() => setPrinterFilter("ALL")}
-    className={`rounded-full px-4 py-2 text-xs font-black ${
-      printerFilter === "ALL"
-        ? "bg-[#11100F] text-white"
-        : "bg-[#F3EEE8]"
-    }`}
-  >
-    Todas
-  </button>
+        <button
+          onClick={() => setPrinterFilter("ALL")}
+          className={`rounded-full px-4 py-2 text-xs font-black ${
+            printerFilter === "ALL" ? "bg-[#11100F] text-white" : "bg-[#F3EEE8]"
+          }`}
+        >
+          Todas
+        </button>
 
-  {printers.map((printer) => (
-    <button
-      key={printer}
-      onClick={() => setPrinterFilter(printer)}
-      className={`rounded-full px-4 py-2 text-xs font-black ${
-        printerFilter === printer
-          ? "bg-[#11100F] text-white"
-          : "bg-[#F3EEE8]"
-      }`}
-    >
-      {printer}
-    </button>
-  ))}
-</div>
+        {printers.map((printer) => (
+          <button
+            key={printer}
+            onClick={() => setPrinterFilter(printer)}
+            className={`rounded-full px-4 py-2 text-xs font-black ${
+              printerFilter === printer
+                ? "bg-[#11100F] text-white"
+                : "bg-[#F3EEE8]"
+            }`}
+          >
+            {printer}
+          </button>
+        ))}
+      </div>
 
       {jobs.length === 0 ? (
         <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6 text-center">
@@ -2545,18 +2556,16 @@ const filteredJobs =
                     </p>
 
                     <p className="mt-1 text-xs font-bold text-[#8B7C68]">
-  Impressora:
-  <span className="ml-1 text-[#0E0D0C]">
-    {printerName}
-  </span>
-</p>
+                      Impressora:
+                      <span className="ml-1 text-[#0E0D0C]">{printerName}</span>
+                    </p>
 
-<p className="mt-1 text-xs font-bold text-[#8B7C68]">
-  Método:
-  <span className="ml-1 text-[#0E0D0C]">
-    {job.productionCenter?.printer?.method ?? "BROWSER"}
-  </span>
-</p>
+                    <p className="mt-1 text-xs font-bold text-[#8B7C68]">
+                      Método:
+                      <span className="ml-1 text-[#0E0D0C]">
+                        {job.productionCenter?.printer?.method ?? "BROWSER"}
+                      </span>
+                    </p>
                   </div>
 
                   <span className="rounded-full bg-[#FFF8EC] px-3 py-1 text-[10px] font-black uppercase text-[#9B6F3B]">
@@ -2634,23 +2643,23 @@ function POSTabs({
     { key: "CASH", label: "Caixa" },
     { key: "SERVICE", label: "Serviço" },
     { key: "KITCHEN", label: "QR Orders" },
-{ key: "PRODUCTION", label: "Produção" },
+    { key: "PRODUCTION", label: "Produção" },
     { key: "HISTORY", label: "Histórico" },
     { key: "FISCAL", label: "Faturação" },
-{ key: "DOCUMENTS", label: "Documentos" },
-{ key: "STATS", label: "Estatísticas" },
+    { key: "DOCUMENTS", label: "Documentos" },
+    { key: "STATS", label: "Estatísticas" },
   ];
 
   return (
-    <div className="mt-5 flex w-fit rounded-2xl border border-[#E8E0D4] bg-white p-1 shadow-[0_12px_30px_rgba(30,20,10,0.04)]">
+    <div className="mt-5 flex w-full gap-1 overflow-x-auto rounded-2xl border border-[#E8E0D4] bg-white p-1 shadow-[0_12px_30px_rgba(30,20,10,0.04)] lg:w-fit">
       {tabs.map((tab) => (
         <button
           key={tab.key}
           onClick={() => onChange(tab.key)}
           className={
             activeTab === tab.key
-              ? "rounded-xl bg-[#11100F] px-4 py-2 text-xs font-black text-white"
-              : "rounded-xl px-4 py-2 text-xs font-black text-[#7D746A] transition hover:text-[#11100F]"
+              ? "shrink-0 rounded-xl bg-[#11100F] px-4 py-2 text-xs font-black text-white"
+              : "shrink-0 rounded-xl px-4 py-2 text-xs font-black text-[#7D746A] transition hover:text-[#11100F]"
           }
         >
           {tab.label}
@@ -2697,7 +2706,8 @@ function CashRegisterView({
             Caixa fechada
           </p>
           <p className="mx-auto mt-3 max-w-[320px] text-sm leading-6 text-[#7D746A]">
-            Abre a caixa antes de começar o serviço para associar os pagamentos do POS ao fecho do dia.
+            Abre a caixa antes de começar o serviço para associar os pagamentos
+            do POS ao fecho do dia.
           </p>
 
           <button
@@ -2731,7 +2741,8 @@ function CashRegisterView({
             Caixa aberta
           </h2>
           <p className="mt-2 text-sm font-medium text-[#7D746A]">
-            Aberta desde {new Date(openCashRegister.openedAt).toLocaleTimeString("pt-PT", {
+            Aberta desde{" "}
+            {new Date(openCashRegister.openedAt).toLocaleTimeString("pt-PT", {
               hour: "2-digit",
               minute: "2-digit",
             })}
@@ -2739,29 +2750,29 @@ function CashRegisterView({
         </div>
 
         <div className="flex gap-2">
-  <button
-    onClick={() => {
-      onCashIn();
-    }}
-    className="rounded-2xl border border-[#D7EAD9] bg-[#F4FFF5] px-4 py-3 text-sm font-black text-[#166534]"
-  >
-    + Entrada
-  </button>
+          <button
+            onClick={() => {
+              onCashIn();
+            }}
+            className="rounded-2xl border border-[#D7EAD9] bg-[#F4FFF5] px-4 py-3 text-sm font-black text-[#166534]"
+          >
+            + Entrada
+          </button>
 
-  <button
-    onClick={onCashOut}
-    className="rounded-2xl border border-[#F1D5D5] bg-[#FFF5F5] px-4 py-3 text-sm font-black text-[#991B1B]"
-  >
-    - Saída
-  </button>
+          <button
+            onClick={onCashOut}
+            className="rounded-2xl border border-[#F1D5D5] bg-[#FFF5F5] px-4 py-3 text-sm font-black text-[#991B1B]"
+          >
+            - Saída
+          </button>
 
-  <button
-    onClick={onCloseCash}
-    className="rounded-2xl border border-[#D8AE62] bg-white px-5 py-3 text-sm font-black text-[#0E0D0C] transition hover:bg-[#FBF4E8]"
-  >
-    Fechar caixa
-  </button>
-</div>
+          <button
+            onClick={onCloseCash}
+            className="rounded-2xl border border-[#D8AE62] bg-white px-5 py-3 text-sm font-black text-[#0E0D0C] transition hover:bg-[#FBF4E8]"
+          >
+            Fechar caixa
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
@@ -2781,46 +2792,46 @@ function CashRegisterView({
       </div>
 
       {openCashRegister.movements.length > 0 && (
-  <div className="mt-5 rounded-[24px] border border-[#E8E0D4] bg-white p-5">
-    <p className="text-xs font-black uppercase tracking-[0.22em] text-[#B58A45]">
-      Movimentos de caixa
-    </p>
+        <div className="mt-5 rounded-[24px] border border-[#E8E0D4] bg-white p-5">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-[#B58A45]">
+            Movimentos de caixa
+          </p>
 
-    <div className="mt-4 space-y-3">
-      {openCashRegister.movements.map((movement) => {
-        const isIn = movement.type === "IN";
+          <div className="mt-4 space-y-3">
+            {openCashRegister.movements.map((movement) => {
+              const isIn = movement.type === "IN";
 
-        return (
-          <div
-            key={movement.id}
-            className="flex items-center justify-between rounded-2xl border border-[#EEE7DD] bg-[#FCFBF9] px-4 py-3"
-          >
-            <div>
-              <p className="text-sm font-black text-[#0E0D0C]">
-                {isIn ? "Entrada" : "Saída"}
-              </p>
+              return (
+                <div
+                  key={movement.id}
+                  className="flex items-center justify-between rounded-2xl border border-[#EEE7DD] bg-[#FCFBF9] px-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-black text-[#0E0D0C]">
+                      {isIn ? "Entrada" : "Saída"}
+                    </p>
 
-              <p className="mt-1 text-xs font-bold text-[#8B7C68]">
-                {movement.reason || "Sem motivo"}
-              </p>
-            </div>
+                    <p className="mt-1 text-xs font-bold text-[#8B7C68]">
+                      {movement.reason || "Sem motivo"}
+                    </p>
+                  </div>
 
-            <p
-              className={
-                isIn
-                  ? "text-sm font-black text-[#166534]"
-                  : "text-sm font-black text-[#991B1B]"
-              }
-            >
-              {isIn ? "+" : "-"}
-              {formatMoney(Number(movement.amount ?? 0))}
-            </p>
+                  <p
+                    className={
+                      isIn
+                        ? "text-sm font-black text-[#166534]"
+                        : "text-sm font-black text-[#991B1B]"
+                    }
+                  >
+                    {isIn ? "+" : "-"}
+                    {formatMoney(Number(movement.amount ?? 0))}
+                  </p>
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
-    </div>
-  </div>
-)}
+        </div>
+      )}
 
       <div className="mt-5 rounded-[24px] border border-[#E8E0D4] bg-white p-5">
         <p className="text-xs font-black uppercase tracking-[0.22em] text-[#B58A45]">
@@ -2894,9 +2905,7 @@ function ServiceView({
         </div>
 
         <div className="text-right">
-          <p className="text-xs font-bold text-[#8B7C68]">
-            Total previsto
-          </p>
+          <p className="text-xs font-bold text-[#8B7C68]">Total previsto</p>
           <p className="text-3xl font-black tracking-[-0.06em] text-[#0E0D0C]">
             {formatMoney(totalProjectedRevenue)}
           </p>
@@ -2911,7 +2920,10 @@ function ServiceView({
       </div>
 
       <div className="mt-4 grid grid-cols-4 gap-3">
-        <SmallMetric label="Ticket/pessoa" value={formatMoney(averagePerGuest)} />
+        <SmallMetric
+          label="Ticket/pessoa"
+          value={formatMoney(averagePerGuest)}
+        />
         <SmallMetric label="Dinheiro" value={formatMoney(cashTotal)} />
         <SmallMetric label="Multibanco" value={formatMoney(cardTotal)} />
         <SmallMetric label="Transferência" value={formatMoney(transferTotal)} />
@@ -2920,13 +2932,7 @@ function ServiceView({
   );
 }
 
-function SmallMetric({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function SmallMetric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-[#EEE7DD] bg-[#FCFBF9] p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#8B7C68]">
@@ -3043,7 +3049,8 @@ function HistoryView({
         <div className="space-y-3">
           {payments.map((payment) => {
             const items =
-              payment.tableSession?.orders?.flatMap((order) => order.items) ?? [];
+              payment.tableSession?.orders?.flatMap((order) => order.items) ??
+              [];
             const aggregatedItems = aggregateSessionItems(items);
             const tableNumber = payment.tableSession?.table?.number;
             const guestCount = payment.tableSession?.guestCount ?? 1;
@@ -3067,24 +3074,25 @@ function HistoryView({
                       })}
                     </p>
                     {payment.fiscalDocument && (
-  <div className="mt-3 rounded-xl border border-[#E8E0D4] bg-white px-3 py-2">
-    <p className="text-xs font-black text-[#0E0D0C]">
-      Documento fiscal:{" "}
-      {payment.fiscalDocument.documentNumber ?? "Sem número"}
-    </p>
+                      <div className="mt-3 rounded-xl border border-[#E8E0D4] bg-white px-3 py-2">
+                        <p className="text-xs font-black text-[#0E0D0C]">
+                          Documento fiscal:{" "}
+                          {payment.fiscalDocument.documentNumber ??
+                            "Sem número"}
+                        </p>
 
-    {payment.fiscalDocument.pdfUrl && (
-      <a
-        href={payment.fiscalDocument.pdfUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-1 inline-block text-xs font-black text-[#B58A45] hover:underline"
-      >
-        Abrir PDF
-      </a>
-    )}
-  </div>
-)}
+                        {payment.fiscalDocument.pdfUrl && (
+                          <a
+                            href={payment.fiscalDocument.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 inline-block text-xs font-black text-[#B58A45] hover:underline"
+                          >
+                            Abrir PDF
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <p className="text-xl font-black tracking-[-0.04em] text-[#0E0D0C]">
@@ -3124,11 +3132,7 @@ function HistoryView({
   );
 }
 
-function FiscalRequiredView({
-  onConfigure,
-}: {
-  onConfigure: () => void;
-}) {
+function FiscalRequiredView({ onConfigure }: { onConfigure: () => void }) {
   return (
     <section className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-8 text-center">
       <div className="max-w-xl">
@@ -3236,87 +3240,88 @@ function FiscalSettingsView({
       </div>
 
       {integration &&
-  (!integration.invoiceSerieId ||
-    !integration.simplifiedInvoiceSerieId ||
-    !integration.creditNoteSerieId) && (
-    <div className="mb-6 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-5">
-      <p className="font-black text-[#8B5E22]">
-        Configuração incompleta
-      </p>
-      <p className="mt-1 text-sm font-medium text-[#7D746A]">
-        Para ativar o POS, tens de configurar a série de fatura, fatura
-        simplificada e nota de crédito.
-      </p>
-    </div>
-  )}
+        (!integration.invoiceSerieId ||
+          !integration.simplifiedInvoiceSerieId ||
+          !integration.creditNoteSerieId) && (
+          <div className="mb-6 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-5">
+            <p className="font-black text-[#8B5E22]">Configuração incompleta</p>
+            <p className="mt-1 text-sm font-medium text-[#7D746A]">
+              Para ativar o POS, tens de configurar a série de fatura, fatura
+              simplificada e nota de crédito.
+            </p>
+          </div>
+        )}
 
       {loading ? (
         <p>A carregar...</p>
       ) : !integration ? (
-       <div className="rounded-[28px] border border-[#E8E0D4] bg-[#FCFBF9] p-8">
-  <p className="text-xs font-black uppercase tracking-[0.28em] text-[#B58A45]">
-    Configuração necessária
-  </p>
+        <div className="rounded-[28px] border border-[#E8E0D4] bg-[#FCFBF9] p-8">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-[#B58A45]">
+            Configuração necessária
+          </p>
 
-  <h3 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#0E0D0C]">
-    Ligue o Moloni para emitir faturas legais
-  </h3>
+          <h3 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#0E0D0C]">
+            Ligue o Moloni para emitir faturas legais
+          </h3>
 
-  <p className="mt-3 max-w-3xl text-sm font-medium leading-7 text-[#7D746A]">
-    O MesaLink usa o Moloni para emitir faturas certificadas, faturas simplificadas,
-    notas de crédito, QR Code fiscal e SAFT. Depois de configurado, pode emitir
-    documentos diretamente no POS.
-  </p>
+          <p className="mt-3 max-w-3xl text-sm font-medium leading-7 text-[#7D746A]">
+            O MesaLink usa o Moloni para emitir faturas certificadas, faturas
+            simplificadas, notas de crédito, QR Code fiscal e SAFT. Depois de
+            configurado, pode emitir documentos diretamente no POS.
+          </p>
 
-  <div className="mt-7 grid gap-3 md:grid-cols-2">
-    <SetupStep title="1. Criar conta Moloni" text="Crie ou aceda à conta Moloni do restaurante." />
-    <SetupStep title="2. Criar séries fiscais" text="No Moloni, crie séries para Fatura, Fatura Simplificada e Nota de Crédito." />
-    <SetupStep title="3. Comunicar séries à AT" text="As séries têm de estar comunicadas/ativas antes de emitir documentos reais." />
-    <SetupStep title="4. Ligar ao MesaLink" text="Depois de ligado, escolha as séries nesta página e guarde." />
-  </div>
+          <div className="mt-7 grid gap-3 md:grid-cols-2">
+            <SetupStep
+              title="1. Criar conta Moloni"
+              text="Crie ou aceda à conta Moloni do restaurante."
+            />
+            <SetupStep
+              title="2. Criar séries fiscais"
+              text="No Moloni, crie séries para Fatura, Fatura Simplificada e Nota de Crédito."
+            />
+            <SetupStep
+              title="3. Comunicar séries à AT"
+              text="As séries têm de estar comunicadas/ativas antes de emitir documentos reais."
+            />
+            <SetupStep
+              title="4. Ligar ao MesaLink"
+              text="Depois de ligado, escolha as séries nesta página e guarde."
+            />
+          </div>
 
-  <div className="mt-7 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-5">
-    <p className="font-black text-[#8B5E22]">Importante</p>
-    <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
-      Enquanto o Moloni não estiver configurado, o POS pode funcionar em modo
-      experimental, mas não deve ser usado para faturação legal.
-    </p>
-  </div>
+          <div className="mt-7 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-5">
+            <p className="font-black text-[#8B5E22]">Importante</p>
+            <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
+              Enquanto o Moloni não estiver configurado, o POS pode funcionar em
+              modo experimental, mas não deve ser usado para faturação legal.
+            </p>
+          </div>
 
-  <div className="mt-7 flex flex-wrap gap-3">
-    <a
-      href="https://www.moloni.pt/ac/root/logout/"
-      target="_blank"
-      className="rounded-full bg-[#11100F] px-6 py-3 text-sm font-black text-white"
-    >
-      Abrir Moloni
-    </a>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <a
+              href="https://www.moloni.pt/ac/root/logout/"
+              target="_blank"
+              className="rounded-full bg-[#11100F] px-6 py-3 text-sm font-black text-white"
+            >
+              Abrir Moloni
+            </a>
 
-    <a
-      href="https://www.moloni.pt/registo/"
-      target="_blank"
-      className="rounded-full border border-[#E8E0D4] bg-white px-6 py-3 text-sm font-black text-[#0E0D0C]"
-    >
-      Criar conta Moloni
-    </a>
-  </div>
-</div>
+            <a
+              href="https://www.moloni.pt/registo/"
+              target="_blank"
+              className="rounded-full border border-[#E8E0D4] bg-white px-6 py-3 text-sm font-black text-[#0E0D0C]"
+            >
+              Criar conta Moloni
+            </a>
+          </div>
+        </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          <InfoCard
-            label="Provider"
-            value={integration.provider ?? "-"}
-          />
+          <InfoCard label="Provider" value={integration.provider ?? "-"} />
 
-          <InfoCard
-            label="Empresa"
-            value={integration.companyId ?? "-"}
-          />
+          <InfoCard label="Empresa" value={integration.companyId ?? "-"} />
 
-          <InfoCard
-            label="Ativa"
-            value={integration.active ? "Sim" : "Não"}
-          />
+          <InfoCard label="Ativa" value={integration.active ? "Sim" : "Não"} />
 
           <InfoCard
             label="Série Fatura"
@@ -3324,139 +3329,132 @@ function FiscalSettingsView({
           />
 
           <InfoCard
-  label="Série fatura simplificada"
-  value={integration.simplifiedInvoiceSerieId ?? "Não configurada"}
-/>
+            label="Série fatura simplificada"
+            value={integration.simplifiedInvoiceSerieId ?? "Não configurada"}
+          />
 
-<InfoCard
-  label="Série nota de crédito"
-  value={integration.creditNoteSerieId ?? "Não configurada"}
-/>
+          <InfoCard
+            label="Série nota de crédito"
+            value={integration.creditNoteSerieId ?? "Não configurada"}
+          />
 
-<div className="col-span-full mt-8 w-full rounded-[32px] border border-[#E8E0D4] bg-[#FCFBF9] p-8">
-  <div className="flex items-start justify-between gap-6">
-    <div>
-      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
-        Configuração obrigatória
-      </p>
+          <div className="col-span-full mt-8 w-full rounded-[32px] border border-[#E8E0D4] bg-[#FCFBF9] p-8">
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
+                  Configuração obrigatória
+                </p>
 
-      <h3 className="mt-2 text-3xl font-black tracking-[-0.05em] text-[#0E0D0C]">
-        Séries fiscais
-      </h3>
+                <h3 className="mt-2 text-3xl font-black tracking-[-0.05em] text-[#0E0D0C]">
+                  Séries fiscais
+                </h3>
 
-      <p className="mt-3 max-w-4xl text-sm font-medium leading-6 text-[#7D746A]">
-        Para ativar o POS em modo real, escolhe as séries Moloni usadas para
-        Fatura, Fatura Simplificada e Nota de Crédito.
-      </p>
-    </div>
+                <p className="mt-3 max-w-4xl text-sm font-medium leading-6 text-[#7D746A]">
+                  Para ativar o POS em modo real, escolhe as séries Moloni
+                  usadas para Fatura, Fatura Simplificada e Nota de Crédito.
+                </p>
+              </div>
 
-    <a
-      href="https://moloni.pt/"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex h-12 shrink-0 items-center justify-center rounded-xl bg-[#11100F] px-6 text-sm font-black text-white transition hover:opacity-90"
-    >
-      Abrir Moloni
-    </a>
-  </div>
+              <a
+                href="https://moloni.pt/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 shrink-0 items-center justify-center rounded-xl bg-[#11100F] px-6 text-sm font-black text-white transition hover:opacity-90"
+              >
+                Abrir Moloni
+              </a>
+            </div>
 
-  <div className="mt-7 grid gap-4 md:grid-cols-3">
-    <FiscalSerieSelect
-      label="Fatura"
-      value={invoiceSerieId}
-      options={documentSets}
-      onChange={onChangeInvoiceSerieId}
-    />
+            <div className="mt-7 grid gap-4 md:grid-cols-3">
+              <FiscalSerieSelect
+                label="Fatura"
+                value={invoiceSerieId}
+                options={documentSets}
+                onChange={onChangeInvoiceSerieId}
+              />
 
-    <FiscalSerieSelect
-      label="Fatura Simplificada"
-      value={simplifiedInvoiceSerieId}
-      options={documentSets}
-      onChange={onChangeSimplifiedInvoiceSerieId}
-    />
+              <FiscalSerieSelect
+                label="Fatura Simplificada"
+                value={simplifiedInvoiceSerieId}
+                options={documentSets}
+                onChange={onChangeSimplifiedInvoiceSerieId}
+              />
 
-    <FiscalSerieSelect
-      label="Nota de Crédito"
-      value={creditNoteSerieId}
-      options={documentSets}
-      onChange={onChangeCreditNoteSerieId}
-    />
-  </div>
+              <FiscalSerieSelect
+                label="Nota de Crédito"
+                value={creditNoteSerieId}
+                options={documentSets}
+                onChange={onChangeCreditNoteSerieId}
+              />
+            </div>
 
-  <div className="mt-7 rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-6">
-    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
-      Recomendação MesaLink
-    </p>
+            <div className="mt-7 rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
+                Recomendação MesaLink
+              </p>
 
-    <h4 className="mt-2 text-xl font-black text-[#0E0D0C]">
-      Moloni ON é suficiente para começar
-    </h4>
+              <h4 className="mt-2 text-xl font-black text-[#0E0D0C]">
+                Moloni ON é suficiente para começar
+              </h4>
 
-    <p className="mt-2 max-w-4xl text-sm font-medium leading-6 text-[#7D746A]">
-      Recomendamos o plano Moloni ON para usar faturação integrada no MesaLink.
-      Inclui API, SAF-T, comunicação de séries à AT, clientes, artigos e
-      documentos fiscais. Se precisar de mais documentos ou funcionalidades,
-      pode fazer upgrade diretamente no Moloni.
-    </p>
+              <p className="mt-2 max-w-4xl text-sm font-medium leading-6 text-[#7D746A]">
+                Recomendamos o plano Moloni ON para usar faturação integrada no
+                MesaLink. Inclui API, SAF-T, comunicação de séries à AT,
+                clientes, artigos e documentos fiscais. Se precisar de mais
+                documentos ou funcionalidades, pode fazer upgrade diretamente no
+                Moloni.
+              </p>
 
-    <a
-      href="https://www.molonion.pt/molonion-vs-moloni/"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="mt-5 inline-flex h-12 items-center justify-center rounded-xl bg-[#11100F] px-6 text-sm font-black text-white transition hover:opacity-90"
-    >
-      Ver planos Moloni
-    </a>
-  </div>
+              <a
+                href="https://www.molonion.pt/molonion-vs-moloni/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex h-12 items-center justify-center rounded-xl bg-[#11100F] px-6 text-sm font-black text-white transition hover:opacity-90"
+              >
+                Ver planos Moloni
+              </a>
+            </div>
 
-  <div className="mt-7 rounded-2xl border border-[#E8E0D4] bg-white p-6">
-    <p className="font-black text-[#0E0D0C]">
-      Ainda não tem séries fiscais?
-    </p>
+            <div className="mt-7 rounded-2xl border border-[#E8E0D4] bg-white p-6">
+              <p className="font-black text-[#0E0D0C]">
+                Ainda não tem séries fiscais?
+              </p>
 
-    <div className="mt-3 grid gap-3 text-sm font-medium leading-6 text-[#7D746A] md:grid-cols-4">
-      <p>1. Abrir Moloni</p>
-      <p>2. Ir a Configurações → Séries de documentos</p>
-      <p>3. Criar/comunicar série à AT</p>
-      <p>4. Voltar ao MesaLink e guardar as séries</p>
-    </div>
-  </div>
+              <div className="mt-3 grid gap-3 text-sm font-medium leading-6 text-[#7D746A] md:grid-cols-4">
+                <p>1. Abrir Moloni</p>
+                <p>2. Ir a Configurações → Séries de documentos</p>
+                <p>3. Criar/comunicar série à AT</p>
+                <p>4. Voltar ao MesaLink e guardar as séries</p>
+              </div>
+            </div>
 
-  <button
-    onClick={onSaveSeries}
-    disabled={
-      savingSeries ||
-      !invoiceSerieId ||
-      !simplifiedInvoiceSerieId ||
-      !creditNoteSerieId
-    }
-    className="mt-7 h-12 rounded-xl bg-[#11100F] px-7 text-sm font-black text-white disabled:opacity-40"
-  >
-    {savingSeries ? "A guardar..." : "Guardar séries"}
-  </button>
-</div>
+            <button
+              onClick={onSaveSeries}
+              disabled={
+                savingSeries ||
+                !invoiceSerieId ||
+                !simplifiedInvoiceSerieId ||
+                !creditNoteSerieId
+              }
+              className="mt-7 h-12 rounded-xl bg-[#11100F] px-7 text-sm font-black text-white disabled:opacity-40"
+            >
+              {savingSeries ? "A guardar..." : "Guardar séries"}
+            </button>
+          </div>
         </div>
       )}
     </section>
   );
 }
 
-function InfoCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function InfoCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7C68]">
         {label}
       </p>
 
-      <p className="mt-2 font-black text-[#0E0D0C]">
-        {value}
-      </p>
+      <p className="mt-2 font-black text-[#0E0D0C]">{value}</p>
     </div>
   );
 }
@@ -3471,7 +3469,9 @@ function StatsView({
   if (loading) {
     return (
       <section className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white p-8">
-        <p className="text-sm font-black text-[#8B7C68]">A carregar estatísticas...</p>
+        <p className="text-sm font-black text-[#8B7C68]">
+          A carregar estatísticas...
+        </p>
       </section>
     );
   }
@@ -3479,7 +3479,9 @@ function StatsView({
   if (!report) {
     return (
       <section className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white p-8 text-center">
-        <p className="text-sm font-black text-[#8B7C68]">Sem dados para mostrar.</p>
+        <p className="text-sm font-black text-[#8B7C68]">
+          Sem dados para mostrar.
+        </p>
       </section>
     );
   }
@@ -3496,30 +3498,54 @@ function StatsView({
       </div>
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
-        <SmallMetric label="Faturado" value={formatMoney(report.totalRevenue)} />
+        <SmallMetric
+          label="Faturado"
+          value={formatMoney(report.totalRevenue)}
+        />
         <SmallMetric label="Pagamentos" value={String(report.totalPayments)} />
         <SmallMetric label="Pessoas" value={String(report.totalGuests)} />
-        <SmallMetric label="Ticket médio" value={formatMoney(report.averageTicket)} />
-        <SmallMetric label="Por pessoa" value={formatMoney(report.averagePerGuest)} />
+        <SmallMetric
+          label="Ticket médio"
+          value={formatMoney(report.averageTicket)}
+        />
+        <SmallMetric
+          label="Por pessoa"
+          value={formatMoney(report.averagePerGuest)}
+        />
       </div>
 
       <div className="mt-6 grid gap-4 xl:grid-cols-2">
         <div className="rounded-[24px] border border-[#E8E0D4] bg-[#FCFBF9] p-5">
-          <h3 className="text-sm font-black text-[#0E0D0C]">Métodos de pagamento</h3>
+          <h3 className="text-sm font-black text-[#0E0D0C]">
+            Métodos de pagamento
+          </h3>
 
           <div className="mt-4 space-y-3">
-            <ReportRow label="Dinheiro" value={formatMoney(report.byMethod.CASH)} />
-            <ReportRow label="Multibanco" value={formatMoney(report.byMethod.CARD)} />
-            <ReportRow label="Transferência" value={formatMoney(report.byMethod.BANK_TRANSFER)} />
+            <ReportRow
+              label="Dinheiro"
+              value={formatMoney(report.byMethod.CASH)}
+            />
+            <ReportRow
+              label="Multibanco"
+              value={formatMoney(report.byMethod.CARD)}
+            />
+            <ReportRow
+              label="Transferência"
+              value={formatMoney(report.byMethod.BANK_TRANSFER)}
+            />
           </div>
         </div>
 
         <div className="rounded-[24px] border border-[#E8E0D4] bg-[#FCFBF9] p-5">
-          <h3 className="text-sm font-black text-[#0E0D0C]">Produtos mais vendidos</h3>
+          <h3 className="text-sm font-black text-[#0E0D0C]">
+            Produtos mais vendidos
+          </h3>
 
           <div className="mt-4 space-y-3">
             {report.topProducts.length === 0 ? (
-              <p className="text-sm font-bold text-[#8B7C68]">Ainda sem produtos vendidos.</p>
+              <p className="text-sm font-bold text-[#8B7C68]">
+                Ainda sem produtos vendidos.
+              </p>
             ) : (
               report.topProducts.map((product) => (
                 <ReportRow
@@ -3545,13 +3571,7 @@ function ReportRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function FiscalMetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function FiscalMetricCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7C68]">
@@ -3564,149 +3584,142 @@ function FiscalMetricCard({
   );
 }
 
-function FiscalDocumentsView({
-  documents,
-  loading,
-  report,
-  loadingReport,
-  onCreateCreditNote,
-}: {
-  documents: FiscalDocument[];
-  loading: boolean;
-  report: FiscalReport;
-  loadingReport: boolean;
-  onCreateCreditNote: (document: FiscalDocument) => void;
-}) {
+function FiscalDocumentsView() {
   return (
-    <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-6">
+    <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-4 sm:p-6">
       <div className="mb-6">
         <p className="text-[11px] font-black uppercase tracking-[0.36em] text-[#B58A45]">
           Documentos
         </p>
 
-        <h2 className="mt-2 text-[32px] font-black tracking-[-0.05em] text-[#0E0D0C]">
+        <h2 className="mt-2 text-[28px] font-black tracking-[-0.05em] text-[#0E0D0C] sm:text-[32px]">
           Documentos fiscais
         </h2>
-</div>
 
-<div className="mb-6 grid gap-3 md:grid-cols-4">
-  <FiscalMetricCard
-    label="Faturas"
-    value={loadingReport ? "..." : String(report.invoices)}
-  />
+        <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-[#7D746A]">
+          Toda a faturação certificada é gerida diretamente no Moloni. Use esta
+          página apenas como guia rápido para faturas, notas de crédito e SAF-T.
+        </p>
+      </div>
 
-  <FiscalMetricCard
-    label="Simplificadas"
-    value={loadingReport ? "..." : String(report.simplifiedInvoices)}
-  />
+      <div className="rounded-[28px] border border-[#D8AE62] bg-[#FFF8EC] p-5 sm:p-7">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#9B6F3B]">
+              Moloni
+            </p>
 
-  <FiscalMetricCard
-    label="Notas crédito"
-    value={loadingReport ? "..." : String(report.creditNotes)}
-  />
+            <h3 className="mt-2 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
+              Abrir documentos fiscais
+            </h3>
 
-  <FiscalMetricCard
-    label="Total faturado"
-    value={loadingReport ? "..." : formatMoney(report.total)}
-  />
-</div>
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#7D746A]">
+              Consulte faturas, emita notas de crédito e exporte o SAF-T
+              diretamente na conta Moloni do restaurante.
+            </p>
+          </div>
 
-<div className="mb-6 rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-5">
-  <div className="flex items-start justify-between gap-4">
-    <div>
-      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
-        SAF-T mensal
-      </p>
-
-      <h3 className="mt-2 text-xl font-black text-[#0E0D0C]">
-        Exportação SAF-T feita no Moloni
-      </h3>
-
-      <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#7D746A]">
-        Como os documentos fiscais são emitidos através da conta Moloni do
-        restaurante, o ficheiro SAF-T deve ser exportado diretamente no Moloni.
-      </p>
-
-      <p className="mt-3 text-sm font-black text-[#8B5E22]">
-        Menu no Moloni: A. Tributária → Ficheiro SAF-T(PT)
-      </p>
-
-      <p className="mt-1 text-xs font-bold text-[#8B7C68]">
-        Prazo habitual: até dia 5 do mês seguinte.
-      </p>
-    </div>
-
-    <a
-      href="https://www.moloni.pt/"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="shrink-0 rounded-xl bg-[#11100F] px-4 py-3 text-xs font-black text-white transition hover:opacity-90"
-    >
-      Abrir Moloni
-    </a>
-  </div>
-</div>
-
-      {loading ? (
-        <p className="text-sm text-[#7D746A]">A carregar documentos...</p>
-      ) : documents.length === 0 ? (
-        <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6">
-          <p className="font-black text-[#0E0D0C]">
-            Ainda não existem documentos.
-          </p>
-          <p className="mt-1 text-sm text-[#7D746A]">
-            As futuras faturas e notas de crédito aparecerão aqui.
-          </p>
+          <a
+            href="https://www.moloni.pt/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-12 w-full items-center justify-center rounded-2xl bg-[#11100F] px-6 text-sm font-black text-white transition hover:opacity-90 sm:w-fit"
+          >
+            Abrir Moloni
+          </a>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {documents.map((doc) => (
-            <div
-              key={doc.id}
-              className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-4"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-black text-[#0E0D0C]">
-                    {doc.documentNumber ?? "Sem número"}
-                  </p>
+      </div>
 
-                  <p className="text-xs text-[#7D746A]">
-                    {doc.documentType}
-                  </p>
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        <FiscalHelpCard
+          icon="↩️"
+          title="Emitir Nota de Crédito"
+          steps={[
+            "Abrir Moloni",
+            "Ir a Documentos",
+            "Abrir Faturas ou Notas de Crédito",
+            "Escolher a fatura a corrigir",
+            "Criar Nota de Crédito",
+            "Emitir documento",
+          ]}
+        />
 
-                  {doc.pdfUrl && (
-                    <a
-                      href={doc.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-block text-xs font-black text-[#B58A45] hover:underline"
-                    >
-                      Abrir PDF
-                    </a>
-                  )}
-                </div>
+        <FiscalHelpCard
+          icon="📦"
+          title="Exportar SAF-T"
+          steps={[
+            "Abrir Moloni",
+            "Ir a A. Tributária",
+            "Entrar em Ficheiro SAF-T (PT)",
+            "Escolher o período",
+            "Exportar o ficheiro",
+          ]}
+        />
 
-                <div className="text-right">
-                  <p className="font-black text-[#0E0D0C]">
-                    €{doc.totalAmount.toFixed(2)}
-                  </p>
+        <FiscalHelpCard
+          icon="📑"
+          title="Consultar Faturas"
+          steps={["Abrir Moloni", "Ir a Documentos", "Entrar em Faturas"]}
+        />
 
-                  {doc.documentType !== "CREDIT_NOTE" && (
-                    <button
-                     onClick={() => onCreateCreditNote(doc)}
-                      className="mt-3 rounded-xl border border-[#F0D4C8] bg-[#FFF7F3] px-3 py-2 text-xs font-black text-[#B4583C] hover:bg-[#FFECE3]"
-                    >
-                      Nota de crédito
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+        <FiscalHelpCard
+          icon="🧾"
+          title="Consultar Notas de Crédito"
+          steps={[
+            "Abrir Moloni",
+            "Ir a Documentos",
+            "Entrar em Notas de Crédito",
+          ]}
+        />
+      </div>
+
+      <div className="mt-5 rounded-[24px] border border-[#E8E0D4] bg-[#FCFBF9] p-5">
+        <p className="text-sm font-black text-[#0E0D0C]">
+          Informação importante
+        </p>
+
+        <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
+          As faturas emitidas não devem ser apagadas. Caso exista um erro, deve
+          ser emitida uma Nota de Crédito e, depois, uma nova fatura correta.
+        </p>
+      </div>
     </section>
+  );
+}
+
+function FiscalHelpCard({
+  icon,
+  title,
+  steps,
+}: {
+  icon: string;
+  title: string;
+  steps: string[];
+}) {
+  return (
+    <div className="rounded-[24px] border border-[#E8E0D4] bg-[#FCFBF9] p-5">
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-lg">
+          {icon}
+        </span>
+
+        <h3 className="text-lg font-black tracking-[-0.04em] text-[#0E0D0C]">
+          {title}
+        </h3>
+      </div>
+
+      <ol className="mt-4 space-y-2">
+        {steps.map((step, index) => (
+          <li
+            key={step}
+            className="flex gap-3 text-sm font-bold leading-5 text-[#6F665B]"
+          >
+            <span className="text-[#B58A45]">{index + 1}.</span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
@@ -3894,7 +3907,9 @@ function CashMovementModal({
             value={reason}
             onChange={(event) => onChangeReason(event.target.value)}
             className="mt-3 h-12 w-full rounded-2xl border border-[#E8E0D4] bg-white px-4 text-sm font-bold text-[#0E0D0C] outline-none focus:border-[#C99B4F]"
-            placeholder={isIn ? "Ex: Reforço de caixa" : "Ex: Compras supermercado"}
+            placeholder={
+              isIn ? "Ex: Reforço de caixa" : "Ex: Compras supermercado"
+            }
           />
         </div>
 
@@ -3907,7 +3922,11 @@ function CashMovementModal({
               : "mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-[#991B1B] text-sm font-black text-white shadow-[0_16px_34px_rgba(153,27,27,0.22)] transition hover:opacity-90 disabled:opacity-50"
           }
         >
-          {loading ? "A guardar..." : isIn ? "Guardar entrada" : "Guardar saída"}
+          {loading
+            ? "A guardar..."
+            : isIn
+              ? "Guardar entrada"
+              : "Guardar saída"}
         </button>
       </div>
     </div>
@@ -3935,7 +3954,6 @@ function CashIcon() {
     </svg>
   );
 }
-
 
 function TablesView({
   tables,
@@ -3969,8 +3987,8 @@ function TablesView({
           const session = sessions.find((item) => item.tableId === table.id);
           const occupied = Boolean(session);
           const totalAmount = Number(
-  session?.remainingAmount ?? session?.totalAmount ?? 0,
-);
+            session?.remainingAmount ?? session?.totalAmount ?? 0,
+          );
 
           return (
             <button
@@ -4155,7 +4173,8 @@ function CartPanel({
   const originalExistingTotal = Number(selectedSession?.totalAmount ?? 0);
   const discountAmount = Number(selectedSession?.discountAmount ?? 0);
   const globalDiscounts =
-    selectedSession?.discounts?.filter((discount) => !discount.orderItemId) ?? [];
+    selectedSession?.discounts?.filter((discount) => !discount.orderItemId) ??
+    [];
   const globalDiscountLabel = globalDiscounts
     .map((discount) =>
       discount.type === "PERCENTAGE"
@@ -4179,7 +4198,11 @@ function CartPanel({
       item.quantity > 0 ? item.discountAmount / item.quantity : 0;
 
     return (
-      sum + Math.max(0, draftQuantity * item.unitPrice - draftQuantity * discountPerUnit)
+      sum +
+      Math.max(
+        0,
+        draftQuantity * item.unitPrice - draftQuantity * discountPerUnit,
+      )
     );
   }, 0);
 
@@ -4203,7 +4226,7 @@ function CartPanel({
   const orderCount = accountLines.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <aside className="flex w-[420px] shrink-0 flex-col border-l border-[#E8E0D4] bg-white">
+    <aside className="flex max-h-[70vh] w-full shrink-0 flex-col overflow-hidden border-t border-[#E8E0D4] bg-white lg:h-screen lg:max-h-none lg:w-[420px] lg:border-l lg:border-t-0">
       <div className="shrink-0 border-b border-[#E8E0D4] px-6 py-4">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -4275,7 +4298,8 @@ function CartPanel({
             ) : (
               <div className="divide-y divide-[#E8E0D4]">
                 {accountLines.map((item) => {
-                  const draftQuantity = accountDrafts[item.key] ?? item.quantity;
+                  const draftQuantity =
+                    accountDrafts[item.key] ?? item.quantity;
                   const draftTotal =
                     draftQuantity === item.quantity
                       ? item.totalPrice
@@ -4431,7 +4455,6 @@ function CartPanel({
             </div>
           </div>
         ) : null}
-
         {cart.length > 0 && (
           <div className="border-t border-[#E8E0D4] bg-[#FFFDF9]">
             <div className="flex h-10 items-center justify-between px-5">
@@ -4501,7 +4524,8 @@ function CartPanel({
                     <div className="text-right">
                       {itemDiscount > 0 && (
                         <p className="text-[10px] font-black text-[#2F9E55]">
-                          -{formatMoney(itemDiscount)} {discountLabel && `(${discountLabel})`}
+                          -{formatMoney(itemDiscount)}{" "}
+                          {discountLabel && `(${discountLabel})`}
                         </p>
                       )}
                       <p className="text-sm font-black text-[#0E0D0C]">
@@ -4527,12 +4551,16 @@ function CartPanel({
               Lançar pedido
             </button>
           </div>
-        )}      </div>
+        )}{" "}
+      </div>
 
       <div className="shrink-0 border-t border-[#E8E0D4] bg-white px-5 py-3">
         {selectedSession && (
           <div className="mb-3 grid grid-cols-4 gap-2">
-            <SummaryBox label="Conta" value={formatMoney(originalExistingTotal)} />
+            <SummaryBox
+              label="Conta"
+              value={formatMoney(originalExistingTotal)}
+            />
             <SummaryBox
               label="Desc."
               value={`-${formatMoney(discountAmount)}`}
@@ -4568,30 +4596,30 @@ function CartPanel({
         </div>
 
         <div className="mt-2 grid grid-cols-3 gap-2">
-  <button
-    onClick={onOpenSplitItems}
-    disabled={accountLines.length === 0}
-    className="h-10 rounded-xl border border-[#E8E0D4] bg-[#FCFBF9] text-[11px] font-black text-[#0E0D0C] disabled:text-[#B1A89D]"
-  >
-    Separar
-  </button>
+          <button
+            onClick={onOpenSplitItems}
+            disabled={accountLines.length === 0}
+            className="h-10 rounded-xl border border-[#E8E0D4] bg-[#FCFBF9] text-[11px] font-black text-[#0E0D0C] disabled:text-[#B1A89D]"
+          >
+            Separar
+          </button>
 
-  <button
-    onClick={onOpenDiscount}
-    disabled={!selectedSession}
-    className="h-10 rounded-xl border border-[#E8E0D4] bg-[#FCFBF9] text-[11px] font-black text-[#0E0D0C] disabled:text-[#B1A89D]"
-  >
-    Desconto
-  </button>
+          <button
+            onClick={onOpenDiscount}
+            disabled={!selectedSession}
+            className="h-10 rounded-xl border border-[#E8E0D4] bg-[#FCFBF9] text-[11px] font-black text-[#0E0D0C] disabled:text-[#B1A89D]"
+          >
+            Desconto
+          </button>
 
-  <button
-    onClick={onTransferTable}
-    disabled={!selectedSession || isQuickSale}
-    className="h-10 rounded-xl border border-[#D8AE62] bg-[#FFF8EC] text-[11px] font-black text-[#9B6F3B] disabled:border-[#E8E0D4] disabled:bg-[#FCFBF9] disabled:text-[#B1A89D]"
-  >
-    Transferir
-  </button>
-</div>
+          <button
+            onClick={onTransferTable}
+            disabled={!selectedSession || isQuickSale}
+            className="h-10 rounded-xl border border-[#D8AE62] bg-[#FFF8EC] text-[11px] font-black text-[#9B6F3B] disabled:border-[#E8E0D4] disabled:bg-[#FCFBF9] disabled:text-[#B1A89D]"
+          >
+            Transferir
+          </button>
+        </div>
       </div>
     </aside>
   );
@@ -4618,12 +4646,17 @@ function TransferTableModal({
   }) => void;
 }) {
   const [targetTableId, setTargetTableId] = useState<string | null>(null);
-  const [selectedQuantities, setSelectedQuantities] = useState<Record<string, number>>({});
+  const [selectedQuantities, setSelectedQuantities] = useState<
+    Record<string, number>
+  >({});
 
-  const sourceItems = sourceSession?.orders.flatMap((order) => order.items) ?? [];
+  const sourceItems =
+    sourceSession?.orders.flatMap((order) => order.items) ?? [];
   const lines = aggregateSessionItems(sourceItems);
 
-  const availableTables = tables.filter((table) => table.id !== sourceSession?.tableId);
+  const availableTables = tables.filter(
+    (table) => table.id !== sourceSession?.tableId,
+  );
 
   const selectedItems = lines
     .map((item) => ({
@@ -4632,9 +4665,13 @@ function TransferTableModal({
     }))
     .filter((item) => item.quantity > 0);
 
-  const selectedCount = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
+  const selectedCount = selectedItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
   const totalCount = lines.reduce((sum, item) => sum + item.quantity, 0);
-  const selectedTable = tables.find((table) => table.id === targetTableId) ?? null;
+  const selectedTable =
+    tables.find((table) => table.id === targetTableId) ?? null;
 
   function changeQuantity(item: AccountLine, nextQuantity: number) {
     const safeQuantity = Math.max(0, Math.min(item.quantity, nextQuantity));
@@ -4645,26 +4682,26 @@ function TransferTableModal({
     }));
   }
 
-function transferEverything() {
-  if (!targetTableId) {
-    alert("Escolhe a mesa destino.");
-    return;
+  function transferEverything() {
+    if (!targetTableId) {
+      alert("Escolhe a mesa destino.");
+      return;
+    }
+
+    const tableNumber = selectedTable?.number ?? "";
+
+    const confirmed = window.confirm(
+      `Transferir a conta inteira para a Mesa ${tableNumber}?`,
+    );
+
+    if (!confirmed) return;
+
+    onTransfer({
+      targetTableId,
+      transferAll: true,
+      items: [],
+    });
   }
-
-  const tableNumber = selectedTable?.number ?? "";
-
-  const confirmed = window.confirm(
-    `Transferir a conta inteira para a Mesa ${tableNumber}?`,
-  );
-
-  if (!confirmed) return;
-
-  onTransfer({
-    targetTableId,
-    transferAll: true,
-    items: [],
-  });
-}
 
   function transferSelected() {
     if (!targetTableId) {
@@ -4748,7 +4785,11 @@ function transferEverything() {
                 Transferência rápida
               </p>
               <p className="mt-1 text-sm font-bold text-[#7D746A]">
-                Move a conta inteira para {selectedTable ? `Mesa ${selectedTable.number}` : "a mesa escolhida"}.
+                Move a conta inteira para{" "}
+                {selectedTable
+                  ? `Mesa ${selectedTable.number}`
+                  : "a mesa escolhida"}
+                .
               </p>
             </div>
 
@@ -4798,13 +4839,16 @@ function transferEverything() {
                         {item.productName}
                       </p>
                       <p className="mt-1 text-xs font-bold text-[#8B7C68]">
-                        Disponível: {item.quantity} × {formatMoney(item.unitPrice)}
+                        Disponível: {item.quantity} ×{" "}
+                        {formatMoney(item.unitPrice)}
                       </p>
                     </div>
 
                     <div className="flex items-center rounded-full border border-[#E8E0D4] bg-white p-1">
                       <button
-                        onClick={() => changeQuantity(item, selectedQuantity - 1)}
+                        onClick={() =>
+                          changeQuantity(item, selectedQuantity - 1)
+                        }
                         disabled={loading}
                         className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-black disabled:opacity-40"
                       >
@@ -4816,7 +4860,9 @@ function transferEverything() {
                       </span>
 
                       <button
-                        onClick={() => changeQuantity(item, selectedQuantity + 1)}
+                        onClick={() =>
+                          changeQuantity(item, selectedQuantity + 1)
+                        }
                         disabled={loading}
                         className="flex h-8 w-8 items-center justify-center rounded-full bg-[#11100F] text-sm font-black text-white disabled:opacity-40"
                       >
@@ -4913,7 +4959,8 @@ function OpenTableModal({
               Mesa {table.number}
             </h3>
             <p className="mt-2 text-sm font-medium text-[#7D746A]">
-              Indica o número de pessoas sentadas para calcular ticket médio por pessoa.
+              Indica o número de pessoas sentadas para calcular ticket médio por
+              pessoa.
             </p>
           </div>
 
@@ -4988,18 +5035,20 @@ function SplitItemsModal({
   onClose: () => void;
   onReceive: (data: { amount: number; items: SplitPaymentItem[] }) => void;
 }) {
-  const [selectedQuantities, setSelectedQuantities] = useState<Record<string, number>>({});
+  const [selectedQuantities, setSelectedQuantities] = useState<
+    Record<string, number>
+  >({});
 
   const items = session?.orders.flatMap((order) => order.items) ?? [];
   const lines = aggregateSessionItems(items);
   const sessionItemNetTotal = lines.reduce(
-  (sum, item) => sum + item.totalPrice,
-  0,
-);
+    (sum, item) => sum + item.totalPrice,
+    0,
+  );
 
-const globalDiscountAmount =
-  Number(session?.discountAmount ?? 0) -
-  lines.reduce((sum, item) => sum + item.discountAmount, 0);
+  const globalDiscountAmount =
+    Number(session?.discountAmount ?? 0) -
+    lines.reduce((sum, item) => sum + item.discountAmount, 0);
 
   const selectedItems = lines
     .map((item) => ({
@@ -5011,22 +5060,22 @@ const globalDiscountAmount =
     .filter((item) => item.quantity > 0);
 
   const selectedTotal = lines.reduce((sum, item) => {
-  const quantity = selectedQuantities[item.key] ?? 0;
+    const quantity = selectedQuantities[item.key] ?? 0;
 
-  const itemDiscountPerUnit =
-    item.quantity > 0 ? item.discountAmount / item.quantity : 0;
+    const itemDiscountPerUnit =
+      item.quantity > 0 ? item.discountAmount / item.quantity : 0;
 
-  const itemNetUnitPrice = Math.max(0, item.unitPrice - itemDiscountPerUnit);
+    const itemNetUnitPrice = Math.max(0, item.unitPrice - itemDiscountPerUnit);
 
-  const selectedItemNet = quantity * itemNetUnitPrice;
+    const selectedItemNet = quantity * itemNetUnitPrice;
 
-  const globalDiscountShare =
-    sessionItemNetTotal > 0
-      ? globalDiscountAmount * (selectedItemNet / sessionItemNetTotal)
-      : 0;
+    const globalDiscountShare =
+      sessionItemNetTotal > 0
+        ? globalDiscountAmount * (selectedItemNet / sessionItemNetTotal)
+        : 0;
 
-  return sum + Math.max(0, selectedItemNet - globalDiscountShare);
-}, 0);
+    return sum + Math.max(0, selectedItemNet - globalDiscountShare);
+  }, 0);
 
   function changeQuantity(item: AccountLine, nextQuantity: number) {
     const safeQuantity = Math.max(0, Math.min(item.quantity, nextQuantity));
@@ -5119,53 +5168,56 @@ const globalDiscountAmount =
             </div>
 
             <button
-  onClick={() => {
-    const itemsToReceive = lines
-      .filter((item) => (selectedQuantities[item.key] ?? 0) > 0)
-      .map((item) => {
-        const quantity = selectedQuantities[item.key] ?? 0;
+              onClick={() => {
+                const itemsToReceive = lines
+                  .filter((item) => (selectedQuantities[item.key] ?? 0) > 0)
+                  .map((item) => {
+                    const quantity = selectedQuantities[item.key] ?? 0;
 
-        const itemDiscountPerUnit =
-          item.quantity > 0 ? item.discountAmount / item.quantity : 0;
+                    const itemDiscountPerUnit =
+                      item.quantity > 0
+                        ? item.discountAmount / item.quantity
+                        : 0;
 
-        const itemNetUnitPrice = Math.max(
-          0,
-          item.unitPrice - itemDiscountPerUnit,
-        );
+                    const itemNetUnitPrice = Math.max(
+                      0,
+                      item.unitPrice - itemDiscountPerUnit,
+                    );
 
-        const selectedItemNet = quantity * itemNetUnitPrice;
+                    const selectedItemNet = quantity * itemNetUnitPrice;
 
-        const globalDiscountShare =
-          sessionItemNetTotal > 0
-            ? globalDiscountAmount * (selectedItemNet / sessionItemNetTotal)
-            : 0;
+                    const globalDiscountShare =
+                      sessionItemNetTotal > 0
+                        ? globalDiscountAmount *
+                          (selectedItemNet / sessionItemNetTotal)
+                        : 0;
 
-        const finalLineTotal = Math.max(
-          0,
-          selectedItemNet - globalDiscountShare,
-        );
+                    const finalLineTotal = Math.max(
+                      0,
+                      selectedItemNet - globalDiscountShare,
+                    );
 
-        return {
-          itemKey: item.key,
-          productName: item.productName,
-          unitPrice: item.unitPrice,
-          quantity,
-          itemDiscountAmount: itemDiscountPerUnit * quantity,
-          globalDiscountAmount: globalDiscountShare,
-          totalPrice: finalLineTotal,
-        };
-      });
+                    return {
+                      itemKey: item.key,
+                      productName: item.productName,
+                      unitPrice: item.unitPrice,
+                      quantity,
+                      itemDiscountAmount: itemDiscountPerUnit * quantity,
+                      globalDiscountAmount: globalDiscountShare,
+                      totalPrice: finalLineTotal,
+                    };
+                  });
 
-    onReceive({
-      amount: selectedTotal,
-      items: itemsToReceive,
-    });
-  }}
-  disabled={selectedTotal <= 0}
-  className="h-12 rounded-2xl bg-[#11100F] px-5 text-xs font-black text-white disabled:bg-[#E7DED2] disabled:text-[#9A9187]"
->
-  Receber selecionados
-</button>
+                onReceive({
+                  amount: selectedTotal,
+                  items: itemsToReceive,
+                });
+              }}
+              disabled={selectedTotal <= 0}
+              className="h-12 rounded-2xl bg-[#11100F] px-5 text-xs font-black text-white disabled:bg-[#E7DED2] disabled:text-[#9A9187]"
+            >
+              Receber selecionados
+            </button>
           </div>
         </div>
       </div>
@@ -5199,13 +5251,13 @@ function CartLineEditorModal({
   );
   const [notes, setNotes] = useState(item?.notes ?? "");
   const [creditNoteDocument, setCreditNoteDocument] =
-  useState<FiscalDocument | null>(null);
+    useState<FiscalDocument | null>(null);
 
-const [creditNoteReason, setCreditNoteReason] =
-  useState("Anulação de documento");
+  const [creditNoteReason, setCreditNoteReason] = useState(
+    "Anulação de documento",
+  );
 
-const [creatingCreditNote, setCreatingCreditNote] =
-  useState(false);
+  const [creatingCreditNote, setCreatingCreditNote] = useState(false);
 
   useEffect(() => {
     if (!item) return;
@@ -5229,7 +5281,8 @@ const [creatingCreditNote, setCreatingCreditNote] =
   );
   const safeAmount = Math.max(0, Number(discountAmount.replace(",", ".") || 0));
   const grossTotal = safeQuantity * safeUnitPrice;
-  const percentageDiscount = safePercentage > 0 ? (grossTotal * safePercentage) / 100 : 0;
+  const percentageDiscount =
+    safePercentage > 0 ? (grossTotal * safePercentage) / 100 : 0;
   const finalDiscount = Math.min(grossTotal, percentageDiscount + safeAmount);
   const finalTotal = Math.max(0, grossTotal - finalDiscount);
 
@@ -5347,7 +5400,8 @@ function LineEditorModal({
   );
   const safeAmount = Math.max(0, Number(discountAmount.replace(",", ".") || 0));
   const grossTotal = safeQuantity * safeUnitPrice;
-  const percentageDiscount = safePercentage > 0 ? (grossTotal * safePercentage) / 100 : 0;
+  const percentageDiscount =
+    safePercentage > 0 ? (grossTotal * safePercentage) / 100 : 0;
   const finalDiscount = Math.min(grossTotal, percentageDiscount + safeAmount);
   const finalTotal = Math.max(0, grossTotal - finalDiscount);
 
@@ -5484,7 +5538,9 @@ function CompactLineEditorShell({
                 className="h-10 min-w-0 flex-1 border-b border-[#E8E0D4] bg-transparent text-xl font-black outline-none focus:border-[#C99B4F]"
               />
               <button
-                onClick={() => onChangeQuantity(String(Math.max(0, safeQuantity - 1)))}
+                onClick={() =>
+                  onChangeQuantity(String(Math.max(0, safeQuantity - 1)))
+                }
                 disabled={loading}
                 className="h-9 w-10 rounded-xl bg-[#2D9CEF] text-lg font-black text-white disabled:opacity-50"
               >
@@ -5500,9 +5556,27 @@ function CompactLineEditorShell({
             </div>
           </div>
 
-          <EditInput label="Preço" value={unitPrice} suffix="€" onChange={onChangeUnitPrice} compact />
-          <EditInput label="Desconto (%)" value={discountPercentage} suffix="%" onChange={onChangeDiscountPercentage} compact />
-          <EditInput label="Desconto (€)" value={discountAmount} suffix="€" onChange={onChangeDiscountAmount} compact />
+          <EditInput
+            label="Preço"
+            value={unitPrice}
+            suffix="€"
+            onChange={onChangeUnitPrice}
+            compact
+          />
+          <EditInput
+            label="Desconto (%)"
+            value={discountPercentage}
+            suffix="%"
+            onChange={onChangeDiscountPercentage}
+            compact
+          />
+          <EditInput
+            label="Desconto (€)"
+            value={discountAmount}
+            suffix="€"
+            onChange={onChangeDiscountAmount}
+            compact
+          />
         </div>
 
         <div className="mt-3 rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-3">
@@ -5604,12 +5678,19 @@ function PartialPaymentModal({
   onClose: () => void;
   onConfirm: () => void;
 }) {
-  const methods: { value: PaymentMethod; label: string; description: string }[] =
-    [
-      { value: "CARD", label: "Multibanco", description: "Cartão ou terminal" },
-      { value: "CASH", label: "Dinheiro", description: "Pagamento em numerário" },
-      { value: "BANK_TRANSFER", label: "Transferência", description: "Transferência bancária" },
-    ];
+  const methods: {
+    value: PaymentMethod;
+    label: string;
+    description: string;
+  }[] = [
+    { value: "CARD", label: "Multibanco", description: "Cartão ou terminal" },
+    { value: "CASH", label: "Dinheiro", description: "Pagamento em numerário" },
+    {
+      value: "BANK_TRANSFER",
+      label: "Transferência",
+      description: "Transferência bancária",
+    },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#11100F]/45 px-4 backdrop-blur-sm">
@@ -5652,11 +5733,21 @@ function PartialPaymentModal({
                 }
               >
                 <div>
-                  <p className="text-sm font-black text-[#0E0D0C]">{item.label}</p>
-                  <p className="mt-0.5 text-xs font-medium text-[#8B7C68]">{item.description}</p>
+                  <p className="text-sm font-black text-[#0E0D0C]">
+                    {item.label}
+                  </p>
+                  <p className="mt-0.5 text-xs font-medium text-[#8B7C68]">
+                    {item.description}
+                  </p>
                 </div>
 
-                <span className={active ? "flex h-6 w-6 items-center justify-center rounded-full bg-[#11100F] text-[11px] font-black text-white" : "h-6 w-6 rounded-full border border-[#D8D0C5]"}>
+                <span
+                  className={
+                    active
+                      ? "flex h-6 w-6 items-center justify-center rounded-full bg-[#11100F] text-[11px] font-black text-white"
+                      : "h-6 w-6 rounded-full border border-[#D8D0C5]"
+                  }
+                >
                   {active ? "✓" : ""}
                 </span>
               </button>
@@ -5767,9 +5858,7 @@ function InvoiceModal({
   onChangeName: (value: string) => void;
   onChangeAddress: (value: string) => void;
   onChangeEmail: (value: string) => void;
-  onChangeCustomerType: (
-    value: "FINAL_CONSUMER" | "VAT",
-  ) => void;
+  onChangeCustomerType: (value: "FINAL_CONSUMER" | "VAT") => void;
   onFetchVatData: () => void;
   onClose: () => void;
   onConfirm: () => void;
@@ -5777,9 +5866,7 @@ function InvoiceModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-xl">
-        <h3 className="text-3xl font-black">
-          Emitir documento
-        </h3>
+        <h3 className="text-3xl font-black">Emitir documento</h3>
 
         <p className="mt-2 text-sm text-[#6B6B6B]">
           Escolhe o tipo de cliente e os dados fiscais.
@@ -5787,9 +5874,7 @@ function InvoiceModal({
 
         <div className="mt-6 grid gap-2">
           <button
-            onClick={() =>
-              onChangeCustomerType("FINAL_CONSUMER")
-            }
+            onClick={() => onChangeCustomerType("FINAL_CONSUMER")}
             className={
               customerType === "FINAL_CONSUMER"
                 ? "rounded-xl border border-[#C99B4F] bg-[#FFF8EC] px-4 py-3 text-left font-black"
@@ -5817,9 +5902,7 @@ function InvoiceModal({
               <input
                 placeholder="NIF"
                 value={vat}
-                onChange={(e) =>
-                  onChangeVat(e.target.value)
-                }
+                onChange={(e) => onChangeVat(e.target.value)}
                 className="h-12 flex-1 rounded-xl border px-4"
               />
 
@@ -5835,37 +5918,28 @@ function InvoiceModal({
             <input
               placeholder="Nome"
               value={name}
-              onChange={(e) =>
-                onChangeName(e.target.value)
-              }
+              onChange={(e) => onChangeName(e.target.value)}
               className="h-12 w-full rounded-xl border px-4"
             />
 
             <input
               placeholder="Morada Fiscal"
               value={address}
-              onChange={(e) =>
-                onChangeAddress(e.target.value)
-              }
+              onChange={(e) => onChangeAddress(e.target.value)}
               className="h-12 w-full rounded-xl border px-4"
             />
 
             <input
               placeholder="Email"
               value={email}
-              onChange={(e) =>
-                onChangeEmail(e.target.value)
-              }
+              onChange={(e) => onChangeEmail(e.target.value)}
               className="h-12 w-full rounded-xl border px-4"
             />
           </div>
         )}
 
         <div className="mt-6 grid grid-cols-2 gap-2">
-          <button
-            onClick={onClose}
-            className="h-12 rounded-xl border"
-          >
+          <button onClick={onClose} className="h-12 rounded-xl border">
             Cancelar
           </button>
 
@@ -5917,44 +5991,75 @@ function PaymentModal({
   const splitAmount = total / safeSplit;
   const ticketPerPerson = total / Math.max(guestCount, 1);
 
-  const methods: { value: PaymentMethod; label: string; description: string }[] =
-    [
-      { value: "CARD", label: "Multibanco", description: "Cartão ou terminal" },
-      { value: "CASH", label: "Dinheiro", description: "Pagamento em numerário" },
-      { value: "BANK_TRANSFER", label: "Transferência", description: "Transferência bancária" },
-    ];
+  const methods: {
+    value: PaymentMethod;
+    label: string;
+    description: string;
+  }[] = [
+    { value: "CARD", label: "Multibanco", description: "Cartão ou terminal" },
+    { value: "CASH", label: "Dinheiro", description: "Pagamento em numerário" },
+    {
+      value: "BANK_TRANSFER",
+      label: "Transferência",
+      description: "Transferência bancária",
+    },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#11100F]/45 px-4 backdrop-blur-sm">
       <div className="w-full max-w-[460px] rounded-[32px] border border-[#E8E0D4] bg-white p-7 shadow-[0_30px_90px_rgba(0,0,0,0.22)]">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.38em] text-[#B58A45]">Cobrar</p>
-            <h3 className="mt-3 text-[34px] font-black tracking-[-0.06em] text-[#0E0D0C]">Mesa {tableNumber}</h3>
-            <p className="mt-2 text-sm font-medium text-[#7D746A]">Escolhe o método de pagamento para fechar a mesa.</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.38em] text-[#B58A45]">
+              Cobrar
+            </p>
+            <h3 className="mt-3 text-[34px] font-black tracking-[-0.06em] text-[#0E0D0C]">
+              Mesa {tableNumber}
+            </h3>
+            <p className="mt-2 text-sm font-medium text-[#7D746A]">
+              Escolhe o método de pagamento para fechar a mesa.
+            </p>
           </div>
 
-          <button onClick={onClose} disabled={loading} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E8E0D4] text-lg font-black text-[#8B7C68] transition hover:bg-[#F7F1E8] disabled:opacity-50">×</button>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E8E0D4] text-lg font-black text-[#8B7C68] transition hover:bg-[#F7F1E8] disabled:opacity-50"
+          >
+            ×
+          </button>
         </div>
 
         <div className="mt-7 rounded-[26px] border border-[#E8E0D4] bg-[#FCFBF9] p-5">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8B7C68]">Total</p>
-              <p className="mt-2 text-[46px] font-black leading-none tracking-[-0.08em] text-[#0E0D0C]">{formatMoney(total)}</p>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8B7C68]">
+                Total
+              </p>
+              <p className="mt-2 text-[46px] font-black leading-none tracking-[-0.08em] text-[#0E0D0C]">
+                {formatMoney(total)}
+              </p>
             </div>
 
             <div className="text-right">
-              <p className="text-xs font-bold text-[#8B7C68]">{guestCount} pax</p>
-              <p className="mt-1 text-sm font-black text-[#0E0D0C]">{formatMoney(ticketPerPerson)} / pessoa</p>
+              <p className="text-xs font-bold text-[#8B7C68]">
+                {guestCount} pax
+              </p>
+              <p className="mt-1 text-sm font-black text-[#0E0D0C]">
+                {formatMoney(ticketPerPerson)} / pessoa
+              </p>
             </div>
           </div>
 
           <div className="mt-5 rounded-2xl border border-[#E8E0D4] bg-white p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-[#8B7C68]">Dividir conta</p>
-                <p className="mt-1 text-sm font-black text-[#0E0D0C]">{formatMoney(splitAmount)} por pagamento</p>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-[#8B7C68]">
+                  Dividir conta
+                </p>
+                <p className="mt-1 text-sm font-black text-[#0E0D0C]">
+                  {formatMoney(splitAmount)} por pagamento
+                </p>
               </div>
 
               <div className="flex items-center rounded-full border border-[#E8E0D4] bg-[#FCFBF9] p-1">
@@ -5966,7 +6071,9 @@ function PaymentModal({
                   −
                 </button>
 
-                <span className="min-w-10 text-center text-sm font-black text-[#0E0D0C]">{safeSplit}</span>
+                <span className="min-w-10 text-center text-sm font-black text-[#0E0D0C]">
+                  {safeSplit}
+                </span>
 
                 <button
                   onClick={() => onChangeSplitCount(safeSplit + 1)}
@@ -5996,11 +6103,21 @@ function PaymentModal({
                 }
               >
                 <div>
-                  <p className="text-sm font-black text-[#0E0D0C]">{item.label}</p>
-                  <p className="mt-0.5 text-xs font-medium text-[#8B7C68]">{item.description}</p>
+                  <p className="text-sm font-black text-[#0E0D0C]">
+                    {item.label}
+                  </p>
+                  <p className="mt-0.5 text-xs font-medium text-[#8B7C68]">
+                    {item.description}
+                  </p>
                 </div>
 
-                <span className={active ? "flex h-6 w-6 items-center justify-center rounded-full bg-[#11100F] text-[11px] font-black text-white" : "h-6 w-6 rounded-full border border-[#D8D0C5]"}>
+                <span
+                  className={
+                    active
+                      ? "flex h-6 w-6 items-center justify-center rounded-full bg-[#11100F] text-[11px] font-black text-white"
+                      : "h-6 w-6 rounded-full border border-[#D8D0C5]"
+                  }
+                >
                   {active ? "✓" : ""}
                 </span>
               </button>
@@ -6009,24 +6126,28 @@ function PaymentModal({
         </div>
 
         <div className="mt-6 grid gap-2">
-  {fiscalReady && (
-    <button
-      onClick={onCreateInvoice}
-      disabled={loading}
-      className="flex h-14 w-full items-center justify-center rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] text-sm font-black text-[#8B5E22] transition hover:bg-[#FBF4E8] disabled:opacity-50"
-    >
-      Cobrar e emitir fatura
-    </button>
-  )}
+          {fiscalReady && (
+            <button
+              onClick={onCreateInvoice}
+              disabled={loading}
+              className="flex h-14 w-full items-center justify-center rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] text-sm font-black text-[#8B5E22] transition hover:bg-[#FBF4E8] disabled:opacity-50"
+            >
+              Cobrar e emitir fatura
+            </button>
+          )}
 
-  <button
-    onClick={onConfirm}
-    disabled={loading}
-    className="flex h-14 w-full items-center justify-center rounded-2xl bg-[#C99B4F] text-sm font-black text-white shadow-[0_16px_34px_rgba(201,155,79,0.28)] transition hover:bg-[#B98A3E] disabled:opacity-50"
-  >
-    {loading ? "A fechar..." : fiscalReady ? "Cobrar sem fatura" : "Fechar mesa"}
-  </button>
-</div>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex h-14 w-full items-center justify-center rounded-2xl bg-[#C99B4F] text-sm font-black text-white shadow-[0_16px_34px_rgba(201,155,79,0.28)] transition hover:bg-[#B98A3E] disabled:opacity-50"
+          >
+            {loading
+              ? "A fechar..."
+              : fiscalReady
+                ? "Cobrar sem fatura"
+                : "Fechar mesa"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -6070,7 +6191,7 @@ function DiscountModal({
   loading,
   target,
   onClose,
-    onConfirm,
+  onConfirm,
 }: {
   loading: boolean;
   target: DiscountTarget;
@@ -6085,13 +6206,17 @@ function DiscountModal({
     target.scope === "SESSION" ? target.discountType : target.item.discountType;
 
   const currentValue =
-    target.scope === "SESSION" ? target.discountValue : target.item.discountValue;
+    target.scope === "SESSION"
+      ? target.discountValue
+      : target.item.discountValue;
 
   const [type, setType] = useState<"AMOUNT" | "PERCENTAGE">(
     currentType ?? "PERCENTAGE",
   );
   const [value, setValue] = useState(
-    currentValue !== null && currentValue !== undefined ? String(currentValue) : "",
+    currentValue !== null && currentValue !== undefined
+      ? String(currentValue)
+      : "",
   );
   const [reason, setReason] = useState("");
 
@@ -6119,7 +6244,10 @@ function DiscountModal({
             </h3>
           </div>
 
-          <button onClick={onClose} className="h-9 w-9 rounded-full border border-[#E8E0D4]">
+          <button
+            onClick={onClose}
+            className="h-9 w-9 rounded-full border border-[#E8E0D4]"
+          >
             ×
           </button>
         </div>
@@ -6127,14 +6255,22 @@ function DiscountModal({
         <div className="mt-5 grid grid-cols-2 gap-2">
           <button
             onClick={() => setType("PERCENTAGE")}
-            className={type === "PERCENTAGE" ? "h-10 rounded-xl bg-[#11100F] text-xs font-black text-white" : "h-10 rounded-xl border border-[#E8E0D4] text-xs font-black"}
+            className={
+              type === "PERCENTAGE"
+                ? "h-10 rounded-xl bg-[#11100F] text-xs font-black text-white"
+                : "h-10 rounded-xl border border-[#E8E0D4] text-xs font-black"
+            }
           >
             %
           </button>
 
           <button
             onClick={() => setType("AMOUNT")}
-            className={type === "AMOUNT" ? "h-10 rounded-xl bg-[#11100F] text-xs font-black text-white" : "h-10 rounded-xl border border-[#E8E0D4] text-xs font-black"}
+            className={
+              type === "AMOUNT"
+                ? "h-10 rounded-xl bg-[#11100F] text-xs font-black text-white"
+                : "h-10 rounded-xl border border-[#E8E0D4] text-xs font-black"
+            }
           >
             €
           </button>
@@ -6255,13 +6391,7 @@ function CardIcon() {
 function UserIcon() {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-      <circle
-        cx="12"
-        cy="8"
-        r="3.5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
+      <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.8" />
       <path
         d="M5 20c.7-3.8 3.3-6 7-6s6.3 2.2 7 6"
         stroke="currentColor"

@@ -1359,27 +1359,54 @@ function PrimaryLink({ href, children }: { href: string; children: ReactNode }) 
 
 function BottomNav({ id }: { id: string }) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E1D0B8] bg-[#F5EFE6]/95 px-4 py-3 backdrop-blur-2xl lg:hidden">
-      <div className="grid grid-cols-5 text-center text-xs font-semibold text-[#6B6258]">
-        <Link href={`/restaurants/${id}`} className="text-[#16120E]">
-          <p className="text-xl">⌂</p>
-          Dashboard
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E1D0B8] bg-[#F5EFE6]/95 px-2 py-2 backdrop-blur-2xl lg:hidden">
+      <div className="grid grid-cols-6">
+        <Link
+          href={`/restaurants/${id}`}
+          className="flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[#16120E]"
+        >
+          <span className="text-[22px]">⌂</span>
+          <span className="text-[10px] font-bold">Dashboard</span>
         </Link>
-        <Link href={`/restaurants/${id}/day`}>
-          <p className="text-xl">⚡</p>
-          Hoje
+
+        <Link
+          href={`/restaurants/${id}/day`}
+          className="flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[#6B6258]"
+        >
+          <span className="text-[22px]">⚡</span>
+          <span className="text-[10px] font-bold">Hoje</span>
         </Link>
-        <Link href={`/restaurants/${id}/ordering`}>
-          <p className="text-xl">📲</p>
-          QR
+
+        <Link
+          href={`/restaurants/${id}/calendar`}
+          className="flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[#6B6258]"
+        >
+          <span className="text-[22px]">📅</span>
+          <span className="text-[10px] font-bold">Calendário</span>
         </Link>
-        <Link href={`/restaurants/${id}/tables`}>
-          <p className="text-xl">▦</p>
-          Sala
+
+        <Link
+          href={`/restaurants/${id}/ordering`}
+          className="flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[#6B6258]"
+        >
+          <span className="text-[22px]">📲</span>
+          <span className="text-[10px] font-bold">QR</span>
         </Link>
-        <Link href={`/restaurants/${id}/website`}>
-          <p className="text-xl">🌐</p>
-          Website
+
+        <Link
+          href={`/restaurants/${id}/tables`}
+          className="flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[#6B6258]"
+        >
+          <span className="text-[22px]">▦</span>
+          <span className="text-[10px] font-bold">Sala</span>
+        </Link>
+
+        <Link
+          href={`/restaurants/${id}/settings`}
+          className="flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[#6B6258]"
+        >
+          <span className="text-[22px]">⚙️</span>
+          <span className="text-[10px] font-bold">Definições</span>
         </Link>
       </div>
     </nav>

@@ -189,7 +189,7 @@ model Restaurant {
   printers                 RestaurantPrinter[]
   printBridgeToken         String?                 @unique
   printBridgeRestaurants   PrintBridgeRestaurant[]
-  customers                Customer[]
+  customers Customer[]
 }
 
 model WebsiteMenu {
@@ -261,7 +261,7 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  marketingOptIn    Boolean   @default(false)
+  marketingOptIn    Boolean           @default(false)
   marketingJoinedAt DateTime?
 
   birthDate DateTime?
@@ -273,7 +273,7 @@ model Customer {
   totalVisits Int @default(0)
 
   vipTier   String?
-  riskScore Int     @default(0)
+  riskScore Int @default(0)
 
   notes String?
   tags  String[] @default([])
@@ -283,10 +283,11 @@ model Customer {
   marketingActions MarketingAction[]
   posTableSessions POSTableSession[]
 
-  @@unique([restaurantId, email])
   @@index([restaurantId])
   @@index([email])
   @@index([phone])
+
+  @@unique([restaurantId, email])
 }
 
 model Reservation {
@@ -993,12 +994,12 @@ model PrintBridgeDevice {
   restaurants PrintBridgeRestaurant[]
   mappings    PrintBridgePrinterMapping[]
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  windowsPrinters Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([token])
+  windowsPrinters Json?
 }
 
 model PrintBridgeRestaurant {
