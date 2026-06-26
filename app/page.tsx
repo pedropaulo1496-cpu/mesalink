@@ -14,7 +14,7 @@ const brand = {
 const productStack = [
   "Reservas online",
   "Mapa de mesas",
-  "POS / Moloni",
+  "POS (Coming Soon)",
   "QR Ordering",
   "Website premium",
   "CRM de clientes",
@@ -48,7 +48,7 @@ const essentials = [
     text: "Página premium, rápida, mobile-first e preparada para transformar pesquisas em reservas.",
   },
   {
-    title: "POS / Moloni",
+    title: "POS (Coming Soon)",
     value: "Tudo ligado",
     text: "Pedidos, pagamentos, mesas, clientes e marketing deixam de estar espalhados em sistemas separados.",
   },
@@ -684,7 +684,7 @@ function ResultsSection() {
     ["Mais descoberta", "Website otimizado, SEO e reviews positivas ajudam novos clientes a encontrar o restaurante."],
     ["Mais clientes recorrentes", "Marketing e CRM ajudam a recuperar clientes que podiam não voltar."],
     ["Reservas sem comissões", "Receba reservas diretamente no restaurante sem pagar por cada cliente."],
-    ["Tudo integrado", "POS, CRM, reservas, QR Ordering, website e marketing ligados num único sistema."],
+    ["Tudo integrado", "POS (Coming Soon), CRM, reservas, QR Ordering, website e marketing ligados num único sistema."],
   ];
 
   return (
@@ -759,8 +759,8 @@ function PricingSection() {
         <div className="mt-12 grid gap-5 lg:grid-cols-2">
           <PricingCard
             name="Essentials"
-            price="79€"
-            yearlyPrice="869€"
+            price="55€"
+            yearlyPrice="605€"
             description="Para restaurantes que querem centralizar reservas, website, QR Ordering, CRM, reviews e operação."
             features={[
               "7 dias grátis com todas as funcionalidades",
@@ -779,8 +779,8 @@ function PricingSection() {
           <PricingCard
             featured
             name="Growth"
-            price="99€"
-            yearlyPrice="1089€"
+            price="75€"
+            yearlyPrice="825€"
             description="Para restaurantes que querem recuperar clientes, promover dias fracos e aumentar visitas recorrentes."
             features={[
               "7 dias grátis com todas as funcionalidades",

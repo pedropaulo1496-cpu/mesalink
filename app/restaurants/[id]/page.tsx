@@ -180,7 +180,7 @@ const isGrowthPlan =
       reservations: true,
       orderingOrders: {
         orderBy: { createdAt: "desc" },
-        take: 20,
+        take: 800,
         include: { items: true },
       },
       orderingTableSessions: {
@@ -242,77 +242,50 @@ const isGrowthPlan =
     }),
   ]);
 
-  const allPayments = cashRegisters
-    .flatMap((register: any) => register.payments ?? [])
-    .filter((payment: any) => payment.status !== "CANCELLED");
+  const acceptedQrStatuses = [
+    "ACCEPTED",
+    "PREPARING",
+    "READY",
+    "DELIVERED",
+    "COMPLETED",
+    "PAID",
+    "CONFIRMED",
+  ];
 
-  const paidPayments = allPayments.filter((payment: any) =>
-    ["PAID", "COMPLETED", "SUCCESS", "CONFIRMED"].includes(
-      String(payment.status ?? "PAID"),
-    ),
+  const qrRevenueOrders = (restaurant.orderingOrders ?? []).filter((order: any) => {
+    const status = String(order.status ?? "").toUpperCase();
+
+    return acceptedQrStatuses.includes(status);
+  });
+
+  const getQrOrderTotal = (order: any) =>
+    Number(order.total ?? order.subtotal ?? order.amount ?? 0);
+
+  const revenueToday = qrRevenueOrders
+    .filter((order: any) => new Date(order.createdAt) >= todayStart)
+    .reduce((sum: number, order: any) => sum + getQrOrderTotal(order), 0);
+
+  const revenueMonth = qrRevenueOrders
+    .filter((order: any) => new Date(order.createdAt) >= monthStart)
+    .reduce((sum: number, order: any) => sum + getQrOrderTotal(order), 0);
+
+  const revenueYear = qrRevenueOrders
+    .filter((order: any) => new Date(order.createdAt) >= yearStart)
+    .reduce((sum: number, order: any) => sum + getQrOrderTotal(order), 0);
+
+  const paymentsToday = qrRevenueOrders.filter((order: any) =>
+    new Date(order.createdAt) >= todayStart,
   );
 
-  const revenueToday = paidPayments
-    .filter((payment: any) => new Date(payment.createdAt) >= todayStart)
-    .reduce((sum: number, payment: any) => sum + Number(payment.amount ?? 0), 0);
-
-  const revenueMonth = paidPayments
-    .filter((payment: any) => new Date(payment.createdAt) >= monthStart)
-    .reduce((sum: number, payment: any) => sum + Number(payment.amount ?? 0), 0);
-
-  const revenueYear = paidPayments
-    .filter((payment: any) => new Date(payment.createdAt) >= yearStart)
-    .reduce((sum: number, payment: any) => sum + Number(payment.amount ?? 0), 0);
-
-  const paymentsToday = paidPayments.filter((payment: any) =>
-    new Date(payment.createdAt) >= todayStart,
-  );
-
-  const cardToday = paymentsToday
-    .filter((payment: any) => payment.method === "CARD")
-    .reduce((sum: number, payment: any) => sum + Number(payment.amount ?? 0), 0);
-
-  const cashToday = paymentsToday
-    .filter((payment: any) => payment.method === "CASH")
-    .reduce((sum: number, payment: any) => sum + Number(payment.amount ?? 0), 0);
-
-  const transferToday = paymentsToday
-    .filter((payment: any) => payment.method === "BANK_TRANSFER")
-    .reduce((sum: number, payment: any) => sum + Number(payment.amount ?? 0), 0);
-
-  const paymentsMonth = paidPayments.filter((payment: any) =>
-    new Date(payment.createdAt) >= monthStart,
-  );
-
-  const cardMonth = paymentsMonth
-    .filter((payment: any) => payment.method === "CARD")
-    .reduce((sum: number, payment: any) => sum + Number(payment.amount ?? 0), 0);
-
-  const cashMonth = paymentsMonth
-    .filter((payment: any) => payment.method === "CASH")
-    .reduce((sum: number, payment: any) => sum + Number(payment.amount ?? 0), 0);
-
-  const transferMonth = paymentsMonth
-    .filter((payment: any) => payment.method === "BANK_TRANSFER")
-    .reduce((sum: number, payment: any) => sum + Number(payment.amount ?? 0), 0);
+  const cardMonth = revenueToday;
+  const cashMonth = revenueMonth;
+  const transferMonth = revenueYear;
 
   const averageTicket = paymentsToday.length
     ? revenueToday / paymentsToday.length
     : 0;
 
- const paidTodaySessionGuests = Array.from<number>(
-  paymentsToday
-    .reduce((map: Map<string, number>, payment: any) => {
-      const sessionId = payment.tableSessionId ?? payment.tableSession?.id;
-      if (!sessionId || map.has(String(sessionId))) return map;
-
-      const guests = Number(payment.tableSession?.guestCount ?? 0);
-      if (guests > 0) map.set(String(sessionId), guests);
-
-      return map;
-    }, new Map<string, number>())
-    .values(),
-).reduce((sum: number, guests: number) => sum + guests, 0);
+  const paidTodaySessionGuests = paymentsToday.length;
 
   const tableReservations = restaurant.tables.flatMap((table) =>
     table.reservations.map((reservation) => ({
@@ -364,17 +337,14 @@ const isGrowthPlan =
     totalCapacity > 0 ? Math.round((guestsToday / totalCapacity) * 100) : 0;
 
   const openTables = openPosSessions.filter((item: any) => item.tableId).length;
-  const openPOSValue = openPosSessions.reduce(
-    (sum: number, item: any) => sum + Number(item.totalAmount ?? 0),
-    0,
-  );
-
   const qrOrdersOpen = restaurant.orderingTableSessions.reduce(
     (total, tableSession) =>
       total +
-      tableSession.orders.filter(
-        (order) => order.status !== "DELIVERED" && order.status !== "CANCELLED",
-      ).length,
+      tableSession.orders.filter((order) => {
+        const status = String(order.status ?? "").toUpperCase();
+
+        return ["ACCEPTED", "PREPARING", "READY"].includes(status);
+      }).length,
     0,
   );
 
@@ -409,7 +379,7 @@ const isGrowthPlan =
     let net = 0;
     let vat = 0;
 
-    for (const order of posOrders ?? []) {
+    for (const order of qrRevenueOrders ?? []) {
       const createdAt = new Date(order.createdAt ?? 0);
       if (createdAt < from) continue;
 
@@ -492,9 +462,9 @@ const isGrowthPlan =
     const day = new Date(todayStart);
     day.setDate(day.getDate() - (6 - index));
 
-    const total = paidPayments
-      .filter((payment: any) => sameDay(new Date(payment.createdAt), day))
-      .reduce((sum: number, payment: any) => sum + Number(payment.amount ?? 0), 0);
+    const total = qrRevenueOrders
+      .filter((order: any) => sameDay(new Date(order.createdAt), day))
+      .reduce((sum: number, order: any) => sum + getQrOrderTotal(order), 0);
 
     return {
       label: day.toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }),
@@ -549,11 +519,11 @@ const isGrowthPlan =
           </header>
 
           <section className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <MetricCard label="Faturação hoje" value={money(displayToday)} sub={`${paymentsToday.length} pagamentos`} strong />
-            <MetricCard label="Mês" value={money(displayMonth)} sub="faturação POS" />
-            <MetricCard label="Ticket / pessoa" value={money(displayAveragePerGuest)} sub={`${paidTodaySessionGuests || 0} pax pagos`} />
+            <MetricCard label="QR hoje" value={money(displayToday)} sub={`${paymentsToday.length} pedidos QR`} strong />
+            <MetricCard label="QR mês" value={money(displayMonth)} sub="vendas QR Ordering" />
+            <MetricCard label="Ticket QR" value={money(displayAveragePerGuest)} sub={`${paidTodaySessionGuests || 0} pedidos hoje`} />
             <MetricCard label="Reservas hoje" value={reservationsToday.length} sub={`${guestsToday} covers`} />
-            <MetricCard label="Mesas abertas" value={openTables} sub={money(openPOSValue)} />
+            <MetricCard label="QR ativos" value={qrOrdersOpen} sub="pedidos em aberto" />
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
@@ -797,12 +767,12 @@ function RevenueCard({
     <Panel>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <SectionLabel>Faturação</SectionLabel>
+          <SectionLabel>QR Ordering</SectionLabel>
           <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-            Performance financeira
+            Performance de vendas
           </h2>
           <p className="mt-2 text-sm text-[#6B6258]">
-  Valores reais dos pagamentos registados no POS · {includeVat ? "com IVA" : "sem IVA real por taxa"}.
+  Dados reais dos pedidos aceites no QR Ordering · {includeVat ? "com IVA" : "sem IVA estimado por taxa"}.
           </p>
         </div>
 
@@ -820,7 +790,7 @@ function RevenueCard({
         <FinanceStat title="Mês" value={money(month)} sub="total mensal" />
         <FinanceStat title="Ano" value={money(year)} sub="total anual" />
         <FinanceStat title="Pagamentos" value={payments} sub="hoje" />
-        <FinanceStat title="Ticket/pessoa" value={money(averagePerGuest)} sub="por pax pago" />
+        <FinanceStat title="Ticket/mesa" value={money(averagePerGuest)} sub="por mesa pago" />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
@@ -849,9 +819,9 @@ function RevenueCard({
         </div>
 
         <div className="grid gap-3">
-          <PaymentBreakdown label="Cartão" value={card} total={month} />
-          <PaymentBreakdown label="Dinheiro" value={cash} total={month} />
-          <PaymentBreakdown label="Transferência" value={transfer} total={month} />
+          <PaymentBreakdown label="Hoje" value={card} total={Math.max(year, 1)} />
+          <PaymentBreakdown label="Mês" value={cash} total={Math.max(year, 1)} />
+          <PaymentBreakdown label="Ano" value={transfer} total={Math.max(year, 1)} />
         </div>
       </div>
     </Panel>
@@ -882,7 +852,7 @@ function PaymentBreakdown({ label, value, total }: { label: string; value: numbe
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#E8DCCB]">
         <div className="h-full rounded-full bg-[#C8A56A]" style={{ width: `${percentage}%` }} />
       </div>
-      <p className="mt-2 text-[10px] font-bold text-[#6B6258]">{percentage}% do mês</p>
+      <p className="mt-2 text-[10px] font-bold text-[#6B6258]">{percentage}% do ano</p>
     </div>
   );
 }
@@ -1243,12 +1213,12 @@ function SalesIntelligenceCard({
     <Panel compact>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <SectionLabel>Vendas</SectionLabel>
+          <SectionLabel>QR Ordering</SectionLabel>
           <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
             Categorias e rentabilidade
           </h2>
           <p className="mt-2 text-sm text-[#6B6258]">
-            Percentagem por categoria e produtos com maior receita líquida.
+            Dados ligados aos pedidos aceites no QR Ordering: categorias vendidas e produtos com maior receita.
           </p>
         </div>
 
@@ -1296,7 +1266,7 @@ function SalesIntelligenceCard({
         <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
           <p className="font-semibold">Produtos mais rentáveis</p>
           <p className="mt-1 text-xs text-[#6B6258]">
-            Ordenado por receita sem IVA. Para margem real, falta custo do produto.
+            Ordenado por receita dos pedidos aceites no QR Ordering. Para margem real, falta custo do produto.
           </p>
 
           <div className="mt-4 space-y-2">

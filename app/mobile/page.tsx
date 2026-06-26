@@ -29,7 +29,7 @@ const visibilityFeatures = [
 ];
 
 const controlFeatures = [
-  ["POS / Moloni", "Operação"],
+  ["POS (Coming Soon)", "Operação"],
   ["Mesas", "Sala"],
   ["Relatórios", "Dados"],
   ["Pagamentos", "Caixa"],
@@ -316,14 +316,14 @@ function PricingMini() {
         <div className="mt-7 overflow-hidden rounded-[32px] border border-[#D8C5A5] bg-[#FFF9F0] shadow-[0_24px_80px_rgba(80,55,30,0.10)]">
           <MiniPlanRow
             name="Essentials"
-            price="79€"
+            price="55€"
             text="Reservas, Website, QR Ordering, CRM e Reviews."
           />
 
           <MiniPlanRow
             featured
             name="Growth"
-            price="99€"
+            price="75€"
             text="Tudo + Marketing, recuperação e clientes em risco."
           />
         </div>

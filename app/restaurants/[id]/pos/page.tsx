@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import POSClient from "./POSClient";
 
@@ -9,6 +10,15 @@ export default async function RestaurantPOSPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  const headersList = await headers();
+  const ua = headersList.get("user-agent") ?? "";
+
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+
+  if (isMobile) {
+    redirect(`/restaurants/${id}/pos/mobile`);
+  }
 
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);

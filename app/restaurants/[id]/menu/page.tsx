@@ -472,8 +472,6 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
 
           <section className="mt-5 grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
             <div className="space-y-5">
-<PrinterCard restaurant={restaurant} />
-<ProductionCenterCard restaurant={restaurant} />
 <CreateCategoryCard restaurantId={restaurant.id} />
 <CreateProductCard restaurant={restaurant} />
             </div>

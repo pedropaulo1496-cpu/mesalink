@@ -164,7 +164,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                     Upgrade disponível
                   </p>
                   <p className="mt-2 text-sm leading-6 text-white/65">
-                    Ative o Growth por apenas +20€/mês. Mantém a mesma data de
+                    Ative o Growth por apenas +20€/mês (até ao lançamento do POS). Mantém a mesma data de
                     renovação e o Stripe calcula a diferença proporcional.
                   </p>
                   <div className="mt-4">
@@ -186,8 +186,8 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           <PlanCard
             title="Essentials"
             badge={isEssentials ? "Plano atual" : "Plano base"}
-            price="79€"
-            yearlyPrice="869€"
+            price="55€"
+            yearlyPrice="605€"
             description="Para restaurantes que querem centralizar reservas, website, QR Ordering, CRM, reviews e operação num único sistema."
             features={[
               "Mais reservas diretas",
@@ -213,13 +213,13 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                   <CheckoutButton
                     product="ESSENTIALS"
                     billing="MONTHLY"
-                    label="Mensal 79€ →"
+                    label="Mensal 55€ →"
                     variant="dark"
                   />
                   <CheckoutButton
                     product="ESSENTIALS"
                     billing="YEARLY"
-                    label="Anual 869€ →"
+                    label="Anual 605€ →"
                     variant="outline"
                   />
                 </div>
@@ -230,8 +230,8 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           <PlanCard
             title="Growth"
             badge={isGrowth ? "Plano atual" : "Mais recomendado"}
-            price="99€"
-            yearlyPrice="1089€"
+            price="75€"
+            yearlyPrice="825€"
             description="Para restaurantes que querem recuperar clientes, promover dias fracos e aumentar visitas recorrentes com Marketing."
             features={[
               "Tudo do Essentials",
@@ -261,7 +261,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                         Upgrade
                       </p>
                       <p className="mt-1 text-2xl font-semibold tracking-[-0.05em]">
-                        +20€/mês
+                        +20€/mês (até ao lançamento do POS)
                       </p>
                       <p className="mt-1 text-xs text-white/62">
                         Mantém a data de renovação atual.
@@ -276,13 +276,13 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                   <CheckoutButton
                     product="GROWTH"
                     billing="MONTHLY"
-                    label="Mensal 99€ →"
+                    label="Mensal 75€ →"
                     variant="gold"
                   />
                   <CheckoutButton
                     product="GROWTH"
                     billing="YEARLY"
-                    label="Anual 1089€ →"
+                    label="Anual 825€ →"
                     variant="goldOutline"
                   />
                 </div>
@@ -411,7 +411,7 @@ function PlanCard({
   action: React.ReactNode;
   highlighted?: boolean;
 }) {
-  const saving = title === "Growth" ? "99€" : "79€";
+  const saving = title === "Growth" ? "75€" : "55€";
 
   return (
     <div

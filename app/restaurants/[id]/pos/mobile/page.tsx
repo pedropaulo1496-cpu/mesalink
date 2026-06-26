@@ -343,12 +343,6 @@ export default function POSClient({
 
   printJobs: any[];
 }) {
-  const POS_ENABLED = false;
-
-  if (!POS_ENABLED) {
-    return <POSComingSoon restaurantName={restaurantName} />;
-  }
-
   const [report, setReport] = useState<POSReport | null>(null);
   const [loadingReport, setLoadingReport] = useState(false);
   const [documents, setDocuments] = useState<FiscalDocument[]>([]);
@@ -389,6 +383,9 @@ export default function POSClient({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CARD");
   const [closingPayment, setClosingPayment] = useState(false);
   const [posTab, setPosTab] = useState<POSTab>("TABLES");
+  const [mobileTab, setMobileTab] = useState<
+    "TABLES" | "QR" | "INVOICE" | "CASH" | "DOCUMENTS"
+  >("TABLES");
   const [cashModal, setCashModal] = useState<"OPEN" | "CLOSE" | null>(null);
   const [openingAmount, setOpeningAmount] = useState("100");
   const [closingAmount, setClosingAmount] = useState("");
@@ -546,6 +543,7 @@ export default function POSClient({
   const grandTotal = editedExistingTotal + total;
 
   const openTables = sessions.filter((session) => session.tableId).length;
+  const openPOSValue = sessions.reduce((sum, session) => sum + Number(session.totalAmount ?? 0), 0);
   const selectedIsQuickSale = selectedTableId === "quick-sale";
   const qrAttentionCount = pendingOrders.length + qrAlerts.length;
 
@@ -1666,31 +1664,285 @@ export default function POSClient({
     loadReport();
   }, [posTab]);
 
-    return (
-  <>
-    <div className="mx-6 mt-6 rounded-3xl border border-[#E1C48C] bg-[#FFF4DF] p-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
-            Coming Soon
-          </p>
+  return (
+    <section className="min-h-screen bg-[#FBFAF7]">
+      <div className="block min-h-screen pb-24 lg:hidden">
+        <header className="sticky top-0 z-30 border-b border-[#E8E0D4] bg-[#FBFAF7]/95 px-4 py-4 backdrop-blur-xl">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.32em] text-[#B58A45]">
+                MesaLink POS
+              </p>
+              <h1 className="mt-1 text-3xl font-black tracking-[-0.05em] text-[#0E0D0C]">
+                Mobile
+              </h1>
+              <p className="mt-1 text-xs font-bold text-[#8B7C68]">
+                {restaurantName}
+              </p>
+            </div>
 
-          <h2 className="mt-2 text-2xl font-black">
-            MesaLink POS
-          </h2>
+            <div
+              className={
+                openCashRegister
+                  ? "rounded-full border border-[#B7D7B8] bg-[#ECF7EC] px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#3F6A4D]"
+                  : "rounded-full border border-[#E7B7A8] bg-[#FFF0EA] px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#A14E36]"
+              }
+            >
+              {openCashRegister ? "Caixa aberta" : "Caixa fechada"}
+            </div>
+          </div>
 
-          <p className="mt-2 text-sm text-[#6B6258]">
-            Estamos a finalizar o POS, faturação, impressão e versão mobile.
-          </p>
-        </div>
+          <div className="mt-4 grid grid-cols-5 gap-1 rounded-2xl border border-[#E8E0D4] bg-white p-1">
+            {[
+              { key: "TABLES", label: "Mesas", icon: "▦" },
+              { key: "QR", label: "QR", icon: "📲" },
+              { key: "INVOICE", label: "Faturar", icon: "🧾" },
+              { key: "CASH", label: "Caixa", icon: "💶" },
+              { key: "DOCUMENTS", label: "Docs", icon: "📄" },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setMobileTab(tab.key as any)}
+                className={
+                  mobileTab === tab.key
+                    ? "rounded-xl bg-[#11100F] px-1 py-2 text-center text-[10px] font-black text-white"
+                    : "rounded-xl px-1 py-2 text-center text-[10px] font-black text-[#7D746A]"
+                }
+              >
+                <span className="block text-base leading-none">{tab.icon}</span>
+                <span className="mt-1 block leading-none">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </header>
 
-        <span className="rounded-full bg-[#16120E] px-5 py-3 text-xs font-black text-white">
-          Coming Soon
-        </span>
+        <main className="px-4 py-4">
+          {!openCashRegister && mobileTab !== "CASH" && (
+            <button
+              onClick={() => setMobileTab("CASH")}
+              className="mb-4 w-full rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] px-4 py-3 text-left"
+            >
+              <p className="text-sm font-black text-[#8B5E22]">
+                Abre a caixa para usar o POS
+              </p>
+              <p className="mt-1 text-xs font-bold text-[#7D746A]">
+                As mesas e faturação ficam bloqueadas até a caixa estar aberta.
+              </p>
+            </button>
+          )}
+
+          {mobileTab === "TABLES" && (
+            <section className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <MobileStatCard label="Mesas abertas" value={openTables} />
+                <MobileStatCard label="Valor aberto" value={formatMoney(openPOSValue)} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {tables.map((table) => {
+                  const session = sessions.find(
+                    (item) => item.tableId === table.id && item.status === "OPEN",
+                  );
+                  const occupied = Boolean(session);
+
+                  return (
+                    <button
+                      key={table.id}
+                      onClick={() => {
+                        if (!openCashRegister) {
+                          setMobileTab("CASH");
+                          return;
+                        }
+
+                        selectTable(table.id);
+                      }}
+                      className={
+                        occupied
+                          ? "min-h-[118px] rounded-[24px] border border-[#D8AE62] bg-[#FFF8EC] p-4 text-left shadow-[0_12px_30px_rgba(201,155,79,0.10)]"
+                          : "min-h-[118px] rounded-[24px] border border-[#E8E0D4] bg-white p-4 text-left"
+                      }
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#B58A45]">
+                            Mesa
+                          </p>
+                          <p className="mt-1 text-3xl font-black tracking-[-0.06em] text-[#0E0D0C]">
+                            {table.number}
+                          </p>
+                        </div>
+
+                        <span
+                          className={
+                            occupied
+                              ? "rounded-full bg-[#11100F] px-2 py-1 text-[10px] font-black text-white"
+                              : "rounded-full bg-[#F3EEE8] px-2 py-1 text-[10px] font-black text-[#7D746A]"
+                          }
+                        >
+                          {occupied ? "Ocupada" : "Livre"}
+                        </span>
+                      </div>
+
+                      <p className="mt-4 text-sm font-black text-[#0E0D0C]">
+                        {occupied
+                          ? formatMoney(Number(session?.totalAmount ?? 0))
+                          : `${table.capacity} lugares`}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {mobileTab === "QR" && (
+            <QrOrdersView
+              orders={pendingOrders}
+              alerts={qrAlerts}
+              loadingOrderId={handlingQrOrderId}
+              loadingAlertId={handlingQrAlertId}
+              onAccept={acceptQrOrder}
+              onReject={rejectQrOrder}
+              onResolveAlert={resolveQrAlert}
+            />
+          )}
+
+          {mobileTab === "INVOICE" && (
+            <section className="space-y-4">
+              <div className="rounded-[26px] border border-[#E8E0D4] bg-white p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
+                  Faturar
+                </p>
+                <h2 className="mt-2 text-2xl font-black tracking-[-0.05em] text-[#0E0D0C]">
+                  Escolher mesa aberta
+                </h2>
+
+                <div className="mt-4 grid gap-2">
+                  {sessions.filter((session) => session.tableId).length === 0 ? (
+                    <p className="rounded-2xl border border-dashed border-[#E8E0D4] bg-[#FCFBF9] p-4 text-sm font-bold text-[#7D746A]">
+                      Não existem mesas abertas para faturar.
+                    </p>
+                  ) : (
+                    sessions
+                      .filter((session) => session.tableId)
+                      .map((session) => {
+                        const table = tables.find((item) => item.id === session.tableId);
+                        const active = selectedTableId === session.tableId;
+
+                        return (
+                          <button
+                            key={session.id}
+                            onClick={() => setSelectedTableId(session.tableId)}
+                            className={
+                              active
+                                ? "rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-4 text-left"
+                                : "rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-4 text-left"
+                            }
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-sm font-black text-[#0E0D0C]">
+                                Mesa {table?.number ?? "-"}
+                              </p>
+                              <p className="text-lg font-black text-[#0E0D0C]">
+                                {formatMoney(Number(session.remainingAmount ?? session.totalAmount ?? 0))}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })
+                  )}
+                </div>
+              </div>
+
+              {selectedSession && (
+                <div className="rounded-[26px] border border-[#D8AE62] bg-[#FFF8EC] p-5">
+                  <p className="text-xs font-black uppercase tracking-[0.22em] text-[#9B6F3B]">
+                    Mesa selecionada
+                  </p>
+
+                  <p className="mt-2 text-3xl font-black tracking-[-0.06em] text-[#0E0D0C]">
+                    {formatMoney(Number(selectedSession.remainingAmount ?? selectedSession.totalAmount ?? 0))}
+                  </p>
+
+                  <div className="mt-4 grid gap-2">
+                    <button
+                      onClick={() => {
+                        setPaymentMethod("CARD");
+                        closeTableWithPayment();
+                      }}
+                      disabled={closingPayment}
+                      className="h-13 rounded-2xl bg-[#11100F] px-4 py-4 text-sm font-black text-white disabled:opacity-50"
+                    >
+                      {closingPayment ? "A cobrar..." : "Cobrar sem fatura"}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setInvoiceCustomerType("FINAL_CONSUMER");
+                        setInvoiceModalOpen(true);
+                      }}
+                      disabled={creatingInvoice}
+                      className="h-13 rounded-2xl border border-[#E8E0D4] bg-white px-4 py-4 text-sm font-black text-[#0E0D0C] disabled:opacity-50"
+                    >
+                      Fatura consumidor final
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setInvoiceCustomerType("VAT");
+                        setInvoiceModalOpen(true);
+                      }}
+                      disabled={creatingInvoice}
+                      className="h-13 rounded-2xl border border-[#E8E0D4] bg-white px-4 py-4 text-sm font-black text-[#0E0D0C] disabled:opacity-50"
+                    >
+                      Fatura com NIF
+                    </button>
+
+                    <a
+                      href="https://app.moloni.pt/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-13 items-center justify-center rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] px-4 py-4 text-sm font-black text-[#9B6F3B]"
+                    >
+                      Abrir Moloni
+                    </a>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
+          {mobileTab === "CASH" && (
+            <CashRegisterView
+              openCashRegister={openCashRegister}
+              openingAmount={Number(openCashRegister?.openingAmount ?? 0)}
+              cashTotal={cashTotal}
+              cardTotal={cardTotal}
+              transferTotal={transferTotal}
+              registerTotal={registerTotal}
+              expectedCash={expectedCash}
+              onCashIn={() => {
+                setCashMovementType("IN");
+                setShowCashMovementModal(true);
+              }}
+              onCashOut={() => {
+                setCashMovementType("OUT");
+                setShowCashMovementModal(true);
+              }}
+              onOpenCash={() => setCashModal("OPEN")}
+              onCloseCash={() => {
+                setClosingAmount(String(expectedCash.toFixed(2)));
+                setCashModal("CLOSE");
+              }}
+            />
+          )}
+
+          {mobileTab === "DOCUMENTS" && <FiscalDocumentsView />}
+        </main>
       </div>
-    </div>
 
-     <section className="flex min-h-screen flex-1 flex-col overflow-hidden bg-[#FBFAF7] lg:h-screen lg:flex-row">
+      <div className="hidden lg:flex lg:h-screen lg:flex-row">
+
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         <header className="mb-5">
           <div className="flex items-start justify-between gap-5">
@@ -1931,6 +2183,8 @@ export default function POSClient({
         />
       )}
 
+      </div>
+
       {openingTable && (
         <OpenTableModal
           table={openingTable}
@@ -2105,99 +2359,23 @@ export default function POSClient({
           onTransfer={transferTable}
         />
       )}
-        </section>
-  </>
-);
-}
-
-
-function POSComingSoon({ restaurantName }: { restaurantName: string }) {
-  return (
-    <section className="flex min-h-screen flex-1 items-center justify-center overflow-y-auto bg-[#FBFAF7] px-4 py-8 text-[#16120E] sm:px-6 lg:px-10">
-      <div className="w-full max-w-5xl">
-        <div className="overflow-hidden rounded-[44px] border border-[#E1D0B8] bg-white shadow-[0_30px_90px_rgba(80,55,30,0.08)]">
-          <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="bg-[#FFF4DF] p-7 sm:p-10 lg:p-12">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#E1C48C] bg-white/70 px-4 py-2 text-[11px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">
-                <span className="h-2 w-2 rounded-full bg-[#C8A56A]" />
-                Coming Soon
-              </div>
-
-              <h1 className="mt-8 text-5xl font-black leading-[0.9] tracking-[-0.07em] text-[#0E0D0C] sm:text-6xl">
-                MesaLink POS
-              </h1>
-
-              <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-[#6B6258]">
-                Estamos a finalizar a nova geração do POS para garantir uma
-                experiência estável em sala, caixa, produção, faturação e
-                impressão.
-              </p>
-
-              <div className="mt-8 rounded-[28px] border border-[#E1D0B8] bg-white p-5">
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9B6F3B]">
-                  Restaurante
-                </p>
-
-                <p className="mt-2 text-2xl font-black tracking-[-0.045em] text-[#16120E]">
-                  {restaurantName}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white p-7 sm:p-10 lg:p-12">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[28px] bg-[#16120E] text-4xl shadow-[0_18px_45px_rgba(0,0,0,0.18)]">
-                🍽️
-              </div>
-
-              <h2 className="mt-7 text-center text-3xl font-black tracking-[-0.055em] text-[#0E0D0C]">
-                Em desenvolvimento
-              </h2>
-
-              <p className="mx-auto mt-3 max-w-md text-center text-sm font-semibold leading-6 text-[#6B6258]">
-                O POS ainda não está disponível para clientes. Quando estiver
-                pronto, será ativado automaticamente nesta área.
-              </p>
-
-              <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <POSComingSoonFeature text="Gestão de mesas" />
-                <POSComingSoonFeature text="QR Ordering" />
-                <POSComingSoonFeature text="Caixa" />
-                <POSComingSoonFeature text="Faturação Moloni" />
-                <POSComingSoonFeature text="Produção" />
-                <POSComingSoonFeature text="Impressoras" />
-                <POSComingSoonFeature text="Split bill" />
-                <POSComingSoonFeature text="Mobile POS" />
-              </div>
-
-              <div className="mt-8 rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 text-center">
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9B6F3B]">
-                  Disponível em breve
-                </p>
-
-                <p className="mt-2 text-sm font-semibold leading-6 text-[#6B6258]">
-                  Até lá, continua a usar Reservas, Clientes, QR Ordering,
-                  Website e Marketing.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </section>
   );
 }
 
-function POSComingSoonFeature({ text }: { text: string }) {
+
+function MobileStatCard({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] px-4 py-3 text-sm font-black text-[#16120E]">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#16120E] text-xs text-white">
-        ✓
-      </span>
-      <span>{text}</span>
+    <div className="rounded-[22px] border border-[#E8E0D4] bg-white p-4">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#B58A45]">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-black tracking-[-0.05em] text-[#0E0D0C]">
+        {value}
+      </p>
     </div>
   );
 }
-
 
 function QrOrdersView({
   orders,
@@ -2974,6 +3152,7 @@ function ServiceView({
   todayPayments: POSTodayPayment[];
 }) {
   const openTables = sessions.filter((session) => session.tableId).length;
+  const openPOSValue = sessions.reduce((sum, session) => sum + Number(session.totalAmount ?? 0), 0);
   const seatedGuests = sessions.reduce(
     (sum, session) => sum + Number(session.guestCount ?? 1),
     0,

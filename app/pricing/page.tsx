@@ -5,9 +5,9 @@ const plans = [
   {
     name: "Essentials",
     badge: "7 dias grátis",
-    price: "79€",
-    yearlyPrice: "869€",
-    saving: "79€",
+    price: "55€",
+    yearlyPrice: "605€",
+    saving: "55€",
     description:
       "Para restaurantes que querem centralizar reservas, website, QR Ordering, CRM, reviews e operação num único sistema.",
     features: [
@@ -26,9 +26,9 @@ const plans = [
   {
     name: "Growth",
     badge: "Mais recomendado",
-    price: "99€",
-    yearlyPrice: "1089€",
-    saving: "99€",
+    price: "75€",
+    yearlyPrice: "825€",
+    saving: "75€",
     description:
       "Para restaurantes que querem recuperar clientes, promover dias fracos e aumentar visitas recorrentes com Marketing.",
     features: [
@@ -65,7 +65,7 @@ const faqs = [
   {
     question: "O pagamento anual tem desconto?",
     answer:
-      "Sim. No pagamento anual recebe 1 mês grátis: Essentials fica 869€/ano e Growth fica 1089€/ano, sem IVA.",
+      "Sim. No pagamento anual recebe 1 mês grátis: Essentials fica 605€/ano e Growth fica 825€/ano, sem IVA.",
   },
   {
     question: "Qual é a diferença do Growth?",

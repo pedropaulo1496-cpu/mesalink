@@ -51,20 +51,19 @@ useEffect(() => {
       items: [
         { name: "Dashboard", href: `/restaurants/${id}`, icon: HomeIcon },
         {
-  name: "POS",
-  href: `/restaurants/${id}/pos`,
-  icon: PosIcon,
-  badge: qrNotificationCount > 0 ? String(qrNotificationCount) : undefined,
-  alert: qrNotificationCount > 0,
-},
+          name: "POS",
+          href: `/restaurants/${id}/pos`,
+          icon: PosIcon,
+          soon: true,
+        },
         { name: "Menu & Produtos", href: `/restaurants/${id}/menu`, icon: MenuIcon },
         {
-  name: "QR Ordering",
-  href: `/restaurants/${id}/ordering`,
-  icon: QrIcon,
-  badge: qrNotificationCount > 0 ? String(qrNotificationCount) : undefined,
-  alert: qrNotificationCount > 0,
-},
+          name: "QR Ordering",
+          href: `/restaurants/${id}/ordering`,
+          icon: QrIcon,
+          badge: qrNotificationCount > 0 ? String(qrNotificationCount) : undefined,
+          alert: qrNotificationCount > 0,
+        },
         { name: "Serviço do Dia", href: `/restaurants/${id}/day`, icon: CalendarIcon },
         { name: "Reservas", href: `/restaurants/${id}/reservations`, icon: BookIcon },
         { name: "Sala & Mesas", href: `/restaurants/${id}/tables`, icon: GridIcon },
@@ -231,7 +230,7 @@ function NavItem({
 
       {item.soon && (
         <span className="rounded-full border border-[#E1C48C] bg-[#FFF4DF] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">
-          Soon
+          Coming Soon
         </span>
       )}
     </Link>
