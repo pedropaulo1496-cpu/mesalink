@@ -338,13 +338,36 @@ export default async function DayPage({
           </div>
 
           <p className="mt-1 truncate text-xs text-[#6B6258]">
-            {reservation.guests} pessoas
-            {reservation.table
-              ? ` · Mesa ${reservation.table.number}`
-              : " · Sem mesa"}
-            {reservation.source === "PUBLIC" ? " · Online" : " · Manual"}
-            {reservation.notes ? ` · ${reservation.notes}` : ""}
-          </p>
+  {reservation.guests} pessoas
+  {reservation.table
+    ? ` · Mesa ${reservation.table.number}`
+    : " · Sem mesa"}
+  {reservation.source === "PUBLIC" ? " · Online" : " · Manual"}
+  {reservation.notes ? ` · ${reservation.notes}` : ""}
+</p>
+
+<details className="group mt-2">
+  <summary className="cursor-pointer list-none text-xs font-semibold text-[#9B6F3B] transition hover:text-[#16120E]">
+    <span className="group-open:hidden">Ver contacto</span>
+    <span className="hidden group-open:inline">Ocultar contacto</span>
+  </summary>
+
+  <div className="mt-2 grid gap-2 rounded-2xl border border-[#E8DCCB] bg-white px-3 py-3 text-xs text-[#6B6258] sm:grid-cols-2">
+    <div>
+      <p className="font-semibold text-[#16120E]">Telemóvel</p>
+      <p className="mt-1">
+        {reservation.phone || "Sem telemóvel"}
+      </p>
+    </div>
+
+    <div>
+      <p className="font-semibold text-[#16120E]">Email</p>
+      <p className="mt-1 break-all">
+        {reservation.email || "Sem email"}
+      </p>
+    </div>
+  </div>
+</details>
         </div>
 
         <div className="flex flex-wrap gap-2 lg:justify-end">
