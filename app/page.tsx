@@ -192,9 +192,6 @@ function HeroCommandCenter() {
 
             <div className="flex items-center gap-2">
               <span className="rounded-full bg-[#17130F] px-4 py-2 text-xs font-semibold text-white">
-                c/ IVA
-              </span>
-              <span className="rounded-full border border-[#E1D0B8] bg-white px-4 py-2 text-xs font-semibold text-[#6B6258]">
                 Live
               </span>
             </div>
