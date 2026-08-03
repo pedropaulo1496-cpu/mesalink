@@ -177,31 +177,27 @@ function LivePhone() {
             <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#C8A56A]/25 blur-3xl" />
 
             <p className="relative text-xs font-semibold uppercase tracking-[0.22em] text-[#D8C5A5]">
-              Receita atribuída
+              Reservas hoje
             </p>
 
             <p className="relative mt-2 text-4xl font-semibold tracking-[-0.075em]">
-              3.840€
+              18
             </p>
 
             <p className="relative mt-1 text-xs text-emerald-300">
-              QR + Marketing + Reservas
+              QR Ordering + Marketing + Reservas
             </p>
 
-            <svg viewBox="0 0 300 95" className="relative mt-4 h-24 w-full">
-              <motion.path
-                d="M0 76 C32 70 46 55 76 60 C112 66 116 36 154 42 C192 48 206 67 238 49 C270 30 284 18 300 12"
-                fill="none"
-                stroke="#C8A56A"
-                strokeWidth="5"
-                strokeLinecap="round"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-              />
-              <circle cx="300" cy="12" r="6" fill="#F4D08D" />
-            </svg>
+            <div className="relative mt-4 grid grid-cols-2 gap-2">
+              <div className="rounded-2xl bg-white/10 px-3 py-2">
+                <p className="text-lg font-semibold">132</p>
+                <p className="text-[10px] text-white/60">esta semana</p>
+              </div>
+              <div className="rounded-2xl bg-white/10 px-3 py-2">
+                <p className="text-lg font-semibold">74%</p>
+                <p className="text-[10px] text-white/60">ocupação</p>
+              </div>
+            </div>
           </motion.div>
 
           <div className="mt-4 grid gap-2">

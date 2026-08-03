@@ -205,13 +205,13 @@ function HeroCommandCenter() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
-                    Faturação
+                    Reservas
                   </p>
                   <h4 className="mt-2 text-3xl font-semibold tracking-[-0.06em]">
-                    €19.564 este mês
+                    312 reservas este mês
                   </h4>
                   <p className="mt-2 text-sm text-[#6B6258]">
-                    QR Ordering, marketing e reservas diretas ligados no mesmo painel.
+                    QR Ordering, marketing e mapa de mesas ligados no mesmo painel.
                   </p>
                 </div>
 
@@ -221,37 +221,29 @@ function HeroCommandCenter() {
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <DashboardHeroStat value="€3.840" label="Hoje" />
-                <DashboardHeroStat value="48" label="Reservas" />
-                <DashboardHeroStat value="€920" label="Recuperado" />
+                <DashboardHeroStat value="18" label="Hoje" />
+                <DashboardHeroStat value="132" label="Esta semana" />
+                <DashboardHeroStat value="74%" label="Ocupação" />
               </div>
 
-              <div className="mt-5 rounded-[28px] bg-[#FFF9F0] p-4">
-                <svg viewBox="0 0 520 170" className="h-48 w-full overflow-visible">
-                  <defs>
-                    <linearGradient id="heroDashFill" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%" stopColor="#C8A56A" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#C8A56A" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
+              <div className="mt-5 space-y-2 rounded-[28px] bg-[#FFF9F0] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
+                  Próximas reservas
+                </p>
 
-                  {[28, 62, 96, 130].map((y) => (
-                    <line key={y} x1="0" x2="520" y1={y} y2={y} stroke="#E8D7BB" strokeWidth="1" />
-                  ))}
-
-                  <path
-                    d="M0 138 C36 126 48 94 78 92 C112 88 112 66 150 62 C190 56 198 82 238 74 C280 66 292 42 330 48 C372 54 382 78 420 52 C462 22 492 30 520 16"
-                    fill="none"
-                    stroke="#C8A56A"
-                    strokeWidth="5"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M0 170 L0 138 C36 126 48 94 78 92 C112 88 112 66 150 62 C190 56 198 82 238 74 C280 66 292 42 330 48 C372 54 382 78 420 52 C462 22 492 30 520 16 L520 170 Z"
-                    fill="url(#heroDashFill)"
-                  />
-                  <circle cx="520" cy="16" r="7" fill="#17130F" />
-                </svg>
+                {[
+                  ["19:30", "Mesa 4 · 2 pessoas"],
+                  ["20:00", "Mesa 7 · 4 pessoas"],
+                  ["20:15", "Balcão · 2 pessoas"],
+                ].map(([time, detail]) => (
+                  <div
+                    key={time}
+                    className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3"
+                  >
+                    <span className="text-sm font-semibold text-[#17130F]">{time}</span>
+                    <span className="text-sm text-[#6B6258]">{detail}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
