@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { isValidEmail } from "@/lib/validation";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
@@ -12,6 +13,13 @@ export async function POST(request: Request) {
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email e password são obrigatórios." },
+        { status: 400 },
+      );
+    }
+
+    if (!isValidEmail(String(email))) {
+      return NextResponse.json(
+        { error: "Introduza um email válido." },
         { status: 400 },
       );
     }

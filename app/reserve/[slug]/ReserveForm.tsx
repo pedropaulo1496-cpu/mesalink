@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import PhoneField from "@/components/PhoneField";
 
 type Reservation = {
   id: string;
@@ -346,6 +347,14 @@ export default function ReserveForm({
               />
             )}
 
+            {error === "email" && (
+              <Alert
+                tone="red"
+                title="Email inválido"
+                text="Introduza um email válido para continuar."
+              />
+            )}
+
             <div className="space-y-8">
               <motion.div
                 initial={{ opacity: 0, y: 14 }}
@@ -528,13 +537,7 @@ export default function ReserveForm({
                     </Field>
 
                     <Field label="Telemóvel" required>
-                      <input
-                        name="phone"
-                        type="tel"
-                        placeholder="Telemóvel"
-                        className={inputClass}
-                        required
-                      />
+                      <PhoneField name="phone" required placeholder="Telemóvel" />
                     </Field>
 
                     <Field label="Email" required>

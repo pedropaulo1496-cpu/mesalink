@@ -5,6 +5,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { isValidEmail } from "@/lib/validation";
 
 const inputClass =
   "h-14 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]";
@@ -14,11 +15,22 @@ export default function LoginPage() {
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+
+    if (!isValidEmail(emailAddress)) {
+      setError("Introduza um email válido.");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setError("Tem de aceitar os Termos e a Política de Privacidade.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -78,6 +90,22 @@ export default function LoginPage() {
                 <Link href="/forgot-password" className="text-sm font-semibold text-[#9B6F3B] hover:text-[#16120E]">
                   Esqueceste-te da password?
                 </Link>
+              </div>
+
+              <div className="mt-4 flex items-start gap-3">
+                <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-1 h-4 w-4 accent-[#16120E]" />
+
+                <label className="text-sm leading-relaxed text-[#6B6258]">
+                  Li e aceito os{" "}
+                  <a href="/terms" target="_blank" className="font-semibold text-[#9B6F3B] hover:text-[#16120E]">
+                    Termos e Condições
+                  </a>{" "}
+                  e a{" "}
+                  <a href="/privacy" target="_blank" className="font-semibold text-[#9B6F3B] hover:text-[#16120E]">
+                    Política de Privacidade
+                  </a>
+                  .
+                </label>
               </div>
 
               {error && (

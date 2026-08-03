@@ -5,6 +5,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { isValidEmail } from "@/lib/validation";
 
 const inputClass =
   "h-14 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]";
@@ -15,12 +16,23 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+
+    if (!isValidEmail(emailAddress)) {
+      setError("Introduza um email válido.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("As passwords não coincidem.");
+      return;
+    }
 
     if (!acceptedTerms) {
       setError("Tem de aceitar os Termos e a Política de Privacidade.");
@@ -96,6 +108,7 @@ export default function RegisterPage() {
                 <input value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder="Nome" className={inputClass} required />
                 <input value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} type="email" placeholder="Email" className={inputClass} required />
                 <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" className={inputClass} required />
+                <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" placeholder="Confirmar password" className={inputClass} required />
               </div>
 
               <div className="mt-6 flex items-start gap-3">

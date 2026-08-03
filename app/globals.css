@@ -244,6 +244,57 @@ select.input-premium {
   cursor: pointer;
 }
 
+.PhoneInput {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 3.5rem;
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid #e1d0b8;
+  background: #fff9f0;
+  padding: 0 1rem;
+}
+
+.PhoneInput:focus-within {
+  border-color: #c8a56a;
+  box-shadow: 0 0 0 4px rgba(200, 165, 106, 0.12);
+}
+
+.PhoneInputInput {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #16120e;
+  font-size: 0.95rem;
+}
+
+.PhoneInputInput::placeholder {
+  color: #9b8f82;
+}
+
+.PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.PhoneInputCountrySelect {
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.PhoneInputCountryIcon {
+  width: 1.4em;
+  height: 1em;
+  box-shadow: 0 0 0 1px rgba(80, 55, 30, 0.15);
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

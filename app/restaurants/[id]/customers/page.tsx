@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import { redirect } from "next/navigation";
+import { isValidEmail } from "@/lib/validation";
+import PhoneField from "@/components/PhoneField";
 
 type SortKey = "recent" | "name" | "visits" | "value" | "birthday" | "risk";
 
@@ -23,6 +25,10 @@ async function createCustomer(formData: FormData) {
 
   if (!name || (!email && !phone)) {
     redirect(`/restaurants/${restaurantId}/customers?error=missing`);
+  }
+
+  if (email && !isValidEmail(email)) {
+    redirect(`/restaurants/${restaurantId}/customers?error=email`);
   }
 
   const birthDate = birthDateValue
@@ -385,6 +391,12 @@ export default async function CustomersPage({
             </div>
           )}
 
+          {query.error === "email" && (
+            <div className="mt-5 rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] px-5 py-4 text-sm font-semibold text-[#A14E36]">
+              Introduza um email válido ou deixe o campo em branco.
+            </div>
+          )}
+
           <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             <MetricCard label="Clientes" value={enrichedCustomers.length} />
             <MetricCard label="VIPs" value={vipCustomers.length} tone="gold" />
@@ -418,7 +430,7 @@ export default async function CustomersPage({
                 <input type="hidden" name="restaurantId" value={id} />
 
                 <Input name="name" placeholder="Nome" required />
-                <Input name="phone" placeholder="Telefone" />
+                <PhoneField name="phone" placeholder="Telefone" />
                 <Input name="email" type="email" placeholder="Email" />
                 <Input name="birthDate" type="date" placeholder="Nascimento" />
                 <Input

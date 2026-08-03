@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { createRestaurant } from "./actions";
+import PhoneField from "@/components/PhoneField";
 
-export default function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ error?: string }>;
+}) {
+  const query = searchParams ? await searchParams : {};
+
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
       <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
@@ -58,6 +65,12 @@ export default function OnboardingPage() {
             </p>
 
             <form action={createRestaurant} className="mt-8 space-y-4">
+              {query.error === "email" && (
+                <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] px-4 py-3 text-sm font-semibold text-[#A14E36]">
+                  Introduza um email válido ou deixe o campo em branco.
+                </div>
+              )}
+
               <input
                 name="name"
                 required
@@ -72,11 +85,7 @@ export default function OnboardingPage() {
                 className="input-premium h-14"
               />
 
-              <input
-                name="phone"
-                placeholder="Telefone"
-                className="input-premium h-14"
-              />
+              <PhoneField name="phone" placeholder="Telefone" />
 
               <input
                 name="address"

@@ -47,10 +47,8 @@ function getLineNet(gross: number, vatRate: number) {
 
 export default async function RestaurantPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ vat?: string }>;
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
@@ -109,8 +107,7 @@ const isGrowthPlan =
   const billingProgress = trialActive ? trialProgress : subscriptionActive ? 100 : 0;
 
   const { id } = await params;
-  const query = searchParams ? await searchParams : {};
-  const includeVat = query?.vat !== "net";
+  const includeVat = true;
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
@@ -392,7 +389,6 @@ const isGrowthPlan =
                 progress={billingProgress}
                 expired={!trialActive && !subscriptionActive}
               />
-              <VatToggle id={id} includeVat={includeVat} />
               <SignOutButton />
             </div>
           </header>
@@ -508,34 +504,6 @@ function ProgressRing({
       <span className="absolute text-[10px] font-black text-[#16120E]">
         {safeProgress}%
       </span>
-    </div>
-  );
-}
-
-function VatToggle({ id, includeVat }: { id: string; includeVat: boolean }) {
-  return (
-    <div className="flex items-center gap-1 rounded-full border border-[#E1D0B8] bg-white p-1">
-      <Link
-        href={`/restaurants/${id}`}
-        className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
-          includeVat
-            ? "bg-[#16120E] text-white"
-            : "text-[#6B6258] hover:text-[#16120E]"
-        }`}
-      >
-        c/ IVA
-      </Link>
-
-      <Link
-        href={`/restaurants/${id}?vat=net`}
-        className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
-          !includeVat
-            ? "bg-[#16120E] text-white"
-            : "text-[#6B6258] hover:text-[#16120E]"
-        }`}
-      >
-        s/ IVA
-      </Link>
     </div>
   );
 }

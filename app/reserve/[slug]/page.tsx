@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { isValidEmail } from "@/lib/validation";
 import { notFound, redirect } from "next/navigation";
 import { Resend } from "resend";
 import ReserveForm from "./ReserveForm";
@@ -21,6 +22,10 @@ async function createPublicReservation(formData: FormData) {
 
   if (!customerName || !phone || !email) {
     redirect(`/reserve/${slug}?error=missing`);
+  }
+
+  if (!isValidEmail(email)) {
+    redirect(`/reserve/${slug}?error=email`);
   }
 
   const birthDate = birthDateValue

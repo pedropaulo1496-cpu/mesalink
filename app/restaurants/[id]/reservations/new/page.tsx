@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { isValidEmail } from "@/lib/validation";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import BottomNav from "@/components/BottomNav";
+import PhoneField from "@/components/PhoneField";
 
 async function createReservation(formData: FormData) {
   "use server";
@@ -17,6 +19,10 @@ async function createReservation(formData: FormData) {
   const dateValue = String(formData.get("date"));
   const timeValue = String(formData.get("time"));
   const notes = String(formData.get("notes") || "").trim();
+
+  if (email && !isValidEmail(email)) {
+    redirect(`/restaurants/${restaurantId}/reservations/new?error=email`);
+  }
 
   const normalizedEmail = email || null;
   const birthDate = birthDateValue ? new Date(`${birthDateValue}T12:00:00`) : null;
@@ -264,6 +270,12 @@ export default async function NewReservationPage({
                 </div>
               )}
 
+              {query.error === "email" && (
+                <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-4 text-sm font-semibold text-[#A14E36]">
+                  Introduza um email válido ou deixe o campo em branco.
+                </div>
+              )}
+
               <FormSection title="Cliente">
                 <div className="grid gap-4 md:grid-cols-2">
                   <Field label="Nome do cliente">
@@ -276,12 +288,7 @@ export default async function NewReservationPage({
                   </Field>
 
                   <Field label="Telefone">
-                    <input
-                      name="phone"
-                      placeholder="Ex: 912345678"
-                      className="input-premium"
-                      required
-                    />
+                    <PhoneField name="phone" required placeholder="Ex: 912345678" />
                   </Field>
 
                   <Field label="Email recomendado">

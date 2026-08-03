@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { isValidEmail } from "@/lib/validation";
 
 function slugify(value: string) {
   return value.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
@@ -37,6 +38,7 @@ export async function createRestaurant(formData: FormData) {
   const phone = String(formData.get("phone") || "").trim();
   const address = String(formData.get("address") || "").trim();
   if (!name) redirect("/onboarding");
+  if (email && !isValidEmail(email)) redirect("/onboarding?error=email");
 
   const baseSlug = slugify(name) || "restaurante";
   let slug = baseSlug;
