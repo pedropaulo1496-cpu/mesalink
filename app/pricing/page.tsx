@@ -53,7 +53,7 @@ const comparison = [
   ["CRM", "Folhas ou ferramenta externa", "Incluído"],
   ["Marketing", "Campanhas manuais", "Growth"],
   ["Reviews", "Sem processo claro", "Incluído"],
-  ["Faturação fiscal", "Software certificado externo", "Moloni"],
+  ["Faturação fiscal", "Software certificado externo", "Integrado"],
 ];
 
 const faqs = [
@@ -79,7 +79,7 @@ const faqs = [
   {
     question: "E a faturação fiscal?",
     answer:
-      "A faturação fiscal é tratada externamente pelo Moloni ou outro software certificado. Esse custo não é cobrado pela MesaLink.",
+      "A faturação fiscal é tratada externamente por um software certificado à sua escolha. Esse custo não é cobrado pela MesaLink.",
   },
   {
     question: "Posso cancelar?",

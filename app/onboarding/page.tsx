@@ -93,8 +93,8 @@ export default function OnboardingPage() {
             </form>
 
             <p className="mt-5 text-center text-xs leading-5 text-[#6B6258]">
-              A faturação fiscal é tratada externamente pelo Moloni ou por outro
-              software certificado. A MesaLink liga reservas, website, QR
+              A faturação fiscal é tratada externamente por um software
+              certificado à sua escolha. A MesaLink liga reservas, website, QR
               Ordering, clientes, marketing e operação.
             </p>
           </section>

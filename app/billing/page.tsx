@@ -327,8 +327,8 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
             </h3>
 
             <p className="mt-3 text-sm leading-6 text-[#6B6258]">
-              A faturação fiscal é tratada externamente pelo Moloni ou por
-              outro software certificado. Esse custo não é cobrado pela
+              A faturação fiscal é tratada externamente por um software
+              certificado à sua escolha. Esse custo não é cobrado pela
               MesaLink.
             </p>
 
