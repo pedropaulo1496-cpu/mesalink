@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { WebsiteTemplate } from "./templates";
 import {
   getDisplayCuisine,
@@ -236,10 +237,13 @@ export function WebsiteHero({
     return (
       <section className="relative min-h-screen overflow-hidden bg-[#16120E] text-[#F5EFE6]">
         {hasImage ? (
-          <img
+          <Image
             src={restaurant.websiteHeroImage!}
             alt={restaurant.name}
-            className="absolute inset-0 h-full w-full scale-105 object-cover opacity-32"
+            fill
+            priority
+            sizes="100vw"
+            className="scale-105 object-cover opacity-32"
           />
         ) : (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(200,165,106,0.18),transparent_38%),linear-gradient(to_bottom,#241B13,#16120E)]" />
@@ -311,7 +315,14 @@ export function WebsiteHero({
 
             <div className="relative min-h-[520px] overflow-hidden rounded-[2.5rem] bg-zinc-100">
               {hasImage ? (
-                <img src={restaurant.websiteHeroImage!} alt={restaurant.name} className="absolute inset-0 h-full w-full object-cover" />
+                <Image
+                  src={restaurant.websiteHeroImage!}
+                  alt={restaurant.name}
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 55vw, 100vw"
+                  className="object-cover"
+                />
               ) : (
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.12),transparent_50%),linear-gradient(to_bottom,#f4f4f5,#e4e4e7)]" />
               )}
@@ -352,7 +363,14 @@ export function WebsiteHero({
 
           <div className="relative min-h-[78vh] overflow-hidden rounded-[3rem] border border-[#E1D0B8] bg-white shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
             {hasImage ? (
-              <img src={restaurant.websiteHeroImage!} alt={restaurant.name} className="absolute inset-0 h-full w-full object-cover" />
+              <Image
+                src={restaurant.websiteHeroImage!}
+                alt={restaurant.name}
+                fill
+                priority
+                sizes="(min-width: 1024px) 59vw, 100vw"
+                className="object-cover"
+              />
             ) : (
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(161,78,54,0.22),transparent_45%),linear-gradient(to_bottom,#FFF9F0,#EFE5D6)]" />
             )}
@@ -393,9 +411,16 @@ export function WebsiteHero({
             <HeroButtons restaurant={restaurant} reserveUrl={reserveUrl} primaryColor={primaryColor} />
           </div>
 
-          <div className="min-h-[560px] overflow-hidden rounded-[3rem] border border-[#E1D0B8] bg-white shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
+          <div className="relative min-h-[560px] overflow-hidden rounded-[3rem] border border-[#E1D0B8] bg-white shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
             {hasImage ? (
-              <img src={restaurant.websiteHeroImage!} alt={restaurant.name} className="h-full w-full object-cover" />
+              <Image
+                src={restaurant.websiteHeroImage!}
+                alt={restaurant.name}
+                fill
+                priority
+                sizes="(min-width: 1024px) 55vw, 100vw"
+                className="object-cover"
+              />
             ) : (
               <div className="h-full w-full bg-[radial-gradient(circle_at_top,rgba(200,165,106,0.24),transparent_45%),linear-gradient(to_bottom,#FFF9F0,#EFE5D6)]" />
             )}

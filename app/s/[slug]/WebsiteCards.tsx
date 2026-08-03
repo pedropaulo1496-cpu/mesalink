@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 export function Badge({ children }: { children: ReactNode }) {
@@ -103,10 +104,13 @@ export function GalleryTile({
       }
     >
       {image ? (
-        <img
+        <Image
           src={image}
           alt={title}
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          loading="lazy"
+          sizes={large ? "(min-width: 768px) 66vw, 100vw" : "(min-width: 768px) 33vw, 100vw"}
+          className="object-cover"
         />
       ) : (
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(200,165,106,0.24),transparent_55%),linear-gradient(to_bottom,#FFF9F0,#EFE5D6)]" />

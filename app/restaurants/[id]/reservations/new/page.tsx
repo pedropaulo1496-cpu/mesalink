@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import BottomNav from "@/components/BottomNav";
 
 async function createReservation(formData: FormData) {
   "use server";
@@ -207,7 +208,7 @@ export default async function NewReservationPage({
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
-      <section className="mx-auto max-w-6xl px-5 py-7 sm:px-8">
+      <section className="mx-auto max-w-6xl px-5 pt-7 pb-28 sm:px-8 lg:pb-7">
         <Link
           href={`/restaurants/${id}/reservations`}
           className="text-sm font-semibold text-[#9B6F3B] hover:text-[#16120E]"
@@ -389,6 +390,8 @@ export default async function NewReservationPage({
           </section>
         </div>
       </section>
+
+      <BottomNav id={id} />
     </main>
   );
 }

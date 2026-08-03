@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import BottomNav from "@/components/BottomNav";
 
 export default async function CustomerDetailPage({
   params,
@@ -75,7 +76,7 @@ export default async function CustomerDetailPage({
           active="Clientes"
         />
 
-        <section className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <section className="min-w-0 px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <Link
@@ -310,6 +311,8 @@ export default async function CustomerDetailPage({
           </section>
         </section>
       </div>
+
+      <BottomNav id={id} />
     </main>
   );
 }

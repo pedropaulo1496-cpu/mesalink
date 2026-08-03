@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 type Reservation = {
@@ -189,6 +189,8 @@ export default function ReserveForm({
   const [selectedHour, setSelectedHour] = useState("");
   const [selectedTableId, setSelectedTableId] = useState("");
   const [guests, setGuests] = useState(2);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const hasSubmittedRef = useRef(false);
 
   const availableHours = useMemo(() => {
     return getAvailableHoursForDay(restaurant, selectedDay);
@@ -473,7 +475,19 @@ export default function ReserveForm({
                 />
               )}
 
-              <form action={createPublicReservation} className="space-y-4">
+              <form
+                action={createPublicReservation}
+                onSubmit={(e) => {
+                  // Bloqueia duplo-clique/duplo-tap: só a primeira submissão avança.
+                  if (hasSubmittedRef.current) {
+                    e.preventDefault();
+                    return;
+                  }
+                  hasSubmittedRef.current = true;
+                  setIsSubmitting(true);
+                }}
+                className="space-y-4"
+              >
                 <input type="hidden" name="slug" value={restaurant.slug} />
                 <input type="hidden" name="restaurantId" value={restaurant.id} />
                 <input type="hidden" name="date" value={selectedDateValue} />
@@ -551,10 +565,14 @@ export default function ReserveForm({
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
-                    disabled={!canSubmit}
+                    disabled={!canSubmit || isSubmitting}
                     className="mt-6 h-14 w-full rounded-full bg-[#16120E] text-base font-semibold text-white transition hover:bg-[#2A2118] disabled:cursor-not-allowed disabled:bg-[#D8CFC2] disabled:text-[#9B8F82]"
                   >
-                    {isPendingRequest ? "Enviar pedido" : "Confirmar reserva"}
+                    {isSubmitting
+                      ? "A processar..."
+                      : isPendingRequest
+                        ? "Enviar pedido"
+                        : "Confirmar reserva"}
                   </motion.button>
 
                   <p className="mt-4 text-center text-xs text-[#9B8F82]">

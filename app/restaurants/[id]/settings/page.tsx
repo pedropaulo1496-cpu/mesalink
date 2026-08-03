@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import ApplyMondayButton from "./ApplyMondayButton";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import BottomNav from "@/components/BottomNav";
 
 const inputClass =
   "h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]";
@@ -315,7 +316,7 @@ export default async function SettingsPage({
   active="Definições"
 />
 
-    <section className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+    <section className="min-w-0 px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
         <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
   <div>
     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
@@ -582,6 +583,8 @@ export default async function SettingsPage({
         <PrinterComingSoonCard />
          </section>
   </div>
+
+  <BottomNav id={id} />
 </main>
   );
 }

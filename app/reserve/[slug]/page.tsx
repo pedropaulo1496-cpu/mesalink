@@ -190,120 +190,154 @@ async function createPublicReservation(formData: FormData) {
     });
   }
 
-  await prisma.$executeRaw`
-    INSERT INTO "Reservation"
-      (
-        "id",
-        "restaurantId",
-        "customerId",
-        "customerName",
-        "phone",
-        "email",
-        "guests",
-        "date",
-        "status",
-        "approvalReason",
-        "tableId",
-        "source",
-        "createdAt"
-      )
-    VALUES
-      (
-        gen_random_uuid()::text,
-        ${restaurant.id},
-        ${customer.id},
-        ${customerName},
-        ${phone},
-        ${email},
-        ${guests},
-        ${date},
-        ${status},
-        ${approvalReason},
-        ${tableIdValue || null},
-        'PUBLIC',
-        NOW()
-      )
-  `;
-
-  await prisma.marketingAction.updateMany({
+  // Mesmo cliente + mesmo restaurante + exata mesma data/hora já reservada.
+  // Cobre duplo-clique / reenvio do formulário: em vez de criar uma 2ª linha,
+  // reaproveita-se a reserva existente (ou revive-se se tinha sido cancelada).
+  const existingReservation = await prisma.reservation.findFirst({
     where: {
-      customerId: customer.id,
       restaurantId: restaurant.id,
-      status: {
-        in: ["SENT", "OPENED", "CLICKED"],
-      },
-      type: {
-        in: ["INACTIVE_RECOVERY", "BIRTHDAY"],
-      },
+      customerId: customer.id,
+      date,
     },
-    data: {
-      status: "CONVERTED",
-      convertedAt: new Date(),
-      estimatedRevenue: guests * (restaurant.averageTicket ?? 25),
-    },
+    orderBy: { createdAt: "desc" },
   });
 
-  const shouldSendEmail =
-    ["ESSENTIALS", "GROWTH", "PRO"].includes(plan) &&
-    Boolean(email) &&
-    Boolean(process.env.RESEND_API_KEY);
+  let finalReservation: { id: string; guests: number; status: string };
+  let alreadyBooked = false;
 
-  if (shouldSendEmail) {
+  if (existingReservation && !["CANCELLED", "REJECTED"].includes(existingReservation.status)) {
+    // Reserva idêntica já ativa: não criar nada, só avisar o cliente.
+    finalReservation = existingReservation;
+    alreadyBooked = true;
+  } else if (existingReservation) {
+    // Havia uma reserva cancelada/rejeitada nesse exato slot: revive-se com os dados novos.
+    finalReservation = await prisma.reservation.update({
+      where: { id: existingReservation.id },
+      data: {
+        customerName,
+        phone,
+        email,
+        guests,
+        status,
+        approvalReason,
+        tableId: tableIdValue || null,
+        source: "PUBLIC",
+      },
+    });
+  } else {
     try {
-      await resend.emails.send({
-        from: "MesaLink <noreply@mesalink.pt>",
-        to: email,
-        subject:
-          status === "PENDING"
-            ? `Pedido de reserva recebido - ${restaurant.name}`
-            : `Reserva confirmada - ${restaurant.name}`,
-        html: `
-          <div style="margin:0;background:#F5EFE6;padding:32px;font-family:Arial,sans-serif;color:#16120E;line-height:1.5;">
-            <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #E1D0B8;border-radius:24px;padding:28px;">
-              <p style="margin:0 0 14px;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#9B6F3B;">MesaLink</p>
-              <h1 style="margin:0;font-size:28px;line-height:1.1;color:#16120E;">
-                ${
-                  status === "PENDING"
-                    ? "Pedido de reserva recebido"
-                    : "Reserva confirmada"
-                }
-              </h1>
-              <p style="margin:18px 0 0;color:#6B6258;">Olá ${customerName},</p>
-              <p style="margin:10px 0 0;color:#6B6258;">
-                ${
-                  status === "PENDING"
-                    ? "Recebemos o seu pedido de reserva. O restaurante irá confirmar ou recusar em breve."
-                    : "A sua reserva foi confirmada com sucesso."
-                }
-              </p>
-              <div style="margin:24px 0;padding:18px;border:1px solid #E1D0B8;border-radius:18px;background:#FFF9F0;">
-                <p><strong>Restaurante:</strong> ${restaurant.name}</p>
-                <p><strong>Data:</strong> ${date.toLocaleDateString("pt-PT")}</p>
-                <p><strong>Hora:</strong> ${date.toLocaleTimeString("pt-PT", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}</p>
-                <p><strong>Pessoas:</strong> ${guests}</p>
-                <p><strong>Estado:</strong> ${
-                  status === "PENDING" ? "Pendente de aprovação" : "Confirmada"
-                }</p>
-              </div>
-              <p style="font-size:12px;color:#9B8F82;">Este email foi enviado automaticamente pelo MesaLink.</p>
-            </div>
-          </div>
-        `,
+      finalReservation = await prisma.reservation.create({
+        data: {
+          restaurantId: restaurant.id,
+          customerId: customer.id,
+          customerName,
+          phone,
+          email,
+          guests,
+          date,
+          status,
+          approvalReason,
+          tableId: tableIdValue || null,
+          source: "PUBLIC",
+        },
       });
-    } catch (error) {
-      console.error("Erro ao enviar email de reserva:", error);
+    } catch (err) {
+      // Corrida verdadeira: dois pedidos em paralelo passaram a verificação acima.
+      // O constraint único da base de dados rejeitou este; usar o que ganhou a corrida.
+      const raceWinner = await prisma.reservation.findFirst({
+        where: { restaurantId: restaurant.id, customerId: customer.id, date },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!raceWinner) throw err;
+      finalReservation = raceWinner;
+      alreadyBooked = true;
+    }
+  }
+
+  // Se a reserva já existia e estava ativa, não repetir efeitos secundários
+  // (conversão de marketing, email de confirmação) — só avisar o cliente.
+  if (!alreadyBooked) {
+    await prisma.marketingAction.updateMany({
+      where: {
+        customerId: customer.id,
+        restaurantId: restaurant.id,
+        status: {
+          in: ["SENT", "OPENED", "CLICKED"],
+        },
+        type: {
+          in: ["INACTIVE_RECOVERY", "BIRTHDAY"],
+        },
+      },
+      data: {
+        status: "CONVERTED",
+        convertedAt: new Date(),
+        estimatedRevenue: guests * (restaurant.averageTicket ?? 25),
+      },
+    });
+
+    const shouldSendEmail =
+      ["ESSENTIALS", "GROWTH", "PRO"].includes(plan) &&
+      Boolean(email) &&
+      Boolean(process.env.RESEND_API_KEY);
+
+    if (shouldSendEmail) {
+      try {
+        await resend.emails.send({
+          from: "MesaLink <noreply@mesalink.pt>",
+          to: email,
+          subject:
+            status === "PENDING"
+              ? `Pedido de reserva recebido - ${restaurant.name}`
+              : `Reserva confirmada - ${restaurant.name}`,
+          html: `
+            <div style="margin:0;background:#F5EFE6;padding:32px;font-family:Arial,sans-serif;color:#16120E;line-height:1.5;">
+              <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #E1D0B8;border-radius:24px;padding:28px;">
+                <p style="margin:0 0 14px;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#9B6F3B;">MesaLink</p>
+                <h1 style="margin:0;font-size:28px;line-height:1.1;color:#16120E;">
+                  ${
+                    status === "PENDING"
+                      ? "Pedido de reserva recebido"
+                      : "Reserva confirmada"
+                  }
+                </h1>
+                <p style="margin:18px 0 0;color:#6B6258;">Olá ${customerName},</p>
+                <p style="margin:10px 0 0;color:#6B6258;">
+                  ${
+                    status === "PENDING"
+                      ? "Recebemos o seu pedido de reserva. O restaurante irá confirmar ou recusar em breve."
+                      : "A sua reserva foi confirmada com sucesso."
+                  }
+                </p>
+                <div style="margin:24px 0;padding:18px;border:1px solid #E1D0B8;border-radius:18px;background:#FFF9F0;">
+                  <p><strong>Restaurante:</strong> ${restaurant.name}</p>
+                  <p><strong>Data:</strong> ${date.toLocaleDateString("pt-PT")}</p>
+                  <p><strong>Hora:</strong> ${date.toLocaleTimeString("pt-PT", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}</p>
+                  <p><strong>Pessoas:</strong> ${guests}</p>
+                  <p><strong>Estado:</strong> ${
+                    status === "PENDING" ? "Pendente de aprovação" : "Confirmada"
+                  }</p>
+                </div>
+                <p style="font-size:12px;color:#9B8F82;">Este email foi enviado automaticamente pelo MesaLink.</p>
+              </div>
+            </div>
+          `,
+        });
+      } catch (error) {
+        console.error("Erro ao enviar email de reserva:", error);
+      }
     }
   }
 
   redirect(
     `/reserve/${slug}/success?name=${encodeURIComponent(
       customerName,
-    )}&guests=${guests}&date=${encodeURIComponent(
+    )}&guests=${finalReservation.guests}&date=${encodeURIComponent(
       date.toISOString(),
-    )}&status=${status}`,
+    )}&status=${finalReservation.status}${alreadyBooked ? "&already=1" : ""}`,
   );
 }
 

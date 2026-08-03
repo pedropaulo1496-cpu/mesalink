@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import BottomNav from "@/components/BottomNav";
 import NewCampaignForm from "@/components/marketing/NewCampaignForm";
 
 export default async function NewCampaignPage({
@@ -28,7 +29,7 @@ export default async function NewCampaignPage({
           active="Marketing"
         />
 
-        <section className="px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <section className="px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#9B6F3B]">
             Marketing Suite
           </p>
@@ -49,6 +50,8 @@ export default async function NewCampaignPage({
           />
         </section>
       </div>
+
+      <BottomNav id={id} />
     </main>
   );
 }

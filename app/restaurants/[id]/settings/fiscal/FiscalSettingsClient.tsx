@@ -135,7 +135,7 @@ const selectedSerieNotReady =
   selectedInvoiceSerie.document_set_at_codes.length === 0;
 
   return (
-    <div className="flex-1 p-8">
+    <div className="flex-1 p-8 pb-28 lg:pb-8">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8">
           <p className="text-xs font-black uppercase tracking-[0.32em] text-[#B58A45]">

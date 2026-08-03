@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 
 export default async function MarketingRecommendationsPage({
@@ -87,7 +88,7 @@ export default async function MarketingRecommendationsPage({
           active="Marketing"
         />
 
-        <section className="px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <section className="px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.32em] text-[#9B6F3B]">
@@ -183,6 +184,8 @@ export default async function MarketingRecommendationsPage({
           </section>
         </section>
       </div>
+
+      <BottomNav id={id} />
     </main>
   );
 }

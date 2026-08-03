@@ -38,6 +38,9 @@ const TABLE_SIZE = 94;
 const GROUP_GAP = 10;
 const GRID_SIZE = 24;
 const MAGNET_DISTANCE = 10;
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 2.2;
+const ZOOM_STEP = 0.2;
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(value, max));
@@ -139,6 +142,14 @@ export default function FloorPlanEditor({
   >(null);
 
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+
+  const [zoom, setZoom] = useState(1);
+  const zoomRef = useRef(zoom);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
 
   const activeRoomTables = items.filter((table) =>
     table.roomId
@@ -197,6 +208,77 @@ export default function FloorPlanEditor({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedTable]);
 
+  function setZoomClamped(next: number) {
+    setZoom(clamp(next, MIN_ZOOM, MAX_ZOOM));
+  }
+
+  function zoomIn() {
+    setZoomClamped(zoomRef.current + ZOOM_STEP);
+  }
+
+  function zoomOut() {
+    setZoomClamped(zoomRef.current - ZOOM_STEP);
+  }
+
+  function resetZoom() {
+    setZoomClamped(1);
+  }
+
+  useEffect(() => {
+    const node = viewportRef.current;
+    if (!node) return;
+
+    let pinchStartDistance = 0;
+    let pinchStartZoom = 1;
+
+    function touchDistance(touches: TouchList) {
+      const [a, b] = [touches[0], touches[1]];
+      return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    }
+
+    function handleTouchStart(event: TouchEvent) {
+      if (event.touches.length === 2) {
+        pinchStartDistance = touchDistance(event.touches);
+        pinchStartZoom = zoomRef.current;
+      }
+    }
+
+    function handleTouchMove(event: TouchEvent) {
+      if (event.touches.length === 2 && pinchStartDistance > 0) {
+        event.preventDefault();
+        const distance = touchDistance(event.touches);
+        const scale = distance / pinchStartDistance;
+        setZoomClamped(pinchStartZoom * scale);
+      }
+    }
+
+    function handleTouchEnd(event: TouchEvent) {
+      if (event.touches.length < 2) {
+        pinchStartDistance = 0;
+      }
+    }
+
+    function handleWheel(event: WheelEvent) {
+      if (!event.ctrlKey) return;
+      event.preventDefault();
+      setZoomClamped(zoomRef.current - event.deltaY * 0.01);
+    }
+
+    node.addEventListener("touchstart", handleTouchStart, { passive: true });
+    node.addEventListener("touchmove", handleTouchMove, { passive: false });
+    node.addEventListener("touchend", handleTouchEnd, { passive: true });
+    node.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+    node.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      node.removeEventListener("touchstart", handleTouchStart);
+      node.removeEventListener("touchmove", handleTouchMove);
+      node.removeEventListener("touchend", handleTouchEnd);
+      node.removeEventListener("touchcancel", handleTouchEnd);
+      node.removeEventListener("wheel", handleWheel);
+    };
+  }, []);
+
   function confirmDeleteTable() {
     if (!tableToDelete) return;
 
@@ -218,8 +300,8 @@ export default function FloorPlanEditor({
     if (!rect) return { x: 0, y: 0 };
 
     return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
+      x: (event.clientX - rect.left) / zoomRef.current,
+      y: (event.clientY - rect.top) / zoomRef.current,
     };
   }
 
@@ -1032,6 +1114,34 @@ export default function FloorPlanEditor({
                   Separar grupos
                 </button>
 
+                <div className="flex h-9 items-center gap-1 rounded-full border border-[#E8DCCB] bg-[#FFF9F0] px-1">
+                  <button
+                    type="button"
+                    onClick={zoomOut}
+                    disabled={zoom <= MIN_ZOOM}
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-sm font-black text-[#16120E] transition hover:bg-white disabled:opacity-30"
+                  >
+                    −
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={resetZoom}
+                    className="w-12 text-center text-[10px] font-black text-[#6B6258] transition hover:text-[#16120E]"
+                  >
+                    {Math.round(zoom * 100)}%
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={zoomIn}
+                    disabled={zoom >= MAX_ZOOM}
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-sm font-black text-[#16120E] transition hover:bg-white disabled:opacity-30"
+                  >
+                    +
+                  </button>
+                </div>
+
                 <form action={saveFloorPlan}>
                   <input
                     type="hidden"
@@ -1064,37 +1174,50 @@ export default function FloorPlanEditor({
             </div>
           </div>
 
-          <div className="relative h-[76vh] min-h-[680px] overflow-auto bg-[#FBF6EC]">
+          <div
+            ref={viewportRef}
+            className="relative h-[76vh] min-h-[680px] overflow-auto bg-[#FBF6EC]"
+          >
             <div
-              ref={stageRef}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
               className="relative mx-auto"
-              style={{ width: MAP_WIDTH, height: MAP_HEIGHT }}
+              style={{ width: MAP_WIDTH * zoom, height: MAP_HEIGHT * zoom }}
             >
-              <MapBackground />
+              <div
+                ref={stageRef}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                className="absolute left-0 top-0"
+                style={{
+                  width: MAP_WIDTH,
+                  height: MAP_HEIGHT,
+                  transform: `scale(${zoom})`,
+                  transformOrigin: "0 0",
+                }}
+              >
+                <MapBackground />
 
-              <ZoneLabel className="left-8 top-8">
-                {safeRooms.find((room) => room.id === activeRoomId)?.name ??
-                  "Sala principal"}
-              </ZoneLabel>
+                <ZoneLabel className="left-8 top-8">
+                  {safeRooms.find((room) => room.id === activeRoomId)?.name ??
+                    "Sala principal"}
+                </ZoneLabel>
 
-              <ZoneLabel className="bottom-8 right-8">Cozinha</ZoneLabel>
+                <ZoneLabel className="bottom-8 right-8">Cozinha</ZoneLabel>
 
-              {renderTables()}
+                {renderTables()}
 
-              {activeRoomTables.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
-                  <div className="rounded-[28px] border border-[#E8DCCB] bg-white p-8 shadow-[0_20px_60px_rgba(80,55,30,0.10)]">
-                    <p className="text-2xl font-black tracking-[-0.05em] text-[#16120E]">
-                      Sem mesas nesta sala
-                    </p>
-                    <p className="mt-2 text-sm font-bold text-[#6B6258]">
-                      Cria mesas no topo da página ou move mesas de outra sala.
-                    </p>
+                {activeRoomTables.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
+                    <div className="rounded-[28px] border border-[#E8DCCB] bg-white p-8 shadow-[0_20px_60px_rgba(80,55,30,0.10)]">
+                      <p className="text-2xl font-black tracking-[-0.05em] text-[#16120E]">
+                        Sem mesas nesta sala
+                      </p>
+                      <p className="mt-2 text-sm font-bold text-[#6B6258]">
+                        Cria mesas no topo da página ou move mesas de outra sala.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>

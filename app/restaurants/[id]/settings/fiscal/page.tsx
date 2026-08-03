@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import BottomNav from "@/components/BottomNav";
 import FiscalSettingsClient from "./FiscalSettingsClient";
 
 export default async function FiscalSettingsPage({
@@ -42,6 +43,8 @@ export default async function FiscalSettingsPage({
         integration={restaurant.fiscalIntegration}
         documents={documents}
       />
+
+      <BottomNav id={id} />
     </main>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import BottomNav from "@/components/BottomNav";
 
 function getMonthDays(year: number, month: number) {
   const days = [];
@@ -388,6 +389,8 @@ export default async function CalendarPage({
           </div>
         </section>
       </div>
+
+      <BottomNav id={id} />
     </main>
   );
 }

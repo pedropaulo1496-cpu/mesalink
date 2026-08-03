@@ -6,12 +6,14 @@ export default async function ReservationSuccessPage({
     guests?: string;
     date?: string;
     status?: string;
+    already?: string;
   }>;
 }) {
-  const { name, guests, date, status } = await searchParams;
+  const { name, guests, date, status, already } = await searchParams;
 
   const reservationDate = date ? new Date(date) : null;
   const isPending = status === "PENDING";
+  const isAlreadyBooked = already === "1";
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] px-4 py-6 text-[#16120E]">
@@ -35,13 +37,19 @@ export default async function ReservationSuccessPage({
             </p>
 
             <h1 className="text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">
-              {isPending ? "Pedido recebido" : "Reserva confirmada"}
+              {isAlreadyBooked
+                ? "Reserva já efetuada"
+                : isPending
+                  ? "Pedido recebido"
+                  : "Reserva confirmada"}
             </h1>
 
             <p className="mt-3 text-sm leading-6 text-[#6B6258]">
-              {isPending
-                ? "O restaurante recebeu o seu pedido e irá responder em breve."
-                : "A sua reserva foi registada com sucesso."}
+              {isAlreadyBooked
+                ? "Esta reserva já se encontrava registada — não é preciso voltar a submeter."
+                : isPending
+                  ? "O restaurante recebeu o seu pedido e irá responder em breve."
+                  : "A sua reserva foi registada com sucesso."}
             </p>
           </div>
 

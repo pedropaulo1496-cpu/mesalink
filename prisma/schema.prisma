@@ -190,6 +190,8 @@ model Restaurant {
   printBridgeToken         String?                 @unique
   printBridgeRestaurants   PrintBridgeRestaurant[]
   customers Customer[]
+
+  @@index([userId])
 }
 
 model WebsiteMenu {
@@ -206,6 +208,9 @@ model WebsiteMenu {
   updatedAt    DateTime    @updatedAt
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
   restaurantId String?
+
+  @@index([restaurantId])
+  @@index([roomId])
 }
 
 model FloorRoom {
@@ -222,6 +227,8 @@ model FloorRoom {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   websiteMenus WebsiteMenu[]
+
+  @@index([restaurantId])
 }
 
 model Table {
@@ -244,6 +251,9 @@ model Table {
 
   createdAt        DateTime          @default(now())
   posTableSessions POSTableSession[]
+
+  @@index([restaurantId])
+  @@index([roomId])
 }
 
 model Customer {
@@ -319,6 +329,13 @@ model Reservation {
 
   createdAt        DateTime          @default(now())
   posTableSessions POSTableSession[]
+
+  @@unique([restaurantId, customerId, date], name: "Reservation_dedupe_key")
+  @@index([restaurantId])
+  @@index([restaurantId, date])
+  @@index([restaurantId, status])
+  @@index([tableId])
+  @@index([customerId])
 }
 
 model PasswordResetToken {
@@ -343,6 +360,8 @@ model OrderingCategory {
 
   products    OrderingProduct[]
   activeInPOS Boolean           @default(true)
+
+  @@index([restaurantId])
 }
 
 model OrderingProduct {
@@ -375,6 +394,8 @@ model OrderingProduct {
 
   printName                String?
   productProductionCenters ProductProductionCenter[]
+
+  @@index([categoryId])
 }
 
 model OrderingOrder {
@@ -409,6 +430,10 @@ model OrderingOrder {
 
   sessionId String?
   session   OrderingTableSession? @relation(fields: [sessionId], references: [id])
+
+  @@index([restaurantId])
+  @@index([restaurantId, status])
+  @@index([sessionId])
 }
 
 model OrderingOrderItem {
@@ -430,6 +455,8 @@ model OrderingOrderItem {
   order OrderingOrder @relation(fields: [orderId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@index([orderId])
 }
 
 model OrderingTableSession {
@@ -447,6 +474,9 @@ model OrderingTableSession {
 
   requestedBillAt   DateTime?
   requestedWaiterAt DateTime?
+
+  @@index([restaurantId])
+  @@index([restaurantId, status])
 }
 
 model MarketingAutomation {
@@ -467,6 +497,8 @@ model MarketingAutomation {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([restaurantId])
 }
 
 model ReviewFeedback {
@@ -480,6 +512,10 @@ model ReviewFeedback {
   redirectedToGoogle Boolean @default(false)
 
   createdAt DateTime @default(now())
+
+  @@index([restaurantId])
+  @@index([customerId])
+  @@index([reservationId])
 }
 
 model MarketingAction {
@@ -507,6 +543,10 @@ model MarketingAction {
   customer Customer? @relation(fields: [customerId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@index([restaurantId])
+  @@index([customerId])
+  @@index([restaurantId, status, type])
 }
 
 model POSTableSession {
@@ -556,6 +596,12 @@ model POSTableSession {
   invoiceUrl      String?
   invoiceIssuedAt DateTime?
   fiscalDocuments FiscalDocument[]
+
+  @@index([restaurantId])
+  @@index([restaurantId, status])
+  @@index([tableId])
+  @@index([reservationId])
+  @@index([customerId])
 }
 
 model POSOrder {
@@ -585,6 +631,10 @@ model POSOrder {
 
   updatedAt DateTime   @default(now()) @updatedAt
   printJobs PrintJob[]
+
+  @@index([restaurantId])
+  @@index([restaurantId, status])
+  @@index([tableSessionId])
 }
 
 model POSOrderItem {
@@ -616,6 +666,9 @@ model POSOrderItem {
   discountAmount Decimal  @default(0) @db.Decimal(10, 2)
 
   kitchenNotes String?
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model POSPayment {
@@ -642,6 +695,10 @@ model POSPayment {
 
   createdAt      DateTime        @default(now())
   fiscalDocument FiscalDocument?
+
+  @@index([restaurantId])
+  @@index([tableSessionId])
+  @@index([cashRegisterId])
 }
 
 model FiscalIntegration {
@@ -738,6 +795,9 @@ model POSCashRegister {
 
   payments  POSPayment[]
   movements POSCashMovement[]
+
+  @@index([restaurantId])
+  @@index([restaurantId, status])
 }
 
 model POSDiscount {
@@ -761,6 +821,10 @@ model POSDiscount {
   restaurantId      String?
   postableSession   POSTableSession? @relation(fields: [pOSTableSessionId], references: [id])
   pOSTableSessionId String?
+
+  @@index([restaurantId])
+  @@index([pOSTableSessionId])
+  @@index([discountCodeId])
 }
 
 model POSReceipt {
@@ -784,6 +848,10 @@ model POSReceipt {
   restaurantId      String?
   postableSession   POSTableSession? @relation(fields: [pOSTableSessionId], references: [id])
   pOSTableSessionId String?
+
+  @@index([restaurantId])
+  @@index([pOSTableSessionId])
+  @@index([tableSessionId])
 }
 
 model POSTableTransfer {
@@ -883,6 +951,9 @@ model ProductionCenter {
   printJobs PrintJob[]
   printerId String?
   printer   RestaurantPrinter? @relation(fields: [printerId], references: [id])
+
+  @@index([restaurantId])
+  @@index([printerId])
 }
 
 model PrintJob {

@@ -1,4 +1,5 @@
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import BottomNav from "@/components/BottomNav";
 import ProductImageUpload from "@/components/ProductImageUpload";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -437,7 +438,7 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
           active="Menu & Produtos"
         />
 
-        <div className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <div className="min-w-0 px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <header className="border-b border-[#E1D0B8] pb-6">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
               Catálogo central
@@ -514,6 +515,8 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
           </section>
         </div>
       </div>
+
+      <BottomNav id={id} />
     </main>
   );
 }
