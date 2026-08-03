@@ -184,7 +184,6 @@ async function updateCategory(formData: FormData) {
   const categoryId = String(formData.get("categoryId"));
   const name = String(formData.get("name") || "").trim();
   const position = Number(formData.get("position") || 0);
-  const activeInPOS = String(formData.get("activeInPOS")) === "on";
 
   if (!restaurantId || !categoryId || !name) return;
 
@@ -193,7 +192,6 @@ async function updateCategory(formData: FormData) {
     data: {
       name,
       position,
-      activeInPOS,
     },
   });
 
@@ -255,7 +253,6 @@ async function createProduct(formData: FormData) {
       printName,
       featured: String(formData.get("featured")) === "on",
       active: true,
-      activeInPOS: String(formData.get("activeInPOS")) === "on",
       activeInOrdering: String(formData.get("activeInOrdering")) === "on",
       activeOnWebsite: String(formData.get("activeOnWebsite")) === "on",
     },
@@ -304,7 +301,6 @@ async function updateProduct(formData: FormData) {
       printName,
       featured: String(formData.get("featured")) === "on",
       active: String(formData.get("active")) === "on",
-      activeInPOS: String(formData.get("activeInPOS")) === "on",
       activeInOrdering: String(formData.get("activeInOrdering")) === "on",
       activeOnWebsite: String(formData.get("activeOnWebsite")) === "on",
       ...(imageUrl ? { imageUrl } : {}),
@@ -409,12 +405,6 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
     0,
   );
 
-  const posProducts = restaurant.orderingCategories.reduce(
-    (total, category) =>
-      total + category.products.filter((product) => product.activeInPOS).length,
-    0,
-  );
-
   const qrProducts = restaurant.orderingCategories.reduce(
     (total, category) =>
       total +
@@ -451,23 +441,21 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
                 </h1>
 
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">
-                  Gere um único catálogo para o POS, QR Ordering e Website.
+                  Gere um único catálogo para o QR Ordering e Website.
                   Ative ou desative cada produto por canal.
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <StatusPill label="POS" value={posProducts} />
                 <StatusPill label="QR" value={qrProducts} />
                 <StatusPill label="Website" value={websiteProducts} />
               </div>
             </div>
           </header>
 
-          <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <MetricCard label="Categorias" value={restaurant.orderingCategories.length} sub="organização" />
             <MetricCard label="Produtos" value={totalProducts} sub={`${activeProducts} ativos`} />
-            <MetricCard label="POS" value={posProducts} sub="visíveis no POS" />
             <MetricCard label="QR Ordering" value={qrProducts} sub="visíveis no QR" />
           </section>
 
@@ -490,7 +478,7 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
                 </div>
 
                 <p className="text-xs font-bold text-[#6B6258]">
-                  POS, QR Ordering e Website usam este catálogo.
+                  QR Ordering e Website usam este catálogo.
                 </p>
               </div>
 
@@ -977,7 +965,6 @@ function CreateProductCard({ restaurant }: { restaurant: any }) {
 
         <ChannelCheckboxes
           active
-          activeInPOS
           activeInOrdering
           activeOnWebsite
           featured={false}
@@ -1024,7 +1011,6 @@ function CategoryCard({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-          <ChannelBadge label="POS" active={category.activeInPOS} />
           <span className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
             {category.products.length} produtos
           </span>
@@ -1057,17 +1043,7 @@ function CategoryCard({
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             />
 
-            <label className="flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-xs font-bold text-[#6B6258]">
-              <input
-                name="activeInPOS"
-                type="checkbox"
-                defaultChecked={category.activeInPOS}
-                className="h-4 w-4 accent-[#16120E]"
-              />
-              POS
-            </label>
-
-            <button className="h-11 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white sm:col-span-3">
+            <button className="h-11 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white">
               Guardar categoria
             </button>
           </form>
@@ -1174,7 +1150,6 @@ function ProductCard({
           </div>
 
           <div className="mt-2 flex flex-wrap gap-1.5">
-            <ChannelBadge label="POS" active={product.activeInPOS} />
             <ChannelBadge label="QR" active={product.activeInOrdering} />
             <ChannelBadge label="Website" active={product.activeOnWebsite} />
           </div>
@@ -1308,7 +1283,6 @@ function ProductCard({
 
           <ChannelCheckboxes
             active={product.active}
-            activeInPOS={product.activeInPOS}
             activeInOrdering={product.activeInOrdering}
             activeOnWebsite={product.activeOnWebsite}
             featured={product.featured}
@@ -1367,20 +1341,17 @@ function ProductCard({
 
 function ChannelCheckboxes({
   active,
-  activeInPOS,
   activeInOrdering,
   activeOnWebsite,
   featured,
 }: {
   active: boolean;
-  activeInPOS: boolean;
   activeInOrdering: boolean;
   activeOnWebsite: boolean;
   featured: boolean;
 }) {
   const options = [
     { name: "active", label: "Ativo", checked: active },
-    { name: "activeInPOS", label: "POS", checked: activeInPOS },
     { name: "activeInOrdering", label: "QR Ordering", checked: activeInOrdering },
     { name: "activeOnWebsite", label: "Website", checked: activeOnWebsite },
     { name: "featured", label: "Destaque", checked: featured },

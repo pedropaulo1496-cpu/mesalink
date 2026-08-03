@@ -50,12 +50,6 @@ useEffect(() => {
       title: "Operação",
       items: [
         { name: "Dashboard", href: `/restaurants/${id}`, icon: HomeIcon },
-        {
-          name: "POS",
-          href: `/restaurants/${id}/pos`,
-          icon: PosIcon,
-          soon: true,
-        },
         { name: "Menu & Produtos", href: `/restaurants/${id}/menu`, icon: MenuIcon },
         {
           name: "QR Ordering",

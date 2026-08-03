@@ -23,7 +23,7 @@ const translations = {
     note: "O formulário será ligado ao email no próximo passo.",
     cardTitle: "O Sistema Operativo para Restaurantes",
     cardText:
-      "Website profissional, reservas online, gestão de mesas, clientes e ferramentas futuras como IA, marketing, QR Ordering e POS.",
+      "Website profissional, reservas online, gestão de mesas, clientes e ferramentas futuras como IA, marketing e QR Ordering.",
   },
   en: {
     back: "← Back",
@@ -40,7 +40,7 @@ const translations = {
     note: "The form will be connected to email in the next step.",
     cardTitle: "The Operating System for Restaurants",
     cardText:
-      "Professional website, online reservations, table management, customers and future tools like AI, marketing, QR Ordering and POS.",
+      "Professional website, online reservations, table management, customers and future tools like AI, marketing and QR Ordering.",
   },
   es: {
     back: "← Volver",
@@ -57,7 +57,7 @@ const translations = {
     note: "El formulario se conectará al email en el próximo paso.",
     cardTitle: "El Sistema Operativo para Restaurantes",
     cardText:
-      "Website profesional, reservas online, gestión de mesas, clientes y futuras herramientas como IA, marketing, QR Ordering y POS.",
+      "Website profesional, reservas online, gestión de mesas, clientes y futuras herramientas como IA, marketing y QR Ordering.",
   },
   fr: {
     back: "← Retour",
@@ -74,7 +74,7 @@ const translations = {
     note: "Le formulaire sera connecté à l’email à l’étape suivante.",
     cardTitle: "Le Système d’Exploitation pour Restaurants",
     cardText:
-      "Site professionnel, réservations en ligne, gestion des tables, clients et futurs outils comme IA, marketing, QR Ordering et POS.",
+      "Site professionnel, réservations en ligne, gestion des tables, clients et futurs outils comme IA, marketing et QR Ordering.",
   },
   de: {
     back: "← Zurück",
@@ -91,7 +91,7 @@ const translations = {
     note: "Das Formular wird im nächsten Schritt mit Email verbunden.",
     cardTitle: "Das Betriebssystem für Restaurants",
     cardText:
-      "Professionelle Website, Online-Reservierungen, Tischverwaltung, Kunden und zukünftige Tools wie KI, Marketing, QR Ordering und POS.",
+      "Professionelle Website, Online-Reservierungen, Tischverwaltung, Kunden und zukünftige Tools wie KI, Marketing und QR Ordering.",
   },
 };
 

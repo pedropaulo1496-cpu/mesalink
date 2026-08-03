@@ -24,67 +24,8 @@ function sameDay(a: Date, b: Date) {
   );
 }
 
-function startOfDay(date: Date) {
-  const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
-  return next;
-}
-
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function startOfYear(date: Date) {
-  return new Date(date.getFullYear(), 0, 1);
-}
-
-async function safePosCashRegisters(restaurantId: string) {
-  try {
-    const delegate = (prisma as any).pOSCashRegister;
-    if (!delegate?.findMany) return [];
-
-    return await delegate.findMany({
-      where: { restaurantId },
-      include: { payments: { include: { tableSession: true } }, movements: true },
-      orderBy: { openedAt: "desc" },
-    });
-  } catch (error) {
-    console.error("DASHBOARD POS CASH REGISTERS ERROR:", error);
-    return [];
-  }
-}
-
-async function safePosOpenSessions(restaurantId: string) {
-  try {
-    const delegate = (prisma as any).pOSTableSession;
-    if (!delegate?.findMany) return [];
-
-    return await delegate.findMany({
-      where: { restaurantId, status: "OPEN" },
-      include: { table: true, orders: { include: { items: true } } },
-      orderBy: { openedAt: "desc" },
-    });
-  } catch (error) {
-    console.error("DASHBOARD POS SESSIONS ERROR:", error);
-    return [];
-  }
-}
-
-async function safePosOrdersForDashboard(restaurantId: string) {
-  try {
-    const delegate = (prisma as any).pOSOrder;
-    if (!delegate?.findMany) return [];
-
-    return await delegate.findMany({
-      where: { restaurantId },
-      include: { items: true },
-      orderBy: { createdAt: "desc" },
-      take: 800,
-    });
-  } catch (error) {
-    console.error("DASHBOARD POS ORDERS ERROR:", error);
-    return [];
-  }
 }
 
 function getLineGross(item: any) {
@@ -221,24 +162,17 @@ const isGrowthPlan =
   }
 
   const now = new Date();
-  const todayStart = startOfDay(now);
   const monthStart = startOfMonth(now);
-  const yearStart = startOfYear(now);
 
-  const [cashRegisters, openPosSessions, posOrders, customers] = await Promise.all([
-    safePosCashRegisters(id),
-    safePosOpenSessions(id),
-    safePosOrdersForDashboard(id),
-    prisma.customer.findMany({
-      where: {
-        reservations: {
-          some: {
-            restaurantId: id,
-          },
+  const customers = await prisma.customer.findMany({
+    where: {
+      reservations: {
+        some: {
+          restaurantId: id,
         },
       },
-    }),
-  ]);
+    },
+  });
 
   const acceptedQrStatuses = [
     "ACCEPTED",
@@ -255,35 +189,6 @@ const isGrowthPlan =
 
     return acceptedQrStatuses.includes(status);
   });
-
-  const getQrOrderTotal = (order: any) =>
-    Number(order.total ?? order.subtotal ?? order.amount ?? 0);
-
-  const revenueToday = qrRevenueOrders
-    .filter((order: any) => new Date(order.createdAt) >= todayStart)
-    .reduce((sum: number, order: any) => sum + getQrOrderTotal(order), 0);
-
-  const revenueMonth = qrRevenueOrders
-    .filter((order: any) => new Date(order.createdAt) >= monthStart)
-    .reduce((sum: number, order: any) => sum + getQrOrderTotal(order), 0);
-
-  const revenueYear = qrRevenueOrders
-    .filter((order: any) => new Date(order.createdAt) >= yearStart)
-    .reduce((sum: number, order: any) => sum + getQrOrderTotal(order), 0);
-
-  const paymentsToday = qrRevenueOrders.filter((order: any) =>
-    new Date(order.createdAt) >= todayStart,
-  );
-
-  const cardMonth = revenueToday;
-  const cashMonth = revenueMonth;
-  const transferMonth = revenueYear;
-
-  const averageTicket = paymentsToday.length
-    ? revenueToday / paymentsToday.length
-    : 0;
-
-  const paidTodaySessionGuests = paymentsToday.length;
 
   const tableReservations = restaurant.tables.flatMap((table) =>
     table.reservations.map((reservation) => ({
@@ -334,7 +239,6 @@ const isGrowthPlan =
   const occupancyRate =
     totalCapacity > 0 ? Math.round((guestsToday / totalCapacity) * 100) : 0;
 
-  const openTables = openPosSessions.filter((item: any) => item.tableId).length;
   const qrOrdersOpen = restaurant.orderingTableSessions.reduce(
     (total, tableSession) =>
       total +
@@ -436,9 +340,7 @@ const isGrowthPlan =
     };
   }
 
-  const todaySalesStats = buildSalesStats(todayStart);
   const monthSalesStats = buildSalesStats(monthStart);
-  const yearSalesStats = buildSalesStats(yearStart);
 
   function valueWithoutFlatVat(value: number, stats: { gross: number; net: number }) {
     if (includeVat) return value;
@@ -446,29 +348,8 @@ const isGrowthPlan =
     return value * (stats.net / stats.gross);
   }
 
-  const displayToday = valueWithoutFlatVat(revenueToday, todaySalesStats);
-  const displayMonth = valueWithoutFlatVat(revenueMonth, monthSalesStats);
-  const displayYear = valueWithoutFlatVat(revenueYear, yearSalesStats);
-  const displayAverageTicket = valueWithoutFlatVat(averageTicket, todaySalesStats);
-  const averagePerGuest = paidTodaySessionGuests > 0 ? revenueToday / paidTodaySessionGuests : 0;
-  const displayAveragePerGuest = valueWithoutFlatVat(averagePerGuest, todaySalesStats);
-
   const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reserve/${restaurant.slug}`;
   const websiteUrl = `https://${restaurant.slug}.mesalink.pt`;
-
-  const lastSevenDays = Array.from({ length: 7 }).map((_, index) => {
-    const day = new Date(todayStart);
-    day.setDate(day.getDate() - (6 - index));
-
-    const total = qrRevenueOrders
-      .filter((order: any) => sameDay(new Date(order.createdAt), day))
-      .reduce((sum: number, order: any) => sum + getQrOrderTotal(order), 0);
-
-    return {
-      label: day.toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }),
-      total,
-    };
-  });
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
@@ -516,40 +397,22 @@ const isGrowthPlan =
             </div>
           </header>
 
-          <section className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <MetricCard label="QR hoje" value={money(displayToday)} sub={`${paymentsToday.length} pedidos QR`} strong />
-            <MetricCard label="QR mês" value={money(displayMonth)} sub="vendas QR Ordering" />
-            <MetricCard label="Ticket QR" value={money(displayAveragePerGuest)} sub={`${paidTodaySessionGuests || 0} pedidos hoje`} />
-            <MetricCard label="Reservas hoje" value={reservationsToday.length} sub={`${guestsToday} covers`} />
+          <section className="mt-7 grid gap-3 sm:grid-cols-2">
+            <MetricCard label="Reservas hoje" value={reservationsToday.length} sub={`${guestsToday} covers`} strong />
             <MetricCard label="QR ativos" value={qrOrdersOpen} sub="pedidos em aberto" />
           </section>
 
-          <section className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
-            <RevenueCard
-              today={displayToday}
-              month={displayMonth}
-              year={displayYear}
-              card={valueWithoutFlatVat(cardMonth, monthSalesStats)}
-              cash={valueWithoutFlatVat(cashMonth, monthSalesStats)}
-              transfer={valueWithoutFlatVat(transferMonth, monthSalesStats)}
-              payments={paymentsToday.length}
-              averagePerGuest={displayAveragePerGuest}
-              includeVat={includeVat}
-              points={lastSevenDays.map((point) => ({
-                ...point,
-                total: valueWithoutFlatVat(point.total, monthSalesStats),
-              }))}
-            />
-
+          <section className="mt-6 grid gap-6 xl:grid-cols-2">
             <CompactOpsCard
               reservationsToday={reservationsToday.length}
               pendingToday={pendingToday.length}
               guestsToday={guestsToday}
               totalCapacity={totalCapacity}
               occupancyRate={occupancyRate}
-              openTables={openTables}
               tablesCount={restaurant.tables.length}
             />
+
+            <ReservationLinkCard id={id} publicUrl={publicUrl} websiteUrl={websiteUrl} />
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
@@ -560,16 +423,6 @@ const isGrowthPlan =
               riskyCustomers={riskyCustomers}
               riskyRevenue={valueWithoutFlatVat(riskyRevenue, monthSalesStats)}
               averageTicket={valueWithoutFlatVat(Number(restaurant.averageTicket || 25), monthSalesStats)}
-            />
-          </section>
-
-          <section className="mt-6 grid items-stretch gap-6 xl:grid-cols-2">
-            <ReservationLinkCard id={id} publicUrl={publicUrl} websiteUrl={websiteUrl} />
-            <SalesIntelligenceCard
-              categories={monthSalesStats.categories}
-              products={monthSalesStats.products}
-              includeVat={includeVat}
-              total={includeVat ? monthSalesStats.gross : monthSalesStats.net}
             />
           </section>
         </section>
@@ -729,139 +582,12 @@ function MetricCard({
   );
 }
 
-function RevenueCard({
-  today,
-  month,
-  year,
-  card,
-  cash,
-  transfer,
-  payments,
-  averagePerGuest,
-  includeVat,
-  points,
-}: {
-  today: number;
-  month: number;
-  year: number;
-  card: number;
-  cash: number;
-  transfer: number;
-  payments: number;
-  averagePerGuest: number;
-  includeVat: boolean;
-  points: { label: string; total: number }[];
-}) {
-  const max = Math.max(...points.map((point) => point.total), 1);
-  const chartPoints = points
-    .map((point, index) => {
-      const x = index * 90;
-      const y = 130 - (point.total / max) * 105;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <Panel>
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <SectionLabel>QR Ordering</SectionLabel>
-          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-            Performance de vendas
-          </h2>
-          <p className="mt-2 text-sm text-[#6B6258]">
-  Dados reais dos pedidos aceites no QR Ordering · {includeVat ? "com IVA" : "sem IVA estimado por taxa"}.
-          </p>
-        </div>
-
-        <div className="rounded-[24px] bg-[#16120E] px-5 py-4 text-right text-white">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#D8AE62]">
-            Hoje
-          </p>
-          <p className="mt-1 text-4xl font-semibold tracking-[-0.07em]">
-            {money(today)}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-3 sm:grid-cols-4">
-        <FinanceStat title="Mês" value={money(month)} sub="total mensal" />
-        <FinanceStat title="Ano" value={money(year)} sub="total anual" />
-        <FinanceStat title="Pagamentos" value={payments} sub="hoje" />
-        <FinanceStat title="Ticket/mesa" value={money(averagePerGuest)} sub="por mesa pago" />
-      </div>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-        <div className="rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-5">
-          <svg viewBox="0 0 540 150" className="h-44 w-full overflow-visible">
-            <defs>
-              <linearGradient id="revenueDashboardFill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="#C8A56A" stopOpacity="0.34" />
-                <stop offset="100%" stopColor="#C8A56A" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-
-            {[30, 60, 90, 120].map((y) => (
-              <line key={y} x1="0" x2="540" y1={y} y2={y} stroke="#E1D0B8" strokeWidth="1" />
-            ))}
-
-            <polygon points={`0,150 ${chartPoints} 540,150`} fill="url(#revenueDashboardFill)" />
-            <polyline points={chartPoints} fill="none" stroke="#C8A56A" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-
-            {points.map((point, index) => (
-              <text key={point.label} x={index * 90} y="148" fill="#6B6258" fontSize="12">
-                {point.label}
-              </text>
-            ))}
-          </svg>
-        </div>
-
-        <div className="grid gap-3">
-          <PaymentBreakdown label="Hoje" value={card} total={Math.max(year, 1)} />
-          <PaymentBreakdown label="Mês" value={cash} total={Math.max(year, 1)} />
-          <PaymentBreakdown label="Ano" value={transfer} total={Math.max(year, 1)} />
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
-function FinanceStat({ title, value, sub }: { title: string; value: number | string; sub: string }) {
-  return (
-    <div className="rounded-2xl border border-[#E1D0B8] bg-white p-4">
-      <p className="text-sm text-[#6B6258]">{title}</p>
-      <p className="mt-2 text-2xl font-semibold tracking-[-0.05em] text-[#16120E]">
-        {value}
-      </p>
-      <p className="mt-2 text-xs text-[#6B6258]">{sub}</p>
-    </div>
-  );
-}
-
-function PaymentBreakdown({ label, value, total }: { label: string; value: number; total: number }) {
-  const percentage = total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
-
-  return (
-    <div className="rounded-2xl border border-[#E1D0B8] bg-white p-4">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-[#16120E]">{label}</p>
-        <p className="text-sm font-bold text-[#9B6F3B]">{money(value)}</p>
-      </div>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#E8DCCB]">
-        <div className="h-full rounded-full bg-[#C8A56A]" style={{ width: `${percentage}%` }} />
-      </div>
-      <p className="mt-2 text-[10px] font-bold text-[#6B6258]">{percentage}% do ano</p>
-    </div>
-  );
-}
-
 function CompactOpsCard({
   reservationsToday,
   pendingToday,
   guestsToday,
   totalCapacity,
   occupancyRate,
-  openTables,
   tablesCount,
 }: {
   reservationsToday: number;
@@ -869,7 +595,6 @@ function CompactOpsCard({
   guestsToday: number;
   totalCapacity: number;
   occupancyRate: number;
-  openTables: number;
   tablesCount: number;
 }) {
   return (
@@ -879,8 +604,7 @@ function CompactOpsCard({
         Agora
       </h2>
 
-      <div className="mt-5 grid grid-cols-2 gap-3">
-        <SmallStat value={openTables} label="mesas POS abertas" />
+      <div className="mt-5 grid grid-cols-3 gap-3">
         <SmallStat value={reservationsToday} label="reservas hoje" />
         <SmallStat value={guestsToday} label="covers reservados" />
         <SmallStat value={pendingToday} label="pendentes" />
@@ -1190,112 +914,6 @@ function InstructionStep({
         <p className="mt-1 text-xs leading-5 text-[#6B6258]">{text}</p>
       </div>
     </div>
-  );
-}
-
-function SalesIntelligenceCard({
-  categories,
-  products,
-  includeVat,
-  total,
-}: {
-  categories: { name: string; gross: number; net: number; quantity: number }[];
-  products: { name: string; category: string; gross: number; net: number; quantity: number }[];
-  includeVat: boolean;
-  total: number;
-}) {
-  const topCategories = categories.slice(0, 5);
-  const topProducts = products.slice(0, 5);
-
-  return (
-    <Panel compact>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <SectionLabel>QR Ordering</SectionLabel>
-          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
-            Categorias e rentabilidade
-          </h2>
-          <p className="mt-2 text-sm text-[#6B6258]">
-            Dados ligados aos pedidos aceites no QR Ordering: categorias vendidas e produtos com maior receita.
-          </p>
-        </div>
-
-        <span className="rounded-full bg-[#EFE5D6] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9B6F3B]">
-          {includeVat ? "Com IVA" : "Sem IVA"}
-        </span>
-      </div>
-
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-          <p className="font-semibold">Categorias vendidas</p>
-
-          <div className="mt-4 space-y-3">
-            {topCategories.length === 0 ? (
-              <p className="text-sm text-[#6B6258]">Ainda sem vendas por categoria.</p>
-            ) : (
-              topCategories.map((category) => {
-                const value = includeVat ? category.gross : category.net;
-                const percentage = total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
-
-                return (
-                  <div key={category.name}>
-                    <div className="flex items-center justify-between gap-3 text-sm">
-                      <p className="font-semibold">{category.name}</p>
-                      <p className="font-bold text-[#9B6F3B]">
-                        {percentage}% · {money(value)}
-                      </p>
-                    </div>
-                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#E8DCCB]">
-                      <div
-                        className="h-full rounded-full bg-[#C8A56A]"
-                        style={{ width: `${Math.min(percentage, 100)}%` }}
-                      />
-                    </div>
-                    <p className="mt-1 text-[10px] font-bold text-[#6B6258]">
-                      {category.quantity} unidades
-                    </p>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-          <p className="font-semibold">Produtos mais rentáveis</p>
-          <p className="mt-1 text-xs text-[#6B6258]">
-            Ordenado por receita dos pedidos aceites no QR Ordering. Para margem real, falta custo do produto.
-          </p>
-
-          <div className="mt-4 space-y-2">
-            {topProducts.length === 0 ? (
-              <p className="text-sm text-[#6B6258]">Ainda sem produtos vendidos.</p>
-            ) : (
-              topProducts.map((product, index) => {
-                const value = includeVat ? product.gross : product.net;
-
-                return (
-                  <div
-                    key={`${product.name}-${index}`}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold">{product.name}</p>
-                      <p className="text-xs text-[#6B6258]">
-                        {product.category} · {product.quantity} uni
-                      </p>
-                    </div>
-                    <p className="shrink-0 font-bold text-[#9B6F3B]">
-                      {money(value)}
-                    </p>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-    </Panel>
   );
 }
 

@@ -29,10 +29,10 @@ const visibilityFeatures = [
 ];
 
 const controlFeatures = [
-  ["POS (Coming Soon)", "Operação"],
+  ["Calendário", "Agenda"],
   ["Mesas", "Sala"],
   ["Relatórios", "Dados"],
-  ["Pagamentos", "Caixa"],
+  ["Serviço do dia", "Timeline"],
   ["Faturação", "Fiscal"],
   ["Tempo real", "Controlo"],
 ];
@@ -101,8 +101,8 @@ function Hero() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-sm text-base leading-7 text-[#5C5348]">
-            MesaLink liga reservas, QR Ordering, website, CRM, marketing, POS e
-            dados num sistema vivo para crescer todos os dias.
+            MesaLink liga reservas, QR Ordering, website, CRM e marketing num
+            sistema vivo que trabalha por si todos os dias.
           </p>
 
           <div className="mt-7 grid gap-3">

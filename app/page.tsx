@@ -14,7 +14,6 @@ const brand = {
 const productStack = [
   "Reservas online",
   "Mapa de mesas",
-  "POS (Coming Soon)",
   "QR Ordering",
   "Website premium",
   "CRM de clientes",
@@ -48,9 +47,9 @@ const essentials = [
     text: "Página premium, rápida, mobile-first e preparada para transformar pesquisas em reservas.",
   },
   {
-    title: "POS (Coming Soon)",
-    value: "Tudo ligado",
-    text: "Pedidos, pagamentos, mesas, clientes e marketing deixam de estar espalhados em sistemas separados.",
+    title: "Mapa de mesas",
+    value: "Sala em tempo real",
+    text: "Vê a sala ao vivo, junta mesas com um arrasto e associa reservas em segundos, no telemóvel ou no computador.",
   },
   {
     title: "Restaurant Network",
@@ -684,7 +683,7 @@ function ResultsSection() {
     ["Mais descoberta", "Website otimizado, SEO e reviews positivas ajudam novos clientes a encontrar o restaurante."],
     ["Mais clientes recorrentes", "Marketing e CRM ajudam a recuperar clientes que podiam não voltar."],
     ["Reservas sem comissões", "Receba reservas diretamente no restaurante sem pagar por cada cliente."],
-    ["Tudo integrado", "POS (Coming Soon), CRM, reservas, QR Ordering, website e marketing ligados num único sistema."],
+    ["Tudo integrado", "CRM, reservas, QR Ordering, website e marketing ligados num único sistema."],
   ];
 
   return (
@@ -798,7 +797,7 @@ function PricingSection() {
         </div>
 
         <p className="mx-auto mt-6 max-w-3xl text-center text-sm leading-6 text-[#6B6258]">
-          A faturação/POS fiscal é tratada externamente pelo Moloni. A MesaLink integra a operação e mantém reservas, clientes, QR Ordering e marketing ligados.
+          Reservas diretas, mapa de mesas, QR Ordering e Marketing automático — tudo ligado num único painel para o seu restaurante crescer todos os dias.
         </p>
       </div>
     </section>
@@ -1123,7 +1122,7 @@ function Ecosystem() {
     ["Atrair", "Website, SEO, campanhas", "top-[8%] left-[5%]"],
     ["Reservar", "Sem comissões", "top-[2%] left-[39%]"],
     ["Pedir", "QR Ordering", "top-[8%] right-[5%]"],
-    ["Operar", "POS, mesas e caixa", "bottom-[18%] left-[6%]"],
+    ["Operar", "Mesas e sala ao vivo", "bottom-[18%] left-[6%]"],
     ["Fidelizar", "CRM, VIP e reviews", "bottom-[18%] right-[6%]"],
   ];
 

@@ -77,7 +77,7 @@ const faqs = [
     answer: "Não. A MesaLink não cobra comissão por reserva.",
   },
   {
-    question: "E a faturação/POS fiscal?",
+    question: "E a faturação fiscal?",
     answer:
       "A faturação fiscal é tratada externamente pelo Moloni ou outro software certificado. Esse custo não é cobrado pela MesaLink.",
   },

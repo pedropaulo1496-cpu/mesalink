@@ -26,7 +26,7 @@ export default function OnboardingPage() {
             <p className="mt-5 text-sm leading-6 text-[#6B6258]">
               Crie o painel inicial para começar a receber reservas, gerir
               clientes, publicar o website e preparar o crescimento com CRM,
-              Marketing, QR Ordering e POS.
+              Marketing e QR Ordering.
             </p>
 
             <div className="mt-8 grid gap-3">

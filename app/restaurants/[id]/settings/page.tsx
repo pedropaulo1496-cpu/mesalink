@@ -579,8 +579,6 @@ export default async function SettingsPage({
             </button>
           </div>
         </form>
-
-        <PrinterComingSoonCard />
          </section>
   </div>
 

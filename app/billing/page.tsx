@@ -164,7 +164,9 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                     Upgrade disponível
                   </p>
                   <p className="mt-2 text-sm leading-6 text-white/65">
-                    Ative o Growth por apenas +20€/mês (até ao lançamento do POS). Mantém a mesma data de
+                    Ative o Growth por apenas +20€/mês e desbloqueie Marketing
+                    automático, recuperação de clientes e campanhas para dias
+                    fracos. Mantém a mesma data de
                     renovação e o Stripe calcula a diferença proporcional.
                   </p>
                   <div className="mt-4">
@@ -261,7 +263,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                         Upgrade
                       </p>
                       <p className="mt-1 text-2xl font-semibold tracking-[-0.05em]">
-                        +20€/mês (até ao lançamento do POS)
+                        +20€/mês
                       </p>
                       <p className="mt-1 text-xs text-white/62">
                         Mantém a data de renovação atual.
@@ -321,11 +323,11 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
             </p>
 
             <h3 className="mt-3 text-3xl font-semibold tracking-[-0.055em]">
-              POS fiscal tratado fora da MesaLink.
+              Faturação fiscal tratada fora da MesaLink.
             </h3>
 
             <p className="mt-3 text-sm leading-6 text-[#6B6258]">
-              A faturação/POS fiscal é tratada externamente pelo Moloni ou por
+              A faturação fiscal é tratada externamente pelo Moloni ou por
               outro software certificado. Esse custo não é cobrado pela
               MesaLink.
             </p>
