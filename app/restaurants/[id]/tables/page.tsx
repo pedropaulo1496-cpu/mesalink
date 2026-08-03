@@ -1,3 +1,4 @@
+import type { Viewport } from "next";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -6,6 +7,13 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import type { ReactNode } from "react";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import BottomNav from "@/components/BottomNav";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 async function createTables(formData: FormData) {
   "use server";
@@ -259,7 +267,7 @@ export default async function TablesPage({
   active="Sala & Mesas"
 />
 
-        <section className="min-w-0 px-4 py-4 sm:px-5 lg:px-6 lg:py-5">
+        <section className="min-w-0 px-4 pb-28 pt-4 sm:px-5 lg:px-6 lg:pb-5 lg:pt-5">
           <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
@@ -362,6 +370,8 @@ export default async function TablesPage({
           </div>
         </section>
       </div>
+
+      <BottomNav id={id} />
     </main>
   );
 }

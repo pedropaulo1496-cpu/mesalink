@@ -1,5 +1,6 @@
 import DayPicker from "./DayPicker";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import BottomNav from "@/components/BottomNav";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
@@ -445,7 +446,7 @@ export default async function DayPage({
   active="Serviço do dia"
 />
 
-        <section className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-7 lg:pt-7">
           <header className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
@@ -542,6 +543,8 @@ export default async function DayPage({
           </div>
         </section>
       </div>
+
+      <BottomNav id={id} />
     </main>
   );
 }
