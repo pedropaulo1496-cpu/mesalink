@@ -118,6 +118,28 @@ export default async function MarketingPage({
     orderBy: { createdAt: "desc" },
   });
 
+  const reviewReservationIds = reviewFeedbacks
+    .map((review) => review.reservationId)
+    .filter((value): value is string => Boolean(value));
+
+  const reviewReservations = reviewReservationIds.length
+    ? await prisma.reservation.findMany({
+        where: { id: { in: reviewReservationIds } },
+        select: { id: true, customerName: true },
+      })
+    : [];
+
+  const reviewerNameByReservationId = new Map(
+    reviewReservations.map((reservation) => [reservation.id, reservation.customerName]),
+  );
+
+  const recentReviews = reviewFeedbacks.slice(0, 8).map((review) => ({
+    ...review,
+    customerName:
+      (review.reservationId && reviewerNameByReservationId.get(review.reservationId)) ||
+      "Cliente anónimo",
+  }));
+
   const marketingActions = await prisma.marketingAction.findMany({
     where: { restaurantId: id },
     orderBy: { createdAt: "desc" },
@@ -448,6 +470,52 @@ const riskRevenue =
                 <ReviewBar stars="3★" value={threeStars} max={maxReviewCount} />
                 <ReviewBar stars="2★" value={twoStars} max={maxReviewCount} />
                 <ReviewBar stars="1★" value={oneStar} max={maxReviewCount} />
+              </div>
+
+              <div className="mt-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#B58A45]">
+                  Reviews recentes
+                </p>
+
+                <div className="mt-3 space-y-2">
+                  {recentReviews.length === 0 ? (
+                    <p className="rounded-2xl border border-dashed border-[#E8DCCB] p-4 text-sm text-[#6B6258]">
+                      Ainda sem reviews recebidas.
+                    </p>
+                  ) : (
+                    recentReviews.map((review) => (
+                      <div
+                        key={review.id}
+                        className="rounded-2xl border border-[#E8DCCB] bg-white p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-[#16120E]">
+                              {review.customerName}
+                            </p>
+                            <p className="mt-0.5 text-xs font-bold text-[#9B6F3B]">
+                              {"★".repeat(review.rating)}
+                              {"☆".repeat(Math.max(0, 5 - review.rating))} ·{" "}
+                              {new Date(review.createdAt).toLocaleDateString("pt-PT")}
+                            </p>
+                          </div>
+
+                          {review.redirectedToGoogle && (
+                            <span className="shrink-0 rounded-full bg-[#ECF7EC] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-[#3F6A4D]">
+                              Google
+                            </span>
+                          )}
+                        </div>
+
+                        {review.comment && (
+                          <p className="mt-2 text-sm leading-6 text-[#6B6258]">
+                            {review.comment}
+                          </p>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </Panel>
           </section>
