@@ -568,8 +568,8 @@ function ConnectedMesaLink() {
       line: "M270 498 L350 350",
     },
     {
-      title: "Moloni",
-      text: "Faturação externa",
+      title: "Mapa de mesas",
+      text: "Sala em tempo real",
       className: "right-[72px] bottom-[80px]",
       line: "M490 498 L410 350",
     },
