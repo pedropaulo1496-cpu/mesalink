@@ -2,7 +2,7 @@ import SignOutButton from "@/components/SignOutButton";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
-import { canAccessApp } from "@/lib/check-subscription";
+import { canAccessApp, getUserWithSubscription } from "@/lib/check-subscription";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
@@ -117,10 +117,7 @@ export default async function RestaurantPage({
   const hasAccess = await canAccessApp(session.user.email);
   if (!hasAccess) redirect("/billing");
 
-  const billingUser = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { subscription: true },
-  });
+  const billingUser = await getUserWithSubscription(session.user.email);
 
   const subscription = billingUser?.subscription;
   const trialEndsAt = subscription?.trialEndsAt ?? null;

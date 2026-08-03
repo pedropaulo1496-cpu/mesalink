@@ -1,12 +1,17 @@
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 
-export async function canAccessApp(email: string) {
-  const user = await prisma.user.findUnique({
+export const getUserWithSubscription = cache(async (email: string) => {
+  return prisma.user.findUnique({
     where: { email },
     include: {
       subscription: true,
     },
   });
+});
+
+export async function canAccessApp(email: string) {
+  const user = await getUserWithSubscription(email);
 
   if (!user) return false;
 
