@@ -412,7 +412,7 @@ const isGrowthPlan =
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-            <ReservationsCompactCard reservations={nextReservations} />
+            <ReservationsCompactCard id={id} reservations={nextReservations} />
             <MarketingRoiCard
               restaurantId={id}
               isGrowth={isGrowthPlan}
@@ -604,7 +604,7 @@ function CompactOpsCard({
   );
 }
 
-function ReservationsCompactCard({ reservations }: { reservations: any[] }) {
+function ReservationsCompactCard({ id, reservations }: { id: string; reservations: any[] }) {
   return (
     <Panel compact>
       <div className="flex items-center justify-between gap-4">
@@ -614,7 +614,10 @@ function ReservationsCompactCard({ reservations }: { reservations: any[] }) {
             Próximas
           </h2>
         </div>
-        <Link href="reservations" className="text-sm font-semibold text-[#9B6F3B]">
+        <Link
+          href={`/restaurants/${id}/reservations/upcoming`}
+          className="text-sm font-semibold text-[#9B6F3B]"
+        >
           Ver reservas
         </Link>
       </div>
@@ -636,21 +639,35 @@ function ReservationsCompactCard({ reservations }: { reservations: any[] }) {
 
 function ReservationMiniLine({ reservation }: { reservation: any }) {
   return (
-    <div className="grid grid-cols-[70px_1fr_auto] items-center gap-3 border-b border-[#E8DCCB] px-4 py-3 last:border-b-0">
-      <p className="font-semibold">
-        {new Date(reservation.date).toLocaleTimeString("pt-PT", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </p>
-      <div className="min-w-0">
-        <p className="truncate font-semibold">{reservation.customerName}</p>
-        <p className="text-xs text-[#6B6258]">
-          {new Date(reservation.date).toLocaleDateString("pt-PT")}
+    <details className="group border-b border-[#E8DCCB] last:border-b-0">
+      <summary className="grid cursor-pointer list-none grid-cols-[70px_1fr_auto] items-center gap-3 px-4 py-3 transition hover:bg-white">
+        <p className="font-semibold">
+          {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </p>
+        <div className="min-w-0">
+          <p className="truncate font-semibold">{reservation.customerName}</p>
+          <p className="text-xs text-[#6B6258]">
+            {new Date(reservation.date).toLocaleDateString("pt-PT")}
+          </p>
+        </div>
+        <p className="text-sm font-bold text-[#9B6F3B]">{reservation.guests} pax</p>
+      </summary>
+
+      <div className="grid gap-2 border-t border-[#E8DCCB] bg-white px-4 py-3 text-xs text-[#6B6258] sm:grid-cols-2">
+        <div>
+          <p className="font-semibold text-[#16120E]">Telemóvel</p>
+          <p className="mt-1">{reservation.phone || "Sem telemóvel"}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-[#16120E]">Email</p>
+          <p className="mt-1 break-all">{reservation.email || "Sem email"}</p>
+        </div>
       </div>
-      <p className="text-sm font-bold text-[#9B6F3B]">{reservation.guests} pax</p>
-    </div>
+    </details>
   );
 }
 
