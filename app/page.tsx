@@ -111,14 +111,15 @@ function Header() {
           <a
             href="/downloads/MesaLink-Android-v1.0.1.apk"
             download
-            className="hidden rounded-full border border-[#B9965E] bg-[#FFF9F0] px-5 py-2.5 text-sm font-semibold text-[#17130F] transition hover:bg-white xl:inline-flex"
+            className="inline-flex rounded-full border border-[#B9965E] bg-[#C8A56A] px-4 py-2.5 text-xs font-bold text-[#17130F] transition hover:bg-[#D8B97E] xl:px-5 xl:text-sm"
           >
-            Descarregar Android
+            <span className="xl:hidden">App Android</span>
+            <span className="hidden xl:inline">Descarregar Android</span>
           </a>
 
           <Link
             href="/register"
-            className="rounded-full bg-[#17130F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+            className="hidden rounded-full bg-[#17130F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118] sm:inline-flex"
           >
             Começar
           </Link>
