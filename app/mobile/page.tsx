@@ -616,21 +616,13 @@ function Glow() {
 function StickyCTA() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#D8C5A5] bg-[#F4ECDF]/94 px-5 py-3 backdrop-blur-xl">
-      <div className="mx-auto grid max-w-md grid-cols-[1fr_auto] items-center gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
-            Trial completo
-          </p>
-          <p className="text-sm font-semibold">7 dias grátis</p>
-        </div>
-
-        <Link
-          href="/register"
-          className="rounded-full bg-[#17130F] px-5 py-3 text-sm font-semibold text-white"
-        >
-          Começar
-        </Link>
-      </div>
+      <a
+        href="/downloads/MesaLink-Android-v1.0.1.apk"
+        download
+        className="mx-auto flex h-14 max-w-md items-center justify-center rounded-full border border-[#E4C990] bg-[#C8A56A] px-5 text-center text-sm font-bold text-[#17130F] shadow-[0_18px_50px_rgba(23,19,15,0.3)]"
+      >
+        ↓ Descarregar App MesaLink
+      </a>
     </div>
   );
 }
