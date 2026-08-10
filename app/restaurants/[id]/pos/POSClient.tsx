@@ -21,17 +21,6 @@ type POSReport = {
   }[];
 };
 
-type FiscalDocument = {
-  id: string;
-  documentType: string;
-  documentNumber?: string | null;
-  status?: string;
-  totalAmount: number;
-  pdfUrl?: string | null;
-  issuedAt?: string | null;
-  createdAt: string;
-};
-
 type TableItem = {
   id: string;
   number: number;
@@ -143,8 +132,6 @@ type POSTab =
   | "KITCHEN"
   | "PRODUCTION"
   | "HISTORY"
-  | "FISCAL"
-  | "DOCUMENTS"
   | "STATS";
 
 type POSPayment = {
@@ -182,14 +169,6 @@ type POSHistoryPayment = {
   method: string;
   status: string;
   createdAt: string | Date;
-
-  fiscalDocument?: {
-    id: string;
-    documentNumber?: string | null;
-    documentType: string;
-    status: string;
-    pdfUrl?: string | null;
-  } | null;
 
   tableSession?: {
     guestCount?: number | null;
@@ -240,13 +219,6 @@ type QRAlert = {
   tableNumber: number;
   requestedWaiterAt?: string | Date | null;
   requestedBillAt?: string | Date | null;
-};
-
-type FiscalReport = {
-  invoices: number;
-  simplifiedInvoices: number;
-  creditNotes: number;
-  total: number;
 };
 
 function formatMoney(value: number) {
@@ -321,7 +293,6 @@ export default function POSClient({
   todayPayments,
   pendingOrders,
   qrAlerts,
-  fiscalIntegration,
   printJobs,
 }: {
   restaurantId: string;
@@ -333,14 +304,6 @@ export default function POSClient({
   todayPayments: POSTodayPayment[];
   pendingOrders: QRPendingOrder[];
   qrAlerts: QRAlert[];
-  fiscalIntegration: {
-    active: boolean;
-    companyId: string | null;
-    invoiceSerieId?: string | null;
-    simplifiedInvoiceSerieId?: string | null;
-    creditNoteSerieId?: string | null;
-  } | null;
-
   printJobs: any[];
 }) {
   const POS_ENABLED = false;
@@ -351,25 +314,6 @@ export default function POSClient({
 
   const [report, setReport] = useState<POSReport | null>(null);
   const [loadingReport, setLoadingReport] = useState(false);
-  const [documents, setDocuments] = useState<FiscalDocument[]>([]);
-  const [loadingDocuments, setLoadingDocuments] = useState(false);
-  const [fiscalReport, setFiscalReport] = useState<FiscalReport>({
-    invoices: 0,
-    simplifiedInvoices: 0,
-    creditNotes: 0,
-    total: 0,
-  });
-
-  const [loadingFiscalReport, setLoadingFiscalReport] = useState(false);
-  const [loadedFiscalIntegration, setLoadedFiscalIntegration] =
-    useState<any>(null);
-  const [loadingFiscal, setLoadingFiscal] = useState(false);
-  const [documentSets, setDocumentSets] = useState<any[]>([]);
-  const [savingFiscalSeries, setSavingFiscalSeries] = useState(false);
-
-  const [invoiceSerieId, setInvoiceSerieId] = useState("");
-  const [simplifiedInvoiceSerieId, setSimplifiedInvoiceSerieId] = useState("");
-  const [creditNoteSerieId, setCreditNoteSerieId] = useState("");
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     categories[0]?.id ?? null,
@@ -429,28 +373,6 @@ export default function POSClient({
   >(null);
   const [showCashMovementModal, setShowCashMovementModal] = useState(false);
 
-  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
-
-  const [invoiceVat, setInvoiceVat] = useState("");
-  const [invoiceName, setInvoiceName] = useState("");
-  const [invoiceEmail, setInvoiceEmail] = useState("");
-  const [invoiceCustomerType, setInvoiceCustomerType] = useState<
-    "FINAL_CONSUMER" | "VAT"
-  >("FINAL_CONSUMER");
-
-  const [invoiceAddress, setInvoiceAddress] = useState("");
-
-  const [creatingInvoice, setCreatingInvoice] = useState(false);
-
-  const [creditNoteDocument, setCreditNoteDocument] =
-    useState<FiscalDocument | null>(null);
-
-  const [creditNoteReason, setCreditNoteReason] = useState(
-    "Anulação de documento",
-  );
-
-  const [creatingCreditNote, setCreatingCreditNote] = useState(false);
-
   const [cashMovementType, setCashMovementType] = useState<"IN" | "OUT">("OUT");
 
   const [cashMovementAmount, setCashMovementAmount] = useState("");
@@ -458,20 +380,6 @@ export default function POSClient({
   const [cashMovementReason, setCashMovementReason] = useState("");
 
   const [savingCashMovement, setSavingCashMovement] = useState(false);
-
-  const activeFiscalIntegration = loadedFiscalIntegration ?? fiscalIntegration;
-
-  const fiscalReady = Boolean(
-    activeFiscalIntegration?.active &&
-    activeFiscalIntegration?.companyId &&
-    activeFiscalIntegration?.invoiceSerieId &&
-    activeFiscalIntegration?.simplifiedInvoiceSerieId &&
-    activeFiscalIntegration?.creditNoteSerieId,
-  );
-
-  const experimentalMode = !fiscalReady;
-
-  const canUsePOS = fiscalReady || experimentalMode;
 
   const selectedTable = useMemo(
     () => tables.find((table) => table.id === selectedTableId) ?? null,
@@ -1056,192 +964,6 @@ export default function POSClient({
     router.refresh();
   }
 
-  async function createCreditNote() {
-    if (!creditNoteDocument) return;
-
-    try {
-      setCreatingCreditNote(true);
-
-      const response = await fetch(
-        `/api/restaurants/${restaurantId}/fiscal/credit-notes/create`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            documentId: creditNoteDocument.id,
-            reason: creditNoteReason,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.error ?? "Erro ao emitir nota de crédito.");
-      }
-
-      setCreditNoteDocument(null);
-      setCreditNoteReason("Anulação de documento");
-
-      alert("Nota de crédito emitida com sucesso.");
-
-      loadDocuments();
-    } catch (error: any) {
-      alert(error?.message ?? "Erro.");
-    } finally {
-      setCreatingCreditNote(false);
-    }
-  }
-
-  async function fetchVatData() {
-    if (!invoiceVat.trim()) {
-      alert("Indica primeiro o NIF.");
-      return;
-    }
-
-    const response = await fetch(
-      `/api/fiscal/nif?nif=${encodeURIComponent(invoiceVat.trim())}`,
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data?.error ?? "Erro ao obter dados.");
-      return;
-    }
-
-    const record =
-      data?.records?.[invoiceVat] ??
-      data?.records?.[invoiceVat.trim()] ??
-      data?.record ??
-      data;
-
-    setInvoiceName(record?.title ?? record?.name ?? "");
-    setInvoiceAddress(record?.address ?? "");
-  }
-
-  async function createInvoiceAndCloseTable() {
-    if (!selectedSession) return;
-    if (invoiceCustomerType === "VAT") {
-      const cleanVat = invoiceVat.trim();
-
-      if (!/^\d{9}$/.test(cleanVat)) {
-        alert("O NIF deve ter 9 dígitos.");
-        return;
-      }
-
-      if (!invoiceName.trim()) {
-        alert("Indica o nome fiscal do cliente.");
-        return;
-      }
-    }
-
-    try {
-      setCreatingInvoice(true);
-
-      const fiscalVat =
-        invoiceCustomerType === "FINAL_CONSUMER"
-          ? "999999990"
-          : invoiceVat.trim();
-
-      const fiscalName =
-        invoiceCustomerType === "FINAL_CONSUMER"
-          ? "Consumidor Final"
-          : invoiceName.trim();
-
-      const searchResponse = await fetch(
-        `/api/restaurants/${restaurantId}/fiscal/customers/search`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ vat: fiscalVat }),
-        },
-      );
-
-      const searchData = await searchResponse.json();
-
-      let customerId =
-        searchData?.customer?.customer_id ?? searchData?.customer?.id ?? null;
-
-      if (!customerId) {
-        const customerResponse = await fetch(
-          `/api/restaurants/${restaurantId}/fiscal/customers/create`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              vat: fiscalVat,
-              name: fiscalName,
-              email: invoiceEmail,
-              address: invoiceAddress,
-            }),
-          },
-        );
-
-        const customerData = await customerResponse.json();
-
-        if (!customerResponse.ok) {
-          throw new Error(customerData?.error ?? "Erro cliente.");
-        }
-
-        customerId = customerData.customerId ?? customerData.customer_id;
-      }
-
-      const invoiceResponse = await fetch(
-        `/api/restaurants/${restaurantId}/fiscal/invoices/create`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sessionId: selectedSession.id,
-            customerId: String(customerId),
-            withVatNumber: invoiceCustomerType === "VAT",
-          }),
-        },
-      );
-
-      const invoiceData = await invoiceResponse.json();
-
-      if (!invoiceResponse.ok) {
-        const detailsText = Array.isArray(invoiceData?.details)
-          ? invoiceData.details.join(" ")
-          : "";
-
-        if (
-          detailsText.includes("document_set_wsat_id") ||
-          detailsText.includes("document_set_id")
-        ) {
-          throw new Error(
-            "A série Moloni deste restaurante ainda não está comunicada à AT. Vai ao Moloni > Configurações > Séries de documentos e comunica/ativa a série fiscal.",
-          );
-        }
-
-        throw new Error(invoiceData?.error ?? "Erro ao emitir fatura.");
-      }
-
-      await closeTableWithPayment();
-
-      setInvoiceModalOpen(false);
-
-      setInvoiceVat("");
-      setInvoiceName("");
-      setInvoiceEmail("");
-
-      setInvoiceCustomerType("FINAL_CONSUMER");
-      setInvoiceAddress("");
-
-      alert("Fatura emitida com sucesso.");
-    } catch (error: any) {
-      alert(error?.message ?? "Erro.");
-    } finally {
-      setCreatingInvoice(false);
-    }
-  }
-
   async function closeTableWithPayment() {
     if (!selectedSession) return;
 
@@ -1483,141 +1205,6 @@ export default function POSClient({
     }
   }
 
-  async function loadFiscalSettings() {
-    setLoadingFiscal(true);
-
-    try {
-      const response = await fetch(
-        `/api/restaurants/${restaurantId}/fiscal/settings`,
-      );
-
-      if (!response.ok) {
-        setLoadedFiscalIntegration(null);
-        return;
-      }
-
-      const data = await response.json();
-
-      setLoadedFiscalIntegration(data.integration);
-      setInvoiceSerieId(data.integration?.invoiceSerieId ?? "");
-      setSimplifiedInvoiceSerieId(
-        data.integration?.simplifiedInvoiceSerieId ?? "",
-      );
-      setCreditNoteSerieId(data.integration?.creditNoteSerieId ?? "");
-    } catch {
-      setLoadedFiscalIntegration(null);
-    } finally {
-      setLoadingFiscal(false);
-    }
-  }
-
-  async function loadDocumentSets() {
-    try {
-      const response = await fetch(
-        `/api/restaurants/${restaurantId}/fiscal/document-sets`,
-      );
-
-      if (!response.ok) {
-        setDocumentSets([]);
-        return;
-      }
-
-      const data = await response.json();
-
-      setDocumentSets(data.documentSets ?? data ?? []);
-    } catch {
-      setDocumentSets([]);
-    }
-  }
-
-  async function saveFiscalSeries() {
-    try {
-      setSavingFiscalSeries(true);
-
-      const response = await fetch(
-        `/api/restaurants/${restaurantId}/fiscal/settings`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            invoiceSerieId,
-            simplifiedInvoiceSerieId,
-            creditNoteSerieId,
-            active: true,
-          }),
-        },
-      );
-
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        alert(data?.error ?? "Erro ao guardar séries.");
-        return;
-      }
-
-      alert("Séries guardadas.");
-      await loadFiscalSettings();
-    } finally {
-      setSavingFiscalSeries(false);
-    }
-  }
-
-  async function loadDocuments() {
-    setLoadingDocuments(true);
-
-    try {
-      const response = await fetch(
-        `/api/restaurants/${restaurantId}/fiscal/documents`,
-      );
-
-      if (!response.ok) {
-        setDocuments([]);
-        return;
-      }
-
-      const data = await response.json();
-
-      setDocuments(data.documents ?? []);
-    } catch {
-      setDocuments([]);
-    } finally {
-      setLoadingDocuments(false);
-    }
-  }
-
-  async function loadFiscalReport() {
-    setLoadingFiscalReport(true);
-
-    try {
-      const response = await fetch(
-        `/api/restaurants/${restaurantId}/fiscal/report`,
-      );
-
-      if (!response.ok) {
-        setFiscalReport({
-          invoices: 0,
-          simplifiedInvoices: 0,
-          creditNotes: 0,
-          total: 0,
-        });
-        return;
-      }
-
-      const data = await response.json();
-
-      setFiscalReport({
-        invoices: Number(data.invoices ?? 0),
-        simplifiedInvoices: Number(data.simplifiedInvoices ?? 0),
-        creditNotes: Number(data.creditNotes ?? 0),
-        total: Number(data.total ?? 0),
-      });
-    } finally {
-      setLoadingFiscalReport(false);
-    }
-  }
-
   async function loadReport() {
     setLoadingReport(true);
 
@@ -1651,13 +1238,6 @@ export default function POSClient({
     if (posTab !== "HISTORY") return;
 
     loadHistory();
-  }, [posTab]);
-
-  useEffect(() => {
-    if (posTab !== "FISCAL") return;
-
-    loadFiscalSettings();
-    loadDocumentSets();
   }, [posTab]);
 
   useEffect(() => {
@@ -1743,29 +1323,7 @@ export default function POSClient({
           )}
         </header>
 
-        {!loadingFiscal && !fiscalReady && posTab !== "FISCAL" && (
-          <div className="mb-3 flex items-center justify-between gap-4 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] px-4 py-3">
-            <div>
-              <p className="text-xs font-black text-[#8B5E22]">
-                Modo experimental ativo
-              </p>
-              <p className="mt-0.5 text-[11px] font-bold text-[#7D746A]">
-                Testes de mesas, pedidos e pagamentos. Para faturação legal,
-                configura Moloni.
-              </p>
-            </div>
-
-            <button
-              onClick={() => setPosTab("FISCAL")}
-              className="shrink-0 rounded-xl bg-[#11100F] px-4 py-2.5 text-[11px] font-black text-white"
-            >
-              Moloni
-            </button>
-          </div>
-        )}
-
-        {(canUsePOS || posTab === "FISCAL") && (
-          <>
+        <>
             {!selectedTableId &&
               qrAttentionCount > 0 &&
               posTab !== "KITCHEN" && (
@@ -1843,26 +1401,6 @@ export default function POSClient({
               />
             )}
 
-            {!selectedTableId && posTab === "FISCAL" && (
-              <FiscalSettingsView
-                integration={loadedFiscalIntegration ?? fiscalIntegration}
-                loading={loadingFiscal}
-                documentSets={documentSets}
-                invoiceSerieId={invoiceSerieId}
-                simplifiedInvoiceSerieId={simplifiedInvoiceSerieId}
-                creditNoteSerieId={creditNoteSerieId}
-                savingSeries={savingFiscalSeries}
-                onChangeInvoiceSerieId={setInvoiceSerieId}
-                onChangeSimplifiedInvoiceSerieId={setSimplifiedInvoiceSerieId}
-                onChangeCreditNoteSerieId={setCreditNoteSerieId}
-                onSaveSeries={saveFiscalSeries}
-              />
-            )}
-
-            {!selectedTableId && posTab === "DOCUMENTS" && (
-              <FiscalDocumentsView />
-            )}
-
             {!selectedTableId && posTab === "STATS" && (
               <StatsView report={report} loading={loadingReport} />
             )}
@@ -1876,11 +1414,10 @@ export default function POSClient({
                 onAddProduct={addProduct}
               />
             )}
-          </>
-        )}
+        </>
       </div>
 
-      {canUsePOS && (
+      {(
         <CartPanel
           restaurantName={restaurantName}
           selectedTable={selectedTable}
@@ -2006,10 +1543,6 @@ export default function POSClient({
 
       {paymentOpen && selectedSession && selectedTable && (
         <PaymentModal
-          fiscalReady={fiscalReady}
-          onCreateInvoice={() => {
-            setInvoiceModalOpen(true);
-          }}
           tableNumber={selectedTable.number}
           total={Number(
             selectedSession.remainingAmount ?? selectedSession.totalAmount ?? 0,
@@ -2063,36 +1596,6 @@ export default function POSClient({
           onChangeReason={setCashMovementReason}
           onClose={() => setShowCashMovementModal(false)}
           onConfirm={createCashMovement}
-        />
-      )}
-
-      {invoiceModalOpen && (
-        <InvoiceModal
-          vat={invoiceVat}
-          name={invoiceName}
-          address={invoiceAddress}
-          email={invoiceEmail}
-          customerType={invoiceCustomerType}
-          loading={creatingInvoice}
-          onChangeVat={setInvoiceVat}
-          onChangeName={setInvoiceName}
-          onChangeAddress={setInvoiceAddress}
-          onChangeEmail={setInvoiceEmail}
-          onChangeCustomerType={setInvoiceCustomerType}
-          onFetchVatData={fetchVatData}
-          onClose={() => setInvoiceModalOpen(false)}
-          onConfirm={createInvoiceAndCloseTable}
-        />
-      )}
-
-      {creditNoteDocument && (
-        <CreditNoteModal
-          document={creditNoteDocument}
-          reason={creditNoteReason}
-          loading={creatingCreditNote}
-          onChangeReason={setCreditNoteReason}
-          onClose={() => setCreditNoteDocument(null)}
-          onConfirm={createCreditNote}
         />
       )}
 
@@ -2162,7 +1665,6 @@ function POSComingSoon({ restaurantName }: { restaurantName: string }) {
                 <POSComingSoonFeature text="Gestão de mesas" />
                 <POSComingSoonFeature text="QR Ordering" />
                 <POSComingSoonFeature text="Caixa" />
-                <POSComingSoonFeature text="Faturação Moloni" />
                 <POSComingSoonFeature text="Produção" />
                 <POSComingSoonFeature text="Impressoras" />
                 <POSComingSoonFeature text="Split bill" />
@@ -2764,8 +2266,6 @@ function POSTabs({
     { key: "KITCHEN", label: "QR Orders" },
     { key: "PRODUCTION", label: "Produção" },
     { key: "HISTORY", label: "Histórico" },
-    { key: "FISCAL", label: "Faturação" },
-    { key: "DOCUMENTS", label: "Documentos" },
     { key: "STATS", label: "Estatísticas" },
   ];
 
@@ -3192,26 +2692,6 @@ function HistoryView({
                         minute: "2-digit",
                       })}
                     </p>
-                    {payment.fiscalDocument && (
-                      <div className="mt-3 rounded-xl border border-[#E8E0D4] bg-white px-3 py-2">
-                        <p className="text-xs font-black text-[#0E0D0C]">
-                          Documento fiscal:{" "}
-                          {payment.fiscalDocument.documentNumber ??
-                            "Sem número"}
-                        </p>
-
-                        {payment.fiscalDocument.pdfUrl && (
-                          <a
-                            href={payment.fiscalDocument.pdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-1 inline-block text-xs font-black text-[#B58A45] hover:underline"
-                          >
-                            Abrir PDF
-                          </a>
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   <p className="text-xl font-black tracking-[-0.04em] text-[#0E0D0C]">
@@ -3245,321 +2725,6 @@ function HistoryView({
               </div>
             );
           })}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function FiscalRequiredView({ onConfigure }: { onConfigure: () => void }) {
-  return (
-    <section className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-8 text-center">
-      <div className="max-w-xl">
-        <p className="text-[11px] font-black uppercase tracking-[0.36em] text-[#9B6F3B]">
-          Configuração obrigatória
-        </p>
-
-        <h2 className="mt-3 text-[34px] font-black tracking-[-0.06em] text-[#0E0D0C]">
-          Configure a faturação antes de usar o POS
-        </h2>
-
-        <p className="mt-3 text-sm font-medium leading-6 text-[#7D746A]">
-          Para abrir mesas, cobrar ou fechar vendas, o restaurante tem de ligar
-          a conta Moloni e escolher as séries fiscais de Fatura, Fatura
-          Simplificada e Nota de Crédito.
-        </p>
-
-        <button
-          onClick={onConfigure}
-          className="mt-7 rounded-2xl bg-[#11100F] px-7 py-4 text-sm font-black text-white"
-        >
-          Configurar Moloni
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function FiscalSerieSelect({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: any[];
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div>
-      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7C68]">
-        {label}
-      </label>
-
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-12 w-full rounded-xl border border-[#E8E0D4] bg-white px-4 text-sm font-black outline-none focus:border-[#B58A45]"
-      >
-        <option value="">Selecionar série</option>
-
-        {options.map((option) => (
-          <option
-            key={option.document_set_id}
-            value={String(option.document_set_id)}
-          >
-            {option.name ?? option.document_set_id}
-            {Array.isArray(option.document_set_at_codes) &&
-            option.document_set_at_codes.length === 0
-              ? " — não comunicada à AT"
-              : ""}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function FiscalSettingsView({
-  integration,
-  loading,
-  documentSets,
-  invoiceSerieId,
-  simplifiedInvoiceSerieId,
-  creditNoteSerieId,
-  savingSeries,
-  onChangeInvoiceSerieId,
-  onChangeSimplifiedInvoiceSerieId,
-  onChangeCreditNoteSerieId,
-  onSaveSeries,
-}: {
-  integration: any;
-  loading: boolean;
-  documentSets: any[];
-  invoiceSerieId: string;
-  simplifiedInvoiceSerieId: string;
-  creditNoteSerieId: string;
-  savingSeries: boolean;
-  onChangeInvoiceSerieId: (value: string) => void;
-  onChangeSimplifiedInvoiceSerieId: (value: string) => void;
-  onChangeCreditNoteSerieId: (value: string) => void;
-  onSaveSeries: () => void;
-}) {
-  return (
-    <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-6">
-      <div className="mb-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.36em] text-[#B58A45]">
-          Faturação
-        </p>
-
-        <h2 className="mt-2 text-[32px] font-black tracking-[-0.05em] text-[#0E0D0C]">
-          Integração Moloni
-        </h2>
-      </div>
-
-      {integration &&
-        (!integration.invoiceSerieId ||
-          !integration.simplifiedInvoiceSerieId ||
-          !integration.creditNoteSerieId) && (
-          <div className="mb-6 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-5">
-            <p className="font-black text-[#8B5E22]">Configuração incompleta</p>
-            <p className="mt-1 text-sm font-medium text-[#7D746A]">
-              Para ativar o POS, tens de configurar a série de fatura, fatura
-              simplificada e nota de crédito.
-            </p>
-          </div>
-        )}
-
-      {loading ? (
-        <p>A carregar...</p>
-      ) : !integration ? (
-        <div className="rounded-[28px] border border-[#E8E0D4] bg-[#FCFBF9] p-8">
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-[#B58A45]">
-            Configuração necessária
-          </p>
-
-          <h3 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#0E0D0C]">
-            Ligue o Moloni para emitir faturas legais
-          </h3>
-
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-7 text-[#7D746A]">
-            O MesaLink usa o Moloni para emitir faturas certificadas, faturas
-            simplificadas, notas de crédito, QR Code fiscal e SAFT. Depois de
-            configurado, pode emitir documentos diretamente no POS.
-          </p>
-
-          <div className="mt-7 grid gap-3 md:grid-cols-2">
-            <SetupStep
-              title="1. Criar conta Moloni"
-              text="Crie ou aceda à conta Moloni do restaurante."
-            />
-            <SetupStep
-              title="2. Criar séries fiscais"
-              text="No Moloni, crie séries para Fatura, Fatura Simplificada e Nota de Crédito."
-            />
-            <SetupStep
-              title="3. Comunicar séries à AT"
-              text="As séries têm de estar comunicadas/ativas antes de emitir documentos reais."
-            />
-            <SetupStep
-              title="4. Ligar ao MesaLink"
-              text="Depois de ligado, escolha as séries nesta página e guarde."
-            />
-          </div>
-
-          <div className="mt-7 rounded-2xl border border-[#F0D4A8] bg-[#FFF8EC] p-5">
-            <p className="font-black text-[#8B5E22]">Importante</p>
-            <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
-              Enquanto o Moloni não estiver configurado, o POS pode funcionar em
-              modo experimental, mas não deve ser usado para faturação legal.
-            </p>
-          </div>
-
-          <div className="mt-7 flex flex-wrap gap-3">
-            <a
-              href="https://www.moloni.pt/ac/root/logout/"
-              target="_blank"
-              className="rounded-full bg-[#11100F] px-6 py-3 text-sm font-black text-white"
-            >
-              Abrir Moloni
-            </a>
-
-            <a
-              href="https://www.moloni.pt/registo/"
-              target="_blank"
-              className="rounded-full border border-[#E8E0D4] bg-white px-6 py-3 text-sm font-black text-[#0E0D0C]"
-            >
-              Criar conta Moloni
-            </a>
-          </div>
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          <InfoCard label="Provider" value={integration.provider ?? "-"} />
-
-          <InfoCard label="Empresa" value={integration.companyId ?? "-"} />
-
-          <InfoCard label="Ativa" value={integration.active ? "Sim" : "Não"} />
-
-          <InfoCard
-            label="Série Fatura"
-            value={integration.invoiceSerieId ?? "-"}
-          />
-
-          <InfoCard
-            label="Série fatura simplificada"
-            value={integration.simplifiedInvoiceSerieId ?? "Não configurada"}
-          />
-
-          <InfoCard
-            label="Série nota de crédito"
-            value={integration.creditNoteSerieId ?? "Não configurada"}
-          />
-
-          <div className="col-span-full mt-8 w-full rounded-[32px] border border-[#E8E0D4] bg-[#FCFBF9] p-8">
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
-                  Configuração obrigatória
-                </p>
-
-                <h3 className="mt-2 text-3xl font-black tracking-[-0.05em] text-[#0E0D0C]">
-                  Séries fiscais
-                </h3>
-
-                <p className="mt-3 max-w-4xl text-sm font-medium leading-6 text-[#7D746A]">
-                  Para ativar o POS em modo real, escolhe as séries Moloni
-                  usadas para Fatura, Fatura Simplificada e Nota de Crédito.
-                </p>
-              </div>
-
-              <a
-                href="https://moloni.pt/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-12 shrink-0 items-center justify-center rounded-xl bg-[#11100F] px-6 text-sm font-black text-white transition hover:opacity-90"
-              >
-                Abrir Moloni
-              </a>
-            </div>
-
-            <div className="mt-7 grid gap-4 md:grid-cols-3">
-              <FiscalSerieSelect
-                label="Fatura"
-                value={invoiceSerieId}
-                options={documentSets}
-                onChange={onChangeInvoiceSerieId}
-              />
-
-              <FiscalSerieSelect
-                label="Fatura Simplificada"
-                value={simplifiedInvoiceSerieId}
-                options={documentSets}
-                onChange={onChangeSimplifiedInvoiceSerieId}
-              />
-
-              <FiscalSerieSelect
-                label="Nota de Crédito"
-                value={creditNoteSerieId}
-                options={documentSets}
-                onChange={onChangeCreditNoteSerieId}
-              />
-            </div>
-
-            <div className="mt-7 rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] p-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
-                Recomendação MesaLink
-              </p>
-
-              <h4 className="mt-2 text-xl font-black text-[#0E0D0C]">
-                Moloni ON é suficiente para começar
-              </h4>
-
-              <p className="mt-2 max-w-4xl text-sm font-medium leading-6 text-[#7D746A]">
-                Recomendamos o plano Moloni ON para usar faturação integrada no
-                MesaLink. Inclui API, SAF-T, comunicação de séries à AT,
-                clientes, artigos e documentos fiscais. Se precisar de mais
-                documentos ou funcionalidades, pode fazer upgrade diretamente no
-                Moloni.
-              </p>
-
-              <a
-                href="https://www.molonion.pt/molonion-vs-moloni/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-flex h-12 items-center justify-center rounded-xl bg-[#11100F] px-6 text-sm font-black text-white transition hover:opacity-90"
-              >
-                Ver planos Moloni
-              </a>
-            </div>
-
-            <div className="mt-7 rounded-2xl border border-[#E8E0D4] bg-white p-6">
-              <p className="font-black text-[#0E0D0C]">
-                Ainda não tem séries fiscais?
-              </p>
-
-              <div className="mt-3 grid gap-3 text-sm font-medium leading-6 text-[#7D746A] md:grid-cols-4">
-                <p>1. Abrir Moloni</p>
-                <p>2. Ir a Configurações → Séries de documentos</p>
-                <p>3. Criar/comunicar série à AT</p>
-                <p>4. Voltar ao MesaLink e guardar as séries</p>
-              </div>
-            </div>
-
-            <button
-              onClick={onSaveSeries}
-              disabled={
-                savingSeries ||
-                !invoiceSerieId ||
-                !simplifiedInvoiceSerieId ||
-                !creditNoteSerieId
-              }
-              className="mt-7 h-12 rounded-xl bg-[#11100F] px-7 text-sm font-black text-white disabled:opacity-40"
-            >
-              {savingSeries ? "A guardar..." : "Guardar séries"}
-            </button>
-          </div>
         </div>
       )}
     </section>
@@ -3686,158 +2851,6 @@ function ReportRow({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between gap-4 border-b border-[#E8E0D4] pb-2 last:border-b-0">
       <span className="text-sm font-bold text-[#7D746A]">{label}</span>
       <span className="text-sm font-black text-[#0E0D0C]">{value}</span>
-    </div>
-  );
-}
-
-function FiscalMetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-4">
-      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7C68]">
-        {label}
-      </p>
-      <p className="mt-2 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function FiscalDocumentsView() {
-  return (
-    <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E8E0D4] bg-white p-4 sm:p-6">
-      <div className="mb-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.36em] text-[#B58A45]">
-          Documentos
-        </p>
-
-        <h2 className="mt-2 text-[28px] font-black tracking-[-0.05em] text-[#0E0D0C] sm:text-[32px]">
-          Documentos fiscais
-        </h2>
-
-        <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-[#7D746A]">
-          Toda a faturação certificada é gerida diretamente no Moloni. Use esta
-          página apenas como guia rápido para faturas, notas de crédito e SAF-T.
-        </p>
-      </div>
-
-      <div className="rounded-[28px] border border-[#D8AE62] bg-[#FFF8EC] p-5 sm:p-7">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#9B6F3B]">
-              Moloni
-            </p>
-
-            <h3 className="mt-2 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
-              Abrir documentos fiscais
-            </h3>
-
-            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#7D746A]">
-              Consulte faturas, emita notas de crédito e exporte o SAF-T
-              diretamente na conta Moloni do restaurante.
-            </p>
-          </div>
-
-          <a
-            href="https://www.moloni.pt/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-12 w-full items-center justify-center rounded-2xl bg-[#11100F] px-6 text-sm font-black text-white transition hover:opacity-90 sm:w-fit"
-          >
-            Abrir Moloni
-          </a>
-        </div>
-      </div>
-
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        <FiscalHelpCard
-          icon="↩️"
-          title="Emitir Nota de Crédito"
-          steps={[
-            "Abrir Moloni",
-            "Ir a Documentos",
-            "Abrir Faturas ou Notas de Crédito",
-            "Escolher a fatura a corrigir",
-            "Criar Nota de Crédito",
-            "Emitir documento",
-          ]}
-        />
-
-        <FiscalHelpCard
-          icon="📦"
-          title="Exportar SAF-T"
-          steps={[
-            "Abrir Moloni",
-            "Ir a A. Tributária",
-            "Entrar em Ficheiro SAF-T (PT)",
-            "Escolher o período",
-            "Exportar o ficheiro",
-          ]}
-        />
-
-        <FiscalHelpCard
-          icon="📑"
-          title="Consultar Faturas"
-          steps={["Abrir Moloni", "Ir a Documentos", "Entrar em Faturas"]}
-        />
-
-        <FiscalHelpCard
-          icon="🧾"
-          title="Consultar Notas de Crédito"
-          steps={[
-            "Abrir Moloni",
-            "Ir a Documentos",
-            "Entrar em Notas de Crédito",
-          ]}
-        />
-      </div>
-
-      <div className="mt-5 rounded-[24px] border border-[#E8E0D4] bg-[#FCFBF9] p-5">
-        <p className="text-sm font-black text-[#0E0D0C]">
-          Informação importante
-        </p>
-
-        <p className="mt-2 text-sm font-medium leading-6 text-[#7D746A]">
-          As faturas emitidas não devem ser apagadas. Caso exista um erro, deve
-          ser emitida uma Nota de Crédito e, depois, uma nova fatura correta.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-function FiscalHelpCard({
-  icon,
-  title,
-  steps,
-}: {
-  icon: string;
-  title: string;
-  steps: string[];
-}) {
-  return (
-    <div className="rounded-[24px] border border-[#E8E0D4] bg-[#FCFBF9] p-5">
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-lg">
-          {icon}
-        </span>
-
-        <h3 className="text-lg font-black tracking-[-0.04em] text-[#0E0D0C]">
-          {title}
-        </h3>
-      </div>
-
-      <ol className="mt-4 space-y-2">
-        {steps.map((step, index) => (
-          <li
-            key={step}
-            className="flex gap-3 text-sm font-bold leading-5 text-[#6F665B]"
-          >
-            <span className="text-[#B58A45]">{index + 1}.</span>
-            <span>{step}</span>
-          </li>
-        ))}
-      </ol>
     </div>
   );
 }
@@ -5369,15 +4382,6 @@ function CartLineEditorModal({
     item?.discountAmount ? String(item.discountAmount) : "",
   );
   const [notes, setNotes] = useState(item?.notes ?? "");
-  const [creditNoteDocument, setCreditNoteDocument] =
-    useState<FiscalDocument | null>(null);
-
-  const [creditNoteReason, setCreditNoteReason] = useState(
-    "Anulação de documento",
-  );
-
-  const [creatingCreditNote, setCreatingCreditNote] = useState(false);
-
   useEffect(() => {
     if (!item) return;
 
@@ -5454,7 +4458,6 @@ function CartLineEditorModal({
     />
   );
 }
-
 function LineEditorModal({
   line,
   loading,
@@ -5886,199 +4889,6 @@ function PartialPaymentModal({
   );
 }
 
-function CreditNoteModal({
-  document,
-  reason,
-  loading,
-  onChangeReason,
-  onClose,
-  onConfirm,
-}: {
-  document: FiscalDocument;
-  reason: string;
-  loading: boolean;
-  onChangeReason: (value: string) => void;
-  onClose: () => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-[#B58A45]">
-          Nota de crédito
-        </p>
-
-        <h3 className="mt-3 text-3xl font-black text-[#0E0D0C]">
-          Anular documento
-        </h3>
-
-        <p className="mt-2 text-sm text-[#7D746A]">
-          Documento: {document.documentNumber ?? "Sem número"} ·{" "}
-          {formatMoney(document.totalAmount)}
-        </p>
-
-        <div className="mt-5">
-          <label className="mb-2 block text-xs font-black uppercase tracking-[0.2em] text-[#7D746A]">
-            Motivo
-          </label>
-
-          <textarea
-            value={reason}
-            onChange={(event) => onChangeReason(event.target.value)}
-            className="min-h-28 w-full rounded-2xl border border-[#E8E0D4] p-4 text-sm outline-none focus:border-[#B58A45]"
-          />
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 gap-2">
-          <button
-            onClick={onClose}
-            disabled={loading}
-            className="h-12 rounded-xl border border-[#E8E0D4] font-black"
-          >
-            Cancelar
-          </button>
-
-          <button
-            onClick={onConfirm}
-            disabled={loading}
-            className="h-12 rounded-xl bg-[#B4583C] font-black text-white disabled:opacity-50"
-          >
-            {loading ? "A emitir..." : "Emitir NC"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InvoiceModal({
-  vat,
-  name,
-  address,
-  email,
-  customerType,
-  loading,
-  onChangeVat,
-  onChangeName,
-  onChangeAddress,
-  onChangeEmail,
-  onChangeCustomerType,
-  onFetchVatData,
-  onClose,
-  onConfirm,
-}: {
-  vat: string;
-  name: string;
-  address: string;
-  email: string;
-  customerType: "FINAL_CONSUMER" | "VAT";
-  loading: boolean;
-  onChangeVat: (value: string) => void;
-  onChangeName: (value: string) => void;
-  onChangeAddress: (value: string) => void;
-  onChangeEmail: (value: string) => void;
-  onChangeCustomerType: (value: "FINAL_CONSUMER" | "VAT") => void;
-  onFetchVatData: () => void;
-  onClose: () => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-xl">
-        <h3 className="text-3xl font-black">Emitir documento</h3>
-
-        <p className="mt-2 text-sm text-[#6B6B6B]">
-          Escolhe o tipo de cliente e os dados fiscais.
-        </p>
-
-        <div className="mt-6 grid gap-2">
-          <button
-            onClick={() => onChangeCustomerType("FINAL_CONSUMER")}
-            className={
-              customerType === "FINAL_CONSUMER"
-                ? "rounded-xl border border-[#C99B4F] bg-[#FFF8EC] px-4 py-3 text-left font-black"
-                : "rounded-xl border px-4 py-3 text-left"
-            }
-          >
-            Consumidor Final
-          </button>
-
-          <button
-            onClick={() => onChangeCustomerType("VAT")}
-            className={
-              customerType === "VAT"
-                ? "rounded-xl border border-[#C99B4F] bg-[#FFF8EC] px-4 py-3 text-left font-black"
-                : "rounded-xl border px-4 py-3 text-left"
-            }
-          >
-            Cliente com NIF
-          </button>
-        </div>
-
-        {customerType === "VAT" && (
-          <div className="mt-6 space-y-4">
-            <div className="flex gap-2">
-              <input
-                placeholder="NIF"
-                value={vat}
-                onChange={(e) => onChangeVat(e.target.value)}
-                className="h-12 flex-1 rounded-xl border px-4"
-              />
-
-              <button
-                onClick={onFetchVatData}
-                type="button"
-                className="rounded-xl border px-4 font-black"
-              >
-                Obter dados
-              </button>
-            </div>
-
-            <input
-              placeholder="Nome"
-              value={name}
-              onChange={(e) => onChangeName(e.target.value)}
-              className="h-12 w-full rounded-xl border px-4"
-            />
-
-            <input
-              placeholder="Morada Fiscal"
-              value={address}
-              onChange={(e) => onChangeAddress(e.target.value)}
-              className="h-12 w-full rounded-xl border px-4"
-            />
-
-            <input
-              placeholder="Email"
-              value={email}
-              onChange={(e) => onChangeEmail(e.target.value)}
-              className="h-12 w-full rounded-xl border px-4"
-            />
-          </div>
-        )}
-
-        <div className="mt-6 grid grid-cols-2 gap-2">
-          <button onClick={onClose} className="h-12 rounded-xl border">
-            Cancelar
-          </button>
-
-          <button
-            onClick={onConfirm}
-            disabled={loading}
-            className="h-12 rounded-xl bg-[#11100F] font-black text-white"
-          >
-            {loading
-              ? "A emitir..."
-              : customerType === "FINAL_CONSUMER"
-                ? "Emitir Fatura Simplificada"
-                : "Emitir Fatura"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function PaymentModal({
   tableNumber,
   total,
@@ -6090,8 +4900,6 @@ function PaymentModal({
   onChangeMethod,
   onClose,
   onConfirm,
-  fiscalReady,
-  onCreateInvoice,
 }: {
   tableNumber: number;
   total: number;
@@ -6099,12 +4907,10 @@ function PaymentModal({
   splitCount: number;
   method: PaymentMethod;
   loading: boolean;
-  fiscalReady: boolean;
   onChangeSplitCount: (value: number) => void;
   onChangeMethod: (method: PaymentMethod) => void;
   onClose: () => void;
   onConfirm: () => void;
-  onCreateInvoice: () => void;
 }) {
   const safeSplit = Math.max(1, splitCount);
   const splitAmount = total / safeSplit;
@@ -6245,26 +5051,12 @@ function PaymentModal({
         </div>
 
         <div className="mt-6 grid gap-2">
-          {fiscalReady && (
-            <button
-              onClick={onCreateInvoice}
-              disabled={loading}
-              className="flex h-14 w-full items-center justify-center rounded-2xl border border-[#D8AE62] bg-[#FFF8EC] text-sm font-black text-[#8B5E22] transition hover:bg-[#FBF4E8] disabled:opacity-50"
-            >
-              Cobrar e emitir fatura
-            </button>
-          )}
-
           <button
             onClick={onConfirm}
             disabled={loading}
             className="flex h-14 w-full items-center justify-center rounded-2xl bg-[#C99B4F] text-sm font-black text-white shadow-[0_16px_34px_rgba(201,155,79,0.28)] transition hover:bg-[#B98A3E] disabled:opacity-50"
           >
-            {loading
-              ? "A fechar..."
-              : fiscalReady
-                ? "Cobrar sem fatura"
-                : "Fechar mesa"}
+            {loading ? "A fechar..." : "Fechar mesa"}
           </button>
         </div>
       </div>

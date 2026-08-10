@@ -77,19 +77,6 @@ export default async function BillingSuccessPage({
             </div>
           </div>
 
-          <div className="mt-8 rounded-[28px] border border-[#D8C5A5] bg-[#17130F] p-5 text-left text-white">
-            <h2 className="font-semibold text-[#D8C5A5]">
-              Nota sobre faturação fiscal
-            </h2>
-
-            <p className="mt-3 text-sm leading-6 text-white/68">
-              A faturação fiscal é tratada externamente por um software
-              certificado à sua escolha. A MesaLink mantém reservas, clientes,
-              QR Ordering, website, reviews e marketing ligados na mesma
-              operação.
-            </p>
-          </div>
-
           <Link
             href="/dashboard"
             className="mt-8 inline-flex h-14 w-full items-center justify-center rounded-full bg-[#16120E] px-8 font-semibold text-white shadow-[0_18px_50px_rgba(23,19,15,0.18)] transition hover:bg-[#2A2118]"

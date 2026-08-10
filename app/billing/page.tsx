@@ -293,7 +293,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           />
         </section>
 
-        <section className="mt-7 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="mt-7">
           <div className="rounded-[34px] border border-[#D8C5A5] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">
               Restaurant Essentials
@@ -317,26 +317,6 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
             </div>
           </div>
 
-          <div className="rounded-[34px] border border-[#D8C5A5] bg-[#FFF9F0] p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">
-              Faturação fiscal
-            </p>
-
-            <h3 className="mt-3 text-3xl font-semibold tracking-[-0.055em]">
-              Faturação fiscal tratada fora da MesaLink.
-            </h3>
-
-            <p className="mt-3 text-sm leading-6 text-[#6B6258]">
-              A faturação fiscal é tratada externamente por um software
-              certificado à sua escolha. Esse custo não é cobrado pela
-              MesaLink.
-            </p>
-
-            <p className="mt-4 rounded-2xl border border-[#D8C5A5] bg-white px-4 py-3 text-sm font-semibold text-[#16120E]">
-              A MesaLink mantém reservas, clientes, QR Ordering, website,
-              reviews e marketing ligados na mesma operação.
-            </p>
-          </div>
         </section>
       </section>
     </main>

@@ -69,18 +69,6 @@ export async function POST(
         },
       });
 
-      const fiscalDocument = await tx.fiscalDocument.create({
-        data: {
-          restaurantId,
-          paymentId: payment.id,
-          tableSessionId: session.id,
-          documentType: "SIMPLIFIED_INVOICE",
-          status: "DRAFT",
-          provider: "MOLONI",
-          totalAmount: amount,
-        },
-      });
-
       await tx.pOSTableSession.update({
         where: {
           id: session.id,
@@ -104,16 +92,12 @@ export async function POST(
         },
       });
 
-      return {
-        payment,
-        fiscalDocument,
-      };
+      return payment;
     });
 
     return NextResponse.json({
       success: true,
-      paymentId: result.payment.id,
-      fiscalDocumentId: result.fiscalDocument.id,
+      paymentId: result.id,
     });
   } catch (error: any) {
     console.error("POS PAYMENT ERROR:", error);

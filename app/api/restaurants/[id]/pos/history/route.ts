@@ -20,8 +20,6 @@ export async function GET(
       take: 100,
 
       include: {
-        fiscalDocument: true,
-       
         tableSession: {
           include: {
             table: true,

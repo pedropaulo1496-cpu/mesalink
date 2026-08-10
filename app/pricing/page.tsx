@@ -53,7 +53,6 @@ const comparison = [
   ["CRM", "Folhas ou ferramenta externa", "Incluído"],
   ["Marketing", "Campanhas manuais", "Growth"],
   ["Reviews", "Sem processo claro", "Incluído"],
-  ["Faturação fiscal", "Software certificado externo", "Tratada fora da MesaLink"],
 ];
 
 const faqs = [
@@ -75,11 +74,6 @@ const faqs = [
   {
     question: "Há comissões por reserva?",
     answer: "Não. A MesaLink não cobra comissão por reserva.",
-  },
-  {
-    question: "E a faturação fiscal?",
-    answer:
-      "A faturação fiscal é tratada externamente por um software certificado à sua escolha. Esse custo não é cobrado pela MesaLink.",
   },
   {
     question: "Posso cancelar?",
