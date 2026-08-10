@@ -417,7 +417,8 @@ function PlanCard({
 
   return (
     <div
-      className={`relative flex h-full min-h-[660px] flex-col overflow-hidden rounded-[38px] border p-8 shadow-[0_24px_80px_rgba(80,55,30,0.08)] ${
+      data-plan-card={title.toLowerCase()}
+      className={`relative flex h-full min-h-0 flex-col overflow-hidden rounded-[30px] border p-5 shadow-[0_24px_80px_rgba(80,55,30,0.08)] sm:min-h-[660px] sm:rounded-[38px] sm:p-8 ${
         highlighted
           ? "border-[#2C2117] bg-[#17130F] text-white"
           : "border-[#D8C5A5] bg-white text-[#16120E]"
@@ -428,7 +429,7 @@ function PlanCard({
       )}
 
       <div className="relative flex h-full flex-col">
-        <div className="flex min-h-[94px] items-start justify-between gap-4">
+        <div className="flex flex-col items-start gap-3 sm:min-h-[94px] sm:flex-row sm:justify-between sm:gap-4">
           <div>
             <p
               className={`text-xs font-black uppercase tracking-[0.28em] ${
@@ -438,13 +439,13 @@ function PlanCard({
               MesaLink
             </p>
 
-            <h2 className="mt-3 text-5xl font-semibold tracking-[-0.07em]">
+            <h2 className="mt-3 text-4xl font-semibold tracking-[-0.07em] sm:text-5xl">
               {title}
             </h2>
           </div>
 
           <span
-            className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] ${
+            className={`w-fit max-w-full rounded-full border px-3 py-1.5 text-center text-[10px] font-black uppercase leading-tight tracking-[0.14em] ${
               active
                 ? "border-[#A7D8AA] bg-[#E9F7EA] text-[#3F6A4D]"
                 : highlighted
@@ -457,7 +458,7 @@ function PlanCard({
         </div>
 
         <p
-          className={`mt-5 min-h-[72px] text-sm leading-7 ${
+          className={`mt-4 text-sm leading-7 sm:mt-5 sm:min-h-[72px] ${
             highlighted ? "text-white/68" : "text-[#6B6258]"
           }`}
         >
@@ -465,7 +466,7 @@ function PlanCard({
         </p>
 
         <div className="mt-6 flex items-end gap-2">
-          <span className="text-7xl font-semibold tracking-[-0.08em]">
+          <span className="text-6xl font-semibold tracking-[-0.08em] sm:text-7xl">
             {price}
           </span>
           <span
@@ -494,16 +495,16 @@ function PlanCard({
             Pagamento anual
           </p>
 
-          <p className="mt-1 text-xs">
+          <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs leading-5">
             <span
               className={
                 highlighted ? "font-black text-white" : "font-black text-[#16120E]"
               }
             >
               {yearlyPrice}/ano
-            </span>{" "}
-            · 1 mês grátis · poupa {saving}
-          </p>
+            </span>
+            <span>1 mês grátis · poupa {saving}</span>
+          </div>
         </div>
 
         <ul className="mt-7 grid gap-3 sm:grid-cols-2">

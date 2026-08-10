@@ -34,12 +34,12 @@ export default function CheckoutButton({
 
   const className =
     variant === "gold"
-      ? "flex h-14 w-full items-center justify-center rounded-full bg-[#D8C5A5] px-5 text-sm font-semibold text-[#17130F] shadow-[0_18px_50px_rgba(216,197,165,0.18)] transition hover:bg-[#E8D6B8]"
+      ? "flex min-h-14 w-full items-center justify-center rounded-full bg-[#D8C5A5] px-5 py-3 text-center text-sm font-semibold leading-tight text-[#17130F] shadow-[0_18px_50px_rgba(216,197,165,0.18)] transition hover:bg-[#E8D6B8]"
       : variant === "goldOutline"
-        ? "flex h-14 w-full items-center justify-center rounded-full border border-[#D8C5A5]/45 bg-white/[0.06] px-5 text-sm font-semibold text-[#D8C5A5] transition hover:bg-white/[0.10]"
+        ? "flex min-h-14 w-full items-center justify-center rounded-full border border-[#D8C5A5]/45 bg-white/[0.06] px-5 py-3 text-center text-sm font-semibold leading-tight text-[#D8C5A5] transition hover:bg-white/[0.10]"
         : variant === "outline"
-          ? "flex h-14 w-full items-center justify-center rounded-full border border-[#D8C5A5] bg-[#FFF9F0] px-5 text-sm font-semibold text-[#9B6F3B] transition hover:bg-white"
-          : "flex h-14 w-full items-center justify-center rounded-full bg-[#17130F] px-5 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(23,19,15,0.18)] transition hover:bg-[#2A2118]";
+          ? "flex min-h-14 w-full items-center justify-center rounded-full border border-[#D8C5A5] bg-[#FFF9F0] px-5 py-3 text-center text-sm font-semibold leading-tight text-[#9B6F3B] transition hover:bg-white"
+          : "flex min-h-14 w-full items-center justify-center rounded-full bg-[#17130F] px-5 py-3 text-center text-sm font-semibold leading-tight text-white shadow-[0_18px_50px_rgba(23,19,15,0.18)] transition hover:bg-[#2A2118]";
 
   return (
     <button type="button" onClick={startCheckout} className={className}>

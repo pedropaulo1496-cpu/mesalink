@@ -816,28 +816,31 @@ function PricingCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-[44px] p-8 shadow-[0_35px_120px_rgba(24,21,18,0.16)] ${
+      data-plan-card={name.toLowerCase()}
+      className={`relative overflow-hidden rounded-[32px] p-5 shadow-[0_35px_120px_rgba(24,21,18,0.16)] sm:rounded-[44px] sm:p-8 ${
         featured
           ? "bg-[#211912] text-white"
           : "border border-[#D8C5A5] bg-[#FFF9F0] text-[#17130F]"
       }`}
     >
-      {featured && (
-        <div className="absolute right-6 top-6 rounded-full bg-[#D8C5A5] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#17130F]">
-          Mais vendido
-        </div>
-      )}
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p
+          className={`text-sm font-semibold uppercase tracking-[0.22em] ${
+            featured ? "text-[#D8C5A5]" : "text-[#9B6F3B]"
+          }`}
+        >
+          MesaLink {name}
+        </p>
 
-      <p
-        className={`text-sm font-semibold uppercase tracking-[0.22em] ${
-          featured ? "text-[#D8C5A5]" : "text-[#9B6F3B]"
-        }`}
-      >
-        MesaLink {name}
-      </p>
+        {featured && (
+          <div className="w-fit max-w-full rounded-full bg-[#D8C5A5] px-4 py-2 text-center text-xs font-semibold uppercase leading-tight tracking-[0.16em] text-[#17130F]">
+            Mais vendido
+          </div>
+        )}
+      </div>
 
       <div className="mt-6 flex items-end gap-2">
-        <span className="text-7xl font-semibold tracking-[-0.08em]">
+        <span className="text-6xl font-semibold tracking-[-0.08em] sm:text-7xl">
           {price}
         </span>
         <span className={featured ? "mb-3 text-white/65" : "mb-3 text-[#6B6258]"}>
@@ -852,10 +855,15 @@ function PricingCard({
             : "border border-[#D8C5A5] bg-white text-[#6B6258]"
         }`}
       >
-        <strong className={featured ? "text-[#D8C5A5]" : "text-[#9B6F3B]"}>
-          Anual: {yearlyPrice}/ano
-        </strong>{" "}
-        · 1 mês grátis
+        <p className={`font-semibold ${featured ? "text-[#D8C5A5]" : "text-[#9B6F3B]"}`}>
+          Pagamento anual
+        </p>
+        <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1 leading-5">
+          <strong className={featured ? "text-white" : "text-[#17130F]"}>
+            {yearlyPrice}/ano
+          </strong>
+          <span>1 mês grátis</span>
+        </div>
       </div>
 
       <p
@@ -893,7 +901,7 @@ function PricingCard({
 
       <Button
         asChild
-        className={`mt-8 h-14 w-full rounded-full text-base font-semibold ${
+        className={`mt-8 min-h-14 h-auto w-full whitespace-normal rounded-full px-5 py-3 text-center text-base font-semibold leading-tight ${
           featured
             ? "bg-[#D8C5A5] text-[#17130F] hover:bg-[#E8D6B8]"
             : "bg-[#17130F] text-white hover:bg-[#2A2118]"

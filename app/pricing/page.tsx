@@ -160,22 +160,26 @@ export default function PricingPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 border-y border-[#E5D6C1] bg-white/50 p-4 text-xs font-black uppercase tracking-[0.16em] text-[#9B6F3B] sm:text-sm">
-              <div>Necessidade</div>
-              <div>Tradicional</div>
-              <div>MesaLink</div>
-            </div>
+            <div className="overflow-x-auto">
+              <div className="min-w-[620px]">
+                <div className="grid grid-cols-3 border-y border-[#E5D6C1] bg-white/50 p-4 text-xs font-black uppercase tracking-[0.16em] text-[#9B6F3B] sm:text-sm">
+                  <div>Necessidade</div>
+                  <div>Tradicional</div>
+                  <div>MesaLink</div>
+                </div>
 
-            {comparison.map(([need, traditional, mesalink]) => (
-              <div
-                key={need}
-                className="grid grid-cols-3 border-b border-[#E5D6C1] p-4 text-sm last:border-b-0 sm:p-5 sm:text-base"
-              >
-                <div className="font-semibold text-[#17130F]">{need}</div>
-                <div className="text-[#6B6258]">{traditional}</div>
-                <div className="font-semibold text-[#9B6F3B]">{mesalink}</div>
+                {comparison.map(([need, traditional, mesalink]) => (
+                  <div
+                    key={need}
+                    className="grid grid-cols-3 border-b border-[#E5D6C1] p-4 text-sm last:border-b-0 sm:p-5 sm:text-base"
+                  >
+                    <div className="font-semibold text-[#17130F]">{need}</div>
+                    <div className="text-[#6B6258]">{traditional}</div>
+                    <div className="font-semibold text-[#9B6F3B]">{mesalink}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </section>
 
           <section className="mt-12 rounded-[38px] border border-[#D8C5A5] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)] sm:p-8">
@@ -238,7 +242,8 @@ function PlanCard({
 }) {
   return (
     <div
-      className={`relative flex min-h-[650px] flex-col overflow-hidden rounded-[38px] border p-8 shadow-[0_24px_80px_rgba(80,55,30,0.08)] ${
+      data-plan-card={plan.name.toLowerCase()}
+      className={`relative flex min-h-0 flex-col overflow-hidden rounded-[30px] border p-5 shadow-[0_24px_80px_rgba(80,55,30,0.08)] sm:min-h-[650px] sm:rounded-[38px] sm:p-8 ${
         plan.highlighted
           ? "border-[#2C2117] bg-[#17130F] text-white"
           : "border-[#D8C5A5] bg-white text-[#16120E]"
@@ -249,7 +254,7 @@ function PlanCard({
       )}
 
       <div className="relative flex h-full flex-col">
-        <div className="flex min-h-[94px] items-start justify-between gap-4">
+        <div className="flex flex-col items-start gap-3 sm:min-h-[94px] sm:flex-row sm:justify-between sm:gap-4">
           <div>
             <p
               className={`text-xs font-black uppercase tracking-[0.28em] ${
@@ -259,13 +264,13 @@ function PlanCard({
               MesaLink
             </p>
 
-            <h2 className="mt-3 text-5xl font-semibold tracking-[-0.07em]">
+            <h2 className="mt-3 text-4xl font-semibold tracking-[-0.07em] sm:text-5xl">
               {plan.name}
             </h2>
           </div>
 
           <span
-            className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] ${
+            className={`w-fit max-w-full rounded-full border px-3 py-1.5 text-center text-[10px] font-black uppercase leading-tight tracking-[0.14em] ${
               plan.highlighted
                 ? "border-[#D8C5A5]/30 bg-[#F4E9D5] text-[#17130F]"
                 : "border-[#D8C5A5] bg-[#FFF9F0] text-[#9B6F3B]"
@@ -276,7 +281,7 @@ function PlanCard({
         </div>
 
         <p
-          className={`mt-5 min-h-[72px] text-sm leading-7 ${
+          className={`mt-4 text-sm leading-7 sm:mt-5 sm:min-h-[72px] ${
             plan.highlighted ? "text-white/68" : "text-[#6B6258]"
           }`}
         >
@@ -284,7 +289,7 @@ function PlanCard({
         </p>
 
         <div className="mt-6 flex items-end gap-2">
-          <span className="text-7xl font-semibold tracking-[-0.08em]">
+          <span className="text-6xl font-semibold tracking-[-0.08em] sm:text-7xl">
             {plan.price}
           </span>
           <span
@@ -313,16 +318,16 @@ function PlanCard({
             Pagamento anual
           </p>
 
-          <p className="mt-1 text-xs">
+          <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs leading-5">
             <span
               className={
                 plan.highlighted ? "font-black text-white" : "font-black text-[#16120E]"
               }
             >
               {plan.yearlyPrice}/ano
-            </span>{" "}
-            · 1 mês grátis · poupa {plan.saving}
-          </p>
+            </span>
+            <span>1 mês grátis · poupa {plan.saving}</span>
+          </div>
         </div>
 
         <ul className="mt-7 grid gap-3 sm:grid-cols-2">
@@ -344,7 +349,7 @@ function PlanCard({
         <div className="mt-auto grid gap-2 pt-8 sm:grid-cols-2">
           <Link
             href={plan.href}
-            className={`flex h-14 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition ${
+            className={`flex min-h-14 w-full items-center justify-center rounded-full px-5 py-3 text-center text-sm font-semibold leading-tight transition ${
               plan.highlighted
                 ? "bg-[#D8C5A5] text-[#17130F] hover:bg-[#E8D6B8]"
                 : "bg-[#17130F] text-white hover:bg-[#2A2118]"
@@ -355,7 +360,7 @@ function PlanCard({
 
           <Link
             href={`${plan.href}?billing=yearly&plan=${plan.name.toLowerCase()}`}
-            className={`flex h-14 w-full items-center justify-center rounded-full border px-5 text-sm font-semibold transition ${
+            className={`flex min-h-14 w-full items-center justify-center rounded-full border px-5 py-3 text-center text-sm font-semibold leading-tight transition ${
               plan.highlighted
                 ? "border-[#D8C5A5]/45 bg-white/[0.06] text-[#D8C5A5] hover:bg-white/[0.10]"
                 : "border-[#D8C5A5] bg-[#FFF9F0] text-[#9B6F3B] hover:bg-white"

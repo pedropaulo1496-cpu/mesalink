@@ -345,11 +345,12 @@ function MiniPlanRow({
 }) {
   return (
     <div
-      className={`flex items-center justify-between gap-4 border-b border-[#E5D6C1] p-5 last:border-b-0 ${
+      data-plan-card={name.toLowerCase()}
+      className={`flex flex-col items-stretch gap-4 border-b border-[#E5D6C1] p-5 last:border-b-0 min-[360px]:flex-row min-[360px]:items-center min-[360px]:justify-between ${
         featured ? "bg-[#17130F] text-white" : "bg-[#FFF9F0]"
       }`}
     >
-      <div>
+      <div className="min-w-0">
         <p
           className={`text-xs font-semibold uppercase tracking-[0.22em] ${
             featured ? "text-[#D8C5A5]" : "text-[#9B6F3B]"
@@ -363,20 +364,19 @@ function MiniPlanRow({
         </p>
       </div>
 
-      <div className="shrink-0 text-right">
+      <div className="flex shrink-0 items-end justify-between gap-3 min-[360px]:block min-[360px]:text-right">
         {featured && (
-          <p className="mb-1 rounded-full bg-[#D8C5A5] px-2 py-1 text-[10px] font-semibold text-[#17130F]">
+          <p className="mb-1 w-fit max-w-full rounded-full bg-[#D8C5A5] px-2 py-1 text-center text-[10px] font-semibold leading-tight text-[#17130F] min-[360px]:ml-auto">
             Melhor
           </p>
         )}
 
-        <p className="text-3xl font-semibold tracking-[-0.075em]">
-          {price}
-        </p>
-
-        <p className={`text-xs ${featured ? "text-white/55" : "text-[#6B6258]"}`}>
-          /mês
-        </p>
+        <div className="whitespace-nowrap">
+          <p className="text-3xl font-semibold tracking-[-0.075em]">{price}</p>
+          <p className={`text-xs ${featured ? "text-white/55" : "text-[#6B6258]"}`}>
+            /mês
+          </p>
+        </div>
       </div>
     </div>
   );
