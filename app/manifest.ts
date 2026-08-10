@@ -7,11 +7,11 @@ export default function manifest(): MetadataRoute.Manifest {
     description:
       "Reservas online, QR Ordering, website e marketing para restaurantes.",
     id: "/",
-    start_url: "/login",
+    start_url: "/dashboard",
     scope: "/",
     display: "standalone",
     orientation: "portrait-primary",
-    background_color: "#070504",
+    background_color: "#F4ECDF",
     theme_color: "#C8A56A",
     icons: [
       {

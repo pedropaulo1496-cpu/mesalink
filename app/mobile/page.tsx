@@ -3,7 +3,7 @@
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 const brand = {
   mesa: "#C8A56A",
@@ -614,10 +614,18 @@ function Glow() {
 }
 
 function StickyCTA() {
+  const [isAndroid, setIsAndroid] = useState(false);
+
+  useEffect(() => {
+    setIsAndroid(/Android/i.test(navigator.userAgent));
+  }, []);
+
+  if (!isAndroid) return null;
+
   return (
     <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
       <a
-        href="/downloads/MesaLink-Android-v1.0.1.apk"
+        href="/downloads/MesaLink-Android-v1.0.2.apk"
         download
         className="pointer-events-auto mx-auto flex max-w-md items-center gap-3 rounded-[22px] border border-white/10 bg-[#17130F] p-2 pr-4 text-white shadow-[0_22px_65px_rgba(23,19,15,0.38)] transition hover:-translate-y-0.5 hover:bg-[#241D17]"
       >

@@ -60,7 +60,7 @@ const essentials = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#F4ECDF] pb-24 text-[#17130F] sm:pb-0">
+    <main className="min-h-screen overflow-hidden bg-[#F4ECDF] text-[#17130F]">
       <Header />
 
       <Hero />
@@ -79,27 +79,6 @@ export default function HomePage() {
       <FinalCTA />
 
       <Footer />
-
-      <a
-        href="/downloads/MesaLink-Android-v1.0.1.apk"
-        download
-        className="fixed bottom-4 left-1/2 z-[70] flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-3 rounded-[22px] border border-white/10 bg-[#17130F] p-2 pr-4 text-white shadow-[0_22px_65px_rgba(23,19,15,0.38)] transition hover:-translate-y-0.5 hover:bg-[#241D17]"
-      >
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#C8A56A] text-xl font-bold text-[#17130F]">
-          ↓
-        </span>
-        <span className="min-w-0 flex-1 text-left">
-          <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#C8A56A]">
-            MesaLink para Android
-          </span>
-          <span className="mt-0.5 block text-sm font-semibold">
-            Descarregar aplicação
-          </span>
-        </span>
-        <span className="rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold tracking-[0.12em] text-white/80">
-          APK
-        </span>
-      </a>
     </main>
   );
 }
