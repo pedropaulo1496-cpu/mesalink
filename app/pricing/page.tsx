@@ -53,7 +53,7 @@ const comparison = [
   ["CRM", "Folhas ou ferramenta externa", "Incluído"],
   ["Marketing", "Campanhas manuais", "Growth"],
   ["Reviews", "Sem processo claro", "Incluído"],
-  ["Faturação fiscal", "Software certificado externo", "Integrado"],
+  ["Faturação fiscal", "Software certificado externo", "Tratada fora da MesaLink"],
 ];
 
 const faqs = [
