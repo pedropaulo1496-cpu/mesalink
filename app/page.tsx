@@ -60,7 +60,7 @@ const essentials = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#F4ECDF] text-[#17130F]">
+    <main className="min-h-screen overflow-hidden bg-[#F4ECDF] pb-24 text-[#17130F] sm:pb-0">
       <Header />
 
       <Hero />
@@ -79,6 +79,14 @@ export default function HomePage() {
       <FinalCTA />
 
       <Footer />
+
+      <a
+        href="/downloads/MesaLink-Android-v1.0.1.apk"
+        download
+        className="fixed bottom-4 left-4 right-4 z-[70] flex h-14 items-center justify-center rounded-full border border-[#E4C990] bg-[#C8A56A] px-5 text-center text-sm font-bold text-[#17130F] shadow-[0_18px_50px_rgba(23,19,15,0.38)] sm:hidden"
+      >
+        ↓ Descarregar MesaLink para Android
+      </a>
     </main>
   );
 }
@@ -99,12 +107,22 @@ function Header() {
           <Link href="/login">Entrar</Link>
         </div>
 
-        <Link
-          href="/register"
-          className="rounded-full bg-[#17130F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
-        >
-          Começar
-        </Link>
+        <div className="flex items-center gap-3">
+          <a
+            href="/downloads/MesaLink-Android-v1.0.1.apk"
+            download
+            className="hidden rounded-full border border-[#B9965E] bg-[#FFF9F0] px-5 py-2.5 text-sm font-semibold text-[#17130F] transition hover:bg-white xl:inline-flex"
+          >
+            Descarregar Android
+          </a>
+
+          <Link
+            href="/register"
+            className="rounded-full bg-[#17130F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+          >
+            Começar
+          </Link>
+        </div>
       </nav>
     </header>
   );
