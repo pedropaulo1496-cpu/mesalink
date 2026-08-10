@@ -133,7 +133,7 @@ function Hero() {
             aumentar receita, recuperar clientes e reduzir trabalho manual.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Button
               asChild
               className="h-14 rounded-full bg-[#17130F] px-8 text-base font-semibold text-white shadow-[0_24px_70px_rgba(80,55,30,0.24)] hover:bg-[#2A2118]"
@@ -147,6 +147,15 @@ function Hero() {
               className="h-14 rounded-full border-[#B9965E] bg-[#FFF9F0] px-8 text-base font-semibold text-[#17130F] hover:bg-white"
             >
               <Link href="/contact">Pedir demonstração</Link>
+            </Button>
+
+            <Button
+              asChild
+              className="h-14 rounded-full bg-[#C8A56A] px-8 text-base font-semibold text-[#17130F] shadow-[0_18px_50px_rgba(155,111,59,0.22)] hover:bg-[#D8B97E]"
+            >
+              <a href="/downloads/MesaLink-Android-v1.0.1.apk" download>
+                ↓ Descarregar app Android
+              </a>
             </Button>
           </div>
 
