@@ -83,9 +83,9 @@ export default function HomePage() {
       <a
         href="/downloads/MesaLink-Android-v1.0.1.apk"
         download
-        className="fixed bottom-4 left-4 right-4 z-[70] flex h-14 items-center justify-center rounded-full border border-[#E4C990] bg-[#C8A56A] px-5 text-center text-sm font-bold text-[#17130F] shadow-[0_18px_50px_rgba(23,19,15,0.38)] sm:hidden"
+        className="fixed bottom-4 left-1/2 z-[70] flex h-14 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center justify-center rounded-full border border-[#E4C990] bg-[#C8A56A] px-5 text-center text-sm font-bold text-[#17130F] shadow-[0_18px_50px_rgba(23,19,15,0.38)]"
       >
-        ↓ Descarregar MesaLink para Android
+        ↓ Descarregar App MesaLink
       </a>
     </main>
   );
@@ -108,18 +108,9 @@ function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          <a
-            href="/downloads/MesaLink-Android-v1.0.1.apk"
-            download
-            className="inline-flex rounded-full border border-[#B9965E] bg-[#C8A56A] px-4 py-2.5 text-xs font-bold text-[#17130F] transition hover:bg-[#D8B97E] xl:px-5 xl:text-sm"
-          >
-            <span className="xl:hidden">App Android</span>
-            <span className="hidden xl:inline">Descarregar Android</span>
-          </a>
-
           <Link
             href="/register"
-            className="hidden rounded-full bg-[#17130F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118] sm:inline-flex"
+            className="rounded-full bg-[#17130F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
           >
             Começar
           </Link>
@@ -168,14 +159,6 @@ function Hero() {
               <Link href="/contact">Pedir demonstração</Link>
             </Button>
 
-            <Button
-              asChild
-              className="h-14 rounded-full bg-[#C8A56A] px-8 text-base font-semibold text-[#17130F] shadow-[0_18px_50px_rgba(155,111,59,0.22)] hover:bg-[#D8B97E]"
-            >
-              <a href="/downloads/MesaLink-Android-v1.0.1.apk" download>
-                ↓ Descarregar app Android
-              </a>
-            </Button>
           </div>
 
           <div className="mt-9 grid max-w-2xl gap-3 sm:grid-cols-3">
