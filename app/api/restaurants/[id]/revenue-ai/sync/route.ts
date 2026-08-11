@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
+import { getRevenueChannelStatus, normalizeE164 } from "@/lib/revenue-twilio";
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,6 +19,8 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
   const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
   const averageTicket = Number(restaurant.averageTicket || 25);
+  const channelStatus = getRevenueChannelStatus(restaurant);
+  const customerConsent = new Map<string, boolean>();
 
   const [reservations, customers] = await Promise.all([
     prisma.reservation.findMany({
@@ -36,6 +39,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     }),
   ]);
 
+  for (const customer of customers) customerConsent.set(customer.id, customer.marketingOptIn);
+  const chooseChannel = (email: string | null, phone: string | null, hasConsent: boolean) => channelStatus.whatsappProactiveReady && hasConsent && Boolean(normalizeE164(phone)) ? "WHATSAPP" : email ? "EMAIL" : "PHONE";
+
   const opportunities = [
     ...reservations.map((reservation) => ({
       sourceId: reservation.id,
@@ -45,13 +51,13 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       contactName: reservation.customerName,
       contactEmail: reservation.email,
       contactPhone: reservation.phone,
-      channel: reservation.email ? "EMAIL" : "PHONE",
+      channel: chooseChannel(reservation.email, reservation.phone, Boolean(reservation.customerId && customerConsent.get(reservation.customerId))),
       estimatedRevenue: reservation.guests * averageTicket,
       preview: reservation.status === "NO_SHOW" ? "Reserva não compareceu; tentar recuperar e remarcar." : "Reserva cancelada; tentar perceber o motivo e remarcar.",
     })),
     ...customers.filter((customer) => {
       const lastContact = customer.lastVisitAt || customer.lastReservationAt || customer.reservations[0]?.date;
-      return customer.marketingOptIn && Boolean(customer.email) && Boolean(lastContact && lastContact < sixtyDaysAgo);
+      return customer.marketingOptIn && Boolean(customer.email || normalizeE164(customer.phone)) && Boolean(lastContact && lastContact < sixtyDaysAgo);
     }).map((customer) => ({
       sourceId: customer.id,
       opportunityType: "INACTIVE_CUSTOMER",
@@ -60,7 +66,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       contactName: customer.name,
       contactEmail: customer.email,
       contactPhone: customer.phone,
-      channel: "EMAIL",
+      channel: chooseChannel(customer.email, customer.phone, customer.marketingOptIn),
       estimatedRevenue: averageTicket * 2,
       preview: "Cliente inativo há mais de 60 dias; conversa de reativação disponível.",
     })),
@@ -72,7 +78,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       contactName: customer.name,
       contactEmail: customer.email,
       contactPhone: customer.phone,
-      channel: customer.email ? "EMAIL" : "PHONE",
+      channel: chooseChannel(customer.email, customer.phone, customer.marketingOptIn),
       estimatedRevenue: averageTicket * 2,
       preview: "Contacto sem visita ou reserva; precisa de resposta e qualificação.",
     })),
@@ -99,6 +105,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
         contactName: opportunity.contactName.slice(0, 120),
         contactEmail: opportunity.contactEmail,
         contactPhone: opportunity.contactPhone,
+        channel: opportunity.channel,
         estimatedRevenue: opportunity.estimatedRevenue,
         aiSummary: opportunity.preview,
       },

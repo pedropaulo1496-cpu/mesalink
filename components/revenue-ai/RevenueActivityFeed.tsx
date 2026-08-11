@@ -12,7 +12,9 @@ import {
   Clock3,
   Eye,
   Mail,
+  MessageCircleMore,
   MousePointerClick,
+  PhoneMissed,
   UserRound,
 } from "lucide-react";
 
@@ -154,7 +156,7 @@ export default function RevenueActivityFeed({
                 onClick={() => setExpandedId(isExpanded ? null : action.id)}
               >
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#F1E6D5] text-[#8A6130]">
-                  <Mail size={17} />
+                  {action.channel === "WHATSAPP" ? <MessageCircleMore size={17} /> : action.channel === "PHONE" ? <PhoneMissed size={17} /> : <Mail size={17} />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">

@@ -53,7 +53,10 @@
     "ready": "Active",
     "connected": "Connected",
     "configure": "Configure",
-    "next": "Next integration"
+    "next": "Next integration",
+    "receiveOnly": "Receiving",
+    "waitingProvider": "Awaiting activation",
+    "paused": "Paused"
   },
   "activity": {
     "eyebrow": "Agent activity",

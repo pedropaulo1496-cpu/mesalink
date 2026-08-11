@@ -206,6 +206,16 @@ model Restaurant {
   marketingAutopilotFrequencyDays Int               @default(14)
   marketingAutopilotMaxDiscount   Int               @default(15)
   marketingAutopilotLastRunAt     DateTime?
+  revenueWhatsappEnabled          Boolean           @default(false)
+  revenueWhatsappNumber           String?           @unique
+  revenueWhatsappContentSid       String?
+  revenueWhatsappAutoReply        Boolean           @default(true)
+  revenueVoiceEnabled             Boolean           @default(false)
+  revenueVoiceNumber              String?           @unique
+  revenueVoiceForwardNumber       String?
+  revenueMissedCallAutoReply      Boolean           @default(true)
+  revenueChannelsConfiguredAt     DateTime?
+  revenueChannelsLastError        String?
   averageTicket                   Float?            @default(25)
   birthdayOffer                   String?
   recoveryOffer                   String?
@@ -886,9 +896,12 @@ model RevenueMessage {
   externalId    String?
   failureReason String?
 
-  sentAt    DateTime?
-  createdAt DateTime  @default(now())
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
 
+  @@unique([externalId])
   @@index([conversationId, createdAt])
   @@index([status, sentAt])
 }

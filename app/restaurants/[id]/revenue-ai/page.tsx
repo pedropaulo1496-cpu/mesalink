@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import {
   ArrowUpRight,
+  ChevronRight,
   CalendarX2,
   CheckCircle2,
   CircleDollarSign,
@@ -22,6 +23,7 @@ import RecoveryAutomationCard from "@/components/marketing/RecoveryAutomationCar
 import RevenueActivityFeed from "@/components/revenue-ai/RevenueActivityFeed";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getRevenueChannelStatus } from "@/lib/revenue-twilio";
 
 const localeMap: Record<string, string> = {
   pt: "pt-PT",
@@ -117,6 +119,7 @@ export default async function RevenueAiPage({
   ]);
 
   const subscription = user.subscription;
+  const revenueChannelStatus = getRevenueChannelStatus(restaurant);
   const trialActive =
     subscription?.status === "TRIAL" &&
     subscription.trialEndsAt &&
@@ -354,10 +357,10 @@ export default async function RevenueAiPage({
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D7B267]">{t("channels.eyebrow")}</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("channels.title")}</h2>
               <div className="mt-6 space-y-3">
-                <ChannelRow icon={<Mail size={18} />} name={t("channels.email")} status={process.env.RESEND_API_KEY ? t("channels.ready") : t("channels.configure")} active={Boolean(process.env.RESEND_API_KEY)} />
-                <ChannelRow icon={<CheckCircle2 size={18} />} name={t("channels.website")} status={restaurant.websiteEnabled ? t("channels.connected") : t("channels.configure")} active={restaurant.websiteEnabled} />
-                <ChannelRow icon={<MessageCircleMore size={18} />} name={t("channels.whatsapp")} status={t("channels.next")} />
-                <ChannelRow icon={<PhoneMissed size={18} />} name={t("channels.calls")} status={t("channels.next")} />
+                <ChannelRow href={`/restaurants/${id}/marketing`} icon={<Mail size={18} />} name={t("channels.email")} status={process.env.RESEND_API_KEY ? t("channels.ready") : t("channels.configure")} active={Boolean(process.env.RESEND_API_KEY)} />
+                <ChannelRow href={`/restaurants/${id}/website`} icon={<CheckCircle2 size={18} />} name={t("channels.website")} status={restaurant.websiteEnabled ? t("channels.connected") : t("channels.configure")} active={restaurant.websiteEnabled} />
+                <ChannelRow href={`/restaurants/${id}/revenue-ai/integrations`} icon={<MessageCircleMore size={18} />} name={t("channels.whatsapp")} status={revenueChannelStatus.whatsappReady ? revenueChannelStatus.whatsappProactiveReady ? t("channels.ready") : t("channels.receiveOnly") : revenueChannelStatus.whatsappConfigured ? t("channels.waitingProvider") : t("channels.configure")} active={revenueChannelStatus.whatsappReady} />
+                <ChannelRow href={`/restaurants/${id}/revenue-ai/integrations`} icon={<PhoneMissed size={18} />} name={t("channels.calls")} status={revenueChannelStatus.voiceReady ? t("channels.ready") : revenueChannelStatus.voiceConfigured ? restaurant.revenueChannelsLastError ? t("channels.paused") : t("channels.waitingProvider") : t("channels.configure")} active={revenueChannelStatus.voiceReady} />
               </div>
             </div>
           </section>
@@ -403,8 +406,8 @@ function OpportunityCard({ icon, title, description, count, amountLabel, countLa
   );
 }
 
-function ChannelRow({ icon, name, status, active = false }: { icon: ReactNode; name: string; status: string; active?: boolean }) {
-  return <div className="flex items-center gap-3 rounded-[22px] border border-white/10 bg-white/[0.045] p-4"><div className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-[#D7B267]">{icon}</div><p className="flex-1 text-sm font-semibold">{name}</p><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.13em] ${active ? "bg-[#9CCB9B]/15 text-[#AEE0AD]" : "bg-white/8 text-white/45"}`}>{status}</span></div>;
+function ChannelRow({ href, icon, name, status, active = false }: { href: string; icon: ReactNode; name: string; status: string; active?: boolean }) {
+  return <Link href={href} className="group flex items-center gap-3 rounded-[22px] border border-white/10 bg-white/[0.045] p-4 transition hover:border-white/20 hover:bg-white/[0.075]"><div className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-[#D7B267]">{icon}</div><p className="flex-1 text-sm font-semibold">{name}</p><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.13em] ${active ? "bg-[#9CCB9B]/15 text-[#AEE0AD]" : "bg-white/8 text-white/45"}`}>{status}</span><ChevronRight size={15} className="text-white/35 transition group-hover:translate-x-0.5 group-hover:text-white/70" /></Link>;
 }
 
 function LockedFeature({ icon, text }: { icon: ReactNode; text: string }) {

@@ -1,33 +1,29 @@
 import { getServerSession } from "next-auth";
-import { notFound, redirect } from "next/navigation";
-import BottomNav from "@/components/BottomNav";
-import RestaurantSidebar from "@/components/RestaurantSidebar";
-import RevenueInboxClient from "@/components/revenue-ai/RevenueInboxClient";
+import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 
-export default async function RevenueInboxPage({ params }: { params: Promise<{ id: string }> }) {
+export const dynamic = "force-dynamic";
+
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) redirect("/login");
+  if (!session?.user?.email) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
-  if (!user) redirect("/login");
-  if (!hasGrowthAccess(user.subscription)) redirect(`/billing?restaurantId=${id}`);
+  if (!user) return NextResponse.json({ error: "Utilizador não encontrado." }, { status: 404 });
+  if (!hasGrowthAccess(user.subscription)) return NextResponse.json({ error: "O Revenue AI está disponível no plano Growth." }, { status: 403 });
   const restaurant = await prisma.restaurant.findFirst({
     where: { id, userId: user.id },
     include: {
       revenueConversations: {
         orderBy: { lastMessageAt: "desc" },
         take: 200,
-        include: {
-          messages: { orderBy: { createdAt: "asc" }, take: 30 },
-          customer: { select: { marketingOptIn: true } },
-        },
+        include: { messages: { orderBy: { createdAt: "asc" }, take: 30 }, customer: { select: { marketingOptIn: true } } },
       },
     },
   });
-  if (!restaurant) notFound();
+  if (!restaurant) return NextResponse.json({ error: "Restaurante não encontrado." }, { status: 404 });
 
   const conversations = restaurant.revenueConversations.map((conversation) => ({
     id: conversation.id,
@@ -57,12 +53,5 @@ export default async function RevenueInboxPage({ params }: { params: Promise<{ i
       createdAt: message.createdAt.toISOString(),
     })),
   }));
-
-  return <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
-    <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
-      <RestaurantSidebar id={id} restaurantName={restaurant.name} active="revenueAi" />
-      <RevenueInboxClient restaurantId={id} restaurantName={restaurant.name} initialCredits={user.subscription?.aiCredits || 0} initialEmails={user.subscription?.emailBalance || 0} initialConversations={conversations} />
-    </div>
-    <BottomNav id={id} />
-  </main>;
+  return NextResponse.json({ conversations, creditsRemaining: user.subscription?.aiCredits || 0, emailsRemaining: user.subscription?.emailBalance || 0 });
 }

@@ -2,17 +2,17 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { authOptions } from "@/lib/auth";
-import { hasGrowthAccess } from "@/lib/ai-billing";
+import { hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 import { prisma } from "@/lib/prisma";
+import { getRevenueChannelStatus, normalizeE164, REVENUE_CHANNEL_CREDIT_COSTS, sendRevenueWhatsapp } from "@/lib/revenue-twilio";
 
 export async function POST(request: Request, { params }: { params: Promise<{ conversationId: string }> }) {
   const { conversationId } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: "Canal de email não configurado." }, { status: 503 });
   const body = await request.json().catch(() => null);
   const content = typeof body?.content === "string" ? body.content.trim().slice(0, 1500) : "";
   if (!content) return NextResponse.json({ error: "Mensagem vazia." }, { status: 400 });
@@ -23,17 +23,69 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
 
   const conversation = await prisma.revenueConversation.findFirst({
     where: { id: conversationId, restaurant: { userId: user.id } },
-    include: { restaurant: true, customer: { select: { marketingOptIn: true } } },
+    include: { restaurant: true, customer: { select: { marketingOptIn: true } }, messages: { orderBy: { createdAt: "desc" }, take: 20 } },
   });
   if (!conversation) return NextResponse.json({ error: "Conversa não encontrada." }, { status: 404 });
-  if (conversation.channel !== "EMAIL" || !conversation.contactEmail) return NextResponse.json({ error: "Esta conversa ainda precisa de um conector de telefone ou WhatsApp." }, { status: 409 });
-  if (!conversation.customer?.marketingOptIn) return NextResponse.json({ error: "O cliente não tem consentimento de marketing registado; a mensagem ficou apenas como rascunho." }, { status: 403 });
+  if (!conversation.contactEmail && !conversation.contactPhone) return NextResponse.json({ error: "Esta conversa não tem um contacto utilizável." }, { status: 409 });
 
   const duplicate = await prisma.revenueMessage.findFirst({
-    where: { conversationId, direction: "OUTBOUND", status: "SENT", content, sentAt: { gte: new Date(Date.now() - 5 * 60 * 1000) } },
+    where: { conversationId, direction: "OUTBOUND", status: { in: ["QUEUED", "SENT", "DELIVERED", "READ"] }, content, sentAt: { gte: new Date(Date.now() - 5 * 60 * 1000) } },
     orderBy: { sentAt: "desc" },
   });
   if (duplicate) return NextResponse.json({ success: true, message: duplicate, duplicate: true });
+
+  if (conversation.channel === "WHATSAPP") {
+    const channelStatus = getRevenueChannelStatus(conversation.restaurant);
+    const contactPhone = normalizeE164(conversation.contactPhone);
+    if (!channelStatus.whatsappReady || !conversation.restaurant.revenueWhatsappNumber || !contactPhone) {
+      return NextResponse.json({ error: "O WhatsApp ainda não está totalmente ligado para este restaurante." }, { status: 409 });
+    }
+    const lastInboundWhatsapp = conversation.messages.find((message) => message.direction === "INBOUND" && message.channel === "WHATSAPP");
+    const insideServiceWindow = Boolean(lastInboundWhatsapp && lastInboundWhatsapp.createdAt >= new Date(Date.now() - 24 * 60 * 60 * 1000));
+    const customerInitiated = insideServiceWindow || ["MISSED_CALL", "WHATSAPP_INBOUND"].includes(conversation.opportunityType);
+    if (!customerInitiated && !conversation.customer?.marketingOptIn) {
+      return NextResponse.json({ error: "O cliente não tem consentimento para iniciar uma comunicação promocional por WhatsApp." }, { status: 403 });
+    }
+    if (!insideServiceWindow && !channelStatus.whatsappProactiveReady) {
+      return NextResponse.json({ error: "Falta um modelo WhatsApp aprovado para iniciar esta conversa fora da janela de 24 horas." }, { status: 409 });
+    }
+
+    const creditReference = `revenue_whatsapp:${conversation.id}:${crypto.randomUUID()}`;
+    let creditsRemaining = user.subscription?.aiCredits || 0;
+    try {
+      const charge = await spendAiCredits({ userId: user.id, amount: REVENUE_CHANNEL_CREDIT_COSTS.WHATSAPP_MESSAGE, feature: "REVENUE_WHATSAPP", description: `Mensagem WhatsApp para ${conversation.contactName}`, reference: creditReference });
+      creditsRemaining = charge.balance;
+    } catch (error) {
+      if (error instanceof InsufficientAiCreditsError) return NextResponse.json({ error: "Saldo insuficiente. Cada mensagem WhatsApp custa 1 crédito.", code: "INSUFFICIENT_AI_CREDITS", required: error.required, available: error.available }, { status: 402 });
+      throw error;
+    }
+
+    try {
+      const delivery = await sendRevenueWhatsapp({
+        from: conversation.restaurant.revenueWhatsappNumber,
+        to: contactPhone,
+        content,
+        contactName: conversation.contactName,
+        restaurantName: conversation.restaurant.name,
+        contentSid: conversation.restaurant.revenueWhatsappContentSid,
+        allowFreeform: insideServiceWindow,
+      });
+      const now = new Date();
+      const message = await prisma.revenueMessage.create({ data: { conversationId, direction: "OUTBOUND", sender: "AI_REVIEWED", channel: "WHATSAPP", content, status: String(delivery.status || "QUEUED").toUpperCase(), externalId: delivery.sid, sentAt: now } });
+      await prisma.$transaction([
+        prisma.revenueConversation.update({ where: { id: conversationId }, data: { status: "WAITING_CUSTOMER", lastMessagePreview: content, lastMessageAt: now, nextFollowUpAt: new Date(now.getTime() + 24 * 60 * 60 * 1000) } }),
+        prisma.marketingAction.create({ data: { restaurantId: conversation.restaurantId, customerId: conversation.customerId, type: "FOLLOW_UP", status: "SENT", channel: "WHATSAPP", sentAt: now, estimatedRevenue: conversation.estimatedRevenue, deliveryId: delivery.sid, nextFollowUpAt: new Date(now.getTime() + 24 * 60 * 60 * 1000) } }),
+      ]);
+      return NextResponse.json({ success: true, message, creditsRemaining, emailsRemaining: user.subscription?.emailBalance || 0, channel: "WHATSAPP" });
+    } catch (error) {
+      await refundAiCredits({ userId: user.id, amount: REVENUE_CHANNEL_CREDIT_COSTS.WHATSAPP_MESSAGE, feature: "REVENUE_WHATSAPP", description: `Reembolso de mensagem WhatsApp para ${conversation.contactName}`, reference: creditReference }).catch(() => null);
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Falha no envio WhatsApp." }, { status: 502 });
+    }
+  }
+
+  if (conversation.channel !== "EMAIL" || !conversation.contactEmail) return NextResponse.json({ error: "Esta conversa precisa de WhatsApp ativo ou de um email válido." }, { status: 409 });
+  if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: "Canal de email não configurado." }, { status: 503 });
+  if (!conversation.customer?.marketingOptIn) return NextResponse.json({ error: "O cliente não tem consentimento de marketing registado; a mensagem ficou apenas como rascunho." }, { status: 403 });
 
   const emailReference = `email:revenue_follow_up:${conversation.id}:${crypto.randomUUID()}`;
   let creditsRemaining = user.subscription?.aiCredits || 0;
