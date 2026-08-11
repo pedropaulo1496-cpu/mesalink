@@ -4,8 +4,9 @@ import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
-import RecoveryAutomationCard from "@/components/marketing/RecoveryAutomationCard";
 import BirthdayAutomationCard from "@/components/marketing/BirthdayAutomationCard";
+import ReviewAutomationCard from "@/components/marketing/ReviewAutomationCard";
+import MarketingAutopilotCard from "@/components/marketing/MarketingAutopilotCard";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 
@@ -50,8 +51,8 @@ export default async function MarketingPage({
 
   const canUseMarketing = Boolean(trialActive || hasGrowth);
 
-  const restaurant = await prisma.restaurant.findUnique({
-    where: { id },
+  const restaurant = await prisma.restaurant.findFirst({
+    where: { id, user: { email: session.user.email } },
   });
 
   if (!restaurant) notFound();
@@ -195,7 +196,12 @@ export default async function MarketingPage({
 
   const birthdayCustomers = customers.filter((customer) => {
     if (!customer.birthDate) return false;
-    return new Date(customer.birthDate).getMonth() === now.getMonth();
+    const birthDate = new Date(customer.birthDate);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const nextBirthday = new Date(now.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+    if (nextBirthday < today) nextBirthday.setFullYear(now.getFullYear() + 1);
+    const difference = nextBirthday.getTime() - today.getTime();
+    return difference >= 0 && difference <= 7 * 24 * 60 * 60 * 1000;
   });
 
   const googleReviews = reviewFeedbacks.filter(
@@ -282,10 +288,6 @@ export default async function MarketingPage({
   (customer) => (customer.riskScore ?? 0) >= 50,
 );
 
-const criticalCustomers = customers.filter(
-  (customer) => (customer.riskScore ?? 0) >= 75,
-);
-
 const riskRevenue =
   riskyCustomers.length * Number(restaurant.averageTicket || 25);
 
@@ -307,6 +309,11 @@ const riskRevenue =
   );
 
   const recentCampaigns = marketingActions.slice(0, 12);
+  const latestAiCampaign = await prisma.aiMarketingCampaign.findFirst({
+    where: { restaurantId: id },
+    orderBy: { createdAt: "desc" },
+    select: { subject: true, aiReason: true, emailsSent: true, audienceSize: true, cardToken: true, createdAt: true },
+  });
 
   const revenueBars = Array.from({ length: 6 }).map((_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
@@ -622,7 +629,6 @@ const riskRevenue =
           key={customer.id}
           position={index + 1}
           name={customer.name}
-          visits={customer.totalVisits ?? 0}
           vipTier={customer.vipTier}
           customerFallback={t("main.leaderboard.customerFallback")}
           visitsLabel={t("main.leaderboard.visits", { count: customer.totalVisits ?? 0 })}
@@ -636,6 +642,17 @@ const riskRevenue =
     </div>
   </Panel>
 </section>
+
+          <section className="mt-6">
+            <MarketingAutopilotCard
+              restaurantId={id}
+              initialEnabled={restaurant.marketingAutopilotEnabled}
+              initialFrequencyDays={restaurant.marketingAutopilotFrequencyDays}
+              initialMaxDiscount={restaurant.marketingAutopilotMaxDiscount}
+              aiCredits={subscription?.aiCredits || 0}
+              latestCampaign={latestAiCampaign ? { ...latestAiCampaign, createdAt: latestAiCampaign.createdAt.toISOString() } : null}
+            />
+          </section>
 
           <section className="mt-6">
             <Panel>
@@ -655,66 +672,40 @@ const riskRevenue =
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-            <Panel>
-              <SectionLabel>{t("main.opportunities.eyebrow")}</SectionLabel>
-
-              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-                {t("main.opportunities.title")}
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-[#6B6258]">
-                {t("main.opportunities.potential.prefix")}{" "}
-                <span className="font-semibold text-[#16120E]">
-                  {inactiveRevenuePotential.toFixed(0)}€
-                </span>{" "}
-                {t("main.opportunities.potential.suffix")}
-              </p>
-
-              {criticalCustomers.length > 0 && (
-  <div className="mt-4 rounded-2xl border border-[#F1D5A4] bg-[#FFF7E8] px-4 py-3">
-    <p className="font-semibold text-[#8A5A00]">
-      🚨 {t("main.opportunities.criticalWarning", { count: criticalCustomers.length })}
-    </p>
-  </div>
-)}
-
-              <div className="mt-6 overflow-hidden rounded-[28px] border border-[#E8DCCB] bg-[#FFF9F0]">
-                {inactiveCustomers.slice(0, 6).map((customer) => {
-                  const lastVisit =
-                    customer.lastVisitAt ||
-                    customer.lastReservationAt ||
-                    customer.reservations[0]?.date;
-
-                  const daysSince = lastVisit
-                    ? Math.max(
-                        0,
-                        Math.round(
-                          (now.getTime() - new Date(lastVisit).getTime()) /
-                            (1000 * 60 * 60 * 24),
-                        ),
-                      )
-                    : null;
-
-                  return (
-                    <CustomerLine
-                      key={customer.id}
-                      name={customer.name}
-                      email={customer.email}
-                      noEmailLabel={t("main.opportunities.noEmail")}
-                      value={
-                        daysSince
-                          ? t("main.opportunities.daysAgo", { count: daysSince })
-                          : t("main.opportunities.noDate")
-                      }
-                    />
-                  );
-                })}
-
-                {inactiveCustomers.length === 0 && (
-                  <EmptyLine text={t("main.opportunities.empty")} />
-                )}
+            <Link
+              href={`/restaurants/${id}/revenue-ai`}
+              className="group flex min-h-[420px] flex-col justify-between overflow-hidden rounded-[34px] border border-[#2C2117] bg-[#17120D] p-7 text-white shadow-[0_24px_70px_rgba(45,31,18,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_28px_80px_rgba(45,31,18,0.18)]"
+            >
+              <div>
+                <SectionLabel>{t("main.revenueAiHandoff.eyebrow")}</SectionLabel>
+                <h2 className="mt-3 max-w-md text-3xl font-semibold tracking-[-0.055em]">
+                  {t("main.revenueAiHandoff.title")}
+                </h2>
+                <p className="mt-3 max-w-lg text-sm leading-6 text-[#D5C6B4]">
+                  {t("main.revenueAiHandoff.description")}
+                </p>
               </div>
-            </Panel>
+
+              <div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D7B267]">
+                      {t("main.revenueAiHandoff.customers")}
+                    </p>
+                    <p className="mt-2 text-3xl font-semibold">{inactiveCustomers.length}</p>
+                  </div>
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D7B267]">
+                      {t("main.revenueAiHandoff.potential")}
+                    </p>
+                    <p className="mt-2 text-3xl font-semibold">{inactiveRevenuePotential.toFixed(0)}€</p>
+                  </div>
+                </div>
+                <span className="mt-4 inline-flex rounded-full bg-[#D7B267] px-5 py-3 text-sm font-black text-[#17120D] transition group-hover:bg-[#E7C77F]">
+                  {t("main.revenueAiHandoff.open")}
+                </span>
+              </div>
+            </Link>
 
             <Panel>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -745,6 +736,7 @@ const riskRevenue =
                       BIRTHDAY: t("main.timeline.types.birthday"),
                       VIP_UPGRADE: t("main.timeline.types.vipUpgrade"),
                       MANUAL_CAMPAIGN: t("main.timeline.types.campaign"),
+                      AI_CAMPAIGN: t("main.timeline.types.aiCampaign"),
                       REVIEW_REQUEST: t("main.timeline.types.review"),
                     }}
                     statusLabels={{
@@ -773,18 +765,23 @@ const riskRevenue =
               </h2>
 
               <div className="mt-6 grid gap-4">
-                <AutomationCard
-                  title={t("main.automations.reviewRequest.title")}
-                  description={t("main.automations.reviewRequest.description")}
-                  note={t("main.automations.reviewRequest.note")}
-                  activeLabel={t("main.badges.active")}
+                <ReviewAutomationCard
+                  restaurantId={id}
+                  initialEnabled={restaurant.reviewAutomationEnabled}
+                  labels={{
+                    title: t("main.automations.reviewRequest.title"), description: t("main.automations.reviewRequest.description"),
+                    delay: t("main.automations.reviewRequest.delay"), noShow: t("main.automations.reviewRequest.noShow"),
+                    automatic: t("main.automations.reviewRequest.automatic"), active: t("main.badges.active"),
+                    inactive: t("main.badges.inactive"), toggle: t("main.automations.reviewRequest.toggle"),
+                    balance: t("main.automations.reviewRequest.balance", { count: subscription?.emailBalance || 0 }), error: t("main.automations.reviewRequest.error"),
+                    enabledMessage: t("main.automations.reviewRequest.enabledMessage"), disabledMessage: t("main.automations.reviewRequest.disabledMessage"),
+                  }}
                 />
 
-                <RecoveryAutomationCard
-                  inactiveCustomers={inactiveCustomers.length}
-                  restaurantId={id}
-                  emailsRemaining={subscription?.emailBalance || 0}
-                />
+                <Link href={`/restaurants/${id}/revenue-ai`} className="flex min-h-[112px] flex-col gap-4 rounded-3xl border border-[#2C2117] bg-[#17120D] p-5 text-white sm:flex-row sm:items-center sm:justify-between">
+                  <div><p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D7B267]">{t("main.automations.revenueAi.eyebrow")}</p><p className="mt-2 font-semibold">{t("main.automations.revenueAi.title")}</p><p className="mt-1 text-sm leading-6 text-[#D5C6B4]">{t("main.automations.revenueAi.description")}</p></div>
+                  <span className="w-fit shrink-0 rounded-full bg-[#D7B267] px-4 py-2 text-sm font-black text-[#17120D]">{t("main.automations.revenueAi.open")}</span>
+                </Link>
 
                 <AutomationCard
                   title={t("main.automations.vipClub.title")}
@@ -998,31 +995,6 @@ function ReviewBar({
   );
 }
 
-function CustomerLine({
-  name,
-  email,
-  value,
-  noEmailLabel,
-}: {
-  name: string;
-  email: string | null;
-  value: string;
-  noEmailLabel: string;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-[#E8DCCB] px-5 py-4 last:border-b-0">
-      <div className="min-w-0">
-        <p className="truncate font-semibold">{name}</p>
-        <p className="mt-1 truncate text-xs text-[#6B6258]">{email || noEmailLabel}</p>
-      </div>
-
-      <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#9B6F3B]">
-        {value}
-      </span>
-    </div>
-  );
-}
-
 function TimelineLine({
   action,
   intlLocale,
@@ -1094,7 +1066,6 @@ function AutomationCard({
 function TopCustomerRow({
   position,
   name,
-  visits,
   vipTier,
   value,
   customerFallback,
@@ -1103,7 +1074,6 @@ function TopCustomerRow({
 }: {
   position: number;
   name: string;
-  visits: number;
   vipTier: string | null;
   value: number;
   customerFallback: string;

@@ -37,8 +37,7 @@ export async function GET(request: Request) {
 async function runBirthdays(restaurantId: string | null) {
   try {
     const today = new Date();
-    const currentMonth = today.getMonth();
-    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const oneYearAgo = new Date(today.getTime() - 330 * 24 * 60 * 60 * 1000);
     const customers = await prisma.customer.findMany({
       where: {
         ...(restaurantId ? { restaurantId } : {}),
@@ -56,7 +55,7 @@ async function runBirthdays(restaurantId: string | null) {
     let insufficientAllowance = false;
 
     for (const customer of customers) {
-      if (!customer.birthDate || !customer.email || new Date(customer.birthDate).getMonth() !== currentMonth) continue;
+      if (!customer.birthDate || !customer.email || !birthdayWithinNextDays(customer.birthDate, today, 7)) continue;
       const restaurant = customer.restaurant;
       const owner = restaurant?.user;
       if (!restaurant || !customer.restaurantId || !owner || !hasGrowthAccess(owner.subscription)) {
@@ -69,7 +68,7 @@ async function runBirthdays(restaurantId: string | null) {
           customerId: customer.id,
           restaurantId: customer.restaurantId,
           type: "BIRTHDAY",
-          createdAt: { gte: monthStart },
+          createdAt: { gte: oneYearAgo },
           status: { in: ["QUEUED", "SENT", "OPENED", "CLICKED", "BOOKED"] },
         },
       });
@@ -108,8 +107,8 @@ async function runBirthdays(restaurantId: string | null) {
         const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
           to: customer.email,
-          subject: `${cleanSubject(customer.name)}, feliz aniversário`,
-          html: `<div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #E1D0B8;border-radius:28px;padding:32px"><p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#9B6F3B;font-weight:700">${escapeHtml(restaurant.name)}</p><h1 style="font-size:30px;line-height:1.1;color:#16120E">Feliz aniversário, ${escapeHtml(customer.name)}.</h1><p style="font-size:15px;line-height:1.6;color:#6B6258">Toda a equipa deseja-lhe um excelente dia. Esperamos recebê-lo novamente muito em breve.</p>${restaurant.birthdayOffer ? `<div style="margin-top:16px;padding:16px;border-radius:16px;background:#FFF9F0;border:1px solid #E1D0B8"><strong>Oferta especial</strong><p>${escapeHtml(restaurant.birthdayOffer)}</p></div>` : ""}<a href="${clickUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700">Reservar mesa</a><p style="margin-top:28px;font-size:12px;color:#8A7C6D">Recebeu este email porque aceitou receber comunicações deste restaurante.</p>${marketingTrackingPixel(openUrl)}</div></div>`,
+          subject: `Um pequeno presente de aniversário do ${cleanSubject(restaurant.name)}`,
+          html: birthdayEmailHtml({ restaurantName: restaurant.name, customerName: customer.name, offer: restaurant.birthdayOffer, clickUrl, openUrl }),
         });
         const deliveryId = requireAcceptedEmail(delivery);
         await completeEmailSend(emailReference);
@@ -131,6 +130,17 @@ async function runBirthdays(restaurantId: string | null) {
 
 function cleanSubject(value: string) {
   return value.replace(/[\r\n]+/g, " ").trim().slice(0, 80);
+}
+
+function birthdayWithinNextDays(birthDate: Date, today: Date, days: number) {
+  const birthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+  if (birthday < new Date(today.getFullYear(), today.getMonth(), today.getDate())) birthday.setFullYear(today.getFullYear() + 1);
+  const difference = birthday.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  return difference >= 0 && difference <= days * 24 * 60 * 60 * 1000;
+}
+
+function birthdayEmailHtml(input: { restaurantName: string; customerName: string; offer: string | null; clickUrl: string; openUrl: string }) {
+  return `<div style="font-family:Arial,sans-serif;background:#F4EEE5;padding:32px 14px"><div style="max-width:600px;margin:auto;border-radius:30px;overflow:hidden;background:#fff;border:1px solid #E1D0B8"><div style="background:#17120D;padding:34px;color:#fff"><p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#D7B267;font-weight:800">${escapeHtml(input.restaurantName)}</p><h1 style="margin:18px 0 0;font-family:Georgia,serif;font-size:37px;line-height:1.05">Há dias que merecem ser celebrados à mesa.</h1></div><div style="padding:34px"><p style="margin:0;font-size:17px;line-height:1.75;color:#5F554B">Olá ${escapeHtml(input.customerName)},</p><p style="font-size:17px;line-height:1.75;color:#5F554B">O seu aniversário aproxima-se e toda a equipa gostaria de fazer parte da celebração. Será um prazer voltar a recebê-lo.</p>${input.offer ? `<div style="margin-top:24px;padding:24px;border-radius:22px;background:#FFF8EB;border:1px solid #E5C98D"><p style="margin:0;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#8B642E;font-weight:800">O seu presente de aniversário</p><p style="margin:12px 0 0;font-family:Georgia,serif;font-size:24px;line-height:1.35;color:#17120D">${escapeHtml(input.offer)}</p><p style="margin:12px 0 0;font-size:12px;color:#827466">Apresente este email no restaurante. Sujeito a disponibilidade e às condições do estabelecimento.</p></div>` : ""}<a href="${input.clickUrl}" style="display:inline-block;margin-top:26px;background:#17120D;color:#fff;text-decoration:none;padding:15px 24px;border-radius:999px;font-weight:800">Reservar a celebração</a><p style="margin-top:30px;font-size:11px;line-height:1.6;color:#918579">Recebeu este email porque aceitou comunicações deste restaurante. O envio é gerido automaticamente pelo MesaLink.</p>${marketingTrackingPixel(input.openUrl)}</div></div></div>`;
 }
 
 function escapeHtml(value: string) {

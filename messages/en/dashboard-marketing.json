@@ -34,7 +34,8 @@
       "newCampaign": "Create campaign"
     },
     "badges": {
-      "active": "Active"
+      "active": "Active",
+      "inactive": "Disabled"
     },
     "hero": {
       "eyebrow": "Growth Performance",
@@ -137,6 +138,14 @@
       "noEmail": "No email",
       "empty": "No customers eligible for recovery yet."
     },
+    "revenueAiHandoff": {
+      "eyebrow": "Revenue AI",
+      "title": "Revenue recovery now has its own command centre",
+      "description": "Marketing shows the impact. Revenue AI runs follow-ups, tracks replies and attempts to recover customers, leads and lost bookings.",
+      "customers": "Eligible customers",
+      "potential": "Potential",
+      "open": "Open recovery centre"
+    },
     "timeline": {
       "eyebrow": "Timeline",
       "title": "Recent activity",
@@ -146,6 +155,7 @@
         "birthday": "Birthday sent",
         "vipUpgrade": "VIP upgrade sent",
         "campaign": "Campaign sent",
+        "aiCampaign": "AI-created campaign",
         "review": "Review sent"
       },
       "status": {
@@ -161,8 +171,21 @@
       "title": "Automation engine",
       "reviewRequest": {
         "title": "Post-Visit Review",
-        "description": "Automatic review request when the reservation is marked as Finished.",
-        "note": "Important: for the customer to receive the email, the reservation needs to be marked as Finished in the Day Service."
+        "description": "Automatically sends a review request 12 hours after the reservation. Marking it as Finished is not required.",
+        "delay": "Sends after 12h",
+        "noShow": "Excludes no-shows",
+        "automatic": "No manual action",
+        "toggle": "Enable or disable automatic reviews",
+        "balance": "{count} emails available",
+        "error": "The automation could not be changed.",
+        "enabledMessage": "Automatic reviews enabled.",
+        "disabledMessage": "Automatic reviews disabled."
+      },
+      "revenueAi": {
+        "eyebrow": "Revenue AI",
+        "title": "Recovery and follow-up now live in Revenue AI",
+        "description": "Missed calls, leads, cancellations, no-shows and inactive customers are managed in a dedicated operational inbox without duplication in Marketing.",
+        "open": "Open Revenue AI"
       },
       "vipClub": {
         "title": "VIP Club",
@@ -279,9 +302,20 @@
     },
     "submit": "Save settings"
   },
+  "autopilot": {
+    "eyebrow": "Marketing Autopilot",
+    "title": "AI plans, creates and sends your marketing",
+    "description": "It analyses customers, visits, menu and previous results, chooses the best audience and creates campaigns. When useful, it also creates a promotional card in PNG and PDF.",
+    "status": { "active": "On — stays active until you turn it off", "inactive": "Off" },
+    "stats": { "cost": "AI cost", "costValue": "3 credits / campaign", "emails": "Delivery", "emailsValue": "Max. 100 / campaign", "balance": "Available credits" },
+    "controls": { "toggle": "Automatic marketing", "frequency": "Maximum frequency", "weekly": "Weekly", "fortnightly": "Every 14 days", "monthly": "Monthly", "maxDiscount": "Maximum allowed discount", "noDiscount": "No discounts", "save": "Save limits", "saving": "Saving...", "runNow": "Create now", "running": "AI is working..." },
+    "messages": { "enabled": "Autopilot enabled. The first campaign is being prepared.", "disabled": "Autopilot disabled. No new campaigns will be created.", "working": "Analysing opportunities and preparing the campaign...", "sent": "Campaign complete: {emails} of {audience} emails sent.", "noAudience": "There are no opted-in customers for a campaign yet.", "notDue": "The next campaign is not due yet." },
+    "errors": { "save": "Autopilot settings could not be saved.", "run": "The campaign could not be created." },
+    "latest": { "eyebrow": "Latest AI decision", "results": "{sent} emails sent · audience of {audience}" }
+  },
   "birthdayCard": {
     "title": "Birthdays",
-    "subtitle": "{count} customers have a birthday this month.",
+    "subtitle": "{count} customers have a birthday in the next 7 days. The premium email is sent automatically.",
     "runNow": "Run now",
     "emailBalance": "{count} emails available",
     "creditRate": "1 credit = 75 emails",
@@ -307,6 +341,9 @@
   "templates": {
     "heading": "Quick campaigns",
     "items": {
+      "signature": { "label": "🍽️ Signature dish", "subject": "Some flavours deserve a visit", "message": "Introduce a dish that truly represents your kitchen.\n\nChoose the dish, explain in two lines what makes it special and finish with a natural invitation to book." },
+      "weekday": { "label": "🌙 Quieter days", "subject": "A table with more time to enjoy", "message": "Quieter days are perfect for discovering our kitchen without rushing.\n\nAdd the days or times you want to promote and any genuine benefit included." },
+      "seasonal": { "label": "🌿 Seasonal suggestion", "subject": "The season changed. So did our table.", "message": "A new seasonal suggestion is waiting for you.\n\nPresent the dish or menu with real details and invite the customer to book while it is available." },
       "missYou": {
         "label": "🍷 We miss you",
         "subject": "We miss you 🍽️",

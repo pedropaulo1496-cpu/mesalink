@@ -34,7 +34,8 @@
       "newCampaign": "Criar campanha"
     },
     "badges": {
-      "active": "Ativo"
+      "active": "Ativo",
+      "inactive": "Desativado"
     },
     "hero": {
       "eyebrow": "Performance do Growth",
@@ -137,6 +138,14 @@
       "noEmail": "Sem email",
       "empty": "Ainda não existem clientes elegíveis para recuperação."
     },
+    "revenueAiHandoff": {
+      "eyebrow": "Revenue AI",
+      "title": "A recuperação de receita tem agora um centro próprio",
+      "description": "O Marketing mostra o impacto. O Revenue AI executa follow-ups, acompanha respostas e tenta recuperar clientes, leads e reservas perdidas.",
+      "customers": "Clientes elegíveis",
+      "potential": "Potencial",
+      "open": "Abrir centro de recuperação"
+    },
     "timeline": {
       "eyebrow": "Timeline",
       "title": "Atividade recente",
@@ -146,6 +155,7 @@
         "birthday": "Aniversário enviado",
         "vipUpgrade": "Upgrade VIP enviado",
         "campaign": "Campanha enviada",
+        "aiCampaign": "Campanha criada pela IA",
         "review": "Review enviada"
       },
       "status": {
@@ -161,8 +171,21 @@
       "title": "Motor automático",
       "reviewRequest": {
         "title": "Review Pós-Visita",
-        "description": "Pedido automático de avaliação quando a reserva é marcada como Finalizada.",
-        "note": "Importante: para o cliente receber o email, a reserva precisa de ser marcada como Finalizada no Serviço do Dia."
+        "description": "Envia automaticamente o pedido de avaliação 12 horas depois da reserva. Não exige marcar como Finalizada.",
+        "delay": "Envia após 12h",
+        "noShow": "Exclui não compareceu",
+        "automatic": "Sem ação manual",
+        "toggle": "Ativar ou desativar reviews automáticas",
+        "balance": "{count} emails disponíveis",
+        "error": "Não foi possível alterar a automação.",
+        "enabledMessage": "Reviews automáticas ativadas.",
+        "disabledMessage": "Reviews automáticas desativadas."
+      },
+      "revenueAi": {
+        "eyebrow": "Revenue AI",
+        "title": "Recuperação e follow-up vivem agora no Revenue AI",
+        "description": "Chamadas perdidas, leads, cancelamentos, no-shows e clientes inativos são geridos numa caixa operacional própria, sem duplicação no Marketing.",
+        "open": "Abrir Revenue AI"
       },
       "vipClub": {
         "title": "Clube VIP",
@@ -279,9 +302,20 @@
     },
     "submit": "Guardar configurações"
   },
+  "autopilot": {
+    "eyebrow": "Marketing Autopilot",
+    "title": "A IA planeia, cria e envia o marketing por si",
+    "description": "Analisa clientes, visitas, menu e resultados anteriores, escolhe a melhor audiência e cria campanhas. Quando fizer sentido, cria também um cartão promocional em PNG e PDF.",
+    "status": { "active": "Ligado — continua ativo até o desativar", "inactive": "Desligado" },
+    "stats": { "cost": "Custo IA", "costValue": "3 créditos / campanha", "emails": "Envios", "emailsValue": "Máx. 100 / campanha", "balance": "Créditos disponíveis" },
+    "controls": { "toggle": "Marketing automático", "frequency": "Frequência máxima", "weekly": "Semanal", "fortnightly": "A cada 14 dias", "monthly": "Mensal", "maxDiscount": "Desconto máximo permitido", "noDiscount": "Sem descontos", "save": "Guardar limites", "saving": "A guardar...", "runNow": "Criar agora", "running": "A IA está a trabalhar..." },
+    "messages": { "enabled": "Autopilot ligado. A primeira campanha está a ser preparada.", "disabled": "Autopilot desligado. Não serão criadas novas campanhas.", "working": "A analisar oportunidades e a preparar a campanha...", "sent": "Campanha concluída: {emails} de {audience} emails enviados.", "noAudience": "Ainda não há clientes com consentimento para receber a campanha.", "notDue": "A próxima campanha ainda não está prevista." },
+    "errors": { "save": "Não foi possível guardar o Autopilot.", "run": "Não foi possível criar a campanha." },
+    "latest": { "eyebrow": "Última decisão da IA", "results": "{sent} emails enviados · audiência de {audience}" }
+  },
   "birthdayCard": {
     "title": "Aniversários",
-    "subtitle": "{count} clientes fazem aniversário este mês.",
+    "subtitle": "{count} clientes fazem aniversário nos próximos 7 dias. O email premium é enviado automaticamente.",
     "runNow": "Executar agora",
     "emailBalance": "{count} emails disponíveis",
     "creditRate": "1 crédito = 75 emails",
@@ -305,8 +339,23 @@
     "recipientsCount": "{count} clientes vão receber esta campanha."
   },
   "templates": {
-    "heading": "Campanhas rápidas",
+    "heading": "Campanhas editoriais prontas a personalizar",
     "items": {
+      "signature": {
+        "label": "🍽️ Prato assinatura",
+        "subject": "Há sabores que merecem uma visita",
+        "message": "Hoje queremos apresentar-lhe um dos sabores que melhor representa a nossa cozinha.\n\nEscolha o prato que quer destacar, conte em duas linhas o que o torna especial e termine com um convite natural para reservar."
+      },
+      "weekday": {
+        "label": "🌙 Dias mais tranquilos",
+        "subject": "Uma mesa com mais tempo para aproveitar",
+        "message": "Os dias mais tranquilos são perfeitos para descobrir a nossa cozinha sem pressa.\n\nIndique aqui os dias ou horários que quer promover e, se existir, a vantagem exclusiva desta campanha."
+      },
+      "seasonal": {
+        "label": "🌿 Sugestão da estação",
+        "subject": "A estação mudou. A nossa mesa também.",
+        "message": "Há uma nova sugestão à sua espera, pensada para esta época do ano.\n\nApresente o prato ou menu sazonal com detalhes reais e convide o cliente a reservar enquanto está disponível."
+      },
       "missYou": {
         "label": "🍷 Sentimos a sua falta",
         "subject": "Sentimos a sua falta 🍽️",
@@ -324,13 +373,13 @@
       },
       "menuNews": {
         "label": "🔥 Novidades do menu",
-        "subject": "Temos novidades no menu ✨",
-        "message": "Acabámos de lançar novas sugestões e pratos especiais.\n\nReserve já a sua mesa e venha experimentar."
+        "subject": "Novas razões para voltar à nossa mesa",
+        "message": "O menu ganhou novas sugestões.\n\nEscolha duas ou três novidades concretas, explique brevemente o que as distingue e convide o cliente a descobri-las numa próxima visita."
       },
       "event": {
-        "label": "🎉 Evento especial",
-        "subject": "Evento especial no restaurante 🎉",
-        "message": "Temos um evento especial a chegar.\n\nGaranta já a sua mesa antes que esgote."
+        "label": "🥂 Ocasião especial",
+        "subject": "Uma noite pensada ao detalhe",
+        "message": "Estamos a preparar uma ocasião especial.\n\nInclua a data, o que está incluído, o preço e as condições reais. Termine com um convite claro para reservar, sem criar urgência artificial."
       }
     }
   },

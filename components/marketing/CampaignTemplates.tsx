@@ -13,19 +13,19 @@ export default function CampaignTemplates({
 
   const templates = [
     {
-      label: t("items.missYou.label"),
-      subject: t("items.missYou.subject"),
-      message: t("items.missYou.message"),
+      label: t("items.signature.label"),
+      subject: t("items.signature.subject"),
+      message: t("items.signature.message"),
     },
     {
-      label: t("items.birthday.label"),
-      subject: t("items.birthday.subject"),
-      message: t("items.birthday.message"),
+      label: t("items.weekday.label"),
+      subject: t("items.weekday.subject"),
+      message: t("items.weekday.message"),
     },
     {
-      label: t("items.review.label"),
-      subject: t("items.review.subject"),
-      message: t("items.review.message"),
+      label: t("items.seasonal.label"),
+      subject: t("items.seasonal.subject"),
+      message: t("items.seasonal.message"),
     },
     {
       label: t("items.menuNews.label"),

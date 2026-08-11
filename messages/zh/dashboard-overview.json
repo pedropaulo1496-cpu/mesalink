@@ -153,7 +153,7 @@
       "mobileEmpty": "无手机号码",
       "email": "邮箱",
       "emailEmpty": "无邮箱",
-      "finishNote": "完成后，系统将自动向客户发送评价邀请。"
+      "finishNote": "评价邀请将在预订结束 12 小时后发送；标记为未到店即可阻止发送。"
     },
     "actions": {
       "approve": "批准",

@@ -216,8 +216,18 @@
       "cardTitle": "IA Website Builder",
       "cardText": "Ex. restaurant italien familial à Lisbonne, ambiance chaleureuse et pâtes fraîches.",
       "comingSoonBadge": "Actif",
-      "generateButton": "Créer les textes · 5 crédits",
-      "generatingButton": "Création du site…"
+      "generateButton": "Créer le site complet · 5 crédits",
+      "generatingButton": "Création du site…",
+      "agentLabel": "Agent créatif MesaLink",
+      "activeBadge": "Actif",
+      "briefLabel": "Indications facultatives",
+      "briefPlaceholder": "Ex. mettre en avant les plats à partager, le cadre historique et les groupes. Laissez vide pour utiliser les données existantes.",
+      "sources": { "menu": "Menu et plats", "visibility": "SEO et GEO", "images": "Images existantes", "reviews": "Avis" },
+      "progressTitle": "Analyse de tout le restaurant",
+      "progressText": "L’IA combine menu, localisation, horaires, avis, images et recherches cibles pour compléter tout le site.",
+      "successTitle": "Site complet préparé",
+      "successText": "{fields} éléments complétés avec {dishes} plats, {reviews} avis, {images} images et {prompts} recherches.",
+      "costNote": "5 crédits · remboursés si la génération échoue"
     },
     "firstImpression": {
       "title": "Première impression",
@@ -259,6 +269,18 @@
       "finalCtaTitlePlaceholder": "Réservez chez {name}",
       "finalCtaTextLabel": "Texte final",
       "finalCtaTextPlaceholder": "Appel final à réserver, visiter ou contacter."
+    },
+    "faq": {
+      "title": "Spécialités et questions fréquentes",
+      "description": "Contenu utile pour les clients, Google et les moteurs de recherche IA.",
+      "sectionTitleLabel": "Titre de section",
+      "sectionTitlePlaceholder": "Avant de réserver",
+      "specialtiesLabel": "Spécialités",
+      "specialtiesHint": "Séparées par des virgules",
+      "specialtiesPlaceholder": "Morue, plats à partager, vins portugais",
+      "itemLabel": "Question {index}",
+      "questionPlaceholder": "Le restaurant accepte-t-il les réservations ?",
+      "answerPlaceholder": "Une réponse claire et factuelle."
     },
     "images": {
       "title": "Images",

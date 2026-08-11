@@ -153,13 +153,13 @@
       "mobileEmpty": "Sem telemóvel",
       "email": "Email",
       "emailEmpty": "Sem email",
-      "finishNote": "Ao finalizar, o cliente recebe automaticamente um pedido de avaliação."
+      "finishNote": "A review é enviada 12h depois da reserva; marque Não compareceu para impedir o envio."
     },
     "actions": {
       "approve": "Aprovar",
       "reject": "Recusar",
       "seat": "Sentar",
-      "noShow": "No-show",
+      "noShow": "Não compareceu",
       "finish": "Finalizar"
     },
     "status": {
@@ -167,7 +167,7 @@
       "CONFIRMED": "Confirmada",
       "SEATED": "Sentado",
       "FINISHED": "Finalizada",
-      "NO_SHOW": "No-show",
+      "NO_SHOW": "Não compareceu",
       "CANCELLED": "Cancelada",
       "REJECTED": "Recusada"
     },

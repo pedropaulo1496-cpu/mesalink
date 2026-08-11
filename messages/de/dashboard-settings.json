@@ -216,8 +216,18 @@
       "cardTitle": "KI-Website-Builder",
       "cardText": "Z. B. familiengeführtes italienisches Restaurant in Lissabon mit frischer Pasta.",
       "comingSoonBadge": "Aktiv",
-      "generateButton": "KI-Texte · 5 Credits",
-      "generatingButton": "Website wird erstellt…"
+      "generateButton": "Komplette Website erstellen · 5 Credits",
+      "generatingButton": "Website wird erstellt…",
+      "agentLabel": "MesaLink Kreativ-Agent",
+      "activeBadge": "Aktiv",
+      "briefLabel": "Optionale Hinweise",
+      "briefPlaceholder": "Z. B. Gerichte zum Teilen, historisches Ambiente und Gruppen hervorheben. Leer lassen, um vorhandene Daten zu nutzen.",
+      "sources": { "menu": "Menü und Gerichte", "visibility": "SEO und GEO", "images": "Vorhandene Bilder", "reviews": "Bewertungen" },
+      "progressTitle": "Das gesamte Restaurant wird analysiert",
+      "progressText": "Die KI kombiniert Menü, Standort, Zeiten, Bewertungen, Bilder und Zielsuchen, um die gesamte Website zu vervollständigen.",
+      "successTitle": "Vollständige Website vorbereitet",
+      "successText": "{fields} Elemente mit {dishes} Gerichten, {reviews} Bewertungen, {images} Bildern und {prompts} Suchen ergänzt.",
+      "costNote": "5 Credits · bei einem Fehler werden sie zurückerstattet"
     },
     "firstImpression": {
       "title": "Erster Eindruck",
@@ -259,6 +269,18 @@
       "finalCtaTitlePlaceholder": "Reservieren Sie bei {name}",
       "finalCtaTextLabel": "Abschließender Text",
       "finalCtaTextPlaceholder": "Abschließender Aufruf zum Reservieren, Besuchen oder Kontaktieren."
+    },
+    "faq": {
+      "title": "Spezialitäten und häufige Fragen",
+      "description": "Nützliche Inhalte für Gäste, Google und KI-Suchmaschinen.",
+      "sectionTitleLabel": "Abschnittstitel",
+      "sectionTitlePlaceholder": "Vor der Reservierung",
+      "specialtiesLabel": "Spezialitäten",
+      "specialtiesHint": "Durch Kommas getrennt",
+      "specialtiesPlaceholder": "Kabeljau, Gerichte zum Teilen, portugiesische Weine",
+      "itemLabel": "Frage {index}",
+      "questionPlaceholder": "Nimmt das Restaurant Reservierungen an?",
+      "answerPlaceholder": "Eine klare, sachliche Antwort."
     },
     "images": {
       "title": "Bilder",

@@ -216,8 +216,18 @@
       "cardTitle": "AI 网站生成器",
       "cardText": "例如：位于里斯本的家庭式意大利餐厅，氛围温馨，提供新鲜意面。",
       "comingSoonBadge": "已启用",
-      "generateButton": "AI 文案 · 5 点数",
-      "generatingButton": "正在创建网站…"
+      "generateButton": "创建完整网站 · 5 点数",
+      "generatingButton": "正在创建网站…",
+      "agentLabel": "MesaLink 创意助手",
+      "activeBadge": "已启用",
+      "briefLabel": "可选说明",
+      "briefPlaceholder": "例如：突出分享菜、历史氛围和团体用餐。留空则使用现有数据。",
+      "sources": { "menu": "菜单与菜品", "visibility": "SEO 与 GEO", "images": "现有图片", "reviews": "评价" },
+      "progressTitle": "正在分析整个餐厅",
+      "progressText": "AI 正在结合菜单、位置、营业时间、评价、图片和目标搜索来完善整个网站。",
+      "successTitle": "完整网站已准备",
+      "successText": "已使用 {dishes} 道菜、{reviews} 条评价、{images} 张图片和 {prompts} 个搜索词填充 {fields} 个元素。",
+      "costNote": "5 点数 · 生成失败将自动退还"
     },
     "firstImpression": {
       "title": "第一印象",
@@ -259,6 +269,18 @@
       "finalCtaTitlePlaceholder": "立即预订 {name}",
       "finalCtaTextLabel": "结尾文字",
       "finalCtaTextPlaceholder": "邀请顾客预订、到访或联系的结尾文案。"
+    },
+    "faq": {
+      "title": "特色菜与常见问题",
+      "description": "面向顾客、Google 和 AI 搜索引擎的实用内容。",
+      "sectionTitleLabel": "分区标题",
+      "sectionTitlePlaceholder": "预订前须知",
+      "specialtiesLabel": "特色菜",
+      "specialtiesHint": "用逗号分隔",
+      "specialtiesPlaceholder": "鳕鱼、分享菜、葡萄牙葡萄酒",
+      "itemLabel": "问题 {index}",
+      "questionPlaceholder": "餐厅接受预订吗？",
+      "answerPlaceholder": "清晰、基于事实的回答。"
     },
     "images": {
       "title": "图片",

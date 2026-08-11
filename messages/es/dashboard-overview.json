@@ -153,7 +153,7 @@
       "mobileEmpty": "Sin móvil",
       "email": "Email",
       "emailEmpty": "Sin email",
-      "finishNote": "Al finalizar, el cliente recibe automáticamente una solicitud de reseña."
+      "finishNote": "La reseña se envía 12 h después de la reserva; marca No-show para impedirla."
     },
     "actions": {
       "approve": "Aprobar",

@@ -22,8 +22,8 @@ export default async function RestaurantWebsitePage({
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
 
-  const restaurant = await prisma.restaurant.findUnique({
-    where: { id },
+  const restaurant = await prisma.restaurant.findFirst({
+    where: { id, user: { email: session.user.email } },
     include: {
       websiteMenus: {
         orderBy: {

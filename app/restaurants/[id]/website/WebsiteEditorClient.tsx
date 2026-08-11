@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import { CheckCircle2, Database, Image as ImageIcon, LoaderCircle, Search, Sparkles, WandSparkles } from "lucide-react";
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -15,6 +16,8 @@ type WebsiteMenuItem = {
   pdf: string;
   sortOrder?: number;
 };
+
+type WebsiteFaqItem = { question: string; answer: string };
 
 type RestaurantWebsiteData = {
   id: string;
@@ -55,6 +58,11 @@ type RestaurantWebsiteData = {
   websiteLocationDescription: string | null;
   websiteFinalCtaTitle: string | null;
   websiteFinalCtaText: string | null;
+  websiteFaqTitle: string | null;
+  websiteFaqItems: unknown;
+  websiteSpecialties: string[];
+  websiteLastGeneratedAt: string | Date | null;
+  websiteAiVersion: string | null;
   websiteSeoTitle: string | null;
   websiteSeoDescription: string | null;
   customDomain: string | null;
@@ -181,6 +189,9 @@ export function WebsiteEditorClient({
   const [finalCtaText, setFinalCtaText] = useState(
     restaurant.websiteFinalCtaText || "",
   );
+  const [faqTitle, setFaqTitle] = useState(restaurant.websiteFaqTitle || "Perguntas frequentes");
+  const [faqItems, setFaqItems] = useState<WebsiteFaqItem[]>(() => normalizeFaqItems(restaurant.websiteFaqItems));
+  const [specialties, setSpecialties] = useState<string[]>(restaurant.websiteSpecialties || []);
   const [seoTitle, setSeoTitle] = useState(
     restaurant.websiteSeoTitle || "",
   );
@@ -196,6 +207,13 @@ export function WebsiteEditorClient({
   const [address, setAddress] = useState(restaurant.address || "");
   const [aiBrief, setAiBrief] = useState("");
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [aiResult, setAiResult] = useState<null | {
+    fields: number;
+    dishes: number;
+    reviews: number;
+    images: number;
+    prompts: number;
+  }>(null);
   const [mobileMode, setMobileMode] = useState<"edit" | "preview">("edit");
 
   const publicUrl = `/s/${slug || restaurant.slug}`;
@@ -219,6 +237,10 @@ export function WebsiteEditorClient({
       cuisine,
       heroImage,
       aboutText,
+      seoTitle,
+      seoDescription,
+      faqItems.filter((item) => item.question && item.answer).length >= 3,
+      specialties.length >= 3,
       menuCount > 0,
       phone || email,
     ];
@@ -231,6 +253,10 @@ export function WebsiteEditorClient({
     cuisine,
     heroImage,
     aboutText,
+    seoTitle,
+    seoDescription,
+    faqItems,
+    specialties,
     menuCount,
     phone,
     email,
@@ -265,18 +291,48 @@ export function WebsiteEditorClient({
 
       setHeadline(data.headline || "");
       setDescription(data.description || "");
+      setCuisine(data.cuisine || cuisine);
       setAboutTitle(data.aboutTitle || "");
       setAboutText(data.aboutText || "");
       setFeatureTitle(data.featureTitle || "");
       setFeatureText(data.featureText || "");
+      setSectionTitle(data.sectionTitle || "");
+      setSectionText(data.sectionText || "");
       setGalleryTitle(data.galleryTitle || "");
       setGalleryDescription(data.galleryDescription || "");
       setLocationTitle(data.locationTitle || "");
       setLocationDescription(data.locationDescription || "");
       setFinalCtaTitle(data.ctaTitle || "");
       setFinalCtaText(data.ctaText || "");
+      setMenuTitle(data.menuTitle || "");
+      setMenuDescription(data.menuDescription || "");
       setSeoTitle(data.seoTitle || "");
       setSeoDescription(data.seoDescription || "");
+      setFaqTitle(data.faqTitle || "Perguntas frequentes");
+      setFaqItems(normalizeFaqItems(data.faqItems));
+      setSpecialties(Array.isArray(data.specialties) ? data.specialties.slice(0, 6) : []);
+      setTemplate(data.template || "PREMIUM");
+      setPrimaryColor(/^#[0-9a-f]{6}$/i.test(data.primaryColor || "") ? data.primaryColor : primaryColor);
+      const generatedGalleryTitles = Array.isArray(data.galleryTitles) ? data.galleryTitles : [];
+      setGalleryTitle1(generatedGalleryTitles[0] || galleryTitle1);
+      setGalleryTitle2(generatedGalleryTitles[1] || galleryTitle2);
+      setGalleryTitle3(generatedGalleryTitles[2] || galleryTitle3);
+      setGalleryTitle4(generatedGalleryTitles[3] || galleryTitle4);
+      const suggestions = Array.isArray(data.suggestedImages) ? data.suggestedImages.filter((url: unknown) => typeof url === "string" && url.startsWith("https://")) : [];
+      const available = suggestions.filter((url: string) => ![heroImage, gallery1, gallery2, gallery3, gallery4].includes(url));
+      if (!heroImage) setHeroImage(suggestions[0] || "");
+      if (!gallery1) setGallery1(available.shift() || suggestions[1] || "");
+      if (!gallery2) setGallery2(available.shift() || suggestions[2] || "");
+      if (!gallery3) setGallery3(available.shift() || suggestions[3] || "");
+      if (!gallery4) setGallery4(available.shift() || suggestions[4] || "");
+      const sourceStats = data.sourceStats || {};
+      setAiResult({
+        fields: countBlueprintFields(data),
+        dishes: Number(sourceStats.dishes || 0),
+        reviews: Number(sourceStats.reviews || 0),
+        images: Number(sourceStats.images || 0),
+        prompts: Number(sourceStats.prompts || 0),
+      });
     } catch (error) {
       console.error(error);
       alert(error instanceof Error ? error.message : t("aiErrors.generateFailedAlert"));
@@ -505,39 +561,56 @@ export function WebsiteEditorClient({
               title={t("aiBuilder.title")}
               description={t("aiBuilder.description")}
             >
-              <div className="rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-6">
-                <div className="flex flex-col gap-5">
+              <div className="overflow-hidden rounded-[30px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_24px_65px_rgba(44,31,18,0.18)]">
+                <div className="border-b border-white/10 p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">{t("aiBuilder.cardTitle")}</h3>
-
-                    <p className="mt-2 text-sm text-[#6B6258]">
-                      {t("aiBuilder.cardText")}
-                    </p>
+                    <div>
+                      <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#D7B267]"><WandSparkles size={15} /> {t("aiBuilder.agentLabel")}</p>
+                      <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">{t("aiBuilder.cardTitle")}</h3>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-[#D5C6B4]">{t("aiBuilder.cardText")}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full border border-[#D7B267]/30 bg-[#D7B267]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-[#E7C98D]">{t("aiBuilder.activeBadge")}</span>
                   </div>
 
-                  <span className="shrink-0 rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-3 py-1 text-xs font-semibold text-[#3F6A4D]">
-                    AI
-                  </span>
+                  <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <AiSource icon={<Database size={15} />} label={t("aiBuilder.sources.menu")} />
+                    <AiSource icon={<Search size={15} />} label={t("aiBuilder.sources.visibility")} />
+                    <AiSource icon={<ImageIcon size={15} />} label={t("aiBuilder.sources.images")} />
+                    <AiSource icon={<Sparkles size={15} />} label={t("aiBuilder.sources.reviews")} />
                   </div>
+                </div>
 
+                <div className="p-5 sm:p-6">
+                  <label className="block text-xs font-bold text-[#EADBC5]">{t("aiBuilder.briefLabel")}</label>
                   <textarea
                     value={aiBrief}
                     onChange={(event) => setAiBrief(event.target.value)}
                     rows={3}
                     aria-label={t("aiBuilder.cardTitle")}
-                    placeholder={t("aiBuilder.cardText")}
-                    className="input-premium min-h-24 py-3"
+                    placeholder={t("aiBuilder.briefPlaceholder")}
+                    className="mt-2 min-h-24 w-full rounded-[20px] border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#D7B267]/60"
                   />
+
+                  {isGeneratingAi && <div className="mt-4 rounded-[20px] border border-[#D7B267]/25 bg-[#D7B267]/10 p-4">
+                    <p className="flex items-center gap-2 text-sm font-black text-[#E7C98D]"><LoaderCircle size={17} className="animate-spin" /> {t("aiBuilder.progressTitle")}</p>
+                    <p className="mt-1 text-xs leading-5 text-[#D5C6B4]">{t("aiBuilder.progressText")}</p>
+                  </div>}
+
+                  {aiResult && !isGeneratingAi && <div className="mt-4 rounded-[20px] border border-[#84B48A]/30 bg-[#84B48A]/10 p-4">
+                    <p className="flex items-center gap-2 text-sm font-black text-[#DDF2DF]"><CheckCircle2 size={17} /> {t("aiBuilder.successTitle")}</p>
+                    <p className="mt-1 text-xs leading-5 text-[#CDE4D0]">{t("aiBuilder.successText", aiResult)}</p>
+                  </div>}
 
                   <button
                     type="button"
                     onClick={generateWebsiteWithAi}
                     disabled={isGeneratingAi}
-                    className="inline-flex h-12 items-center justify-center rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118] disabled:cursor-wait disabled:opacity-55"
+                    className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#D7B267] px-5 text-sm font-black text-[#17120D] transition hover:bg-[#E7C98D] disabled:cursor-wait disabled:opacity-55"
                   >
+                    {isGeneratingAi ? <LoaderCircle size={17} className="animate-spin" /> : <Sparkles size={17} />}
                     {isGeneratingAi ? t("aiBuilder.generatingButton") : t("aiBuilder.generateButton")}
                   </button>
+                  <p className="mt-3 text-center text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">{t("aiBuilder.costNote")}</p>
                 </div>
               </div>
             </EditorBlock>
@@ -643,7 +716,45 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="06" title={t("images.title")} description={t("images.description")}>
+            <EditorBlock number="06" title={t("faq.title")} description={t("faq.description")}>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label={t("faq.sectionTitleLabel")}>
+                  <input value={faqTitle} onChange={(event) => setFaqTitle(event.target.value)} className="input-premium h-12" placeholder={t("faq.sectionTitlePlaceholder")} />
+                </Field>
+                <Field label={t("faq.specialtiesLabel")} hint={t("faq.specialtiesHint")}>
+                  <input
+                    value={specialties.join(", ")}
+                    onChange={(event) => setSpecialties(event.target.value.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 6))}
+                    className="input-premium h-12"
+                    placeholder={t("faq.specialtiesPlaceholder")}
+                  />
+                </Field>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {faqItems.map((item, index) => <div key={index} className="rounded-[26px] border border-[#E8DCCB] bg-[#FFF9F0] p-4">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">{t("faq.itemLabel", { index: index + 1 })}</p>
+                  <input
+                    value={item.question}
+                    onChange={(event) => setFaqItems((items) => items.map((faq, itemIndex) => itemIndex === index ? { ...faq, question: event.target.value } : faq))}
+                    className="input-premium h-11"
+                    placeholder={t("faq.questionPlaceholder")}
+                  />
+                  <textarea
+                    value={item.answer}
+                    onChange={(event) => setFaqItems((items) => items.map((faq, itemIndex) => itemIndex === index ? { ...faq, answer: event.target.value } : faq))}
+                    rows={3}
+                    className="input-premium mt-3 min-h-24 py-3"
+                    placeholder={t("faq.answerPlaceholder")}
+                  />
+                </div>)}
+              </div>
+              <input type="hidden" name="websiteFaqTitle" value={faqTitle} />
+              <input type="hidden" name="websiteFaqItems" value={JSON.stringify(faqItems)} />
+              <input type="hidden" name="websiteSpecialties" value={JSON.stringify(specialties)} />
+              <input type="hidden" name="websiteAiGenerated" value={aiResult ? "1" : ""} />
+            </EditorBlock>
+
+            <EditorBlock number="07" title={t("images.title")} description={t("images.description")}>
               <Field label={t("images.logoLabel")}>
                 <ImageUploadField value={logoImage} onChange={setLogoImage} compact />
                 <input type="hidden" name="websiteLogoImage" value={logoImage} />
@@ -663,7 +774,7 @@ export function WebsiteEditorClient({
             </EditorBlock>
 
             <EditorBlock
-              number="07"
+              number="08"
               title={t("menus.title")}
               description={t("menus.description")}
             >
@@ -750,7 +861,7 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="08" title={t("style.title")} description={t("style.description")}>
+            <EditorBlock number="09" title={t("style.title")} description={t("style.description")}>
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label={t("style.instagramLabel")}>
                   <input
@@ -774,7 +885,7 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="09" title={t("contacts.title")} description={t("contacts.description")}>
+            <EditorBlock number="10" title={t("contacts.title")} description={t("contacts.description")}>
               <div className="grid gap-4 md:grid-cols-2">
                 <TextInput label={t("contacts.emailLabel")} name="email" value={email} onChange={setEmail} placeholder={t("contacts.emailPlaceholder")} />
                 <TextInput label={t("contacts.phoneLabel")} name="phone" value={phone} onChange={setPhone} placeholder={t("contacts.phonePlaceholder")} />
@@ -784,7 +895,7 @@ export function WebsiteEditorClient({
             </EditorBlock>
 
             <EditorBlock
-              number="10"
+              number="11"
               title={t("seo.title")}
               description={t("seo.description")}
             >
@@ -962,6 +1073,12 @@ function TextInput({
       />
     </Field>
   );
+}
+
+function AiSource({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 text-xs font-bold text-[#EADBC5]">
+    <span className="text-[#D7B267]">{icon}</span><span>{label}</span>
+  </div>;
 }
 
 function LivePreview({
@@ -1228,6 +1345,7 @@ function EditorBlock({
     "08": "bg-[#FFFAF2]",
     "09": "bg-[#FFFDF8]",
     "10": "bg-[#FFFBF4]",
+    "11": "bg-[#FFF7EE]",
   };
 
   const surface = surfaces[number] ?? "bg-white";
@@ -1334,6 +1452,31 @@ function ChecklistItem({
       </span>
     </div>
   );
+}
+
+function normalizeFaqItems(value: unknown): WebsiteFaqItem[] {
+  const source = Array.isArray(value) ? value : [];
+  const items = source
+    .map((item) => {
+      const candidate = item && typeof item === "object" ? item as Record<string, unknown> : {};
+      return { question: String(candidate.question || "").slice(0, 160), answer: String(candidate.answer || "").slice(0, 360) };
+    })
+    .slice(0, 4);
+  while (items.length < 4) items.push({ question: "", answer: "" });
+  return items;
+}
+
+function countBlueprintFields(data: Record<string, unknown>) {
+  const scalarKeys = [
+    "headline", "description", "cuisine", "aboutTitle", "aboutText", "featureTitle", "featureText", "sectionTitle",
+    "sectionText", "galleryTitle", "galleryDescription", "locationTitle", "locationDescription", "ctaTitle", "ctaText",
+    "menuTitle", "menuDescription", "seoTitle", "seoDescription", "faqTitle", "template", "primaryColor",
+  ];
+  const scalars = scalarKeys.filter((key) => typeof data[key] === "string" && Boolean(String(data[key]).trim())).length;
+  const listItems = [data.galleryTitles, data.specialties, data.faqItems]
+    .filter(Array.isArray)
+    .reduce((total, list) => total + (list as unknown[]).length, 0);
+  return scalars + listItems;
 }
 
 function getPreviewTheme(template: string, primaryColor: string) {

@@ -153,7 +153,7 @@
       "mobileEmpty": "Keine Mobilnummer",
       "email": "E-Mail",
       "emailEmpty": "Keine E-Mail",
-      "finishNote": "Beim Abschließen erhält der Kunde automatisch eine Bewertungsanfrage."
+      "finishNote": "Die Bewertung wird 12 Std. nach der Reservierung gesendet; No-show verhindert den Versand."
     },
     "actions": {
       "approve": "Genehmigen",

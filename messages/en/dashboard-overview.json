@@ -153,7 +153,7 @@
       "mobileEmpty": "No mobile number",
       "email": "Email",
       "emailEmpty": "No email",
-      "finishNote": "When finished, the customer automatically receives a review request."
+      "finishNote": "The review is sent 12h after the reservation; mark No-show to prevent it."
     },
     "actions": {
       "approve": "Approve",

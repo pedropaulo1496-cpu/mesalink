@@ -109,6 +109,11 @@ model Restaurant {
   websiteLocationDescription String?
   websiteFinalCtaTitle       String?
   websiteFinalCtaText        String?
+  websiteFaqTitle            String?
+  websiteFaqItems            Json?
+  websiteSpecialties         String[]  @default([])
+  websiteLastGeneratedAt     DateTime?
+  websiteAiVersion           String?
 
   // Mini-site — galeria
   websiteGalleryImage1 String?
@@ -187,23 +192,29 @@ model Restaurant {
 
   orderingTableSessions OrderingTableSession[]
 
-  qrOrderingEnabled       Boolean           @default(true)
-  qrAllowWaiterCall       Boolean           @default(true)
-  qrAllowBillRequest      Boolean           @default(true)
-  qrWelcomeMessage        String?
-  floorRooms              FloorRoom[]
-  marketingActions        MarketingAction[]
-  googleReviewUrl         String?
-  reviewRedirectThreshold Int               @default(4)
-  averageTicket           Float?            @default(25)
-  birthdayOffer           String?
-  recoveryOffer           String?
-  vipOffer                String?
-  bronzeVipOffer          String?
-  silverVipOffer          String?
-  goldVipOffer            String?
-  platinumVipOffer        String?
-  posEnabled              Boolean           @default(false)
+  qrOrderingEnabled               Boolean           @default(true)
+  qrAllowWaiterCall               Boolean           @default(true)
+  qrAllowBillRequest              Boolean           @default(true)
+  qrWelcomeMessage                String?
+  floorRooms                      FloorRoom[]
+  marketingActions                MarketingAction[]
+  googleReviewUrl                 String?
+  reviewRedirectThreshold         Int               @default(4)
+  reviewAutomationEnabled         Boolean           @default(true)
+  reviewDelayHours                Int               @default(12)
+  marketingAutopilotEnabled       Boolean           @default(false)
+  marketingAutopilotFrequencyDays Int               @default(14)
+  marketingAutopilotMaxDiscount   Int               @default(15)
+  marketingAutopilotLastRunAt     DateTime?
+  averageTicket                   Float?            @default(25)
+  birthdayOffer                   String?
+  recoveryOffer                   String?
+  vipOffer                        String?
+  bronzeVipOffer                  String?
+  silverVipOffer                  String?
+  goldVipOffer                    String?
+  platinumVipOffer                String?
+  posEnabled                      Boolean           @default(false)
 
   posOrders   POSOrder[]
   posPayments POSPayment[]
@@ -213,24 +224,26 @@ model Restaurant {
   fiscalIntegration FiscalIntegration?
   fiscalDocuments   FiscalDocument[]
 
-  referralAgreements       ReferralAgreement[]
-  referralOffers           ReferralOffer[]
-  acceptedReferralGroups   ReferralGroup[]         @relation("AcceptedReferralRestaurant")
-  referralBenefits         ReferralBenefit[]
-  aiVisibilityScans        AiVisibilityScan[]
-  revenueConversations     RevenueConversation[]
-  posCashRegisters         POSCashRegister[]
-  posDiscounts             POSDiscount[]
-  posReceipts              POSReceipt[]
-  posTableTransfers        POSTableTransfer[]
-  posDiscountCodes         POSDiscountCode[]
-  posCashMovements         POSCashMovement[]
-  productProductionCenters ProductionCenter[]
-  printJobs                PrintJob[]
-  printers                 RestaurantPrinter[]
-  printBridgeToken         String?                 @unique
-  printBridgeRestaurants   PrintBridgeRestaurant[]
-  customers                Customer[]
+  referralAgreements        ReferralAgreement[]
+  referralOffers            ReferralOffer[]
+  acceptedReferralGroups    ReferralGroup[]            @relation("AcceptedReferralRestaurant")
+  referralBenefits          ReferralBenefit[]
+  aiVisibilityScans         AiVisibilityScan[]
+  aiVisibilityOptimizations AiVisibilityOptimization[]
+  aiMarketingCampaigns      AiMarketingCampaign[]
+  revenueConversations      RevenueConversation[]
+  posCashRegisters          POSCashRegister[]
+  posDiscounts              POSDiscount[]
+  posReceipts               POSReceipt[]
+  posTableTransfers         POSTableTransfer[]
+  posDiscountCodes          POSDiscountCode[]
+  posCashMovements          POSCashMovement[]
+  productProductionCenters  ProductionCenter[]
+  printJobs                 PrintJob[]
+  printers                  RestaurantPrinter[]
+  printBridgeToken          String?                    @unique
+  printBridgeRestaurants    PrintBridgeRestaurant[]
+  customers                 Customer[]
 
   @@index([userId])
 }
@@ -357,7 +370,8 @@ model Reservation {
 
   notes String?
 
-  approvalReason String?
+  approvalReason    String?
+  reviewEmailSentAt DateTime?
 
   restaurantId String?
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
@@ -379,6 +393,7 @@ model Reservation {
   @@index([restaurantId, status])
   @@index([tableId])
   @@index([customerId])
+  @@index([reviewEmailSentAt, date])
 }
 
 model PasswordResetToken {
@@ -604,6 +619,36 @@ model MarketingAction {
   @@index([restaurantId])
   @@index([customerId])
   @@index([restaurantId, status, type])
+}
+
+model AiMarketingCampaign {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  status           String    @default("DRAFT")
+  segment          String
+  subject          String
+  message          String
+  offerTitle       String?
+  offerDescription String?
+  discountPercent  Int?
+  promoCode        String?
+  validUntil       DateTime?
+  cardToken        String?   @unique
+  cardTheme        String    @default("GOLD")
+  aiReason         String?
+  audienceSize     Int       @default(0)
+  emailsSent       Int       @default(0)
+  aiCreditCost     Int       @default(3)
+  error            String?
+  sentAt           DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([restaurantId, createdAt])
+  @@index([restaurantId, status])
 }
 
 model ReferralPartner {
@@ -891,6 +936,29 @@ model AiVisibilityPromptResult {
 
   @@index([scanId])
   @@index([mentioned, createdAt])
+}
+
+model AiVisibilityOptimization {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  status        String   @default("RUNNING")
+  beforeScore   Int?
+  afterScore    Int?
+  creditCost    Int      @default(20)
+  actions       String[] @default([])
+  fieldsFilled  Int      @default(0)
+  dishesUpdated Int      @default(0)
+  error         String?
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([restaurantId, createdAt])
+  @@index([restaurantId, status])
 }
 
 model ReferralBenefit {

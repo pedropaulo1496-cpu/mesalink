@@ -34,7 +34,8 @@
       "newCampaign": "创建营销活动"
     },
     "badges": {
-      "active": "已启用"
+      "active": "已启用",
+      "inactive": "已停用"
     },
     "hero": {
       "eyebrow": "Growth 表现",
@@ -137,6 +138,14 @@
       "noEmail": "无邮箱",
       "empty": "目前还没有符合唤回条件的客户。"
     },
+    "revenueAiHandoff": {
+      "eyebrow": "Revenue AI",
+      "title": "营收挽回现在拥有独立的运营中心",
+      "description": "营销模块展示成效，Revenue AI 负责跟进、追踪回复，并尝试挽回顾客、潜在客户和流失预订。",
+      "customers": "符合条件的顾客",
+      "potential": "潜在价值",
+      "open": "打开挽回中心"
+    },
     "timeline": {
       "eyebrow": "时间线",
       "title": "最近动态",
@@ -146,6 +155,7 @@
         "birthday": "生日营销已发送",
         "vipUpgrade": "VIP 升级已发送",
         "campaign": "营销活动已发送",
+        "aiCampaign": "AI 创建的活动",
         "review": "评价邀请已发送"
       },
       "status": {
@@ -161,8 +171,21 @@
       "title": "自动化引擎",
       "reviewRequest": {
         "title": "到店后评价邀请",
-        "description": "当预订被标记为已完成时,自动发送评价邀请。",
-        "note": "重要提示:只有在当日服务中将预订标记为已完成后,客户才会收到邮件。"
+        "description": "预订时间结束 12 小时后自动发送评价邀请，无需手动标记为已完成。",
+        "delay": "12 小时后发送",
+        "noShow": "排除未到店客户",
+        "automatic": "无需手动操作",
+        "toggle": "启用或停用自动评价",
+        "balance": "可用邮件 {count} 封",
+        "error": "无法更改自动化设置。",
+        "enabledMessage": "自动评价已启用。",
+        "disabledMessage": "自动评价已停用。"
+      },
+      "revenueAi": {
+        "eyebrow": "Revenue AI",
+        "title": "客户挽回和跟进现已集中到 Revenue AI",
+        "description": "未接来电、潜在客户、取消、未到店和流失客户都在专用运营收件箱中管理，不再与营销模块重复。",
+        "open": "打开 Revenue AI"
       },
       "vipClub": {
         "title": "VIP 俱乐部",
@@ -279,9 +302,20 @@
     },
     "submit": "保存设置"
   },
+  "autopilot": {
+    "eyebrow": "Marketing Autopilot",
+    "title": "AI 自动规划、创建并发送营销活动",
+    "description": "分析顾客、到店、菜单和历史结果，选择最佳受众并创建活动；适合时还会生成 PNG 和 PDF 优惠卡。",
+    "status": { "active": "已开启，直到手动关闭", "inactive": "已关闭" },
+    "stats": { "cost": "AI 成本", "costValue": "每次活动 3 点数", "emails": "发送", "emailsValue": "每次最多 100 封", "balance": "可用点数" },
+    "controls": { "toggle": "自动营销", "frequency": "最高频率", "weekly": "每周", "fortnightly": "每 14 天", "monthly": "每月", "maxDiscount": "允许的最大折扣", "noDiscount": "不打折", "save": "保存限制", "saving": "保存中...", "runNow": "立即创建", "running": "AI 正在工作..." },
+    "messages": { "enabled": "Autopilot 已开启，正在准备第一次活动。", "disabled": "Autopilot 已关闭。", "working": "正在分析机会并准备活动...", "sent": "活动完成：已发送 {emails}/{audience} 封邮件。", "noAudience": "暂时没有同意接收营销的顾客。", "notDue": "尚未到下一次活动时间。" },
+    "errors": { "save": "无法保存 Autopilot。", "run": "无法创建活动。" },
+    "latest": { "eyebrow": "AI 最新决策", "results": "已发送 {sent} 封 · 受众 {audience}" }
+  },
   "birthdayCard": {
     "title": "生日客户",
-    "subtitle": "本月有 {count} 位客户生日。",
+    "subtitle": "未来 7 天有 {count} 位顾客生日，精品邮件会自动发送。",
     "runNow": "立即执行",
     "emailBalance": "可用邮件 {count} 封",
     "creditRate": "1 点 = 75 封邮件",
@@ -307,6 +341,9 @@
   "templates": {
     "heading": "快捷营销活动",
     "items": {
+      "signature": { "label": "🍽️ 招牌菜", "subject": "有些味道值得专程到访", "message": "介绍一道真正代表餐厅风格的菜。\n\n写明菜名、它的特别之处，并自然邀请顾客预订。" },
+      "weekday": { "label": "🌙 悠闲时段", "subject": "留更多时间，慢慢享受一餐", "message": "较安静的日子适合从容体验餐厅。\n\n补充希望推广的日期或时段，以及真实可用的权益。" },
+      "seasonal": { "label": "🌿 时令推荐", "subject": "季节变了，餐桌也有新意", "message": "新的时令菜正在等候。\n\n用真实信息介绍菜品，并邀请顾客在供应期间预订。" },
       "missYou": {
         "label": "🍷 我们很想念您",
         "subject": "我们很想念您 🍽️",

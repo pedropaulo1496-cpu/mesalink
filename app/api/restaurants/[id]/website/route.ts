@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
+import { WEBSITE_AI_VERSION } from "@/lib/website-ai";
 
 function normalizeSlug(value: string) {
   return value
@@ -15,6 +17,15 @@ function normalizeSlug(value: string) {
 
 function getText(formData: FormData, key: string, maxLength = 2000) {
   return String(formData.get(key) || "").trim().slice(0, maxLength);
+}
+
+function getJsonArray(formData: FormData, key: string) {
+  try {
+    const parsed = JSON.parse(String(formData.get(key) || "[]"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 export async function POST(
@@ -50,6 +61,21 @@ export async function POST(
     }))
     .filter((menu) => /^https:\/\//i.test(menu.pdf))
     .slice(0, 12);
+  const faqItems = getJsonArray(formData, "websiteFaqItems")
+    .map((item) => {
+      const value = item && typeof item === "object" ? item as Record<string, unknown> : {};
+      return {
+        question: String(value.question || "").trim().slice(0, 160),
+        answer: String(value.answer || "").trim().slice(0, 360),
+      };
+    })
+    .filter((item) => item.question && item.answer)
+    .slice(0, 4);
+  const specialties = getJsonArray(formData, "websiteSpecialties")
+    .map((item) => String(item || "").trim().slice(0, 80))
+    .filter(Boolean)
+    .slice(0, 6);
+  const generatedWithAi = formData.get("websiteAiGenerated") === "1";
 
   await prisma.$transaction(async (tx) => {
     await tx.restaurant.update({
@@ -85,6 +111,10 @@ export async function POST(
         websiteLocationDescription: getText(formData, "websiteLocationDescription"),
         websiteFinalCtaTitle: getText(formData, "websiteFinalCtaTitle"),
         websiteFinalCtaText: getText(formData, "websiteFinalCtaText"),
+        websiteFaqTitle: getText(formData, "websiteFaqTitle", 120),
+        websiteFaqItems: faqItems as Prisma.InputJsonValue,
+        websiteSpecialties: specialties,
+        ...(generatedWithAi ? { websiteLastGeneratedAt: new Date(), websiteAiVersion: WEBSITE_AI_VERSION } : {}),
 
         websiteGalleryImage1: getText(formData, "websiteGalleryImage1"),
         websiteGalleryImage2: getText(formData, "websiteGalleryImage2"),

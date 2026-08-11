@@ -4,13 +4,14 @@ import BottomNav from "@/components/BottomNav";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { sendReviewEmail } from "@/lib/send-review-email";
 import { Resend } from "resend";
 import { cookies } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
 import { isLocale, defaultLocale } from "@/i18n/locales";
 import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
+import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -68,10 +69,27 @@ function getApprovalReasonLabel(reason: string | null, t: TFunc) {
 async function updateReservationStatus(formData: FormData) {
   "use server";
 
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) redirect("/login");
+
   const restaurantId = String(formData.get("restaurantId"));
   const reservationId = String(formData.get("reservationId"));
   const status = String(formData.get("status"));
   const day = String(formData.get("day"));
+
+  const allowedStatuses = ["PENDING", "CONFIRMED", "SEATED", "FINISHED", "NO_SHOW", "CANCELLED", "REJECTED"];
+  if (!allowedStatuses.includes(status)) redirect(`/restaurants/${restaurantId}/day?day=${day}`);
+
+  const previousReservation = await prisma.reservation.findFirst({
+    where: {
+      id: reservationId,
+      restaurantId,
+      restaurant: { user: { email: session.user.email } },
+    },
+    select: { status: true },
+  });
+
+  if (!previousReservation) redirect(`/restaurants/${restaurantId}/day?day=${day}`);
 
  const reservation = await prisma.reservation.update({
   where: { id: reservationId },
@@ -82,7 +100,7 @@ async function updateReservationStatus(formData: FormData) {
   },
 });
 
-if (status === "FINISHED" && reservation.customerId) {
+if (status === "FINISHED" && previousReservation.status !== "FINISHED" && reservation.customerId) {
   const currentCustomer = await prisma.customer.findUnique({
     where: {
       id: reservation.customerId,
@@ -234,25 +252,6 @@ await prisma.marketingAction.create({
   }
 }
 
-  if (
-    status === "FINISHED" &&
-    reservation.email &&
-    reservation.restaurant?.userId
-  ) {
-    try {
-      await sendReviewEmail({
-        to: reservation.email,
-        customerName: reservation.customerName,
-        restaurantName: reservation.restaurant.name,
-        restaurantId: reservation.restaurant.id,
-        userId: reservation.restaurant.userId,
-        reservationId: reservation.id,
-      });
-    } catch (error) {
-      console.error("Erro ao enviar pedido de review:", error);
-    }
-  }
-
   redirect(`/restaurants/${restaurantId}/day?day=${day}`);
 }
 
@@ -283,8 +282,11 @@ export default async function DayPage({
   const dayEnd = new Date(selectedDay);
   dayEnd.setHours(23, 59, 59, 999);
 
-  const restaurant = await prisma.restaurant.findUnique({
-    where: { id },
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) redirect("/login");
+
+  const restaurant = await prisma.restaurant.findFirst({
+    where: { id, user: { email: session.user.email } },
     include: { tables: true },
   });
 

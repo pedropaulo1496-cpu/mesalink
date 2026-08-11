@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { WebsiteHero } from "./WebsiteHero";
 import {
   FinalCtaSection,
+  FaqSection,
   GallerySection,
   LocationSection,
   MenuSection,
@@ -51,6 +52,8 @@ export async function PublicWebsite({
       />
 
       <GallerySection restaurant={restaurant} />
+
+      <FaqSection restaurant={restaurant} />
 
       <LocationSection
         restaurant={restaurant}

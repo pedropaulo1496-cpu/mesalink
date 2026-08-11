@@ -216,8 +216,18 @@
       "cardTitle": "IA Website Builder",
       "cardText": "Ej.: restaurante italiano familiar en Lisboa con ambiente acogedor y pasta fresca.",
       "comingSoonBadge": "Activo",
-      "generateButton": "Crear textos · 5 créditos",
-      "generatingButton": "Creando el sitio web…"
+      "generateButton": "Crear website completo · 5 créditos",
+      "generatingButton": "Creando el sitio web…",
+      "agentLabel": "Agente creativo MesaLink",
+      "activeBadge": "Activo",
+      "briefLabel": "Indicaciones opcionales",
+      "briefPlaceholder": "Ej.: destacar platos para compartir, ambiente histórico y grupos. Déjalo vacío para usar los datos existentes.",
+      "sources": { "menu": "Menú y platos", "visibility": "SEO y GEO", "images": "Imágenes existentes", "reviews": "Reseñas" },
+      "progressTitle": "Analizando todo el restaurante",
+      "progressText": "La IA combina menú, ubicación, horarios, reseñas, imágenes y búsquedas objetivo para completar todo el sitio.",
+      "successTitle": "Sitio completo preparado",
+      "successText": "{fields} elementos completados usando {dishes} platos, {reviews} reseñas, {images} imágenes y {prompts} búsquedas.",
+      "costNote": "5 créditos · se devuelven si la generación falla"
     },
     "firstImpression": {
       "title": "Primera impresión",
@@ -259,6 +269,18 @@
       "finalCtaTitlePlaceholder": "Reserva en {name}",
       "finalCtaTextLabel": "Texto final",
       "finalCtaTextPlaceholder": "Llamada final a reservar, visitar o contactar."
+    },
+    "faq": {
+      "title": "Especialidades y preguntas frecuentes",
+      "description": "Contenido útil para clientes, Google y buscadores con IA.",
+      "sectionTitleLabel": "Título de la sección",
+      "sectionTitlePlaceholder": "Antes de reservar",
+      "specialtiesLabel": "Especialidades",
+      "specialtiesHint": "Separadas por comas",
+      "specialtiesPlaceholder": "Bacalao, tapas, vinos portugueses",
+      "itemLabel": "Pregunta {index}",
+      "questionPlaceholder": "¿El restaurante acepta reservas?",
+      "answerPlaceholder": "Una respuesta clara y objetiva."
     },
     "images": {
       "title": "Imágenes",

@@ -4,6 +4,9 @@ import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import NewCampaignForm from "@/components/marketing/NewCampaignForm";
 import { getTranslations } from "next-intl/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function NewCampaignPage({
   params,
@@ -17,8 +20,11 @@ export default async function NewCampaignPage({
 
   const t = await getTranslations("dashboardMarketing.campaignsNew");
 
-  const restaurant = await prisma.restaurant.findUnique({
-    where: { id },
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) redirect("/login");
+
+  const restaurant = await prisma.restaurant.findFirst({
+    where: { id, user: { email: session.user.email } },
   });
 
   if (!restaurant) notFound();

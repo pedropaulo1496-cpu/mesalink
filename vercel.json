@@ -1,3 +1,8 @@
 {
-  "regions": ["dub1"]
+  "regions": ["dub1"],
+  "crons": [
+    { "path": "/api/marketing/run-reviews", "schedule": "15 * * * *" },
+    { "path": "/api/marketing/run-birthdays", "schedule": "20 9 * * *" },
+    { "path": "/api/marketing/run-autopilot", "schedule": "35 10 * * *" }
+  ]
 }

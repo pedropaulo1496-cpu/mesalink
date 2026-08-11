@@ -34,7 +34,8 @@
       "newCampaign": "Crear campaña"
     },
     "badges": {
-      "active": "Activo"
+      "active": "Activo",
+      "inactive": "Desactivado"
     },
     "hero": {
       "eyebrow": "Rendimiento de Growth",
@@ -137,6 +138,14 @@
       "noEmail": "Sin email",
       "empty": "Todavía no hay clientes elegibles para recuperación."
     },
+    "revenueAiHandoff": {
+      "eyebrow": "Revenue AI",
+      "title": "La recuperación de ingresos tiene ahora su propio centro",
+      "description": "Marketing muestra el impacto. Revenue AI ejecuta seguimientos, controla respuestas e intenta recuperar clientes, leads y reservas perdidas.",
+      "customers": "Clientes elegibles",
+      "potential": "Potencial",
+      "open": "Abrir centro de recuperación"
+    },
     "timeline": {
       "eyebrow": "Cronología",
       "title": "Actividad reciente",
@@ -146,6 +155,7 @@
         "birthday": "Cumpleaños enviado",
         "vipUpgrade": "Upgrade VIP enviado",
         "campaign": "Campaña enviada",
+        "aiCampaign": "Campaña creada por IA",
         "review": "Solicitud de reseña enviada"
       },
       "status": {
@@ -161,8 +171,21 @@
       "title": "Motor de automatización",
       "reviewRequest": {
         "title": "Reseña tras la visita",
-        "description": "Solicitud automática de reseña cuando la reserva se marca como Finalizada.",
-        "note": "Importante: para que el cliente reciba el email, la reserva debe marcarse como Finalizada en el Servicio del Día."
+        "description": "Envía automáticamente la solicitud de reseña 12 horas después de la reserva, sin necesidad de marcarla como Finalizada.",
+        "delay": "Envío tras 12 h",
+        "noShow": "Excluye ausencias",
+        "automatic": "Sin acción manual",
+        "toggle": "Activar o desactivar reseñas automáticas",
+        "balance": "{count} emails disponibles",
+        "error": "No se pudo cambiar la automatización.",
+        "enabledMessage": "Reseñas automáticas activadas.",
+        "disabledMessage": "Reseñas automáticas desactivadas."
+      },
+      "revenueAi": {
+        "eyebrow": "Revenue AI",
+        "title": "La recuperación y el seguimiento están en Revenue AI",
+        "description": "Llamadas perdidas, leads, cancelaciones, ausencias y clientes inactivos se gestionan en una bandeja operativa propia, sin duplicación en Marketing.",
+        "open": "Abrir Revenue AI"
       },
       "vipClub": {
         "title": "Club VIP",
@@ -279,9 +302,20 @@
     },
     "submit": "Guardar configuración"
   },
+  "autopilot": {
+    "eyebrow": "Marketing Autopilot",
+    "title": "La IA planifica, crea y envía tu marketing",
+    "description": "Analiza clientes, visitas, menú y resultados, elige la audiencia y crea campañas. Cuando conviene, también crea una tarjeta promocional en PNG y PDF.",
+    "status": { "active": "Activo hasta que lo desactives", "inactive": "Desactivado" },
+    "stats": { "cost": "Coste IA", "costValue": "3 créditos / campaña", "emails": "Envíos", "emailsValue": "Máx. 100 / campaña", "balance": "Créditos disponibles" },
+    "controls": { "toggle": "Marketing automático", "frequency": "Frecuencia máxima", "weekly": "Semanal", "fortnightly": "Cada 14 días", "monthly": "Mensual", "maxDiscount": "Descuento máximo permitido", "noDiscount": "Sin descuentos", "save": "Guardar límites", "saving": "Guardando...", "runNow": "Crear ahora", "running": "La IA está trabajando..." },
+    "messages": { "enabled": "Autopilot activado. Se prepara la primera campaña.", "disabled": "Autopilot desactivado.", "working": "Analizando oportunidades...", "sent": "Campaña completada: {emails} de {audience} emails enviados.", "noAudience": "Aún no hay clientes con consentimiento.", "notDue": "La próxima campaña aún no está prevista." },
+    "errors": { "save": "No se pudo guardar Autopilot.", "run": "No se pudo crear la campaña." },
+    "latest": { "eyebrow": "Última decisión de IA", "results": "{sent} emails enviados · audiencia de {audience}" }
+  },
   "birthdayCard": {
     "title": "Cumpleaños",
-    "subtitle": "{count} clientes cumplen años este mes.",
+    "subtitle": "{count} clientes cumplen años en los próximos 7 días. El email premium se envía automáticamente.",
     "runNow": "Ejecutar ahora",
     "emailBalance": "{count} emails disponibles",
     "creditRate": "1 crédito = 75 emails",
@@ -307,6 +341,9 @@
   "templates": {
     "heading": "Campañas rápidas",
     "items": {
+      "signature": { "label": "🍽️ Plato insignia", "subject": "Hay sabores que merecen una visita", "message": "Presenta un plato que represente de verdad tu cocina.\n\nElige el plato, explica qué lo hace especial e invita de forma natural a reservar." },
+      "weekday": { "label": "🌙 Días tranquilos", "subject": "Una mesa con más tiempo para disfrutar", "message": "Los días tranquilos son perfectos para descubrir nuestra cocina sin prisa.\n\nAñade los días u horarios y cualquier ventaja real." },
+      "seasonal": { "label": "🌿 Sugerencia de temporada", "subject": "Cambió la estación. También nuestra mesa.", "message": "Hay una nueva sugerencia de temporada.\n\nPresenta el plato con datos reales e invita a reservar mientras esté disponible." },
       "missYou": {
         "label": "🍷 Te echamos de menos",
         "subject": "Te echamos de menos 🍽️",

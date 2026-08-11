@@ -58,6 +58,9 @@ export type PublicRestaurant = {
   websiteLocationDescription: string | null;
   websiteFinalCtaTitle: string | null;
   websiteFinalCtaText: string | null;
+  websiteFaqTitle: string | null;
+  websiteFaqItems: unknown;
+  websiteSpecialties: string[];
 
   websiteSeoTitle: string | null;
   websiteSeoDescription: string | null;
@@ -247,4 +250,12 @@ export function getFinalCtaTitle(restaurant: PublicRestaurant) {
 
 export function getFinalCtaText(restaurant: PublicRestaurant) {
   return restaurant.websiteFinalCtaText || "";
+}
+
+export function getFaqItems(restaurant: PublicRestaurant) {
+  if (!Array.isArray(restaurant.websiteFaqItems)) return [];
+  return restaurant.websiteFaqItems.map((item) => {
+    const value = item && typeof item === "object" ? item as Record<string, unknown> : {};
+    return { question: String(value.question || "").trim(), answer: String(value.answer || "").trim() };
+  }).filter((item) => item.question && item.answer).slice(0, 6);
 }

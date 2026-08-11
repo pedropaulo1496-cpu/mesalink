@@ -2,6 +2,7 @@ import { GalleryTile } from "./WebsiteCards";
 import {
   formatOpeningHour,
   getGalleryItems,
+  getFaqItems,
   getMapsUrl,
   getWebsiteMenus,
   getReserveUrl,
@@ -132,6 +133,10 @@ export function ReservationAndHoursSection({
                 {restaurant.websiteFeatureText}
               </p>
             )}
+
+            {restaurant.websiteSpecialties.length > 0 && <div className="mt-7 flex flex-wrap gap-2">
+              {restaurant.websiteSpecialties.map((specialty) => <span key={specialty} className="rounded-full border border-[#DCCBAF] bg-[#FFF9F0] px-4 py-2 text-xs font-semibold text-[#795D38]">{specialty}</span>)}
+            </div>}
 
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               {restaurant.phone && (
@@ -302,6 +307,26 @@ export function LocationSection({
       </div>
     </section>
   );
+}
+
+export function FaqSection({ restaurant }: { restaurant: PublicRestaurant }) {
+  const items = getFaqItems(restaurant);
+  if (items.length === 0) return null;
+
+  return <section className="bg-[#17120D] px-6 py-24 text-white">
+    <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.7fr_1.3fr]">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#D7B267]">Informação útil</p>
+        <h2 className="mt-5 text-5xl font-semibold leading-[0.9] tracking-[-0.07em] md:text-7xl">{restaurant.websiteFaqTitle || "Perguntas frequentes"}</h2>
+      </div>
+      <div className="space-y-3">
+        {items.map((item, index) => <details key={`${item.question}-${index}`} className="group rounded-[24px] border border-white/10 bg-white/[0.04] p-5 open:bg-white/[0.07]">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold"><span>{item.question}</span><span className="text-xl text-[#D7B267] transition group-open:rotate-45">+</span></summary>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-[#D5C6B4]">{item.answer}</p>
+        </details>)}
+      </div>
+    </div>
+  </section>;
 }
 
 export function FinalCtaSection({

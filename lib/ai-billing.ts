@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 
 export const AI_CREDIT_COSTS = {
   AI_VISIBILITY_SCAN: 10,
+  AI_VISIBILITY_OPTIMIZE: 20,
   WEBSITE_COPY: 5,
   REVENUE_DRAFT: 1,
+  MARKETING_AUTOPILOT: 3,
 } as const;
 
 export const AI_CREDIT_PACKS = {

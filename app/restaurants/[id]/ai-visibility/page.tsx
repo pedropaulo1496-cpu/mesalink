@@ -17,6 +17,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import VisibilityScanButton from "@/components/ai-visibility/VisibilityScanButton";
+import VisibilityOptimizeButton from "@/components/ai-visibility/VisibilityOptimizeButton";
 import { authOptions } from "@/lib/auth";
 import { calculateAiVisibility, type VisibilityOpportunity } from "@/lib/ai-visibility";
 import { hasGrowthAccess } from "@/lib/ai-billing";
@@ -55,6 +56,10 @@ export default async function AiVisibilityPage({
           take: 4,
           include: { results: { orderBy: { createdAt: "asc" } } },
         },
+        aiVisibilityOptimizations: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
       },
     }),
     prisma.reviewFeedback.aggregate({
@@ -78,7 +83,8 @@ export default async function AiVisibilityPage({
 
   const actionableCount = report.opportunities.filter((item) => item.tone !== "positive").length;
   const latestScan = restaurant.aiVisibilityScans[0];
-  const displayedOverall = latestScan?.overallScore ?? report.overall;
+  const latestOptimization = restaurant.aiVisibilityOptimizations[0];
+  const displayedOverall = latestOptimization?.afterScore ?? latestScan?.overallScore ?? report.overall;
   const cuisine = restaurant.websiteCuisine?.trim() || restaurant.name;
   const location = restaurant.address?.split(",").at(-1)?.trim() || "a sua cidade";
   const scoreMessage =
@@ -201,9 +207,28 @@ export default async function AiVisibilityPage({
               <p className="mt-4 text-sm leading-6 text-[#D5C6B4]">{t("howItWorksText")}</p>
               <div className="mt-6 rounded-[25px] border border-[#D7B267]/25 bg-[#D7B267]/10 p-5">
                 <div className="flex items-center gap-2 text-sm font-black text-[#E7C98D]">
-                  <Sparkles size={17} /> {t("nextPhase")}
+                  <Sparkles size={17} /> {t("growthEngine.title")}
                 </div>
-                <p className="mt-2 text-sm leading-6 text-[#EADBC5]">{t("nextPhaseText")}</p>
+                <p className="mt-2 text-sm leading-6 text-[#EADBC5]">{t("growthEngine.text")}</p>
+                <VisibilityOptimizeButton
+                  restaurantId={id}
+                  canOptimize={hasGrowthAccess(user.subscription)}
+                  lastOptimization={latestOptimization ? {
+                    status: latestOptimization.status,
+                    beforeScore: latestOptimization.beforeScore,
+                    afterScore: latestOptimization.afterScore,
+                    fieldsFilled: latestOptimization.fieldsFilled,
+                    dishesUpdated: latestOptimization.dishesUpdated,
+                    completedAt: latestOptimization.completedAt?.toISOString() || null,
+                  } : null}
+                  labels={{
+                    button: t("growthEngine.button"), upgrade: t("growthEngine.upgrade"), confirmTitle: t("growthEngine.confirmTitle"),
+                    confirmText: t("growthEngine.confirmText"), cancel: t("growthEngine.cancel"), confirm: t("growthEngine.confirm"),
+                    running: t("growthEngine.running"), success: t("growthEngine.success"), successDetail: t("growthEngine.successDetail"),
+                    error: t("growthEngine.error"), cost: t("growthEngine.cost"), balance: t("growthEngine.balance", { credits: user.subscription?.aiCredits || 0 }),
+                    scoreGain: t("growthEngine.scoreGain"), fields: t("growthEngine.fields"), dishes: t("growthEngine.dishes"),
+                  }}
+                />
               </div>
             </div>
           </section>

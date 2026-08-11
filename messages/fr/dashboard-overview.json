@@ -153,7 +153,7 @@
       "mobileEmpty": "Aucun numéro",
       "email": "Email",
       "emailEmpty": "Aucun email",
-      "finishNote": "Une fois terminé, le client reçoit automatiquement une demande d'avis."
+      "finishNote": "L'avis est envoyé 12 h après la réservation ; indiquez No-show pour l'empêcher."
     },
     "actions": {
       "approve": "Approuver",

@@ -3,6 +3,7 @@ import { hasTrialExpired } from "@/lib/subscription";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PublicWebsite } from "./PublicWebsite";
+import { getFaqItems } from "./utils";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
+    keywords: restaurant.websiteSpecialties,
     alternates: { canonical },
     openGraph: { title, description, url: canonical, type: "website", images: restaurant.websiteHeroImage ? [{ url: restaurant.websiteHeroImage }] : [] },
     twitter: { card: "summary_large_image", title, description, images: restaurant.websiteHeroImage ? [restaurant.websiteHeroImage] : [] },
@@ -80,6 +82,7 @@ export default async function PublicRestaurantWebsitePage({ params }: PageProps)
         },
       })),
     }));
+  const faqItems = getFaqItems(restaurant);
   const restaurantSchema = {
     "@context": "https://schema.org",
     "@type": "Restaurant",
@@ -93,6 +96,7 @@ export default async function PublicRestaurantWebsitePage({ params }: PageProps)
     ...(restaurant.email ? { email: restaurant.email } : {}),
     ...(restaurant.address ? { address: { "@type": "PostalAddress", streetAddress: restaurant.address } } : {}),
     ...(restaurant.websiteCuisine ? { servesCuisine: restaurant.websiteCuisine.split(",").map((item) => item.trim()).filter(Boolean) } : {}),
+    ...(restaurant.websiteSpecialties.length ? { keywords: restaurant.websiteSpecialties.join(", ") } : {}),
     ...(restaurant.websiteInstagram?.startsWith("http") ? { sameAs: [restaurant.websiteInstagram] } : {}),
     acceptsReservations: true,
     potentialAction: {
@@ -102,9 +106,19 @@ export default async function PublicRestaurantWebsitePage({ params }: PageProps)
     },
     ...(menuSections.length ? { hasMenu: { "@type": "Menu", name: restaurant.websiteMenuTitle || `Menu ${restaurant.name}`, hasMenuSection: menuSections } } : {}),
   };
+  const faqSchema = faqItems.length ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": `${canonical}#faq`,
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  } : null;
 
   return <>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurantSchema).replace(/</g, "\\u003c") }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema ? [restaurantSchema, faqSchema] : restaurantSchema).replace(/</g, "\\u003c") }} />
     <PublicWebsite restaurant={restaurant} />
   </>;
 }

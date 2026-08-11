@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return NextResponse.json({ count: 0 }, { status: 401 });
   const { searchParams } = new URL(request.url);
 
   const restaurantId = searchParams.get("restaurantId");
@@ -11,6 +15,9 @@ export async function GET(request: Request) {
   if (!restaurantId) {
     return NextResponse.json({ count: 0 });
   }
+
+  const restaurant = await prisma.restaurant.findFirst({ where: { id: restaurantId, user: { email: session.user.email } }, select: { id: true } });
+  if (!restaurant) return NextResponse.json({ count: 0 }, { status: 404 });
 
   const sixtyDaysAgo = new Date();
   sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
