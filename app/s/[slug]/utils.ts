@@ -162,22 +162,25 @@ export function getMapsUrl(restaurant: PublicRestaurant) {
   )}`;
 }
 
-export function getOpeningHours(restaurant: PublicRestaurant): OpeningHour[] {
+export function getOpeningHours(
+  restaurant: PublicRestaurant,
+  t: (key: string) => string,
+): OpeningHour[] {
   return [
-    { day: "Segunda-feira", shortDay: "Seg", open: restaurant.mondayOpen, lunch: restaurant.mondayLunch, dinner: restaurant.mondayDinner },
-    { day: "Terça-feira", shortDay: "Ter", open: restaurant.tuesdayOpen, lunch: restaurant.tuesdayLunch, dinner: restaurant.tuesdayDinner },
-    { day: "Quarta-feira", shortDay: "Qua", open: restaurant.wednesdayOpen, lunch: restaurant.wednesdayLunch, dinner: restaurant.wednesdayDinner },
-    { day: "Quinta-feira", shortDay: "Qui", open: restaurant.thursdayOpen, lunch: restaurant.thursdayLunch, dinner: restaurant.thursdayDinner },
-    { day: "Sexta-feira", shortDay: "Sex", open: restaurant.fridayOpen, lunch: restaurant.fridayLunch, dinner: restaurant.fridayDinner },
-    { day: "Sábado", shortDay: "Sáb", open: restaurant.saturdayOpen, lunch: restaurant.saturdayLunch, dinner: restaurant.saturdayDinner },
-    { day: "Domingo", shortDay: "Dom", open: restaurant.sundayOpen, lunch: restaurant.sundayLunch, dinner: restaurant.sundayDinner },
+    { day: t("weekdays.monday"), shortDay: t("weekdaysShort.monday"), open: restaurant.mondayOpen, lunch: restaurant.mondayLunch, dinner: restaurant.mondayDinner },
+    { day: t("weekdays.tuesday"), shortDay: t("weekdaysShort.tuesday"), open: restaurant.tuesdayOpen, lunch: restaurant.tuesdayLunch, dinner: restaurant.tuesdayDinner },
+    { day: t("weekdays.wednesday"), shortDay: t("weekdaysShort.wednesday"), open: restaurant.wednesdayOpen, lunch: restaurant.wednesdayLunch, dinner: restaurant.wednesdayDinner },
+    { day: t("weekdays.thursday"), shortDay: t("weekdaysShort.thursday"), open: restaurant.thursdayOpen, lunch: restaurant.thursdayLunch, dinner: restaurant.thursdayDinner },
+    { day: t("weekdays.friday"), shortDay: t("weekdaysShort.friday"), open: restaurant.fridayOpen, lunch: restaurant.fridayLunch, dinner: restaurant.fridayDinner },
+    { day: t("weekdays.saturday"), shortDay: t("weekdaysShort.saturday"), open: restaurant.saturdayOpen, lunch: restaurant.saturdayLunch, dinner: restaurant.saturdayDinner },
+    { day: t("weekdays.sunday"), shortDay: t("weekdaysShort.sunday"), open: restaurant.sundayOpen, lunch: restaurant.sundayLunch, dinner: restaurant.sundayDinner },
   ];
 }
 
-export function formatOpeningHour(item: OpeningHour) {
-  if (!item.open) return "Fechado";
+export function formatOpeningHour(item: OpeningHour, t: (key: string) => string) {
+  if (!item.open) return t("hoursClosed");
   const periods = [item.lunch, item.dinner].filter(Boolean);
-  return periods.length > 0 ? periods.join(" · ") : "Aberto";
+  return periods.length > 0 ? periods.join(" · ") : t("hoursOpen");
 }
 
 export function normalizeInstagramUrl(value: string | null) {

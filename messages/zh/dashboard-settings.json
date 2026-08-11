@@ -1,0 +1,358 @@
+{
+  "general": {
+    "notFound": "未找到餐厅",
+    "header": {
+      "eyebrow": "MesaLink Control",
+      "title": "设置",
+      "badge": "运营管理"
+    },
+    "reservations": {
+      "eyebrow": "预订",
+      "title": "主要规则",
+      "description": "设置餐厅是按桌位还是按容量运作，以及预订在什么情况下应保持待处理状态。",
+      "modeLabel": "预订模式",
+      "modeTables": "按桌位",
+      "modeCapacity": "按容量",
+      "totalCapacityLabel": "总容量",
+      "totalCapacityPlaceholder": "例如：60",
+      "totalCapacityHintAdvanced": "仅在模式为“按容量”时使用。",
+      "totalCapacityHintBasic": "每个时段可接受的最大人数。",
+      "manualApprovalLabel": "人工审批起始人数",
+      "manualApprovalPlaceholder": "例如：8",
+      "manualApprovalHint": "达到或超过此人数的预订将保持待处理状态。",
+      "tableMergeTitle": "并桌需审批",
+      "tableMergeText": "需要并桌的预订请求将保持待处理状态。",
+      "proBadge": "Pro 功能",
+      "proTitle": "桌位管理为 Pro 专属功能",
+      "proFeatures": {
+        "map": "餐厅平面图",
+        "byTable": "按桌位预订",
+        "merge": "并桌",
+        "unlimited": "无限预订"
+      },
+      "upgradeButton": "升级到 Pro",
+      "onlineTitle": "接受在线预订",
+      "onlineText": "关闭后，公开页面会告知顾客该餐厅暂不接受预订。"
+    },
+    "hours": {
+      "eyebrow": "营业时间",
+      "title": "每周营业时间",
+      "lunch": "午餐",
+      "dinner": "晚餐",
+      "days": {
+        "monday": "星期一",
+        "tuesday": "星期二",
+        "wednesday": "星期三",
+        "thursday": "星期四",
+        "friday": "星期五",
+        "saturday": "星期六",
+        "sunday": "星期日"
+      }
+    },
+    "reviews": {
+      "eyebrow": "营销与评价",
+      "title": "Google 评价",
+      "description": "设置满意顾客可分享 Google 评价体验的链接。",
+      "urlLabel": "Google 评价链接",
+      "urlHint": "只有填写此链接后，顾客才会看到该按钮。",
+      "thresholdLabel": "建议前往 Google 的最低星级",
+      "threshold5": "5 星",
+      "threshold4": "4 星及以上",
+      "threshold3": "3 星及以上"
+    },
+    "saveButton": "保存更改",
+    "printers": {
+      "eyebrow": "打印机",
+      "title": "餐厅打印机",
+      "namePlaceholder": "例如：Epson 厨房打印机",
+      "typeKitchen": "厨房",
+      "typeBar": "吧台",
+      "typeRoom": "大堂",
+      "typeCashier": "收银台",
+      "typeOther": "其他",
+      "methodBrowser": "浏览器 / 平板",
+      "methodBluetooth": "蓝牙",
+      "methodBridge": "Print Bridge",
+      "methodNetwork": "网络/IP",
+      "ipPlaceholder": "IP（可选）",
+      "portPlaceholder": "端口",
+      "methodHint": "浏览器/平板会打开设备的常规打印功能。蓝牙适用于已配对打印机的平板/安卓设备，或使用打印应用/桥接程序。网络/IP 使用打印机的网络地址。",
+      "createButton": "创建打印机",
+      "emptyState": "您还没有添加任何打印机。",
+      "statusActive": "启用",
+      "statusInactive": "停用",
+      "editIpPlaceholder": "IP",
+      "editPortPlaceholder": "端口",
+      "editMethodHint": "使用蓝牙时，请在平板/安卓设备上配对打印机，并使用设备的打印功能或兼容的应用/桥接程序。IP/端口仅在使用网络/IP 时需要。",
+      "activeLabel": "启用",
+      "saveButton": "保存打印机",
+      "confirmDeleteLabel": "我确认要删除此打印机",
+      "deleteButton": "删除"
+    },
+    "productionCenters": {
+      "eyebrow": "生产中心",
+      "title": "生产中心",
+      "description": "创建如厨房、吧台、大堂1或厨房2等区域，然后将每个产品关联到这些区域之一。",
+      "namePlaceholder": "例如：厨房、吧台、大堂1",
+      "noPrinterOption": "无打印机",
+      "positionPlaceholder": "顺序",
+      "createButton": "创建生产中心",
+      "emptyState": "您还没有添加任何生产中心。",
+      "printerLabel": "打印机",
+      "printerNotSet": "未设置",
+      "orderLabel": "顺序",
+      "statusActive": "启用",
+      "statusInactive": "停用",
+      "activeLabel": "启用",
+      "saveButton": "保存生产中心",
+      "deleteToggleLabel": "删除生产中心",
+      "deleteWarning": "关联的产品将失去所属的生产中心。",
+      "confirmDeleteLabel": "我确认要删除",
+      "deleteButton": "删除"
+    },
+    "printersComingSoon": {
+      "eyebrow": "打印机",
+      "title": "打印机功能即将推出",
+      "description": "打印机与生产中心的配置功能仍在开发中。待打印功能可用于餐厅实际运营时，我们会开放此区域。",
+      "badge": "即将推出",
+      "features": {
+        "kitchen": { "title": "厨房", "text": "订单送至厨房打印机。" },
+        "bar": { "title": "吧台", "text": "饮品与订单按生产中心分开。" },
+        "room": { "title": "大堂", "text": "面向大堂、吧台或收银台打印。" },
+        "bluetooth": { "title": "蓝牙", "text": "已为平板/应用蓝牙桥接做好准备。" },
+        "network": { "title": "网络/IP", "text": "通过 IP 地址和端口连接打印机。" },
+        "bridge": { "title": "Print Bridge", "text": "用于自动打印的本地服务。" }
+      },
+      "noteTitle": "重要提示",
+      "noteText": "在此功能完善之前，按生产中心、蓝牙及桥接方式的打印不应被视为可用于日常运营。"
+    }
+  },
+  "applyMondayButton": {
+    "button": "将周一时间应用到所有日期",
+    "confirmAlert": "周一的营业时间已应用到所有日期。"
+  },
+  "fiscal": {
+    "eyebrow": "财务",
+    "title": "Moloni 开票",
+    "subtitle": "连接 {restaurantName} 的 Moloni 账户。发票将以该餐厅自身的税务主体名义开具。",
+    "status": {
+      "eyebrow": "集成状态",
+      "titleConnected": "Moloni 已连接",
+      "titleDisconnected": "Moloni 未连接",
+      "descConnected": "此餐厅的 Moloni 账户已连接。请选择用于开具单据的税务序列。",
+      "descDisconnected": "餐厅需要授权其自己的 Moloni 账户，以便发票能够附带正确的纳税人识别号（NIF）、地址、ATCUD 及税务二维码。",
+      "badgeConnected": "已连接",
+      "badgePending": "待处理"
+    },
+    "info": {
+      "providerLabel": "服务商",
+      "companyIdLabel": "Company ID",
+      "companyIdEmpty": "尚未连接",
+      "currentSerieLabel": "当前序列",
+      "currentSerieEmpty": "未配置"
+    },
+    "series": {
+      "title": "Moloni 序列",
+      "loading": "正在加载序列...",
+      "empty": "未找到任何序列。请在 Moloni 中确认是否存在有效序列。",
+      "choose": "选择用于在 POS 开具发票的序列。",
+      "invoiceLabel": "发票",
+      "simplifiedLabel": "简易发票",
+      "creditNoteLabel": "贷项通知单",
+      "selectPlaceholder": "选择序列",
+      "notReportedSuffix": " — 尚未向税务局（AT）申报",
+      "notReadyTitle": "该序列尚未向税务局（AT）申报",
+      "notReadyText": "此序列在 Moloni 中已存在，但尚未获得 AT/ATCUD 编码。餐厅必须前往 Moloni > 设置 > 单据序列，申报/启用该税务序列后才能开具发票。",
+      "saveButtonSaving": "正在保存...",
+      "saveButtonNotReady": "序列尚未向 AT 申报",
+      "saveButtonDefault": "保存序列"
+    },
+    "connectButton": "连接 Moloni",
+    "updateButton": "更新 Moloni 连接",
+    "documents": {
+      "title": "最近的单据",
+      "emptyTitle": "目前还没有任何单据。",
+      "emptyText": "当 POS 开具发票或贷项通知单后，会显示在此处。",
+      "colNumber": "编号",
+      "colType": "类型",
+      "colStatus": "状态",
+      "colValue": "金额"
+    },
+    "alerts": {
+      "saveError": "保存序列时出错。",
+      "genericError": "出错了。",
+      "saved": "序列已保存。"
+    }
+  },
+  "website": {
+    "header": {
+      "eyebrow": "网站",
+      "title": "Website Studio",
+      "statusOnline": "已上线",
+      "statusOffline": "已下线",
+      "savedBadge": "已保存",
+      "subtitle": "只需几分钟，即可为您的餐厅创建一个专业网站。",
+      "improveTextButton": "优化文案",
+      "viewSiteButton": "查看网站",
+      "saveButton": "保存更改"
+    },
+    "publish": {
+      "title": "发布",
+      "description": "控制网站是否上线，以及其公开访问地址。",
+      "enableLabel": "启用公开网站",
+      "enableDescriptionBefore": "启用后，餐厅将可通过以下地址访问：",
+      "linkLabel": "公开链接",
+      "templateLabel": "模板",
+      "templateOptions": {
+        "premium": "Premium Restaurant",
+        "luxury": "Luxury Dining",
+        "minimal": "Minimal Clean",
+        "social": "Instagram First"
+      }
+    },
+    "aiBuilder": {
+      "title": "AI 网站生成器",
+      "description": "功能开发中。",
+      "cardTitle": "AI 网站生成器",
+      "cardText": "自动生成网站内容。",
+      "comingSoonBadge": "即将推出"
+    },
+    "firstImpression": {
+      "title": "第一印象",
+      "description": "顾客在前 3 秒内看到的内容。",
+      "headlineLabel": "主标题",
+      "cuisineLabel": "菜系类型",
+      "cuisinePlaceholder": "葡萄牙菜、日本料理、早午餐...",
+      "descriptionLabel": "简短描述",
+      "descriptionPlaceholder": "一个让人愿意好好用餐、多停留一会儿、并想再次光临的温馨空间。"
+    },
+    "story": {
+      "title": "故事",
+      "description": "这里是餐厅灵魂的起点。",
+      "aboutTitleLabel": "关于我们板块标题",
+      "aboutTitlePlaceholder": "我们的家",
+      "aboutTextLabel": "关于餐厅的文字介绍",
+      "aboutTextPlaceholder": "讲述您的故事、理念与氛围。",
+      "featureTitleLabel": "亮点",
+      "featureTitlePlaceholder": "一场餐桌上的体验",
+      "featureTextLabel": "亮点文字",
+      "featureTextPlaceholder": "一次为聚会而设计的体验。"
+    },
+    "texts": {
+      "title": "网站文案",
+      "description": "自定义网站的主要文案内容。",
+      "sectionTitleLabel": "主板块标题",
+      "sectionTitlePlaceholder": "关于我们",
+      "sectionTextLabel": "主板块文字",
+      "sectionTextPlaceholder": "关于该空间的自由文字介绍。",
+      "galleryTitleLabel": "图库标题",
+      "galleryTitlePlaceholder": "图库",
+      "galleryDescriptionLabel": "图库描述",
+      "galleryDescriptionPlaceholder": "图库的简短描述。",
+      "locationTitleLabel": "位置标题",
+      "locationTitlePlaceholder": "我们在这里",
+      "locationDescriptionLabel": "位置说明文字",
+      "locationDescriptionPlaceholder": "地址、区域或有用的指引信息。",
+      "finalCtaTitleLabel": "结尾标题",
+      "finalCtaTitlePlaceholder": "立即预订 {name}",
+      "finalCtaTextLabel": "结尾文字",
+      "finalCtaTextPlaceholder": "邀请顾客预订、到访或联系的结尾文案。"
+    },
+    "images": {
+      "title": "图片",
+      "description": "展示您场地的最佳照片。",
+      "logoLabel": "Logo",
+      "heroLabel": "主图",
+      "photoNameLabel": "照片 {number} 名称",
+      "photoPlaceholderFirst": "环境氛围",
+      "photoPlaceholderOther": "照片 {number}"
+    },
+    "menus": {
+      "title": "菜单",
+      "description": "添加一个或多个 PDF 菜单，可自行命名。",
+      "sectionTitleLabel": "板块标题",
+      "sectionTitlePlaceholder": "菜单",
+      "sectionDescriptionLabel": "板块描述",
+      "sectionDescriptionPlaceholder": "查看我们的菜单。",
+      "itemLabel": "菜单 {index}",
+      "removeButton": "移除",
+      "nameLabel": "菜单名称",
+      "namePlaceholder": "例如：菜牌、鸡尾酒、酒单、早午餐...",
+      "pdfLabel": "菜单 PDF",
+      "emptyState": "您还没有添加任何菜单。",
+      "addButton": "+ 添加菜单"
+    },
+    "style": {
+      "title": "风格",
+      "description": "调整网站的视觉风格。",
+      "instagramLabel": "Instagram",
+      "instagramPlaceholder": "@餐厅",
+      "primaryColorLabel": "主色调"
+    },
+    "contacts": {
+      "title": "联系方式",
+      "description": "编辑公开网站上显示的联系方式。",
+      "emailLabel": "电子邮件",
+      "emailPlaceholder": "info@restaurant.cn",
+      "phoneLabel": "电话",
+      "phonePlaceholder": "+86 138 0013 8000",
+      "addressLabel": "地址",
+      "addressPlaceholder": "街道、门牌号、城市"
+    },
+    "seo": {
+      "title": "SEO 与域名",
+      "description": "提升您在 Google 上的曝光度，并为网站的增长做好准备。",
+      "titleLabel": "SEO 标题",
+      "titlePlaceholder": "{name} | 在线预订",
+      "descriptionLabel": "SEO 描述",
+      "descriptionPlaceholder": "用于 Google 和分享的描述文字。",
+      "domainLabel": "自定义域名",
+      "domainCardTitle": "自定义域名",
+      "domainCardText": "很快您将可以使用自己的域名，而不必使用 MesaLink 子域名。",
+      "comingSoonBadge": "即将推出"
+    },
+    "quality": {
+      "eyebrow": "质量评分",
+      "on": "ON",
+      "off": "OFF",
+      "galleryLabel": "图库：",
+      "menuLabel": "菜单：",
+      "menuYes": "是",
+      "menuNo": "否"
+    },
+    "publicCard": {
+      "eyebrow": "公开网站",
+      "viewButton": "查看网站",
+      "saveButton": "保存更改"
+    },
+    "checklist": {
+      "eyebrow": "检查清单",
+      "websiteActive": "网站已启用",
+      "headlineFilled": "已填写主标题",
+      "mainPhoto": "主图",
+      "menuUploaded": "已上传菜单",
+      "contactVisible": "联系方式可见"
+    },
+    "previewCard": {
+      "eyebrow": "快速预览"
+    },
+    "preview": {
+      "reserveBadge": "预订",
+      "cuisineFallback": "餐厅",
+      "descriptionFallback": "只需几秒即可在线预订您的餐桌。",
+      "templateLabel": "模板",
+      "menusLabel": "菜单",
+      "photosLabel": "照片",
+      "photoLabel": "照片",
+      "photoNumberFallback": "照片 {index}",
+      "menuSectionLabel": "菜单",
+      "menuTitleFallback": "菜单",
+      "menuLoadedCount": "已上传 {count} 个菜单。",
+      "menuNotLoaded": "添加一个或多个 PDF 菜单。"
+    },
+    "aiErrors": {
+      "generateFailed": "使用 AI 生成内容时出错",
+      "generateFailedAlert": "使用 AI 生成内容时出错。请确认您的 OPENAI_API_KEY 后重试。"
+    }
+  }
+}

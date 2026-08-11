@@ -1,0 +1,560 @@
+{
+  "client": {
+    "comingSoonBanner": {
+      "badge": "Coming Soon",
+      "title": "MesaLink POS",
+      "description": "我们正在完善POS系统、发票、打印和移动版本的最后细节。"
+    },
+    "comingSoonPage": {
+      "badge": "Coming Soon",
+      "description": "我们正在打造新一代POS系统,确保在前厅、收银、出品、开票和打印各环节都拥有稳定的体验。",
+      "restaurantLabel": "餐厅",
+      "developingTitle": "开发中",
+      "developingDescription": "POS系统尚未对客户开放。准备就绪后,将在此区域自动启用。",
+      "features": {
+        "tables": "桌台管理",
+        "qrOrdering": "QR Ordering",
+        "cashRegister": "收银台",
+        "invoicing": "Moloni开票",
+        "production": "出品",
+        "printers": "打印机",
+        "splitBill": "分单结账",
+        "mobilePos": "移动POS"
+      },
+      "availableSoonLabel": "即将推出",
+      "availableSoonDescription": "在此之前,请继续使用预订、客户、QR Ordering、网站和营销功能。"
+    },
+    "header": {
+      "eyebrow": "MESALINK POS",
+      "titleTables": "桌台",
+      "titleQuickSale": "快速销售",
+      "titleTable": "{number} 号桌",
+      "backToTables": "← 返回桌台",
+      "printersButton": "打印机",
+      "seatsCount": "{count} 个座位",
+      "noTable": "无桌台",
+      "experimentalBanner": {
+        "title": "实验模式已启用",
+        "description": "用于测试桌台、订单和付款。如需合法开票,请设置Moloni。",
+        "cta": "Moloni"
+      },
+      "qrAttention": "QR Orders：{count, plural, one {# 条待处理提醒} other {# 条待处理提醒}}"
+    },
+    "tabs": {
+      "tables": "桌台",
+      "cash": "收银台",
+      "service": "服务",
+      "kitchen": "QR Orders",
+      "production": "出品",
+      "history": "历史记录",
+      "fiscal": "开票",
+      "documents": "文档",
+      "stats": "统计"
+    },
+    "tables": {
+      "allFilter": "全部",
+      "openFilter": "使用中",
+      "freeFilter": "空闲",
+      "tablesCount": "{count} 张桌台",
+      "tableLabel": "桌台",
+      "freeLabel": "空闲"
+    },
+    "products": {
+      "emptyState": "您还没有添加产品",
+      "productsCount": "{count} 件产品"
+    },
+    "cart": {
+      "eyebrow": "账单",
+      "openBadge": "进行中",
+      "guestOrderCount": "{guestCount} 位客人 · {orderCount, plural, one {# 个订单} other {# 个订单}}",
+      "cancelTableButton": "取消桌台",
+      "cancellingLabel": "正在取消...",
+      "currentAccountLabel": "当前账单",
+      "emptyAccountTitle": "账单没有待处理项目",
+      "emptyAccountDescription": "已付款的产品将不再显示在此处。",
+      "emptyCartTitle": "账单为空",
+      "emptyCartDescription": "选择产品以在POS中创建账单。",
+      "editButton": "编辑",
+      "editItemTitle": "编辑项目",
+      "removeItemTitle": "移除项目",
+      "saveButton": "保存",
+      "savingLabel": "...",
+      "cancelDraftButton": "取消",
+      "newProductsLabel": "新增产品",
+      "noteLabel": "备注：{notes}",
+      "sendOrderButton": "发送订单",
+      "editLink": "编辑",
+      "summary": {
+        "account": "账单",
+        "discount": "折扣",
+        "paid": "已付",
+        "remaining": "未付"
+      },
+      "totalToPayLabel": "应付总额",
+      "chargeButton": "收款",
+      "splitButton": "分单",
+      "discountButton": "折扣",
+      "transferButton": "转台"
+    },
+    "openTableModal": {
+      "eyebrow": "开台",
+      "title": "{number} 号桌",
+      "description": "请输入就座人数,以计算人均消费。",
+      "peopleLabel": "人数",
+      "paxLabel": "位",
+      "confirmButton": "开台",
+      "confirmButtonLoading": "正在开台..."
+    },
+    "splitItemsModal": {
+      "eyebrow": "分单结账",
+      "title": "选择项目",
+      "description": "选择该客人需要支付的产品。",
+      "availableLabel": "可选：",
+      "selectedLabel": "已选择",
+      "confirmButton": "收取所选项目"
+    },
+    "transferModal": {
+      "eyebrow": "转台",
+      "title": "目标桌台与项目",
+      "description": "选择目标桌台,转移全部或部分项目。",
+      "targetTableLabel": "目标桌台",
+      "tableLabel": "桌台",
+      "quickTransferLabel": "快速转台",
+      "quickTransferDescriptionWithTable": "将整个账单转移到 {number} 号桌。",
+      "quickTransferDescriptionNoTable": "将整个账单转移到所选桌台。",
+      "transferAllButton": "转移全部",
+      "itemsLabel": "项目",
+      "selectedCount": "已选择 {selected}/{total} 项",
+      "noItemsLabel": "没有可转移的项目。",
+      "availableLabel": "可用：{quantity} × {price}",
+      "closeButton": "关闭",
+      "transferSelectedButton": "转移所选项目",
+      "transferSelectedButtonLoading": "正在转移...",
+      "alerts": {
+        "chooseTargetTable": "请选择目标桌台。",
+        "selectAtLeastOneItem": "请至少选择一项。",
+        "transferAllConfirm": "要将整个账单转移到 {number} 号桌吗？"
+      }
+    },
+    "discountModal": {
+      "eyebrow": "折扣",
+      "title": "桌台折扣",
+      "valuePlaceholder": "0",
+      "reasonPlaceholder": "原因",
+      "removeButton": "移除折扣",
+      "saveButton": "保存折扣"
+    },
+    "lineEditor": {
+      "editNewProductEyebrow": "编辑新产品",
+      "editNewProductDescription": "发送到厨房/打印机之前。",
+      "editLineEyebrow": "编辑明细",
+      "editLineDescription": "数量、价格、折扣和备注。",
+      "quantityLabel": "数量",
+      "priceLabel": "价格",
+      "discountPercentLabel": "折扣（%）",
+      "discountAmountLabel": "折扣（€）",
+      "notesLabel": "备注文字",
+      "notesPlaceholder": "不要沙拉,不要洋葱...",
+      "subtotalLabel": "小计",
+      "discountLabel": "折扣",
+      "totalLabel": "总计",
+      "removeButton": "移除",
+      "saveButton": "✓ 保存",
+      "saveButtonLoading": "正在保存..."
+    },
+    "partialPayment": {
+      "eyebrow": "部分付款",
+      "description": "仅收取所选项目的款项。",
+      "confirmButton": "确认付款",
+      "confirmButtonLoading": "正在收款..."
+    },
+    "paymentMethods": {
+      "card": { "label": "银行卡", "description": "银行卡或刷卡机" },
+      "cash": { "label": "现金", "description": "现金支付" },
+      "bankTransfer": { "label": "银行转账", "description": "银行转账" }
+    },
+    "paymentModal": {
+      "eyebrow": "收款",
+      "title": "{number} 号桌",
+      "description": "选择付款方式以结账关台。",
+      "totalLabel": "总计",
+      "paxLabel": "{count} 位",
+      "perPersonLabel": "{amount} / 人",
+      "splitLabel": "拆分账单",
+      "splitPerPaymentLabel": "每笔 {amount}",
+      "chargeWithInvoiceButton": "收款并开具发票",
+      "confirmButtonLoading": "正在关台...",
+      "confirmButtonWithInvoice": "收款不开票",
+      "confirmButtonDefault": "关台"
+    },
+    "invoiceModal": {
+      "title": "开具单据",
+      "description": "选择客户类型和税务信息。",
+      "finalConsumerButton": "个人消费者",
+      "vatCustomerButton": "含税号客户",
+      "vatPlaceholder": "税号",
+      "fetchVatButton": "获取数据",
+      "namePlaceholder": "姓名",
+      "addressPlaceholder": "税务地址",
+      "emailPlaceholder": "邮箱",
+      "cancelButton": "取消",
+      "confirmButtonLoading": "正在开具...",
+      "confirmButtonSimplified": "开具简易发票",
+      "confirmButtonFull": "开具发票"
+    },
+    "creditNoteModal": {
+      "eyebrow": "贷记单",
+      "title": "作废单据",
+      "documentLabel": "单据：{number} · {amount}",
+      "noDocumentNumber": "无编号",
+      "reasonLabel": "原因",
+      "defaultReason": "单据作废",
+      "cancelButton": "取消",
+      "confirmButton": "开具贷记单",
+      "confirmButtonLoading": "正在开具..."
+    },
+    "cashRegister": {
+      "closedTitle": "收银台已关闭",
+      "closedDescription": "开始营业前请先打开收银台,以便将POS付款与当日结账关联。",
+      "openButton": "打开收银台",
+      "cards": {
+        "openingAmount": "起始金额",
+        "cash": "现金",
+        "card": "银行卡",
+        "transfer": "银行转账",
+        "totalReceived": "总收款",
+        "expectedCash": "预期现金"
+      },
+      "eyebrow": "收银台",
+      "openTitle": "收银台已打开",
+      "openSince": "自 {time} 起打开",
+      "cashInButton": "+ 现金存入",
+      "cashOutButton": "- 现金支出",
+      "closeButton": "关闭收银台",
+      "movementsTitle": "现金流水",
+      "movementIn": "存入",
+      "movementOut": "支出",
+      "noReason": "无原因说明",
+      "paymentsTitle": "付款",
+      "paymentsAssociated": "{count, plural, one {# 笔付款与此收银台关联。} other {# 笔付款与此收银台关联。}}",
+      "modal": {
+        "openEyebrow": "打开收银台",
+        "closeEyebrow": "关闭收银台",
+        "openValueTitle": "起始金额",
+        "closeValueTitle": "盘点金额",
+        "openDescription": "请输入本次营业的备用金金额。",
+        "closeDescription": "请输入收银台实际盘点的现金金额。",
+        "amountLabel": "起始金额",
+        "amountLabelClosing": "盘点金额",
+        "expectedCashLabel": "预期现金",
+        "differenceLabel": "差额",
+        "openConfirm": "打开收银台",
+        "closeConfirm": "关闭收银台",
+        "savingLabel": "正在保存..."
+      },
+      "movementModal": {
+        "eyebrow": "现金流水",
+        "inTitle": "存入",
+        "outTitle": "支出",
+        "inDescription": "记录存入收银台的现金。",
+        "outDescription": "记录从收银台取出的现金,例如采购或找零。",
+        "amountLabel": "金额",
+        "reasonLabel": "原因",
+        "inPlaceholder": "例如：收银台备用金补充",
+        "outPlaceholder": "例如：超市采购",
+        "saveIn": "保存存入记录",
+        "saveOut": "保存支出记录",
+        "savingLabel": "正在保存..."
+      }
+    },
+    "service": {
+      "eyebrow": "服务",
+      "title": "今日",
+      "totalProjectedLabel": "预计总额",
+      "invoicedLabel": "已开票",
+      "openLabel": "未结",
+      "openTablesLabel": "使用中桌台",
+      "peopleLabel": "客人数",
+      "ticketPerPersonLabel": "人均消费",
+      "cashLabel": "现金",
+      "cardLabel": "银行卡",
+      "transferLabel": "银行转账"
+    },
+    "qrOrders": {
+      "eyebrow": "QR Orders",
+      "allResolvedTitle": "全部已处理",
+      "allResolvedDescription": "QR点单、呼叫服务员和结账请求会显示在这里。",
+      "centerTitle": "QR点单中心",
+      "centerDescription": "订单、呼叫服务员和结账请求。",
+      "pendingBadge": "{count, plural, one {# 个待处理} other {# 个待处理}}",
+      "tableAlertsLabel": "桌台提醒",
+      "tableLabel": "{number} 号桌",
+      "calledWaiterLabel": "呼叫了服务员 · {time}",
+      "askedBillLabel": "请求结账 · {time}",
+      "resolveButton": "标记为已处理",
+      "resolveButtonLoading": "正在处理...",
+      "ordersForApprovalLabel": "待审核订单",
+      "productCount": "{count, plural, one {# 件产品} other {# 件产品}}",
+      "noteLabel": "备注：{notes}",
+      "rejectButton": "拒绝",
+      "acceptButton": "接受订单",
+      "acceptButtonLoading": "正在保存..."
+    },
+    "production": {
+      "eyebrow": "出品",
+      "noCenterLabel": "无生产中心",
+      "notDefinedLabel": "未定义",
+      "title": "待处理小票",
+      "pendingBadge": "{count, plural, one {# 个待处理} other {# 个待处理}}",
+      "allFilter": "全部",
+      "noJobsLabel": "没有待处理的小票",
+      "printerLabel": "打印机：",
+      "methodLabel": "方式：",
+      "createdAtLabel": "创建于 {time}",
+      "printButton": "打印",
+      "printedButton": "已打印",
+      "failedButton": "失败",
+      "noteLabel": "备注：{notes}",
+      "printBlockedError": "浏览器阻止了打印窗口。",
+      "printUpdateError": "更新打印状态时出错。",
+      "printTemplate": {
+        "printerLabel": "打印机：",
+        "sourceLabel": "来源：",
+        "timeLabel": "时间：",
+        "noteLabel": "备注："
+      }
+    },
+    "history": {
+      "eyebrow": "历史记录",
+      "title": "付款记录",
+      "subtitle": "{count, plural, one {POS中最近关闭的 # 笔付款。} other {POS中最近关闭的 # 笔付款。}}",
+      "totalLabel": "总计",
+      "cashLabel": "现金",
+      "cardLabel": "银行卡",
+      "transferLabel": "银行转账",
+      "loadingLabel": "正在加载历史记录...",
+      "emptyTitle": "暂无付款记录",
+      "emptyDescription": "关闭桌台后,付款记录会显示在这里。",
+      "quickSaleLabel": "快速销售",
+      "tableLabel": "{number} 号桌",
+      "fiscalDocumentLabel": "发票单据：{number}",
+      "noDocumentNumber": "无编号",
+      "openPdfLabel": "打开PDF",
+      "moreProductsLabel": "+ {count} 件产品",
+      "methods": {
+        "cash": "现金",
+        "card": "银行卡",
+        "bankTransfer": "银行转账"
+      }
+    },
+    "fiscal": {
+      "requiredView": {
+        "eyebrow": "必须先完成设置",
+        "title": "使用POS前请先设置开票",
+        "description": "要开台、收款或结账,餐厅需要连接Moloni账户,并选择用于发票、简易发票和贷记单的税务系列号。",
+        "configureButton": "设置Moloni"
+      },
+      "serieSelect": {
+        "placeholderOption": "选择系列号",
+        "notCommunicatedSuffix": " — 尚未向税务机关申报"
+      },
+      "settingsView": {
+        "eyebrow": "开票",
+        "title": "Moloni集成",
+        "incompleteWarningTitle": "设置未完成",
+        "incompleteWarningDescription": "要启用POS,您需要设置发票、简易发票和贷记单的系列号。",
+        "loadingLabel": "正在加载...",
+        "setupEyebrow": "需要设置",
+        "setupTitle": "连接Moloni以开具合法发票",
+        "setupDescription": "MesaLink使用Moloni开具认证发票、简易发票、贷记单、税务二维码和SAF-T文件。设置完成后,即可直接在POS中开具单据。",
+        "steps": {
+          "step1": { "title": "1. 创建Moloni账户", "text": "创建或登录餐厅的Moloni账户。" },
+          "step2": { "title": "2. 创建税务系列号", "text": "在Moloni中,为发票、简易发票和贷记单创建系列号。" },
+          "step3": { "title": "3. 向税务机关申报系列号", "text": "系列号必须完成申报/处于激活状态,才能开具正式单据。" },
+          "step4": { "title": "4. 连接到MesaLink", "text": "连接完成后,在此页面选择系列号并保存。" }
+        },
+        "importantTitle": "重要提示",
+        "importantDescription": "在Moloni未完成设置之前,POS可以在实验模式下运行,但不应用于合法开票。",
+        "openMoloniButton": "打开Moloni",
+        "createMoloniAccountButton": "创建Moloni账户",
+        "infoCards": {
+          "provider": "服务商",
+          "company": "公司",
+          "active": "已激活",
+          "activeYes": "是",
+          "activeNo": "否",
+          "invoiceSeries": "发票系列号",
+          "simplifiedSeries": "简易发票系列号",
+          "creditNoteSeries": "贷记单系列号",
+          "notConfigured": "未设置"
+        },
+        "seriesSectionEyebrow": "必须先完成设置",
+        "seriesSectionTitle": "税务系列号",
+        "seriesSectionDescription": "要在正式模式下启用POS,请选择用于发票、简易发票和贷记单的Moloni系列号。",
+        "serieLabels": {
+          "invoice": "发票",
+          "simplifiedInvoice": "简易发票",
+          "creditNote": "贷记单"
+        },
+        "recommendationEyebrow": "MesaLink推荐",
+        "recommendationTitle": "Moloni ON方案足以起步",
+        "recommendationDescription": "我们推荐使用Moloni ON方案,以在MesaLink中使用集成开票功能。该方案包含API、SAF-T、向税务机关申报系列号、客户、商品和税务单据。如果需要更多单据或功能,可以直接在Moloni中升级。",
+        "viewPlansButton": "查看Moloni方案",
+        "noSeriesTitle": "还没有税务系列号？",
+        "noSeriesSteps": {
+          "step1": "1. 打开Moloni",
+          "step2": "2. 进入设置 → 单据系列号",
+          "step3": "3. 创建/向税务机关申报系列号",
+          "step4": "4. 返回MesaLink并保存系列号"
+        },
+        "saveButton": "保存系列号",
+        "saveButtonLoading": "正在保存..."
+      },
+      "documentsView": {
+        "eyebrow": "文档",
+        "title": "税务单据",
+        "description": "所有认证开票均直接在Moloni中管理。此页面仅作为发票、贷记单和SAF-T的快速指南。",
+        "moloniCardEyebrow": "Moloni",
+        "moloniCardTitle": "打开税务单据",
+        "moloniCardDescription": "直接在餐厅的Moloni账户中查看发票、开具贷记单并导出SAF-T文件。",
+        "openMoloniButton": "打开Moloni",
+        "helpCards": {
+          "creditNote": {
+            "title": "开具贷记单",
+            "steps": {
+              "step1": "打开Moloni",
+              "step2": "进入文档",
+              "step3": "打开发票或贷记单",
+              "step4": "选择要更正的发票",
+              "step5": "创建贷记单",
+              "step6": "开具单据"
+            }
+          },
+          "saft": {
+            "title": "导出SAF-T",
+            "steps": {
+              "step1": "打开Moloni",
+              "step2": "进入税务机关",
+              "step3": "进入SAF-T (PT) 文件",
+              "step4": "选择期间",
+              "step5": "导出文件"
+            }
+          },
+          "invoices": {
+            "title": "查看发票",
+            "steps": {
+              "step1": "打开Moloni",
+              "step2": "进入文档",
+              "step3": "进入发票"
+            }
+          },
+          "creditNotesList": {
+            "title": "查看贷记单",
+            "steps": {
+              "step1": "打开Moloni",
+              "step2": "进入文档",
+              "step3": "进入贷记单"
+            }
+          }
+        },
+        "importantInfoTitle": "重要信息",
+        "importantInfoDescription": "已开具的发票不应删除。如有错误,应先开具贷记单,再重新开具一张正确的发票。"
+      }
+    },
+    "stats": {
+      "eyebrow": "统计",
+      "title": "今日报表",
+      "invoicedLabel": "已开票",
+      "paymentsLabel": "付款笔数",
+      "peopleLabel": "客人数",
+      "avgTicketLabel": "平均消费",
+      "perPersonLabel": "人均",
+      "paymentMethodsTitle": "付款方式",
+      "cashLabel": "现金",
+      "cardLabel": "银行卡",
+      "transferLabel": "银行转账",
+      "topProductsTitle": "热销产品",
+      "noProductsLabel": "暂无已售出的产品。",
+      "loadingLabel": "正在加载统计数据...",
+      "emptyLabel": "暂无数据可显示。"
+    },
+    "comingSoonSection": {
+      "eyebrow": "即将推出",
+      "description": "此区域已为POS的下一阶段做好准备。"
+    },
+    "alerts": {
+      "openCashBeforeTable": "开台前请先打开收银台。",
+      "openCashBeforeQuickSale": "开始快速销售前请先打开收银台。",
+      "sendOrderError": "发送订单时出错。",
+      "removeItemConfirm": "要从账单中移除 {name} 吗？",
+      "updateAccountError": "更新账单时出错。",
+      "openTableError": "开台时出错。",
+      "openTableUnexpectedResponse": "桌台已打开,但收到了意外响应。",
+      "cancelTableConfirm": "要取消 {number} 号桌吗？桌台将恢复为空闲状态,相关订单将被取消。",
+      "cancelTableError": "取消桌台时出错。",
+      "transferError": "转台时出错。",
+      "sendCartBeforeCharge": "收款前请先发送新增的产品。",
+      "unsavedAccountChanges": "收款前请先保存或取消账单的更改。",
+      "partialPaymentError": "接收部分付款时出错。",
+      "updateItemError": "更新项目时出错。",
+      "applyDiscountError": "应用折扣时出错。",
+      "creditNoteError": "开具贷记单时出错。",
+      "creditNoteSuccess": "贷记单开具成功。",
+      "genericError": "出错了。",
+      "vatRequired": "请先输入税号。",
+      "fetchVatDataError": "获取数据时出错。",
+      "vatInvalidLength": "税号必须为9位数字。",
+      "customerNameRequired": "请输入客户的税务名称。",
+      "customerError": "无法创建税务客户。",
+      "seriesNotCommunicated": "该餐厅的Moloni系列号尚未向税务机关申报。请前往「Moloni > 设置 > 单据系列号」申报/激活该税务系列号。",
+      "issueInvoiceError": "开具发票时出错。",
+      "invoiceSuccess": "发票开具成功。",
+      "closeTableError": "关台时出错。",
+      "openCashRegisterError": "打开收银台时出错。",
+      "saveCashMovementError": "保存流水时出错。",
+      "closeCashRegisterError": "关闭收银台时出错。",
+      "rejectQrOrderConfirm": "要拒绝这个QR订单吗？",
+      "resolveQrAlertError": "处理QR提醒时出错。",
+      "saveSeriesError": "保存系列号时出错。",
+      "seriesSaved": "系列号已保存。"
+    }
+  },
+  "printBridge": {
+    "eyebrow": "MesaLink Print Bridge",
+    "title": "自动打印",
+    "downloadButton": "⬇ 下载Windows版",
+    "installGuideButton": "安装指南",
+    "description": "将此餐厅连接到一台Windows电脑,以便在USB、蓝牙、网络或PDF打印机上自动打印小票。",
+    "connect": {
+      "title": "连接新电脑",
+      "deviceNameDefault": "主机",
+      "generateTokenButton": "生成Bridge令牌",
+      "copyTokenHintPrefix": "然后将令牌复制到",
+      "copyTokenHintApp": "MesaLink-Print-Bridge应用中。"
+    },
+    "connectedComputers": {
+      "title": "已连接的电脑",
+      "emptyState": "尚未连接任何电脑。",
+      "lastConnectionLabel": "最近连接：",
+      "never": "从未",
+      "activeLabel": "在线",
+      "inactiveLabel": "离线",
+      "tokenLabel": "令牌",
+      "removeDeviceButton": "移除设备"
+    },
+    "mapPrinters": {
+      "title": "映射打印机",
+      "description": "选择此电脑上每台MesaLink打印机应使用哪台Windows打印机。",
+      "emptyState": "请先连接一台电脑才能映射打印机。",
+      "windowsPrintersFoundLabel": "找到的Windows打印机：{count}",
+      "noAssociationOption": "未关联",
+      "saveButton": "保存",
+      "testButton": "测试"
+    },
+    "testPrint": {
+      "jobTitle": "打印测试",
+      "itemName": "MesaLink Print Bridge测试",
+      "itemNotes": "如果打印出这张小票,说明配置已全部完成。"
+    }
+  }
+}

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import NewCampaignForm from "@/components/marketing/NewCampaignForm";
+import { getTranslations } from "next-intl/server";
 
 export default async function NewCampaignPage({
   params,
@@ -13,6 +14,8 @@ export default async function NewCampaignPage({
 }) {
   const { id } = await params;
   const query = await searchParams;
+
+  const t = await getTranslations("dashboardMarketing.campaignsNew");
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
@@ -26,21 +29,20 @@ export default async function NewCampaignPage({
         <RestaurantSidebar
           id={id}
           restaurantName={restaurant.name}
-          active="Marketing"
+          active="marketing"
         />
 
         <section className="px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#9B6F3B]">
-            Marketing Suite
+            {t("eyebrow")}
           </p>
 
           <h1 className="mt-3 text-5xl font-semibold tracking-[-0.065em]">
-            Nova campanha
+            {t("title")}
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">
-            Envie uma campanha para clientes VIP, inativos ou para toda a base
-            com autorização de marketing.
+            {t("description")}
           </p>
 
           <NewCampaignForm

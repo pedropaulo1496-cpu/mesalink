@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function UpgradeToGrowthButton() {
+  const t = useTranslations("dashboardBilling.upgradeButton");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -17,7 +19,7 @@ export default function UpgradeToGrowthButton() {
     const data = await response.json();
 
     if (!response.ok) {
-      setError(data.error || "Erro ao fazer upgrade.");
+      setError(data.error || t("error"));
       setLoading(false);
       return;
     }
@@ -33,7 +35,7 @@ export default function UpgradeToGrowthButton() {
         disabled={loading}
         className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#16120E] px-6 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(23,19,15,0.16)] transition hover:bg-[#2A2118] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
       >
-        {loading ? "A atualizar..." : "Atualizar para Growth →"}
+        {loading ? t("loading") : t("cta")}
       </button>
 
       {error && (

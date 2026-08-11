@@ -5,6 +5,16 @@ import BottomNav from "@/components/BottomNav";
 import { redirect } from "next/navigation";
 import { isValidEmail } from "@/lib/validation";
 import PhoneField from "@/components/PhoneField";
+import { getLocale, getTranslations } from "next-intl/server";
+
+const dashboardDateLocales: Record<string, string> = {
+  pt: "pt-PT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  es: "es-ES",
+};
 
 type SortKey = "recent" | "name" | "visits" | "value" | "birthday" | "risk";
 
@@ -215,6 +225,10 @@ export default async function CustomersPage({
   const query = searchParams ? await searchParams : {};
   const sort = query.sort || "recent";
 
+  const t = await getTranslations("dashboardCrm.customers.list");
+  const locale = await getLocale();
+  const intlLocale = dashboardDateLocales[locale] ?? "pt-PT";
+
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
   });
@@ -222,7 +236,7 @@ export default async function CustomersPage({
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
-        Restaurante não encontrado.
+        {t("notFound")}
       </main>
     );
   }
@@ -342,22 +356,22 @@ export default async function CustomersPage({
         <RestaurantSidebar
           id={id}
           restaurantName={restaurant.name}
-          active="Clientes"
+          active="customers"
         />
 
         <section className="min-w-0 px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-                Clientes
+                {t("eyebrow")}
               </p>
 
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
-                CRM
+                {t("title")}
               </h1>
 
               <p className="mt-3 text-sm text-[#6B6258]">
-                {restaurant.name} · clientes, campanhas, VIPs e risco de abandono.
+                {restaurant.name} · {t("subtitleSuffix")}
               </p>
             </div>
 
@@ -366,48 +380,51 @@ export default async function CustomersPage({
                 href="#novo-cliente"
                 className="rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white"
               >
-                Novo cliente
+                {t("newCustomerLink")}
               </Link>
 
               <Link
                 href="#importar-clientes"
                 className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#16120E]"
               >
-                Importar CSV
+                {t("importCsvLink")}
               </Link>
             </div>
           </header>
 
           {(query.created || query.updated || query.skipped) && (
             <div className="mt-5 rounded-2xl border border-[#D8C3A5] bg-white px-5 py-4 text-sm font-semibold text-[#6B6258]">
-              Importação concluída: {query.created || 0} criados ·{" "}
-              {query.updated || 0} atualizados · {query.skipped || 0} ignorados.
+              {t("importResult", {
+                created: query.created || 0,
+                updated: query.updated || 0,
+                skipped: query.skipped || 0,
+              })}
             </div>
           )}
 
           {query.error === "missing" && (
             <div className="mt-5 rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] px-5 py-4 text-sm font-semibold text-[#A14E36]">
-              Preenche pelo menos nome e email ou telefone.
+              {t("errors.missing")}
             </div>
           )}
 
           {query.error === "email" && (
             <div className="mt-5 rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] px-5 py-4 text-sm font-semibold text-[#A14E36]">
-              Introduza um email válido ou deixe o campo em branco.
+              {t("errors.email")}
             </div>
           )}
 
           <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <MetricCard label="Clientes" value={enrichedCustomers.length} />
-            <MetricCard label="VIPs" value={vipCustomers.length} tone="gold" />
+            <MetricCard label={t("metrics.customers")} value={enrichedCustomers.length} />
+            <MetricCard label={t("metrics.vips")} value={vipCustomers.length} tone="gold" />
             <MetricCard
-              label="Em risco"
+              label={t("metrics.atRisk")}
               value={riskyCustomers.length}
               tone="red"
             />
-            <MetricCard label="Covers" value={totalGuests} tone="green" />
+            <MetricCard label={t("metrics.covers")} value={totalGuests} tone="green" />
             <MetricCard
-              label="Valor"
+              label={t("metrics.value")}
               value={`${estimatedCustomerValue.toFixed(0)}€`}
               tone="gold"
             />
@@ -419,8 +436,8 @@ export default async function CustomersPage({
               className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]"
             >
               <SectionTitle
-                title="Novo cliente"
-                subtitle="Adicionar manualmente ao CRM."
+                title={t("newCustomerForm.title")}
+                subtitle={t("newCustomerForm.subtitle")}
               />
 
               <form
@@ -429,18 +446,18 @@ export default async function CustomersPage({
               >
                 <input type="hidden" name="restaurantId" value={id} />
 
-                <Input name="name" placeholder="Nome" required />
-                <PhoneField name="phone" placeholder="Telefone" />
-                <Input name="email" type="email" placeholder="Email" />
-                <Input name="birthDate" type="date" placeholder="Nascimento" />
+                <Input name="name" placeholder={t("newCustomerForm.fields.name")} required />
+                <PhoneField name="phone" placeholder={t("newCustomerForm.fields.phone")} />
+                <Input name="email" type="email" placeholder={t("newCustomerForm.fields.email")} />
+                <Input name="birthDate" type="date" placeholder={t("newCustomerForm.fields.birthDate")} />
                 <Input
                   name="tags"
-                  placeholder="Tags: VIP, aniversário, empresa"
+                  placeholder={t("newCustomerForm.fields.tags")}
                 />
-                <Input name="notes" placeholder="Notas" />
+                <Input name="notes" placeholder={t("newCustomerForm.fields.notes")} />
 
                 <button className="h-12 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white sm:col-span-2">
-                  Criar cliente
+                  {t("newCustomerForm.submit")}
                 </button>
               </form>
             </div>
@@ -450,8 +467,8 @@ export default async function CustomersPage({
               className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]"
             >
               <SectionTitle
-                title="Importar clientes"
-                subtitle="Importe clientes por CSV. Compatível com Excel."
+                title={t("importForm.title")}
+                subtitle={t("importForm.subtitle")}
               />
 
               <form action={importCustomers} className="mt-5 space-y-3">
@@ -486,7 +503,7 @@ export default async function CustomersPage({
 
   <div className="flex items-center justify-between gap-3 border-t border-[#E1D0B8] bg-white px-4 py-3">
     <p className="text-xs text-[#6B6258]">
-      Este é o formato que o CSV deve ter. As tags usam <strong>|</strong>.
+      {t("importForm.formatHelp.prefix")} <strong>|</strong>{t("importForm.formatHelp.suffix")}
     </p>
 
     <a
@@ -494,13 +511,13 @@ export default async function CustomersPage({
       download="modelo-clientes-mesalink.csv"
       className="shrink-0 rounded-full bg-[#16120E] px-4 py-2 text-xs font-semibold text-white"
     >
-      Download exemplo
+      {t("importForm.downloadSample")}
     </a>
   </div>
 </div>
 
                 <button className="h-12 w-full rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white">
-                  Importar clientes
+                  {t("importForm.submit")}
                 </button>
               </form>
             </div>
@@ -509,22 +526,22 @@ export default async function CustomersPage({
           <section className="mt-5 rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <SectionTitle
-                title="Base de clientes"
-                subtitle={`${enrichedCustomers.length} clientes registados`}
+                title={t("table.title")}
+                subtitle={t("table.subtitle", { count: enrichedCustomers.length })}
               />
 
               <div className="flex flex-wrap gap-2">
-                <SortLink id={id} active={sort} value="recent" label="Recentes" />
-                <SortLink id={id} active={sort} value="name" label="Nome" />
-                <SortLink id={id} active={sort} value="visits" label="Visitas" />
-                <SortLink id={id} active={sort} value="value" label="Valor" />
+                <SortLink id={id} active={sort} value="recent" label={t("sort.recent")} />
+                <SortLink id={id} active={sort} value="name" label={t("sort.name")} />
+                <SortLink id={id} active={sort} value="visits" label={t("sort.visits")} />
+                <SortLink id={id} active={sort} value="value" label={t("sort.value")} />
                 <SortLink
                   id={id}
                   active={sort}
                   value="birthday"
-                  label="Aniversário"
+                  label={t("sort.birthday")}
                 />
-                <SortLink id={id} active={sort} value="risk" label="Risco" />
+                <SortLink id={id} active={sort} value="risk" label={t("sort.risk")} />
               </div>
             </div>
 
@@ -532,7 +549,7 @@ export default async function CustomersPage({
               {enrichedCustomers.map((customer) => {
                 const lastVisit = customer.lastReservation
                   ? new Date(customer.lastReservation.date).toLocaleDateString(
-                      "pt-PT",
+                      intlLocale,
                     )
                   : "-";
 
@@ -558,30 +575,30 @@ export default async function CustomersPage({
                       </div>
 
                       <p className="truncate text-xs text-[#6B6258]">
-                        {customer.email || "Sem email"} ·{" "}
-                        {customer.phone || "Sem telefone"}
+                        {customer.email || t("table.noEmail")} ·{" "}
+                        {customer.phone || t("table.noPhone")}
                       </p>
                     </div>
 
                     <CompactInfo
-                      label="Tags"
+                      label={t("table.columns.tags")}
                       value={
                         customer.tags.length ? customer.tags.join(", ") : "-"
                       }
                     />
                     <CompactInfo
-                      label="Visitas"
+                      label={t("table.columns.visits")}
                       value={String(customer.totalVisits)}
                     />
                     <CompactInfo
-                      label="Valor"
+                      label={t("table.columns.value")}
                       value={`${customer.estimatedValue.toFixed(0)}€`}
                     />
-                    <CompactInfo label="Última" value={lastVisit} />
-                    <CompactInfo label="Risco" value={`${customer.riskScore}%`} />
+                    <CompactInfo label={t("table.columns.lastVisit")} value={lastVisit} />
+                    <CompactInfo label={t("table.columns.risk")} value={`${customer.riskScore}%`} />
 
                     <span className="rounded-full bg-[#16120E] px-3 py-1.5 text-center text-xs font-semibold text-white">
-                      Ver
+                      {t("table.view")}
                     </span>
                   </Link>
                 );
@@ -590,11 +607,11 @@ export default async function CustomersPage({
               {enrichedCustomers.length === 0 && (
                 <div className="bg-[#FFF9F0] p-8 text-center">
                   <p className="text-2xl font-semibold tracking-[-0.04em]">
-                    Ainda não existem clientes.
+                    {t("table.empty.title")}
                   </p>
 
                   <p className="mt-2 text-sm text-[#6B6258]">
-                    Cria clientes manualmente, importa CSV ou recebe reservas.
+                    {t("table.empty.subtitle")}
                   </p>
                 </div>
               )}

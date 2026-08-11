@@ -1,0 +1,156 @@
+{
+  "main": {
+    "nav": {
+      "back": "← Back to dashboard",
+      "badge": "MesaLink Billing"
+    },
+    "hero": {
+      "kicker": "Growth. Visibility. Control.",
+      "title": "Choose the right plan to grow your restaurant.",
+      "description": "All plans include Website, Reservations, QR Ordering, CRM, Reviews and integrated operations. Growth adds Marketing to win back customers and increase repeat visits."
+    },
+    "stats": {
+      "currentPlan": {
+        "label": "Current plan"
+      },
+      "trial": {
+        "label": "Trial",
+        "daysLeft": "{days} days",
+        "ended": "Ended"
+      },
+      "commissions": {
+        "label": "Commissions",
+        "value": "0€"
+      },
+      "yearlyPayment": {
+        "label": "Annual payment",
+        "value": "1 month free"
+      }
+    },
+    "planStatus": {
+      "trialFull": "Full trial",
+      "noPlan": "No active plan"
+    },
+    "accountState": {
+      "kicker": "Account status",
+      "trialText": "You're trying out all of MesaLink's features.",
+      "activeText": "Your subscription is active.",
+      "noPlanText": "Choose a plan to keep using the platform."
+    },
+    "trialBox": {
+      "title": "Full trial active",
+      "text": "You still have {days} day(s) to try Website, QR Ordering, CRM, Reviews and Marketing before choosing a plan."
+    },
+    "upgradeBox": {
+      "title": "Upgrade available",
+      "text": "Activate Growth for just +20€/month and unlock automatic Marketing, customer win-back and campaigns for slow days. It keeps the same renewal date, and Stripe calculates the prorated difference."
+    },
+    "badges": {
+      "currentPlan": "Current plan",
+      "basePlan": "Base plan",
+      "recommended": "Most recommended"
+    },
+    "planCard": {
+      "perMonth": "/mo",
+      "yearlyLabel": "Annual payment",
+      "yearlySuffix": "/yr",
+      "yearlyNote": "· 1 month free · save {saving}",
+      "currentPlanCta": "Current plan · Open Dashboard →",
+      "ctaMonthly": "Monthly {price} →",
+      "ctaYearly": "Yearly {price} →",
+      "essentials": {
+        "description": "For restaurants that want to centralize reservations, website, QR Ordering, CRM, reviews and operations in a single system.",
+        "features": [
+          "More direct reservations",
+          "Premium website included",
+          "QR Ordering included",
+          "Customer CRM",
+          "Google Reviews",
+          "Table map",
+          "Essential reports",
+          "No commission per reservation"
+        ]
+      },
+      "growth": {
+        "description": "For restaurants that want to win back customers, boost slow days and increase repeat visits with Marketing.",
+        "features": [
+          "Everything in Essentials",
+          "MesaLink Marketing included",
+          "Win back inactive customers",
+          "Campaigns for slow days",
+          "At-risk customers",
+          "Automatic birthdays",
+          "VIP loyalty",
+          "More repeat visits"
+        ],
+        "upgrade": {
+          "kicker": "Upgrade",
+          "price": "+20€/month",
+          "note": "Keeps your current renewal date."
+        }
+      }
+    },
+    "platformSection": {
+      "kicker": "Restaurant Essentials",
+      "title": "A living platform for restaurants.",
+      "text": "MesaLink will keep launching new tools to help restaurants grow, gain visibility and simplify day-to-day operations.",
+      "features": {
+        "revenue": { "title": "More revenue", "text": "QR Ordering + Marketing" },
+        "visibility": { "title": "More visibility", "text": "Website + Reviews" },
+        "control": { "title": "More control", "text": "CRM + Reservations" },
+        "commissions": { "title": "0€ commissions", "text": "Direct reservations" }
+      }
+    },
+    "taxBilling": {
+      "kicker": "Tax invoicing",
+      "title": "Tax invoicing handled outside MesaLink.",
+      "text": "Tax invoicing is handled externally by a certified software of your choice. This cost is not charged by MesaLink.",
+      "note": "MesaLink keeps reservations, customers, QR Ordering, website, reviews and marketing connected in the same operation."
+    }
+  },
+  "success": {
+    "kicker": "Active subscription",
+    "title": "{plan} plan activated.",
+    "subtitle": "Your subscription has been successfully confirmed. You can now keep using MesaLink without interruptions.",
+    "stats": {
+      "plan": "active plan",
+      "cycle": "billing cycle",
+      "commissions": "commissions"
+    },
+    "billingCycle": {
+      "yearly": "Annual payment",
+      "monthly": "Monthly payment"
+    },
+    "available": {
+      "title": "Already available in your account",
+      "items": {
+        "reservations": "Online reservations with no commissions",
+        "website": "Professional website",
+        "qrOrdering": "QR Ordering",
+        "crm": "Customer CRM",
+        "googleReviews": "Google Reviews",
+        "marketingGrowth": "Growth Marketing"
+      }
+    },
+    "nextSteps": {
+      "title": "Useful next steps",
+      "items": {
+        "reviewHours": "Review hours and capacity",
+        "confirmTables": "Confirm rooms and tables",
+        "publishWebsite": "Publish your website and QR Ordering",
+        "shareLink": "Share your reservations link",
+        "trackResults": "Track results in the dashboard"
+      }
+    },
+    "billingNote": {
+      "title": "Note about tax invoicing",
+      "text": "Tax invoicing is handled externally by a certified software of your choice. MesaLink keeps reservations, customers, QR Ordering, website, reviews and marketing connected in the same operation."
+    },
+    "cta": "Open dashboard →"
+  },
+  "upgradeButton": {
+    "loading": "Upgrading...",
+    "cta": "Upgrade to Growth →",
+    "error": "Error upgrading."
+  }
+}

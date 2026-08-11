@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import QRCode from "qrcode";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export default async function QRPage({
   params,
@@ -9,6 +10,8 @@ export default async function QRPage({
 }) {
   const { id } = await params;
 
+  const t = await getTranslations("dashboardOperations.qr");
+
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
   });
@@ -16,7 +19,7 @@ export default async function QRPage({
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#020617] p-10 text-white">
-        Restaurante não encontrado
+        {t("notFound")}
       </main>
     );
   }
@@ -43,50 +46,48 @@ export default async function QRPage({
               href={`/restaurants/${id}`}
               className="text-sm font-bold text-slate-400 hover:text-white"
             >
-              ← Voltar ao dashboard
+              {t("backToDashboard")}
             </Link>
 
             <p className="mt-8 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-              MesaLink QR
+              {t("brandEyebrow")}
             </p>
 
             <h1 className="mt-3 text-5xl font-black tracking-[-0.06em]">
-              QR Code
+              {t("title")}
             </h1>
 
             <p className="mt-2 text-slate-400">{restaurant.name}</p>
           </div>
 
           <div className="w-fit rounded-full border border-green-400/20 bg-green-500/10 px-5 py-3 text-sm font-black text-green-300">
-            Ativo
+            {t("statusActive")}
           </div>
         </header>
 
         <section className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_420px]">
           <div className="rounded-[2rem] border border-cyan-300/15 bg-white/[0.04] p-6 shadow-[0_0_90px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:p-8">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-              QR de reservas
+              {t("reservationQrEyebrow")}
             </p>
 
             <h2 className="mt-4 max-w-3xl text-4xl font-black leading-[0.95] tracking-[-0.05em]">
-              Transforme qualquer mesa, montra ou menu num ponto de reserva.
+              {t("heroHeadline")}
             </h2>
 
             <p className="mt-5 max-w-2xl text-sm leading-6 text-slate-400">
-              Este QR Code abre diretamente a página pública de reservas do
-              restaurante. Pode ser usado no Google Business Profile, menus,
-              cartões, montra, Instagram ou campanhas impressas.
+              {t("heroDescription")}
             </p>
 
             <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-              <InfoCard title="Destino" text="Página de reservas" />
-              <InfoCard title="Comissões" text="0%" />
-              <InfoCard title="Estado" text="Pronto a usar" />
+              <InfoCard title={t("info.destinationTitle")} text={t("info.destinationText")} />
+              <InfoCard title={t("info.commissionsTitle")} text={t("info.commissionsText")} />
+              <InfoCard title={t("info.statusTitle")} text={t("info.statusText")} />
             </div>
 
             <div className="mt-8 rounded-3xl border border-white/10 bg-black/25 p-5">
               <p className="mb-3 text-sm font-bold text-slate-400">
-                Link associado ao QR
+                {t("linkedUrlLabel")}
               </p>
 
               <p className="break-all rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-slate-300">
@@ -100,14 +101,14 @@ export default async function QRPage({
                 download={`${restaurant.slug}-qr-reservas.png`}
                 className="flex h-14 items-center justify-center rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-500 px-8 font-black text-black shadow-[0_0_60px_rgba(96,165,250,0.35)] hover:opacity-90"
               >
-                Download QR
+                {t("downloadButton")}
               </a>
 
               <Link
                 href={`/reserve/${restaurant.slug}`}
                 className="flex h-14 items-center justify-center rounded-full border border-cyan-300/25 bg-white/5 px-8 font-black text-white backdrop-blur hover:bg-white/10"
               >
-                Ver página pública
+                {t("viewPublicPage")}
               </Link>
             </div>
           </div>
@@ -116,21 +117,20 @@ export default async function QRPage({
             <div className="rounded-[2rem] bg-white p-6">
               <img
                 src={qrCode}
-                alt="QR Code de reservas"
+                alt={t("qrImageAlt")}
                 className="mx-auto"
               />
             </div>
 
             <div className="mt-6 rounded-3xl border border-white/10 bg-black/25 p-6 text-center">
               <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-                MesaLink QR
+                {t("brandEyebrow")}
               </p>
 
-              <p className="mt-3 text-2xl font-black">Reservas online</p>
+              <p className="mt-3 text-2xl font-black">{t("onlineReservationsTitle")}</p>
 
               <p className="mt-2 text-sm leading-6 text-slate-400">
-                Imprima este QR Code e coloque-o em menus, cartões ou na
-                montra.
+                {t("printHint")}
               </p>
             </div>
           </div>
@@ -138,23 +138,23 @@ export default async function QRPage({
 
         <section className="mt-6 rounded-[2rem] border border-cyan-300/15 bg-white/[0.04] p-6 backdrop-blur-2xl sm:p-8">
           <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-            Próximas versões
+            {t("upcomingEyebrow")}
           </p>
 
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
             <FutureCard
-              title="QR por mesa"
-              text="Cada mesa terá o seu próprio QR Code."
+              title={t("future.perTableTitle")}
+              text={t("future.perTableText")}
             />
 
             <FutureCard
-              title="Chamar empregado"
-              text="O cliente poderá pedir ajuda diretamente pelo QR."
+              title={t("future.callWaiterTitle")}
+              text={t("future.callWaiterText")}
             />
 
             <FutureCard
-              title="Pedidos pela mesa"
-              text="Menu digital e pedidos enviados para a operação."
+              title={t("future.tableOrdersTitle")}
+              text={t("future.tableOrdersText")}
             />
           </div>
         </section>

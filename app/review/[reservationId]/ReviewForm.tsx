@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 type Props = {
   reservationId: string;
@@ -15,6 +16,7 @@ export default function ReviewForm({
   googleReviewUrl,
   threshold,
 }: Props) {
+  const t = useTranslations("publicFlows.review");
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -77,11 +79,11 @@ export default function ReviewForm({
           {redirectToGoogle ? (
             <>
               <h2 className="text-2xl font-semibold tracking-[-0.04em]">
-                Obrigado pela avaliação!
+                {t("thankYouPositiveTitle")}
               </h2>
 
               <p className="mt-3 text-sm text-[#6B6258]">
-                Ficamos muito felizes por ter gostado da experiência.
+                {t("thankYouPositiveText")}
               </p>
 
               {googleReviewUrl ? (
@@ -91,24 +93,22 @@ export default function ReviewForm({
                   rel="noopener noreferrer"
                   className="mt-6 inline-flex rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white"
                 >
-                  Partilhar no Google
+                  {t("shareOnGoogle")}
                 </a>
               ) : (
                 <p className="mt-4 text-sm text-[#6B6258]">
-                  A sua opinião ajuda-nos a melhorar continuamente a experiência
-                  dos nossos clientes.
+                  {t("positiveNoGoogleText")}
                 </p>
               )}
             </>
           ) : (
             <>
               <h2 className="text-2xl font-semibold tracking-[-0.04em]">
-                Obrigado pelo feedback.
+                {t("thankYouNegativeTitle")}
               </h2>
 
               <p className="mt-3 text-sm leading-6 text-[#6B6258]">
-                A equipa de {restaurantName} irá analisar a sua mensagem para
-                melhorar a experiência.
+                {t("thankYouNegativeText", { restaurantName })}
               </p>
             </>
           )}
@@ -117,15 +117,15 @@ export default function ReviewForm({
         {redirectToGoogle && !vipSubmitted ? (
           <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-6 shadow-[0_18px_55px_rgba(80,55,30,0.055)]">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-              Membro Preferencial
+              {t("vip.badge")}
             </p>
 
             <h3 className="mt-3 text-2xl font-semibold tracking-[-0.045em]">
-              Gostaria de receber convites, novidades e vantagens exclusivas?
+              {t("vip.title")}
             </h3>
 
             <p className="mt-3 text-sm leading-6 text-[#6B6258]">
-              Receba convites, novidades e ofertas especiais de {restaurantName}.
+              {t("vip.text", { restaurantName })}
             </p>
 
             <label className="mt-5 flex items-start gap-3 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 text-sm font-semibold text-[#16120E]">
@@ -135,13 +135,13 @@ export default function ReviewForm({
                 onChange={(event) => setWantsVip(event.target.checked)}
                 className="mt-1 h-4 w-4 accent-[#16120E]"
               />
-              Quero receber novidades, eventos e ofertas exclusivas.
+              {t("vip.checkbox")}
             </label>
 
             {wantsVip && (
               <div className="mt-4">
                 <label className="text-sm font-semibold text-[#6B6258]">
-                  Data de nascimento opcional
+                  {t("vip.birthDateLabel")}
                 </label>
 
                 <input
@@ -157,7 +157,7 @@ export default function ReviewForm({
                   disabled={vipLoading}
                   className="mt-5 w-full rounded-full bg-[#16120E] px-5 py-4 text-sm font-semibold text-white transition hover:bg-[#2A2118] disabled:opacity-50"
                 >
-                  {vipLoading ? "A confirmar..." : "Confirmar preferência"}
+                  {vipLoading ? t("vip.confirming") : t("vip.confirmButton")}
                 </button>
               </div>
             )}
@@ -167,11 +167,11 @@ export default function ReviewForm({
         {vipSubmitted && (
           <div className="rounded-[28px] border border-[#CFE5CE] bg-[#ECF7EC] p-6 text-[#3F6A4D]">
             <h3 className="text-xl font-semibold tracking-[-0.035em]">
-              Preferência confirmada.
+              {t("vip.confirmedTitle")}
             </h3>
 
             <p className="mt-2 text-sm">
-              Obrigado por querer receber novidades de {restaurantName}.
+              {t("vip.confirmedText", { restaurantName })}
             </p>
           </div>
         )}
@@ -200,7 +200,7 @@ export default function ReviewForm({
         <textarea
           value={comment}
           onChange={(event) => setComment(event.target.value)}
-          placeholder="Lamentamos que a experiência não tenha sido perfeita. Conte-nos o que podemos melhorar."
+          placeholder={t("ratingCommentPlaceholder")}
           className="mt-8 h-36 w-full rounded-[24px] border border-[#E1D0B8] bg-[#FFFDF9] p-4 text-sm outline-none focus:border-[#C8A56A]"
         />
       )}
@@ -208,8 +208,7 @@ export default function ReviewForm({
       {isPositive && (
         <div className="mt-8 rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 text-center">
           <p className="text-sm leading-6 text-[#6B6258]">
-            Obrigado pela avaliação. Pode continuar para partilhar a sua
-            experiência publicamente.
+            {t("positiveHint")}
           </p>
         </div>
       )}
@@ -220,14 +219,14 @@ export default function ReviewForm({
         className="mt-6 w-full rounded-full bg-[#16120E] px-5 py-4 text-sm font-semibold text-white transition hover:bg-[#2A2118] disabled:opacity-50"
       >
         {loading
-          ? "A enviar..."
+          ? t("submitting")
           : isPositive
-            ? "Continuar"
-            : "Enviar feedback"}
+            ? t("continue")
+            : t("sendFeedback")}
       </button>
 
       <p className="mt-4 text-center text-xs text-[#7A6F62]">
-        Obrigado por ajudar {restaurantName} a melhorar cada visita.
+        {t("footerThanks", { restaurantName })}
       </p>
     </div>
   );

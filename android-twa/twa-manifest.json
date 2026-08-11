@@ -1,0 +1,39 @@
+{
+  "packageId": "pt.mesalink.app",
+  "host": "www.mesalink.pt",
+  "name": "MesaLink",
+  "launcherName": "MesaLink",
+  "display": "standalone",
+  "themeColor": "#C8A56A",
+  "themeColorDark": "#17130F",
+  "navigationColor": "#17130F",
+  "navigationColorDark": "#070504",
+  "navigationDividerColor": "#17130F",
+  "navigationDividerColorDark": "#070504",
+  "backgroundColor": "#F4ECDF",
+  "enableNotifications": false,
+  "startUrl": "/dashboard",
+  "iconUrl": "http://127.0.0.1:8765/icons/icon-512.png",
+  "maskableIconUrl": "http://127.0.0.1:8765/icons/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 180,
+  "signingKey": {
+    "path": "../.android-signing/mesalink-release.keystore",
+    "alias": "mesalink"
+  },
+  "appVersionCode": 3,
+  "appVersion": "1.0.2",
+  "generatorApp": "bubblewrap-cli",
+  "fallbackType": "customtabs",
+  "enableSiteSettingsShortcut": true,
+  "orientation": "portrait-primary",
+  "minSdkVersion": 24,
+  "additionalTrustedOrigins": [
+    "https://mesalink.pt"
+  ],
+  "fingerprints": [
+    {
+      "name": "MesaLink release key",
+      "value": "60:71:72:F9:24:AB:D1:48:3D:EE:28:D9:19:5D:ED:14:CC:05:7B:DC:36:E3:43:C2:5B:BE:0D:E3:A3:02:CE:1F"
+    }
+  ]
+}

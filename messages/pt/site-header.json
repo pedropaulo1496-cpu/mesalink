@@ -1,0 +1,14 @@
+{
+  "full": {
+    "software": "Software",
+    "growth": "Crescimento",
+    "platform": "Plataforma",
+    "pricing": "Preços",
+    "login": "Entrar",
+    "cta": "Começar"
+  },
+  "compact": {
+    "login": "Entrar",
+    "cta": "Testar"
+  }
+}

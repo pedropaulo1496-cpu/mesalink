@@ -20,6 +20,14 @@ export async function proxy(request: NextRequest) {
   const isVercelPreview =
     hostname.includes("vercel.app");
 
+  // One canonical production host prevents duplicate www/non-www versions.
+  if (hostname === `www.${ROOT_DOMAIN}`) {
+    const canonicalUrl = request.nextUrl.clone();
+    canonicalUrl.hostname = ROOT_DOMAIN;
+    canonicalUrl.port = "";
+    return NextResponse.redirect(canonicalUrl, 308);
+  }
+
   // LOGGED-IN USER ON THE HOMEPAGE -> STRAIGHT TO THEIR DASHBOARD
   if (pathname === "/" && (isRootDomain || isLocalhost || isVercelPreview)) {
     const token = await getToken({
@@ -38,8 +46,12 @@ export async function proxy(request: NextRequest) {
 
     const isMobile =
       /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(userAgent);
+    const isSearchCrawler =
+      /Googlebot|Google-InspectionTool|Bingbot|DuckDuckBot|YandexBot|Applebot/i.test(
+        userAgent,
+      );
 
-    if (isMobile) {
+    if (isMobile && !isSearchCrawler) {
       const url = request.nextUrl.clone();
       url.pathname = "/mobile";
       return NextResponse.redirect(url);

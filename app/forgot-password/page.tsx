@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("auth.forgotPassword");
   const [sent, setSent] = useState(false);
 
   async function handleSubmit(formData: FormData) {
@@ -22,6 +25,10 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <div className="fixed right-4 top-4 z-30">
+        <LanguageSwitcher />
+      </div>
+
       <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-10">
         <div className="mb-8 text-center">
           <Link href="/" className="text-3xl font-semibold tracking-[-0.05em]">
@@ -32,16 +39,16 @@ export default function ForgotPasswordPage() {
 
         <div className="rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)] sm:p-8">
           <Link href="/login" className="text-sm font-semibold text-[#6B6258] hover:text-[#16120E]">
-            ← Voltar ao login
+            {t("back")}
           </Link>
 
           <h1 className="mt-6 text-4xl font-semibold tracking-[-0.055em]">
-            Recuperar password
+            {t("title")}
           </h1>
 
           {sent ? (
             <p className="mt-4 rounded-2xl border border-[#9CCB9B] bg-[#ECF7EC] p-4 text-sm leading-6 text-[#3F6A4D]">
-              Se existir uma conta com esse email, enviámos um link para recuperar a password.
+              {t("successMessage")}
             </p>
           ) : (
             <form action={handleSubmit} className="mt-6 space-y-4">
@@ -49,7 +56,7 @@ export default function ForgotPasswordPage() {
                 name="email"
                 type="email"
                 required
-                placeholder="O teu email"
+                placeholder={t("emailPlaceholder")}
                 className="h-14 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
               />
 
@@ -57,7 +64,7 @@ export default function ForgotPasswordPage() {
                 type="submit"
                 className="flex h-14 w-full items-center justify-center rounded-full bg-[#16120E] font-semibold text-white transition hover:bg-[#2A2118]"
               >
-                Enviar link
+                {t("submit")}
               </button>
             </form>
           )}

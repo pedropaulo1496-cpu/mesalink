@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import CampaignAudiencePreview from "./CampaignAudiencePreview";
 import CampaignTemplates from "./CampaignTemplates";
 
@@ -13,47 +14,38 @@ export default function NewCampaignForm({
   initialSegment?: string;
   initialTag?: string;
 }) {
+  const t = useTranslations("dashboardMarketing.newCampaignForm");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
 
   function applySegmentTemplate(segment: string) {
     if (segment === "VIP" || segment === "GOLD" || segment === "PLATINUM") {
-      setSubject("Convite exclusivo para clientes VIP");
-      setMessage(
-        "Temos uma experiência especial reservada para os nossos clientes mais importantes.\n\nReserve a sua mesa e aproveite este benefício exclusivo.",
-      );
+      setSubject(t("segmentTemplates.vip.subject"));
+      setMessage(t("segmentTemplates.vip.message"));
       return;
     }
 
     if (segment === "BRONZE" || segment === "SILVER") {
-      setSubject("Um benefício especial para si");
-      setMessage(
-        "Queremos agradecer a sua preferência com uma vantagem especial.\n\nReserve a sua mesa e venha aproveitar este benefício.",
-      );
+      setSubject(t("segmentTemplates.loyal.subject"));
+      setMessage(t("segmentTemplates.loyal.message"));
       return;
     }
 
     if (segment === "INACTIVE") {
-      setSubject("Sentimos a sua falta");
-      setMessage(
-        "Já passou algum tempo desde a sua última visita e gostaríamos muito de o voltar a receber.\n\nReserve a sua mesa e volte a visitar-nos em breve.",
-      );
+      setSubject(t("segmentTemplates.inactive.subject"));
+      setMessage(t("segmentTemplates.inactive.message"));
       return;
     }
 
     if (segment === "BIRTHDAYS") {
-      setSubject("Feliz aniversário 🎉");
-      setMessage(
-        "Queremos celebrar consigo este mês especial.\n\nReserve a sua mesa e venha brindar connosco.",
-      );
+      setSubject(t("segmentTemplates.birthdays.subject"));
+      setMessage(t("segmentTemplates.birthdays.message"));
       return;
     }
 
     if (segment === "TAG") {
-      setSubject("Uma sugestão especial para si");
-      setMessage(
-        "Preparámos uma comunicação especial para clientes selecionados.\n\nReserve a sua mesa e descubra a novidade.",
-      );
+      setSubject(t("segmentTemplates.tag.subject"));
+      setMessage(t("segmentTemplates.tag.message"));
     }
   }
 
@@ -74,7 +66,7 @@ export default function NewCampaignForm({
         <div>
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-[#6B6258]">
-              Segmento
+              {t("segmentLabel")}
             </span>
 
             <CampaignAudiencePreview
@@ -98,7 +90,7 @@ export default function NewCampaignForm({
         <div>
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-[#6B6258]">
-              Assunto
+              {t("subjectLabel")}
             </span>
 
             <input
@@ -106,14 +98,14 @@ export default function NewCampaignForm({
               required
               value={subject}
               onChange={(event) => setSubject(event.target.value)}
-              placeholder="Ex: Temos novidades para si"
+              placeholder={t("subjectPlaceholder")}
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold outline-none"
             />
           </label>
 
           <label className="mt-5 block">
             <span className="mb-2 block text-sm font-semibold text-[#6B6258]">
-              Mensagem
+              {t("messageLabel")}
             </span>
 
             <textarea
@@ -122,14 +114,14 @@ export default function NewCampaignForm({
               rows={10}
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder="Escreva a mensagem da campanha..."
+              placeholder={t("messagePlaceholder")}
               className="w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 text-sm font-semibold leading-7 outline-none"
             />
           </label>
 
           <div className="mt-6 flex justify-end">
             <button className="rounded-full bg-[#16120E] px-8 py-4 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
-              Enviar campanha
+              {t("submit")}
             </button>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export default async function MarketingSettingsPage({
   params,
@@ -10,6 +11,8 @@ export default async function MarketingSettingsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  const t = await getTranslations("dashboardMarketing.settings");
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
@@ -47,23 +50,22 @@ export default async function MarketingSettingsPage({
         <RestaurantSidebar
           id={id}
           restaurantName={restaurant.name}
-          active="Marketing"
+          active="marketing"
         />
 
         <section className="px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.32em] text-[#9B6F3B]">
-                Growth Settings
+                {t("eyebrow")}
               </p>
 
               <h1 className="mt-3 text-5xl font-semibold tracking-[-0.065em]">
-                Configurações Growth
+                {t("title")}
               </h1>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">
-                Defina o ticket médio, Google Reviews e benefícios automáticos
-                usados pelo MesaLink Growth.
+                {t("subtitle")}
               </p>
             </div>
 
@@ -71,26 +73,25 @@ export default async function MarketingSettingsPage({
               href={`/restaurants/${id}/marketing`}
               className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
             >
-              Voltar ao Growth
+              {t("backToGrowth")}
             </Link>
           </header>
 
           <form action={saveGrowthSettings} className="mt-8 max-w-5xl space-y-6">
             <section className="rounded-[36px] border border-[#E1D0B8] bg-white p-6 shadow-[0_24px_80px_rgba(80,55,30,0.055)]">
-              <SectionLabel>Receita & ROI</SectionLabel>
+              <SectionLabel>{t("sections.revenue.eyebrow")}</SectionLabel>
 
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.055em]">
-                Ticket médio
+                {t("sections.revenue.title")}
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-[#6B6258]">
-                Usado para estimar receita recuperada, ROI Growth e impacto das
-                campanhas.
+                {t("sections.revenue.description")}
               </p>
 
               <div className="mt-6 max-w-xs">
                 <label className="mb-2 block text-sm font-semibold text-[#6B6258]">
-                  Ticket médio por pessoa (€)
+                  {t("sections.revenue.fieldLabel")}
                 </label>
 
                 <input
@@ -105,21 +106,20 @@ export default async function MarketingSettingsPage({
             </section>
 
             <section className="rounded-[36px] border border-[#E1D0B8] bg-white p-6 shadow-[0_24px_80px_rgba(80,55,30,0.055)]">
-              <SectionLabel>Google Reviews</SectionLabel>
+              <SectionLabel>{t("sections.reviews.eyebrow")}</SectionLabel>
 
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.055em]">
-                Reputação online
+                {t("sections.reviews.title")}
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-[#6B6258]">
-                Configure para onde os clientes satisfeitos são encaminhados
-                depois da avaliação.
+                {t("sections.reviews.description")}
               </p>
 
               <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_240px]">
                 <label className="block">
                   <span className="mb-2 block text-sm font-semibold text-[#6B6258]">
-                    Google Reviews URL
+                    {t("sections.reviews.urlLabel")}
                   </span>
 
                   <input
@@ -132,7 +132,7 @@ export default async function MarketingSettingsPage({
 
                 <label className="block">
                   <span className="mb-2 block text-sm font-semibold text-[#6B6258]">
-                    Mínimo para Google
+                    {t("sections.reviews.thresholdLabel")}
                   </span>
 
                   <select
@@ -140,82 +140,80 @@ export default async function MarketingSettingsPage({
                     defaultValue={restaurant.reviewRedirectThreshold ?? 4}
                     className={inputClass}
                   >
-                    <option value="3">3 estrelas</option>
-                    <option value="4">4 estrelas</option>
-                    <option value="5">5 estrelas</option>
+                    <option value="3">{t("sections.reviews.stars", { count: 3 })}</option>
+                    <option value="4">{t("sections.reviews.stars", { count: 4 })}</option>
+                    <option value="5">{t("sections.reviews.stars", { count: 5 })}</option>
                   </select>
                 </label>
               </div>
             </section>
 
             <section className="rounded-[36px] border border-[#E1D0B8] bg-white p-6 shadow-[0_24px_80px_rgba(80,55,30,0.055)]">
-              <SectionLabel>Ofertas automáticas</SectionLabel>
+              <SectionLabel>{t("sections.offers.eyebrow")}</SectionLabel>
 
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.055em]">
-                Incentivos Growth
+                {t("sections.offers.title")}
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-[#6B6258]">
-                Ofertas usadas nos emails automáticos de aniversário e
-                recuperação.
+                {t("sections.offers.description")}
               </p>
 
               <div className="mt-6 grid gap-5 lg:grid-cols-2">
                 <OfferField
-                  label="Oferta de aniversário"
+                  label={t("sections.offers.birthday.label")}
                   name="birthdayOffer"
                   defaultValue={restaurant.birthdayOffer ?? ""}
-                  placeholder="Ex: Sobremesa grátis no mês do aniversário"
+                  placeholder={t("sections.offers.birthday.placeholder")}
                 />
 
                 <OfferField
-                  label="Oferta de recuperação"
+                  label={t("sections.offers.recovery.label")}
                   name="recoveryOffer"
                   defaultValue={restaurant.recoveryOffer ?? ""}
-                  placeholder="Ex: 10% desconto na próxima visita"
+                  placeholder={t("sections.offers.recovery.placeholder")}
                 />
               </div>
             </section>
 
             <section className="rounded-[36px] border border-[#E1D0B8] bg-white p-6 shadow-[0_24px_80px_rgba(80,55,30,0.055)]">
-              <SectionLabel>VIP Club</SectionLabel>
+              <SectionLabel>{t("sections.vip.eyebrow")}</SectionLabel>
 
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.055em]">
-                Benefícios por nível
+                {t("sections.vip.title")}
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-[#6B6258]">
-                Defina benefícios diferentes para cada nível VIP. Quando o
-                cliente sobe de nível, recebe automaticamente o benefício certo.
+                {t("sections.vip.description")}
               </p>
 
               <div className="mt-6 grid gap-5 lg:grid-cols-2">
                 <OfferField
-                  label="Bronze"
+                  label={t("sections.vip.tiers.bronze")}
                   name="bronzeVipOffer"
                   defaultValue={restaurant.bronzeVipOffer ?? ""}
-                  placeholder="Ex: Bebida de boas-vindas"
+                  placeholder={t("sections.vip.placeholders.bronze")}
                 />
 
                 <OfferField
-                  label="Silver"
+                  label={t("sections.vip.tiers.silver")}
                   name="silverVipOffer"
                   defaultValue={restaurant.silverVipOffer ?? ""}
-                  placeholder="Ex: Sobremesa oferta"
+                  placeholder={t("sections.vip.placeholders.silver")}
                 />
 
                 <OfferField
-                  label="Gold"
+                  label={t("sections.vip.tiers.gold")}
                   name="goldVipOffer"
                   defaultValue={restaurant.goldVipOffer ?? ""}
-                  placeholder="Ex: 10% desconto na próxima visita"
+                  placeholder={t("sections.vip.placeholders.gold")}
                 />
 
                 <OfferField
-                  label="Platinum"
+                  label={t("sections.vip.tiers.platinum")}
                   name="platinumVipOffer"
                   defaultValue={restaurant.platinumVipOffer ?? ""}
-                  placeholder="Ex: Experiência especial ou convite privado"
+                  placeholder={t("sections.vip.placeholders.platinum")}
                 />
               </div>
             </section>
@@ -225,7 +223,7 @@ export default async function MarketingSettingsPage({
                 type="submit"
                 className="rounded-full bg-[#16120E] px-7 py-4 text-sm font-semibold text-white shadow-[0_20px_60px_rgba(22,18,14,0.22)] transition hover:bg-[#2A2118]"
               >
-                Guardar configurações
+                {t("submit")}
               </button>
             </div>
           </form>

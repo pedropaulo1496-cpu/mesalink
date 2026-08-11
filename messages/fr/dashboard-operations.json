@@ -1,0 +1,194 @@
+{
+  "tables": {
+    "notFound": "Restaurant introuvable.",
+    "eyebrow": "Salle",
+    "title": "Plan de salle",
+    "tablesCount": "{count, plural, one {# table} other {# tables}}",
+    "seatsCount": "{count, plural, one {# place} other {# places}}",
+    "form": {
+      "start": "Début",
+      "quantity": "Qté",
+      "capacity": "Cap.",
+      "shape": "Forme",
+      "shapeSquare": "Carrée",
+      "shapeRound": "Ronde",
+      "room": "Salle",
+      "submit": "Créer"
+    }
+  },
+  "qr": {
+    "notFound": "Restaurant introuvable",
+    "backToDashboard": "← Retour au tableau de bord",
+    "brandEyebrow": "MesaLink QR",
+    "title": "QR Code",
+    "statusActive": "Actif",
+    "reservationQrEyebrow": "QR de réservation",
+    "heroHeadline": "Transformez n'importe quelle table, vitrine ou menu en point de réservation.",
+    "heroDescription": "Ce QR Code ouvre directement la page publique de réservation du restaurant. Il peut être utilisé sur votre fiche Google Business Profile, vos menus, cartes, vitrine, Instagram ou vos campagnes imprimées.",
+    "info": {
+      "destinationTitle": "Destination",
+      "destinationText": "Page de réservation",
+      "commissionsTitle": "Commissions",
+      "commissionsText": "0%",
+      "statusTitle": "Statut",
+      "statusText": "Prêt à l'emploi"
+    },
+    "linkedUrlLabel": "Lien associé au QR",
+    "downloadButton": "Télécharger le QR",
+    "viewPublicPage": "Voir la page publique",
+    "qrImageAlt": "QR Code de réservation",
+    "onlineReservationsTitle": "Réservations en ligne",
+    "printHint": "Imprimez ce QR Code et affichez-le sur les menus, cartes ou en vitrine.",
+    "upcomingEyebrow": "Prochaines versions",
+    "future": {
+      "perTableTitle": "QR par table",
+      "perTableText": "Chaque table aura son propre QR Code.",
+      "callWaiterTitle": "Appeler un serveur",
+      "callWaiterText": "Le client pourra demander de l'aide directement via le QR.",
+      "tableOrdersTitle": "Commandes à table",
+      "tableOrdersText": "Menu numérique et commandes envoyées directement en cuisine."
+    }
+  },
+  "ordering": {
+    "main": {
+      "notFound": "Restaurant introuvable",
+      "header": {
+        "eyebrow": "QR Ordering",
+        "title": "Commandes à table",
+        "description": "Gérez le menu numérique, recevez les commandes par table et préparez des QR Codes pour chaque zone du restaurant.",
+        "printQrsButton": "Imprimer les QR",
+        "openRoomButton": "Ouvrir la salle"
+      },
+      "status": {
+        "active": "Actif",
+        "inactive": "Inactif"
+      },
+      "tabs": {
+        "orders": "Commandes",
+        "qr": "QR Codes",
+        "settings": "Paramètres"
+      },
+      "metrics": {
+        "openTables": { "label": "Tables ouvertes", "sub": "sessions QR" },
+        "activeOrders": { "label": "Commandes actives", "sub": "à préparer/livrer" },
+        "products": { "label": "Produits", "subActive": "{count, plural, one {# actif} other {# actifs}}" },
+        "tables": { "label": "Tables", "sub": "QR Codes" }
+      },
+      "orders": {
+        "eyebrow": "Commandes",
+        "title": "Tables avec commandes QR",
+        "pendingAlerts": "{count, plural, one {# alerte en attente} other {# alertes en attente}}",
+        "autoRefreshBadge": "Mise à jour automatique"
+      },
+      "menu": {
+        "categoryEyebrow": "Catégorie",
+        "createCategoryTitle": "Créer une catégorie",
+        "categoryNamePlaceholder": "Ex : Entrées, Boissons, Desserts",
+        "categoryPositionPlaceholder": "Ordre de la catégorie",
+        "createCategoryButton": "Créer la catégorie",
+        "productEyebrow": "Produit",
+        "addProductTitle": "Ajouter un produit",
+        "chooseCategoryOption": "Choisir une catégorie",
+        "productNamePlaceholder": "Nom du produit",
+        "productDescriptionPlaceholder": "Description courte",
+        "pricePlaceholder": "Prix",
+        "skuPlaceholder": "SKU / Code interne",
+        "vatOption": "TVA {rate}%",
+        "sortOrderPlaceholder": "Ordre dans le menu",
+        "allergensPlaceholder": "Allergènes. Ex : gluten, lait, fruits à coque",
+        "featuredLabel": "Produit mis en avant",
+        "addProductButton": "Ajouter le produit",
+        "digitalMenuEyebrow": "Menu numérique",
+        "productsTitle": "Produits QR Ordering",
+        "editHint": "Utilisez « ouvrir » pour modifier les produits.",
+        "emptyCategories": "Créez la première catégorie pour démarrer le menu numérique.",
+        "orderValue": "Ordre {value}",
+        "productCount": "{count, plural, one {# produit} other {# produits}}",
+        "openBadge": "Ouvrir",
+        "editCategoryLabel": "Modifier la catégorie",
+        "saveButton": "Enregistrer",
+        "noProductsYet": "Aucun produit pour l'instant.",
+        "deleteCategoryLabel": "Supprimer la catégorie",
+        "deleteCategoryWarning": "Cela supprimera la catégorie « {name} » et tous les produits qu'elle contient.",
+        "deleteCategoryConfirmLabel": "Je confirme vouloir supprimer la catégorie et ses produits",
+        "deletePermanentlyButton": "Supprimer définitivement",
+        "inactiveBadge": "Inactif",
+        "featuredBadge": "En avant",
+        "allergensPrefix": "Allergènes : {allergens}",
+        "editDescriptionPlaceholder": "Description",
+        "editSkuPlaceholder": "SKU",
+        "editSortOrderPlaceholder": "Ordre",
+        "editAllergensPlaceholder": "Allergènes",
+        "saveChangesButton": "Enregistrer les modifications",
+        "activateButton": "Activer",
+        "deactivateButton": "Désactiver",
+        "removeImageButton": "Retirer l'image",
+        "deleteLabel": "Supprimer",
+        "confirmDeleteLabel": "Confirmer la suppression",
+        "deleteProductButton": "Supprimer le produit"
+      },
+      "qr": {
+        "eyebrow": "QR Codes",
+        "title": "Gestion des QR Codes",
+        "description": "Gérez les tables, choisissez le modèle/la taille et imprimez les QR Codes sans quitter cette page.",
+        "tablesCount": "{count, plural, one {# table} other {# tables}}",
+        "addTablesTitle": "Ajouter des tables",
+        "quantityPlaceholder": "Quantité",
+        "defaultCapacityPlaceholder": "Capacité par défaut",
+        "generateTablesButton": "Générer les tables",
+        "createHint": "Les tables créées ici apparaissent aussi dans la gestion de la salle.",
+        "quickPrintTitle": "Impression rapide",
+        "templateNames": {
+          "premium": "Premium Black",
+          "minimal": "Minimal White",
+          "mesalink": "MesaLink"
+        },
+        "previewBrand": "MesaLink QR Ordering",
+        "previewLabel": "Aperçu {name}",
+        "printAllButton": "Tout imprimer",
+        "tablesListTitle": "Tables QR",
+        "tablesListHint": "Liste compacte pour les restaurants avec de nombreuses tables.",
+        "totalLabel": "{count} au total",
+        "noTablesYet": "Vous n'avez pas encore de tables.",
+        "tableLabel": "Table {number}",
+        "seatsCount": "{count, plural, one {# place} other {# places}}",
+        "openBadge": "Ouvrir",
+        "openQrButton": "Ouvrir le QR",
+        "printButton": "Imprimer",
+        "removeTableLabel": "Retirer la table",
+        "removeTableConfirmLabel": "Je confirme vouloir retirer cette table",
+        "removeButton": "Retirer"
+      },
+      "settings": {
+        "eyebrow": "Paramètres",
+        "title": "QR Ordering",
+        "description": "Personnalisez le fonctionnement du QR Ordering.",
+        "enableQr": { "title": "Activer le QR Ordering", "hint": "Autorise les commandes via le QR Code." },
+        "allowWaiterCall": { "title": "Autoriser l'appel d'un serveur", "hint": "Affiche le bouton d'assistance au client." },
+        "allowBillRequest": { "title": "Autoriser la demande d'addition", "hint": "Affiche le bouton pour demander l'addition." },
+        "saveButton": "Enregistrer les paramètres"
+      },
+      "statusLabels": {
+        "pending": "Reçue",
+        "preparing": "En préparation",
+        "ready": "Prête",
+        "delivered": "Livrée",
+        "cancelled": "Annulée"
+      }
+    },
+    "print": {
+      "eyebrow": "QR Ordering",
+      "title": "QR Codes",
+      "tablesCount": "{count, plural, one {# table} other {# tables}}",
+      "tablesFilterEyebrow": "Tables",
+      "allTablesFilter": "Toutes",
+      "tableLabel": "Table {number}",
+      "templateEyebrow": "Modèle",
+      "sizeEyebrow": "Taille",
+      "sizes": { "small": "Petit", "medium": "Moyen", "large": "Grand" },
+      "templates": { "premium": "Premium", "minimal": "Minimal", "mesalink": "MesaLink" },
+      "cardBrand": "MesaLink QR Ordering",
+      "scanInstruction": "Ouvrez l'appareil photo et passez votre commande"
+    }
+  }
+}

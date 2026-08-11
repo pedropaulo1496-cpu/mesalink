@@ -1,15 +1,12 @@
 "use client";
 
 import Footer from "@/components/Footer";
+import SiteHeader from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactNode } from "react";
-
-const brand = {
-  mesa: "#C8A56A",
-  link: "#17130F",
-};
 
 const productStack = [
   "Reservas online",
@@ -61,7 +58,7 @@ const essentials = [
 export default function HomePage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#F4ECDF] text-[#17130F]">
-      <Header />
+      <SiteHeader />
 
       <Hero />
 
@@ -83,36 +80,9 @@ export default function HomePage() {
   );
 }
 
-function Header() {
-  return (
-    <header className="sticky top-0 z-50 border-b border-[#DECDB4] bg-[#F4ECDF]/86 px-5 py-5 backdrop-blur-xl lg:px-8">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between">
-        <Link href="/" className="text-2xl font-semibold tracking-[-0.045em]">
-          <span style={{ color: brand.mesa }}>Mesa</span>
-          <span style={{ color: brand.link }}>Link</span>
-        </Link>
-
-        <div className="hidden items-center gap-8 text-sm font-medium text-[#5C5348] lg:flex">
-          <Link href="#growth">Crescimento</Link>
-          <Link href="#platform">Plataforma</Link>
-          <Link href="#pricing">Preços</Link>
-          <Link href="/login">Entrar</Link>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/register"
-            className="rounded-full bg-[#17130F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
-          >
-            Começar
-          </Link>
-        </div>
-      </nav>
-    </header>
-  );
-}
-
 function Hero() {
+  const t = useTranslations("marketing.home");
+
   return (
     <section className="relative px-5 pb-20 pt-14 lg:px-8 lg:pb-28 lg:pt-20">
       <MoneyBackground />
@@ -123,16 +93,15 @@ function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.72 }}
         >
-          <Label>Restaurant Essentials by MesaLink</Label>
+          <Label>{t("hero.badge")}</Label>
 
           <h1 className="mt-6 max-w-4xl text-[52px] font-semibold leading-[0.87] tracking-[-0.08em] sm:text-7xl lg:text-[96px]">
-            Everything your restaurant needs.
-            <span className="block text-[#C8A56A]">One platform.</span>
+            {t("hero.titleLine1")}
+            <span className="block text-[#C8A56A]">{t("hero.titleLine2")}</span>
           </h1>
 
           <p className="mt-7 max-w-2xl text-lg leading-8 text-[#5C5348] lg:text-xl">
-            Reservas, QR Ordering, Website, CRM e Marketing — ligados para
-            aumentar receita, recuperar clientes e reduzir trabalho manual.
+            {t("hero.subtitle")}
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -140,7 +109,7 @@ function Hero() {
               asChild
               className="h-14 rounded-full bg-[#17130F] px-8 text-base font-semibold text-white shadow-[0_24px_70px_rgba(80,55,30,0.24)] hover:bg-[#2A2118]"
             >
-              <Link href="/register">Começar teste gratuito</Link>
+              <Link href="/register">{t("hero.ctaPrimary")}</Link>
             </Button>
 
             <Button
@@ -148,15 +117,15 @@ function Hero() {
               variant="outline"
               className="h-14 rounded-full border-[#B9965E] bg-[#FFF9F0] px-8 text-base font-semibold text-[#17130F] hover:bg-white"
             >
-              <Link href="/contact">Pedir demonstração</Link>
+              <Link href="/contact">{t("hero.ctaSecondary")}</Link>
             </Button>
 
           </div>
 
           <div className="mt-9 grid max-w-2xl gap-3 sm:grid-cols-3">
-            <HeroMiniStat value="+€1.240" label="impacto estimado/mês" />
-            <HeroMiniStat value="31%" label="clientes a voltar" />
-            <HeroMiniStat value="0€" label="comissões reservas" />
+            <HeroMiniStat value="+€1.240" label={t("hero.statImpactLabel")} />
+            <HeroMiniStat value="31%" label={t("hero.statReturningLabel")} />
+            <HeroMiniStat value="0€" label={t("hero.statCommissionLabel")} />
           </div>
         </motion.div>
 
@@ -167,6 +136,20 @@ function Hero() {
 }
 
 function HeroCommandCenter() {
+  const t = useTranslations("marketing.home");
+
+  const upcomingReservations = [
+    ["19:30", t("hero.command.upcomingRow1")],
+    ["20:00", t("hero.command.upcomingRow2")],
+    ["20:15", t("hero.command.upcomingRow3")],
+  ];
+
+  const activityRows = [
+    [t("hero.command.activityRow1Label"), "+€68"],
+    [t("hero.command.activityRow2Label"), t("hero.command.activityRow2Value")],
+    [t("hero.command.activityRow3Label"), t("hero.command.activityRow3Value")],
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 34, scale: 0.97 }}
@@ -186,16 +169,16 @@ function HeroCommandCenter() {
           <div className="flex items-center justify-between border-b border-[#E8D7BB] bg-white/60 px-5 py-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
-                Dashboard MesaLink
+                {t("hero.command.eyebrow")}
               </p>
               <h3 className="mt-1 text-3xl font-semibold tracking-[-0.06em]">
-                Performance em tempo real
+                {t("hero.command.heading")}
               </h3>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="rounded-full bg-[#17130F] px-4 py-2 text-xs font-semibold text-white">
-                Live
+                {t("hero.command.live")}
               </span>
             </div>
           </div>
@@ -205,13 +188,13 @@ function HeroCommandCenter() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
-                    Reservas
+                    {t("hero.command.reservationsEyebrow")}
                   </p>
                   <h4 className="mt-2 text-3xl font-semibold tracking-[-0.06em]">
-                    312 reservas este mês
+                    {t("hero.command.reservationsHeading")}
                   </h4>
                   <p className="mt-2 text-sm text-[#6B6258]">
-                    QR Ordering, marketing e mapa de mesas ligados no mesmo painel.
+                    {t("hero.command.reservationsText")}
                   </p>
                 </div>
 
@@ -221,21 +204,17 @@ function HeroCommandCenter() {
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <DashboardHeroStat value="18" label="Hoje" />
-                <DashboardHeroStat value="132" label="Esta semana" />
-                <DashboardHeroStat value="74%" label="Ocupação" />
+                <DashboardHeroStat value="18" label={t("hero.command.statToday")} />
+                <DashboardHeroStat value="132" label={t("hero.command.statWeek")} />
+                <DashboardHeroStat value="74%" label={t("hero.command.statOccupancy")} />
               </div>
 
               <div className="mt-5 space-y-2 rounded-[28px] bg-[#FFF9F0] p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
-                  Próximas reservas
+                  {t("hero.command.upcomingLabel")}
                 </p>
 
-                {[
-                  ["19:30", "Mesa 4 · 2 pessoas"],
-                  ["20:00", "Mesa 7 · 4 pessoas"],
-                  ["20:15", "Balcão · 2 pessoas"],
-                ].map(([time, detail]) => (
+                {upcomingReservations.map(([time, detail]) => (
                   <div
                     key={time}
                     className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3"
@@ -252,10 +231,10 @@ function HeroCommandCenter() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
-                      Sala
+                      {t("hero.command.roomEyebrow")}
                     </p>
                     <h4 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">
-                      Ocupação agora
+                      {t("hero.command.roomHeading")}
                     </h4>
                   </div>
                   <strong className="text-sm text-[#9B6F3B]">74%</strong>
@@ -284,31 +263,27 @@ function HeroCommandCenter() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-[26px] border border-[#E5D6C1] bg-[#17130F] p-5 text-white">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D8C5A5]">
-                    QR Ordering
+                    {t("hero.command.qrEyebrow")}
                   </p>
                   <p className="mt-3 text-3xl font-semibold tracking-[-0.06em]">
                     26
                   </p>
-                  <p className="mt-1 text-sm text-white/62">pedidos hoje</p>
+                  <p className="mt-1 text-sm text-white/62">{t("hero.command.qrLabel")}</p>
                 </div>
 
                 <div className="rounded-[26px] border border-[#E5D6C1] bg-white p-5">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9B6F3B]">
-                    Marketing
+                    {t("hero.command.marketingEyebrow")}
                   </p>
                   <p className="mt-3 text-3xl font-semibold tracking-[-0.06em]">
                     4.6x
                   </p>
-                  <p className="mt-1 text-sm text-[#6B6258]">ROI growth</p>
+                  <p className="mt-1 text-sm text-[#6B6258]">{t("hero.command.marketingLabel")}</p>
                 </div>
               </div>
 
               <div className="rounded-[30px] border border-[#E5D6C1] bg-[#FFF9F0] p-5">
-                {[
-                  ["Cliente recuperado", "+€68"],
-                  ["Pedido QR", "Mesa 7"],
-                  ["Reserva direta", "0€ comissão"],
-                ].map(([label, value]) => (
+                {activityRows.map(([label, value]) => (
                   <Row key={label} label={label} value={value} />
                 ))}
               </div>
@@ -330,25 +305,26 @@ function DashboardHeroStat({ value, label }: { value: string; label: string }) {
 }
 
 function GrowthLoop() {
+  const t = useTranslations("marketing.home");
+
   const steps = [
-    ["Descoberta", "Google, redes sociais, website"],
-    ["Reserva", "Direta e sem comissão"],
-    ["Experiência", "Mesa, QR e serviço"],
-    ["Dados", "Cliente entra no CRM"],
-    ["Retorno", "Marketing faz voltar"],
+    [t("growthLoop.stepDiscoveryTitle"), t("growthLoop.stepDiscoveryText")],
+    [t("growthLoop.stepBookingTitle"), t("growthLoop.stepBookingText")],
+    [t("growthLoop.stepExperienceTitle"), t("growthLoop.stepExperienceText")],
+    [t("growthLoop.stepDataTitle"), t("growthLoop.stepDataText")],
+    [t("growthLoop.stepReturnTitle"), t("growthLoop.stepReturnText")],
   ];
 
   return (
     <section id="growth" className="px-5 py-16 lg:px-8 lg:py-20">
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div>
-          <Label>Growth Engine</Label>
+          <Label>{t("growthLoop.label")}</Label>
           <h2 className="mt-5 text-4xl font-semibold leading-[0.92] tracking-[-0.065em] sm:text-6xl">
-            Do primeiro clique à próxima visita.
+            {t("growthLoop.title")}
           </h2>
           <p className="mt-6 max-w-xl text-lg leading-8 text-[#5C5348]">
-            MesaLink liga cada etapa da experiência: descoberta, reserva,
-            pedido, pagamento, CRM e campanhas para trazer o cliente de volta.
+            {t("growthLoop.subtitle")}
           </p>
         </div>
 
@@ -400,26 +376,28 @@ function GrowthLoop() {
 }
 
 function ProductShowcase() {
+  const t = useTranslations("marketing.home");
+
   const returns = [
     {
-      value: "Growth",
-      label: "Mais receita",
-      text: "QR Ordering reduz espera. Marketing faz clientes voltar. Mais vendas sem aumentar a equipa.",
+      value: t("productShowcase.growthValue"),
+      label: t("productShowcase.growthLabel"),
+      text: t("productShowcase.growthText"),
     },
     {
-      value: "Visibility",
-      label: "Mais descoberta",
-      text: "Website otimizado, presença online e reviews positivas ajudam novos clientes a encontrar o restaurante.",
+      value: t("productShowcase.visibilityValue"),
+      label: t("productShowcase.visibilityLabel"),
+      text: t("productShowcase.visibilityText"),
     },
     {
-      value: "Control",
-      label: "Melhor gestão",
-      text: "Reservas, CRM, QR Ordering, marketing e dados integrados num único sistema para controlar melhor a operação.",
+      value: t("productShowcase.controlValue"),
+      label: t("productShowcase.controlLabel"),
+      text: t("productShowcase.controlText"),
     },
     {
-      value: "Future",
-      label: "Sempre a evoluir",
-      text: "Novas ferramentas essenciais para restaurantes serão lançadas em breve dentro do ecossistema MesaLink.",
+      value: t("productShowcase.futureValue"),
+      label: t("productShowcase.futureLabel"),
+      text: t("productShowcase.futureText"),
     },
   ];
 
@@ -428,18 +406,16 @@ function ProductShowcase() {
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:items-end">
           <div>
-            <Label>Growth. Visibility. Control.</Label>
+            <Label>{t("productShowcase.label")}</Label>
 
             <h2 className="mt-5 text-4xl font-semibold leading-[0.92] tracking-[-0.065em] sm:text-6xl">
-              Cresça com mais clientes.
-              <span className="block text-[#C8A56A]">Gira com mais controlo.</span>
+              {t("productShowcase.titleLine1")}
+              <span className="block text-[#C8A56A]">{t("productShowcase.titleLine2")}</span>
             </h2>
           </div>
 
           <p className="max-w-2xl text-lg leading-8 text-[#5C5348] lg:justify-self-end">
-            Atraia mais clientes, aumente a receita e ganhe controlo total
-            sobre a operação com uma plataforma criada especificamente para
-            restaurantes.
+            {t("productShowcase.subtitle")}
           </p>
         </div>
 
@@ -487,16 +463,16 @@ function ProductShowcase() {
 
           <div className="mt-4 grid gap-4 lg:grid-cols-3">
             <ReturnDriver
-              title="QR Ordering + Marketing"
-              text="Pedidos mais rápidos, menos atrito no serviço e campanhas para trazer clientes de volta."
+              title={t("productShowcase.driver1Title")}
+              text={t("productShowcase.driver1Text")}
             />
             <ReturnDriver
-              title="Website + Reviews"
-              text="Mais visibilidade online, mais confiança e mais reservas diretas sem depender de comissões."
+              title={t("productShowcase.driver2Title")}
+              text={t("productShowcase.driver2Text")}
             />
             <ReturnDriver
-              title="Tudo integrado"
-              text="Reservas, CRM, QR Ordering, website, marketing e dados ligados para gerir melhor todos os dias."
+              title={t("productShowcase.driver3Title")}
+              text={t("productShowcase.driver3Text")}
             />
           </div>
         </div>
@@ -518,20 +494,21 @@ function ReturnDriver({ title, text }: { title: string; text: string }) {
 }
 
 function RestaurantEssentials() {
+  const t = useTranslations("marketing.home");
+
   return (
     <section id="platform" className="px-5 py-16 lg:px-8 lg:py-24">
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
         <div>
-          <Label>Uma plataforma. Um login.</Label>
+          <Label>{t("restaurantEssentials.label")}</Label>
 
           <h2 className="mt-5 text-4xl font-semibold leading-[0.92] tracking-[-0.065em] sm:text-6xl">
-            Tudo ligado ao
-            <span className="block text-[#C8A56A]">MesaLink.</span>
+            {t("restaurantEssentials.titleLine1")}
+            <span className="block text-[#C8A56A]">{t("restaurantEssentials.titleLine2")}</span>
           </h2>
 
           <p className="mt-6 max-w-xl text-lg leading-8 text-[#5C5348]">
-            O cliente reserva, senta-se, pede por QR, paga, entra no CRM e
-            recebe marketing automático para voltar.
+            {t("restaurantEssentials.subtitle")}
           </p>
         </div>
 
@@ -542,34 +519,36 @@ function RestaurantEssentials() {
 }
 
 function ConnectedMesaLink() {
+  const t = useTranslations("marketing.home");
+
   const nodes = [
     {
-      title: "Reservas",
-      text: "Todos os canais",
+      title: t("restaurantEssentials.nodeReservationsTitle"),
+      text: t("restaurantEssentials.nodeReservationsText"),
       className: "left-[60px] top-[80px]",
       line: "M270 145 L350 270",
     },
     {
-      title: "Website",
-      text: "Online 24/7",
+      title: t("restaurantEssentials.nodeWebsiteTitle"),
+      text: t("restaurantEssentials.nodeWebsiteText"),
       className: "left-1/2 top-[42px] -translate-x-1/2",
       line: "M380 150 L380 250",
     },
     {
-      title: "QR Ordering",
-      text: "Pedidos na mesa",
+      title: t("restaurantEssentials.nodeQrTitle"),
+      text: t("restaurantEssentials.nodeQrText"),
       className: "right-[60px] top-[80px]",
       line: "M490 145 L410 270",
     },
     {
-      title: "Marketing",
-      text: "Atrair e fidelizar",
+      title: t("restaurantEssentials.nodeMarketingTitle"),
+      text: t("restaurantEssentials.nodeMarketingText"),
       className: "left-[72px] bottom-[80px]",
       line: "M270 498 L350 350",
     },
     {
-      title: "Mapa de mesas",
-      text: "Sala em tempo real",
+      title: t("restaurantEssentials.nodeTablesTitle"),
+      text: t("restaurantEssentials.nodeTablesText"),
       className: "right-[72px] bottom-[80px]",
       line: "M490 498 L410 350",
     },
@@ -647,7 +626,7 @@ function ConnectedMesaLink() {
           <span className="text-white">Link</span>
         </p>
         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.34em] text-[#D8C5A5]">
-          Growth Engine
+          {t("restaurantEssentials.centerTagline")}
         </p>
       </div>
 
@@ -664,7 +643,7 @@ function ConnectedMesaLink() {
       ))}
 
       <div className="absolute bottom-8 left-1/2 z-30 -translate-x-1/2 rounded-full border border-[#D8C5A5] bg-[#FFF9F0]/94 px-7 py-3 text-sm font-semibold text-[#17130F] shadow-[0_20px_60px_rgba(80,55,30,0.10)] backdrop-blur">
-        Dados, relatórios e automações
+        {t("restaurantEssentials.bottomPill")}
       </div>
     </div>
   );
@@ -715,14 +694,16 @@ function ResultsSection() {
 
 
 function UpcomingEssentialsNote() {
+  const t = useTranslations("marketing.home");
+
   return (
     <section className="px-5 pb-6 lg:px-8">
       <div className="mx-auto max-w-7xl rounded-[32px] border border-[#D8C5A5] bg-[#FFF9F0] p-6 text-center shadow-[0_20px_70px_rgba(80,55,30,0.08)]">
         <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#9B6F3B]">
-          Novos essenciais em breve
+          {t("upcomingNote.eyebrow")}
         </p>
         <p className="mx-auto mt-3 max-w-3xl text-base leading-7 text-[#6B6258]">
-          Além das ferramentas atuais, a MesaLink vai continuar a lançar novos essenciais para restaurantes — sempre pensados para melhorar operação, crescimento e gestão.
+          {t("upcomingNote.text")}
         </p>
       </div>
     </section>
@@ -730,66 +711,67 @@ function UpcomingEssentialsNote() {
 }
 
 function PricingSection() {
+  const t = useTranslations("marketing.home");
+
   return (
     <section id="pricing" className="px-5 py-16 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
         <div className="mx-auto max-w-3xl text-center">
-          <Label>Planos MesaLink</Label>
+          <Label>{t("pricing.label")}</Label>
 
           <h2 className="mt-5 text-4xl font-semibold leading-[0.92] tracking-[-0.065em] sm:text-6xl">
-            7 dias grátis.
-            <span className="block text-[#C8A56A]">Depois escolha como crescer.</span>
+            {t("pricing.titleLine1")}
+            <span className="block text-[#C8A56A]">{t("pricing.titleLine2")}</span>
           </h2>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#5C5348]">
-            Teste todas as funcionalidades durante 7 dias. No pagamento anual,
-            recebe 1 mês grátis. Valores sem IVA.
+            {t("pricing.subtitle")}
           </p>
         </div>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-2">
           <PricingCard
-            name="Essentials"
+            name={t("pricing.essentialsName")}
             price="55€"
             yearlyPrice="605€"
-            description="Para restaurantes que querem centralizar reservas, website, QR Ordering, CRM, reviews e operação."
+            description={t("pricing.essentialsDescription")}
             features={[
-              "7 dias grátis com todas as funcionalidades",
-              "Reservas online sem comissões",
-              "Website premium integrado",
-              "QR Ordering incluído",
-              "Mapa de mesas",
-              "CRM de clientes",
-              "Google Reviews",
-              "Relatórios essenciais",
-              "1 mês grátis no pagamento anual",
+              t("pricing.essentialsFeature1"),
+              t("pricing.essentialsFeature2"),
+              t("pricing.essentialsFeature3"),
+              t("pricing.essentialsFeature4"),
+              t("pricing.essentialsFeature5"),
+              t("pricing.essentialsFeature6"),
+              t("pricing.essentialsFeature7"),
+              t("pricing.essentialsFeature8"),
+              t("pricing.essentialsFeature9"),
             ]}
-            cta="Começar teste gratuito"
+            cta={t("pricing.ctaTrial")}
           />
 
           <PricingCard
             featured
-            name="Growth"
+            name={t("pricing.growthName")}
             price="75€"
             yearlyPrice="825€"
-            description="Para restaurantes que querem recuperar clientes, promover dias fracos e aumentar visitas recorrentes."
+            description={t("pricing.growthDescription")}
             features={[
-              "7 dias grátis com todas as funcionalidades",
-              "Tudo do Essentials",
-              "Tab Marketing",
-              "Recuperação de clientes inativos",
-              "Campanhas para dias fracos",
-              "Clientes em risco",
-              "Aniversários e ocasiões especiais",
-              "Fidelização VIP",
-              "1 mês grátis no pagamento anual",
+              t("pricing.growthFeature1"),
+              t("pricing.growthFeature2"),
+              t("pricing.growthFeature3"),
+              t("pricing.growthFeature4"),
+              t("pricing.growthFeature5"),
+              t("pricing.growthFeature6"),
+              t("pricing.growthFeature7"),
+              t("pricing.growthFeature8"),
+              t("pricing.growthFeature9"),
             ]}
-            cta="Começar teste gratuito"
+            cta={t("pricing.ctaTrial")}
           />
         </div>
 
         <p className="mx-auto mt-6 max-w-3xl text-center text-sm leading-6 text-[#6B6258]">
-          Reservas diretas, mapa de mesas, QR Ordering e Marketing automático — tudo ligado num único painel para o seu restaurante crescer todos os dias.
+          {t("pricing.footerNote")}
         </p>
       </div>
     </section>
@@ -814,6 +796,8 @@ function PricingCard({
   cta: string;
   featured?: boolean;
 }) {
+  const t = useTranslations("marketing.home");
+
   return (
     <div
       data-plan-card={name.toLowerCase()}
@@ -834,7 +818,7 @@ function PricingCard({
 
         {featured && (
           <div className="w-fit max-w-full rounded-full bg-[#D8C5A5] px-4 py-2 text-center text-xs font-semibold uppercase leading-tight tracking-[0.16em] text-[#17130F]">
-            Mais vendido
+            {t("pricingCard.mostPopular")}
           </div>
         )}
       </div>
@@ -844,7 +828,7 @@ function PricingCard({
           {price}
         </span>
         <span className={featured ? "mb-3 text-white/65" : "mb-3 text-[#6B6258]"}>
-          /mês
+          {t("pricingCard.perMonth")}
         </span>
       </div>
 
@@ -856,13 +840,13 @@ function PricingCard({
         }`}
       >
         <p className={`font-semibold ${featured ? "text-[#D8C5A5]" : "text-[#9B6F3B]"}`}>
-          Pagamento anual
+          {t("pricingCard.yearlyLabel")}
         </p>
         <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1 leading-5">
           <strong className={featured ? "text-white" : "text-[#17130F]"}>
-            {yearlyPrice}/ano
+            {yearlyPrice}{t("pricingCard.perYear")}
           </strong>
-          <span>1 mês grátis</span>
+          <span>{t("pricingCard.oneMonthFree")}</span>
         </div>
       </div>
 
@@ -883,8 +867,8 @@ function PricingCard({
       >
         <p className={featured ? "text-sm text-white/72" : "text-sm text-[#5C5348]"}>
           {featured
-            ? "Ideal para transformar clientes antigos em visitas recorrentes."
-            : "Ideal para organizar a operação e reduzir sistemas separados."}
+            ? t("pricingCard.growthBlurb")
+            : t("pricingCard.essentialsBlurb")}
         </p>
       </div>
 
@@ -914,23 +898,24 @@ function PricingCard({
 }
 
 function FinalCTA() {
+  const t = useTranslations("marketing.home");
+
   return (
     <section className="px-5 pb-20 lg:px-8">
       <div className="mx-auto max-w-7xl overflow-hidden rounded-[46px] bg-[#201812] p-8 text-white shadow-[0_35px_120px_rgba(34,26,19,0.24)] lg:p-14">
         <div className="grid gap-10 lg:grid-cols-[1fr_0.75fr] lg:items-center">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#D8C5A5]">
-              MesaLink Restaurant Essentials
+              {t("finalCta.eyebrow")}
             </p>
             <h2 className="mt-5 max-w-4xl text-4xl font-semibold leading-[0.92] tracking-[-0.065em] sm:text-6xl">
-              Stop managing tools.
+              {t("finalCta.titleLine1")}
               <span className="block text-[#D8C5A5]">
-                Start growing your restaurant.
+                {t("finalCta.titleLine2")}
               </span>
             </h2>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-white/65">
-              Dê ao cliente uma experiência melhor. Faça-o reservar, pedir,
-              voltar e recomendar.
+              {t("finalCta.subtitle")}
             </p>
           </div>
 
@@ -938,7 +923,7 @@ function FinalCTA() {
             asChild
             className="h-14 rounded-full bg-[#D8C5A5] px-8 text-base font-semibold text-[#17130F] hover:bg-[#E8D6B8] lg:justify-self-end"
           >
-            <Link href="/register">Começar agora</Link>
+            <Link href="/register">{t("finalCta.cta")}</Link>
           </Button>
         </div>
       </div>

@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import PhoneField from "@/components/PhoneField";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type Reservation = {
   id: string;
@@ -184,6 +186,7 @@ export default function ReserveForm({
   error?: string;
   createPublicReservation: (formData: FormData) => void;
 }) {
+  const t = useTranslations("publicFlows.reserve");
   const today = getTodayDateValue();
 
   const [selectedDay, setSelectedDay] = useState(today);
@@ -262,7 +265,11 @@ export default function ReserveForm({
           className="mx-auto max-w-2xl"
         >
           <div className="rounded-[36px] border border-[#E1D0B8] bg-white p-8 text-center shadow-[0_22px_70px_rgba(80,55,30,0.08)]">
-            <Badge>Reserva online</Badge>
+            <div className="flex items-center justify-end">
+              <LanguageSwitcher />
+            </div>
+
+            <Badge>{t("badge")}</Badge>
 
             <h1 className="mt-5 text-4xl font-semibold tracking-[-0.055em]">
               {restaurant.name}
@@ -270,15 +277,15 @@ export default function ReserveForm({
 
             <div className="mt-8 rounded-3xl border border-[#D8C5A5] bg-[#FFF1D0] p-6">
               <h2 className="text-2xl font-semibold text-[#9B6F3B]">
-                Reservas indisponíveis
+                {t("unavailable.title")}
               </h2>
 
               <p className="mt-3 text-[#6B6258]">
-                Este restaurante não está a aceitar reservas online neste momento.
+                {t("unavailable.text")}
               </p>
             </div>
 
-            <p className="mt-8 text-xs text-[#9B8F82]">Powered by MesaLink</p>
+            <p className="mt-8 text-xs text-[#9B8F82]">{t("poweredBy")}</p>
           </div>
         </motion.div>
       </main>
@@ -299,19 +306,23 @@ export default function ReserveForm({
           transition={{ duration: 0.55 }}
           className="mb-8 text-center"
         >
-          <Badge>Reserva online</Badge>
+          <div className="mb-4 flex items-center justify-end">
+            <LanguageSwitcher />
+          </div>
+
+          <Badge>{t("badge")}</Badge>
 
           <h1 className="mt-5 text-5xl font-semibold leading-[0.95] tracking-[-0.065em]">
             {restaurant.name}
           </h1>
 
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-[#6B6258]">
-            Escolha o dia, hora e número de pessoas. A reserva fica registada em segundos.
+            {t("subtitle")}
           </p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <Chip>Confirmação rápida</Chip>
-            <Chip>Reserva online</Chip>
+            <Chip>{t("chips.quickConfirmation")}</Chip>
+            <Chip>{t("chips.onlineBooking")}</Chip>
             <Chip>MesaLink</Chip>
           </div>
         </motion.header>
@@ -326,32 +337,32 @@ export default function ReserveForm({
             {error === "conflict" && (
               <Alert
                 tone="red"
-                title="Horário indisponível"
-                text="Essa mesa já tem uma reserva nesse período. Escolha outro horário."
+                title={t("errors.conflict.title")}
+                text={t("errors.conflict.text")}
               />
             )}
 
             {error === "past" && (
               <Alert
                 tone="red"
-                title="Data inválida"
-                text="Não é possível fazer reservas para datas ou horas no passado."
+                title={t("errors.past.title")}
+                text={t("errors.past.text")}
               />
             )}
 
             {error === "capacity" && (
               <Alert
                 tone="red"
-                title="Sem capacidade"
-                text="O restaurante não tem capacidade disponível para esse horário."
+                title={t("errors.capacity.title")}
+                text={t("errors.capacity.text")}
               />
             )}
 
             {error === "email" && (
               <Alert
                 tone="red"
-                title="Email inválido"
-                text="Introduza um email válido para continuar."
+                title={t("errors.email.title")}
+                text={t("errors.email.text")}
               />
             )}
 
@@ -361,7 +372,7 @@ export default function ReserveForm({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: 0.15 }}
               >
-                <StepTitle number="1" title="Quando?" />
+                <StepTitle number="1" title={t("steps.when")} />
 
                 <input
                   type="date"
@@ -377,11 +388,11 @@ export default function ReserveForm({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: 0.2 }}
               >
-                <StepTitle number="2" title="A que horas?" />
+                <StepTitle number="2" title={t("steps.time")} />
 
                 {availableHours.length === 0 ? (
                   <div className="mt-4 rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-5 text-[#A14E36]">
-                    O restaurante está fechado neste dia.
+                    {t("closedDay")}
                   </div>
                 ) : (
                   <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
@@ -414,7 +425,7 @@ export default function ReserveForm({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: 0.25 }}
               >
-                <StepTitle number="3" title="Quantas pessoas?" />
+                <StepTitle number="3" title={t("steps.guests")} />
 
                 <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-6">
                   {[1, 2, 3, 4, 5, 6, 8, 10].map((value) => {
@@ -441,7 +452,7 @@ export default function ReserveForm({
 
                 <div className="mt-4">
                   <label className="mb-2 block text-sm font-semibold text-[#6B6258]">
-                    Outro número
+                    {t("otherNumber")}
                   </label>
 
                   <input
@@ -450,7 +461,7 @@ export default function ReserveForm({
                     min="1"
                     value={guests}
                     onChange={(e) => setGuests(Number(e.target.value))}
-                    placeholder="Número de pessoas"
+                    placeholder={t("guestsPlaceholder")}
                     className={inputClass}
                     required
                   />
@@ -463,24 +474,24 @@ export default function ReserveForm({
                 !tableCombination && (
                   <Alert
                     tone="red"
-                    title="Sem mesas disponíveis"
-                    text={`Não há mesas disponíveis para ${guests} pessoas neste horário.`}
+                    title={t("noTables.title")}
+                    text={t("noTables.text", { guests })}
                   />
                 )}
 
               {tableCombination && (
                 <Alert
                   tone="yellow"
-                  title="Pedido sujeito a aprovação"
-                  text={`Para ${guests} pessoas, o restaurante poderá juntar mesas. O pedido ficará pendente de confirmação.`}
+                  title={t("pendingApproval.title")}
+                  text={t("pendingApproval.text", { guests })}
                 />
               )}
 
               {isCapacityMode && (
                 <Alert
                   tone="blue"
-                  title="Reserva por capacidade"
-                  text="O restaurante gere as mesas internamente. Basta escolher dia, hora e número de pessoas."
+                  title={t("capacityMode.title")}
+                  text={t("capacityMode.text")}
                 />
               )}
 
@@ -523,34 +534,38 @@ export default function ReserveForm({
                   transition={{ duration: 0.45, delay: 0.3 }}
                   className="border-t border-[#E1D0B8] pt-8"
                 >
-                  <StepTitle number="4" title="Dados da reserva" />
+                  <StepTitle number="4" title={t("steps.details")} />
 
                   <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <Field label="Nome" required>
+                    <Field label={t("fields.name")} required>
                       <input
                         name="customerName"
                         type="text"
-                        placeholder="Nome completo"
+                        placeholder={t("fields.namePlaceholder")}
                         className={inputClass}
                         required
                       />
                     </Field>
 
-                    <Field label="Telemóvel" required>
-                      <PhoneField name="phone" required placeholder="Telemóvel" />
+                    <Field label={t("fields.phone")} required>
+                      <PhoneField
+                        name="phone"
+                        required
+                        placeholder={t("fields.phonePlaceholder")}
+                      />
                     </Field>
 
-                    <Field label="Email" required>
+                    <Field label={t("fields.email")} required>
                       <input
                         name="email"
                         type="email"
-                        placeholder="Email"
+                        placeholder={t("fields.emailPlaceholder")}
                         className={inputClass}
                         required
                       />
                     </Field>
 
-                    <Field label="Data de nascimento" optional>
+                    <Field label={t("fields.birthDate")} optional>
                       <input
                         name="birthDate"
                         type="date"
@@ -560,8 +575,7 @@ export default function ReserveForm({
                   </div>
 
                   <p className="mt-3 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-3 text-xs leading-5 text-[#6B6258]">
-                    A data de nascimento é opcional e pode ser usada pelo restaurante
-                    para campanhas de aniversário e benefícios personalizados.
+                    {t("birthDateNote")}
                   </p>
 
                   <motion.button
@@ -572,18 +586,18 @@ export default function ReserveForm({
                     className="mt-6 h-14 w-full rounded-full bg-[#16120E] text-base font-semibold text-white transition hover:bg-[#2A2118] disabled:cursor-not-allowed disabled:bg-[#D8CFC2] disabled:text-[#9B8F82]"
                   >
                     {isSubmitting
-                      ? "A processar..."
+                      ? t("submitProcessing")
                       : isPendingRequest
-                        ? "Enviar pedido"
-                        : "Confirmar reserva"}
+                        ? t("submitRequest")
+                        : t("submitConfirm")}
                   </motion.button>
 
                   <p className="mt-4 text-center text-xs text-[#9B8F82]">
-                    Ao reservar, aceita ser contactado sobre esta reserva.
+                    {t("consent")}
                   </p>
 
                   <p className="mt-8 text-center text-xs font-medium text-[#9B8F82]">
-                    Powered by <span className="text-[#6B6258]">MesaLink</span>
+                    {t("poweredBy")}
                   </p>
                 </motion.div>
               </form>
@@ -606,6 +620,8 @@ function Field({
   optional?: boolean;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("publicFlows.reserve.fields");
+
   return (
     <label className="block">
       <span className="mb-2 flex items-center justify-between gap-3 text-sm font-semibold text-[#6B6258]">
@@ -613,13 +629,13 @@ function Field({
 
         {required && (
           <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-            Obrigatório
+            {t("required")}
           </span>
         )}
 
         {optional && (
           <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B8F82]">
-            Opcional
+            {t("optional")}
           </span>
         )}
       </span>

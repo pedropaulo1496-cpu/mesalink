@@ -1,0 +1,228 @@
+{
+  "reserve": {
+    "badge": "Réservation en ligne",
+    "subtitle": "Choisissez le jour, l'heure et le nombre de personnes. La réservation est enregistrée en quelques secondes.",
+    "chips": {
+      "quickConfirmation": "Confirmation rapide",
+      "onlineBooking": "Réservation en ligne"
+    },
+    "unavailable": {
+      "title": "Réservations indisponibles",
+      "text": "Ce restaurant n'accepte pas les réservations en ligne pour le moment."
+    },
+    "errors": {
+      "conflict": {
+        "title": "Créneau indisponible",
+        "text": "Cette table a déjà une réservation à cette période. Choisissez un autre horaire."
+      },
+      "past": {
+        "title": "Date invalide",
+        "text": "Impossible de réserver une date ou une heure déjà passée."
+      },
+      "capacity": {
+        "title": "Aucune disponibilité",
+        "text": "Le restaurant n'a pas de disponibilité pour cet horaire."
+      },
+      "email": {
+        "title": "Email invalide",
+        "text": "Veuillez saisir un email valide pour continuer."
+      }
+    },
+    "steps": {
+      "when": "Quand ?",
+      "time": "À quelle heure ?",
+      "guests": "Combien de personnes ?",
+      "details": "Vos informations"
+    },
+    "closedDay": "Le restaurant est fermé ce jour-là.",
+    "otherNumber": "Autre nombre",
+    "guestsPlaceholder": "Nombre de personnes",
+    "noTables": {
+      "title": "Aucune table disponible",
+      "text": "Aucune table n'est disponible pour {guests, plural, one {# personne} other {# personnes}} à cet horaire."
+    },
+    "pendingApproval": {
+      "title": "Demande soumise à validation",
+      "text": "Pour {guests, plural, one {# personne} other {# personnes}}, le restaurant pourrait devoir assembler des tables. La demande restera en attente de confirmation."
+    },
+    "capacityMode": {
+      "title": "Réservation par capacité",
+      "text": "Le restaurant gère les tables en interne. Il suffit de choisir le jour, l'heure et le nombre de personnes."
+    },
+    "fields": {
+      "name": "Nom",
+      "namePlaceholder": "Nom complet",
+      "phone": "Téléphone",
+      "phonePlaceholder": "Téléphone",
+      "email": "Email",
+      "emailPlaceholder": "Email",
+      "birthDate": "Date de naissance",
+      "required": "Obligatoire",
+      "optional": "Facultatif"
+    },
+    "birthDateNote": "La date de naissance est facultative et peut être utilisée par le restaurant pour des offres d'anniversaire et des avantages personnalisés.",
+    "submitProcessing": "Traitement en cours...",
+    "submitRequest": "Envoyer la demande",
+    "submitConfirm": "Confirmer la réservation",
+    "consent": "En réservant, vous acceptez d'être contacté au sujet de cette réservation.",
+    "poweredBy": "Propulsé par MesaLink",
+    "email": {
+      "subjectPending": "Demande de réservation reçue - {restaurantName}",
+      "subjectConfirmed": "Réservation confirmée - {restaurantName}",
+      "headingPending": "Demande de réservation reçue",
+      "headingConfirmed": "Réservation confirmée",
+      "greeting": "Bonjour {customerName},",
+      "bodyPending": "Nous avons bien reçu votre demande de réservation. Le restaurant la confirmera ou la refusera prochainement.",
+      "bodyConfirmed": "Votre réservation a été confirmée avec succès.",
+      "labelRestaurant": "Restaurant :",
+      "labelDate": "Date :",
+      "labelTime": "Heure :",
+      "labelGuests": "Personnes :",
+      "labelStatus": "Statut :",
+      "statusPending": "En attente d'approbation",
+      "statusConfirmed": "Confirmée",
+      "footerNote": "Cet email a été envoyé automatiquement par MesaLink."
+    }
+  },
+  "reserveSuccess": {
+    "titleAlready": "Réservation déjà effectuée",
+    "titlePending": "Demande reçue",
+    "titleConfirmed": "Réservation confirmée",
+    "textAlready": "Cette réservation était déjà enregistrée — inutile de la soumettre à nouveau.",
+    "textPending": "Le restaurant a reçu votre demande et vous répondra prochainement.",
+    "textConfirmed": "Votre réservation a été enregistrée avec succès.",
+    "labels": {
+      "name": "Nom",
+      "guests": "Personnes",
+      "date": "Date",
+      "time": "Heure",
+      "status": "Statut"
+    },
+    "statusPending": "En attente d'approbation",
+    "statusConfirmed": "Confirmée",
+    "cta": "Découvrir MesaLink",
+    "poweredBy": "Propulsé par MesaLink"
+  },
+  "review": {
+    "title": "Comment s'est passée votre expérience ?",
+    "subtitle": "Votre avis aide {restaurantName} à améliorer l'expérience de chaque client.",
+    "thankYouPositiveTitle": "Merci pour votre note !",
+    "thankYouPositiveText": "Nous sommes ravis que vous ayez apprécié votre expérience.",
+    "shareOnGoogle": "Partager sur Google",
+    "positiveNoGoogleText": "Votre avis nous aide à améliorer continuellement l'expérience de nos clients.",
+    "thankYouNegativeTitle": "Merci pour votre retour.",
+    "thankYouNegativeText": "L'équipe de {restaurantName} va examiner votre message afin d'améliorer l'expérience.",
+    "vip": {
+      "badge": "Membre Privilégié",
+      "title": "Souhaitez-vous recevoir des invitations, actualités et avantages exclusifs ?",
+      "text": "Recevez des invitations, actualités et offres spéciales de {restaurantName}.",
+      "checkbox": "Je souhaite recevoir des actualités, événements et offres exclusives.",
+      "birthDateLabel": "Date de naissance (facultatif)",
+      "confirmButton": "Confirmer la préférence",
+      "confirming": "Confirmation en cours...",
+      "confirmedTitle": "Préférence confirmée.",
+      "confirmedText": "Merci de vouloir suivre les actualités de {restaurantName}."
+    },
+    "ratingCommentPlaceholder": "Nous sommes désolés que l'expérience n'ait pas été parfaite. Dites-nous ce que nous pouvons améliorer.",
+    "positiveHint": "Merci pour votre note. Vous pouvez continuer pour partager votre expérience publiquement.",
+    "submitting": "Envoi en cours...",
+    "continue": "Continuer",
+    "sendFeedback": "Envoyer le retour",
+    "footerThanks": "Merci d'aider {restaurantName} à améliorer chaque visite."
+  },
+  "publicSite": {
+    "nav": {
+      "about": "À propos",
+      "menu": "Menu",
+      "hours": "Horaires",
+      "location": "Localisation"
+    },
+    "reserveButton": "Réserver",
+    "viewMenu": "Voir le menu",
+    "contact": {
+      "address": "Adresse",
+      "phone": "Téléphone",
+      "email": "Email"
+    },
+    "call": "Appeler",
+    "hoursTitle": "Horaires",
+    "weekdays": {
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche"
+    },
+    "weekdaysShort": {
+      "monday": "Lun",
+      "tuesday": "Mar",
+      "wednesday": "Mer",
+      "thursday": "Jeu",
+      "friday": "Ven",
+      "saturday": "Sam",
+      "sunday": "Dim"
+    },
+    "hoursOpen": "Ouvert",
+    "hoursClosed": "Fermé",
+    "menuSection": {
+      "fallbackTitle": "Menu {index}",
+      "iconLabel": "Menu",
+      "available": "{count, plural, one {# menu disponible} other {# menus disponibles}}"
+    },
+    "heroBadgeOnline": "En ligne",
+    "heroBadgeText": "Réservation en quelques secondes",
+    "footerTagline": "Réservation en ligne par MesaLink"
+  },
+  "qrOrdering": {
+    "unavailableTitle": "QR Ordering indisponible",
+    "unavailableText": "Ce restaurant a temporairement désactivé les commandes par QR Code.",
+    "table": "Table {number}",
+    "waiterCalledBadge": "Serveur appelé",
+    "billRequestedBadge": "Addition demandée",
+    "orderStatus": {
+      "title": "Commande de la table",
+      "subtitle": "État actuel",
+      "refresh": "Actualiser",
+      "refreshing": "...",
+      "empty": "Aucune commande pour cette table pour le moment.",
+      "activeOrders": "Commandes en cours",
+      "history": "Historique"
+    },
+    "actions": {
+      "callWaiter": "Appeler le serveur",
+      "callingWaiter": "Appel en cours...",
+      "requestBill": "Demander l'addition",
+      "requestingBill": "Demande en cours...",
+      "hint": "Vous pouvez appeler un serveur avant de passer commande. L'addition est disponible une fois la table ouverte."
+    },
+    "product": {
+      "count": "{count, plural, one {# produit} other {# produits}}",
+      "vat": "TVA {rate}%",
+      "featured": "En vedette",
+      "add": "Ajouter"
+    },
+    "cart": {
+      "empty": "Panier vide",
+      "summary": "{count, plural, one {# article} other {# articles}} · {total}€",
+      "send": "Envoyer la commande",
+      "sending": "Envoi en cours..."
+    },
+    "statusLabels": {
+      "pending": "Reçue",
+      "preparing": "En préparation",
+      "ready": "Prête",
+      "delivered": "Livrée",
+      "cancelled": "Annulée"
+    },
+    "messages": {
+      "orderSuccess": "Commande envoyée avec succès.",
+      "orderError": "Impossible d'envoyer la commande. Veuillez réessayer.",
+      "waiterCalled": "Serveur appelé.",
+      "waiterError": "Impossible d'appeler le serveur.",
+      "billRequested": "Addition demandée.",
+      "billError": "Impossible de demander l'addition."
+    }
+  }
+}

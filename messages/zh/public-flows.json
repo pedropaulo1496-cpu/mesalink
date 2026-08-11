@@ -1,0 +1,228 @@
+{
+  "reserve": {
+    "badge": "在线预订",
+    "subtitle": "选择日期、时间和用餐人数，几秒钟即可完成预订。",
+    "chips": {
+      "quickConfirmation": "快速确认",
+      "onlineBooking": "在线预订"
+    },
+    "unavailable": {
+      "title": "暂不接受预订",
+      "text": "该餐厅目前暂未开放在线预订。"
+    },
+    "errors": {
+      "conflict": {
+        "title": "该时段不可用",
+        "text": "该桌位在此时段已被预订，请选择其他时间。"
+      },
+      "past": {
+        "title": "日期无效",
+        "text": "无法预订过去的日期或时间。"
+      },
+      "capacity": {
+        "title": "暂无空位",
+        "text": "该餐厅在此时段暂无可用空位。"
+      },
+      "email": {
+        "title": "邮箱无效",
+        "text": "请输入有效的邮箱地址以继续。"
+      }
+    },
+    "steps": {
+      "when": "选择日期",
+      "time": "选择时间",
+      "guests": "用餐人数",
+      "details": "预订信息"
+    },
+    "closedDay": "餐厅当日休息。",
+    "otherNumber": "其他人数",
+    "guestsPlaceholder": "用餐人数",
+    "noTables": {
+      "title": "暂无可用桌位",
+      "text": "此时段没有可容纳 {guests} 位客人的桌位。"
+    },
+    "pendingApproval": {
+      "title": "请求需经餐厅确认",
+      "text": "为容纳 {guests} 位客人，餐厅可能需要拼桌。此请求将处于待确认状态。"
+    },
+    "capacityMode": {
+      "title": "按容量预订",
+      "text": "餐厅将在内部安排桌位，您只需选择日期、时间和用餐人数。"
+    },
+    "fields": {
+      "name": "姓名",
+      "namePlaceholder": "请输入全名",
+      "phone": "手机号码",
+      "phonePlaceholder": "手机号码",
+      "email": "邮箱",
+      "emailPlaceholder": "邮箱",
+      "birthDate": "出生日期",
+      "required": "必填",
+      "optional": "选填"
+    },
+    "birthDateNote": "出生日期为选填项，餐厅可能会用它为您提供生日优惠和专属福利。",
+    "submitProcessing": "处理中...",
+    "submitRequest": "发送预订请求",
+    "submitConfirm": "确认预订",
+    "consent": "提交预订即表示您同意接收与此预订相关的联系。",
+    "poweredBy": "由 MesaLink 提供技术支持",
+    "email": {
+      "subjectPending": "已收到预订请求 - {restaurantName}",
+      "subjectConfirmed": "预订已确认 - {restaurantName}",
+      "headingPending": "已收到预订请求",
+      "headingConfirmed": "预订已确认",
+      "greeting": "您好 {customerName}，",
+      "bodyPending": "我们已收到您的预订请求，餐厅将尽快确认或婉拒。",
+      "bodyConfirmed": "您的预订已成功确认。",
+      "labelRestaurant": "餐厅：",
+      "labelDate": "日期：",
+      "labelTime": "时间：",
+      "labelGuests": "人数：",
+      "labelStatus": "状态：",
+      "statusPending": "待批准",
+      "statusConfirmed": "已确认",
+      "footerNote": "此邮件由 MesaLink 自动发送。"
+    }
+  },
+  "reserveSuccess": {
+    "titleAlready": "预订已存在",
+    "titlePending": "请求已收到",
+    "titleConfirmed": "预订已确认",
+    "textAlready": "该预订此前已登记，无需重新提交。",
+    "textPending": "餐厅已收到您的请求，将尽快回复。",
+    "textConfirmed": "您的预订已成功登记。",
+    "labels": {
+      "name": "姓名",
+      "guests": "人数",
+      "date": "日期",
+      "time": "时间",
+      "status": "状态"
+    },
+    "statusPending": "待批准",
+    "statusConfirmed": "已确认",
+    "cta": "了解 MesaLink",
+    "poweredBy": "由 MesaLink 提供技术支持"
+  },
+  "review": {
+    "title": "您的用餐体验如何？",
+    "subtitle": "您的反馈将帮助 {restaurantName} 提升每一位顾客的体验。",
+    "thankYouPositiveTitle": "感谢您的评价！",
+    "thankYouPositiveText": "很高兴您喜欢这次体验。",
+    "shareOnGoogle": "分享到 Google",
+    "positiveNoGoogleText": "您的反馈将帮助我们持续改善顾客体验。",
+    "thankYouNegativeTitle": "感谢您的反馈。",
+    "thankYouNegativeText": "{restaurantName} 团队将查看您的留言，以改进用餐体验。",
+    "vip": {
+      "badge": "尊享会员",
+      "title": "希望收到专属邀请、最新消息和特别优惠吗？",
+      "text": "接收来自 {restaurantName} 的邀请、最新消息和特别优惠。",
+      "checkbox": "我希望接收最新消息、活动和专属优惠。",
+      "birthDateLabel": "出生日期（选填）",
+      "confirmButton": "确认偏好设置",
+      "confirming": "确认中...",
+      "confirmedTitle": "偏好设置已确认。",
+      "confirmedText": "感谢您愿意接收 {restaurantName} 的最新消息。"
+    },
+    "ratingCommentPlaceholder": "很抱歉这次体验不够完美，请告诉我们可以改进的地方。",
+    "positiveHint": "感谢您的评价，您可以继续将体验分享给更多人。",
+    "submitting": "提交中...",
+    "continue": "继续",
+    "sendFeedback": "提交反馈",
+    "footerThanks": "感谢您帮助 {restaurantName} 改进每一次到店体验。"
+  },
+  "publicSite": {
+    "nav": {
+      "about": "关于我们",
+      "menu": "菜单",
+      "hours": "营业时间",
+      "location": "位置"
+    },
+    "reserveButton": "预订",
+    "viewMenu": "查看菜单",
+    "contact": {
+      "address": "地址",
+      "phone": "电话",
+      "email": "邮箱"
+    },
+    "call": "拨打电话",
+    "hoursTitle": "营业时间",
+    "weekdays": {
+      "monday": "星期一",
+      "tuesday": "星期二",
+      "wednesday": "星期三",
+      "thursday": "星期四",
+      "friday": "星期五",
+      "saturday": "星期六",
+      "sunday": "星期日"
+    },
+    "weekdaysShort": {
+      "monday": "周一",
+      "tuesday": "周二",
+      "wednesday": "周三",
+      "thursday": "周四",
+      "friday": "周五",
+      "saturday": "周六",
+      "sunday": "周日"
+    },
+    "hoursOpen": "营业中",
+    "hoursClosed": "休息",
+    "menuSection": {
+      "fallbackTitle": "菜单 {index}",
+      "iconLabel": "菜单",
+      "available": "{count} 份菜单可查看"
+    },
+    "heroBadgeOnline": "在线",
+    "heroBadgeText": "几秒钟完成预订",
+    "footerTagline": "在线预订由 MesaLink 提供支持"
+  },
+  "qrOrdering": {
+    "unavailableTitle": "QR Ordering 暂不可用",
+    "unavailableText": "该餐厅已暂时关闭扫码点餐功能。",
+    "table": "{number} 号桌",
+    "waiterCalledBadge": "已呼叫服务员",
+    "billRequestedBadge": "已请求结账",
+    "orderStatus": {
+      "title": "本桌订单",
+      "subtitle": "当前状态",
+      "refresh": "刷新",
+      "refreshing": "...",
+      "empty": "本桌暂无订单。",
+      "activeOrders": "进行中的订单",
+      "history": "历史订单"
+    },
+    "actions": {
+      "callWaiter": "呼叫服务员",
+      "callingWaiter": "呼叫中...",
+      "requestBill": "请求结账",
+      "requestingBill": "请求中...",
+      "hint": "您可以在点餐前先呼叫服务员。开台后即可请求结账。"
+    },
+    "product": {
+      "count": "{count} 件商品",
+      "vat": "增值税 {rate}%",
+      "featured": "推荐",
+      "add": "加入"
+    },
+    "cart": {
+      "empty": "购物车为空",
+      "summary": "{count} 件 · {total}€",
+      "send": "提交订单",
+      "sending": "提交中..."
+    },
+    "statusLabels": {
+      "pending": "已接收",
+      "preparing": "制作中",
+      "ready": "已完成",
+      "delivered": "已送达",
+      "cancelled": "已取消"
+    },
+    "messages": {
+      "orderSuccess": "订单已成功提交。",
+      "orderError": "订单提交失败，请重试。",
+      "waiterCalled": "已呼叫服务员。",
+      "waiterError": "呼叫服务员失败。",
+      "billRequested": "已请求结账。",
+      "billError": "结账请求失败。"
+    }
+  }
+}

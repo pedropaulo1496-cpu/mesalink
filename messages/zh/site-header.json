@@ -1,0 +1,14 @@
+{
+  "full": {
+    "software": "软件",
+    "growth": "增长",
+    "platform": "平台",
+    "pricing": "价格",
+    "login": "登录",
+    "cta": "开始使用"
+  },
+  "compact": {
+    "login": "登录",
+    "cta": "试用"
+  }
+}

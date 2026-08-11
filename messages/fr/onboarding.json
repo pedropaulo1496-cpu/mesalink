@@ -1,0 +1,29 @@
+{
+  "badge": "Essai gratuit de 7 jours",
+  "aside": {
+    "label": "Prise en main",
+    "title": "Configurez votre restaurant.",
+    "description": "Créez votre tableau de bord pour commencer à recevoir des réservations, gérer vos clients, publier votre site web et préparer votre croissance avec le CRM, le Marketing et le QR Ordering.",
+    "steps": {
+      "step1": "Créer le restaurant",
+      "step2": "Configurer les horaires et les tables",
+      "step3": "Activer les réservations, le site web et le QR"
+    },
+    "trial": {
+      "title": "Essai complet inclus",
+      "text": "Pendant 7 jours, explorez MesaLink sans engagement."
+    }
+  },
+  "form": {
+    "label": "Informations du restaurant",
+    "title": "Créer le restaurant",
+    "description": "Ces informations apparaissent sur le tableau de bord, le site web et la page publique de réservation. Vous pourrez tout modifier plus tard.",
+    "errorEmail": "Saisissez un email valide ou laissez le champ vide.",
+    "namePlaceholder": "Nom du restaurant",
+    "emailPlaceholder": "Email du restaurant",
+    "phonePlaceholder": "Téléphone",
+    "addressPlaceholder": "Adresse",
+    "submit": "Créer le restaurant →",
+    "footnote": "MesaLink connecte réservations, site web, QR Ordering, clients, marketing et opérations."
+  }
+}

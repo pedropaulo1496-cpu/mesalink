@@ -1,0 +1,135 @@
+{
+  "header": {
+    "eyebrow": "Central catalog",
+    "title": "Menu & Products",
+    "description": "Manage a single catalog for QR Ordering and the Website. Turn each product on or off per channel.",
+    "notFound": "Restaurant not found"
+  },
+  "channels": {
+    "qr": "QR",
+    "website": "Website"
+  },
+  "metrics": {
+    "categoriesLabel": "Categories",
+    "categoriesSub": "organization",
+    "productsLabel": "Products",
+    "productsActiveSub": "{count} active",
+    "qrOrderingLabel": "QR Ordering",
+    "qrOrderingSub": "visible on QR"
+  },
+  "catalog": {
+    "eyebrow": "Catalog",
+    "title": "Restaurant products",
+    "note": "QR Ordering and the Website both use this catalog.",
+    "emptyState": "Create your first category to get started."
+  },
+  "categories": {
+    "createEyebrow": "Category",
+    "createTitle": "Create category",
+    "namePlaceholder": "E.g.: Starters, Drinks, Desserts",
+    "positionPlaceholder": "Category order",
+    "createSubmit": "Create category",
+    "orderSummary": "Order {position} · {active}/{total} active",
+    "productCount": "{count} products",
+    "editToggle": "Edit category",
+    "editSubmit": "Save category",
+    "emptyProducts": "No products yet.",
+    "deleteToggle": "Delete category",
+    "deleteWarning": "This will delete the category \"{name}\" and all products inside it.",
+    "deleteConfirmLabel": "I confirm I want to delete the category and its products",
+    "deleteSubmit": "Delete permanently"
+  },
+  "productForm": {
+    "eyebrow": "Product",
+    "title": "Add product",
+    "categoryPlaceholder": "Choose category",
+    "namePlaceholder": "Product name",
+    "descriptionPlaceholder": "Short description",
+    "pricePlaceholder": "Price",
+    "skuPlaceholder": "SKU / Internal code",
+    "vatOption": "VAT {rate}%",
+    "sortOrderPlaceholder": "Order in menu",
+    "allergensPlaceholder": "Allergens. E.g.: gluten, milk, nuts",
+    "productionCentersLabel": "Production centers",
+    "noPrinterAssigned": "No printer",
+    "printNamePlaceholder": "Name for printing",
+    "submit": "Add product"
+  },
+  "channelToggles": {
+    "active": "Active",
+    "qrOrdering": "QR Ordering",
+    "website": "Website",
+    "featured": "Featured"
+  },
+  "productCard": {
+    "noImage": "IMG",
+    "inactiveBadge": "Inactive",
+    "featuredBadge": "Featured",
+    "noProductionCenter": "No production center",
+    "orderMeta": "Order {sortOrder}",
+    "allergensMeta": "Allergens: {allergens}",
+    "printNameMeta": "Print: {printName}",
+    "vatBadge": "VAT {rate}%",
+    "descriptionPlaceholder": "Description",
+    "skuPlaceholder": "SKU",
+    "orderPlaceholder": "Order",
+    "allergensPlaceholder": "Allergens",
+    "submitEdit": "Save changes",
+    "removeImageButton": "Remove image",
+    "deleteToggle": "Delete",
+    "deleteConfirmLabel": "Confirm deletion",
+    "deleteSubmit": "Delete product"
+  },
+  "printers": {
+    "eyebrow": "Printers",
+    "title": "Restaurant printers",
+    "namePlaceholder": "E.g.: Epson Kitchen",
+    "typeOptions": {
+      "kitchen": "Kitchen",
+      "bar": "Bar",
+      "room": "Dining room",
+      "cashier": "Cashier",
+      "other": "Other"
+    },
+    "methodOptions": {
+      "browser": "Browser",
+      "bridge": "Print Bridge",
+      "network": "Network/IP"
+    },
+    "ipPlaceholder": "IP (optional)",
+    "ipPlaceholderEdit": "IP",
+    "portPlaceholder": "Port",
+    "createSubmit": "Create printer",
+    "emptyState": "You don't have any printers yet.",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "activeFieldLabel": "Active",
+    "editSubmit": "Save printer",
+    "deleteConfirmLabel": "I confirm deleting this printer",
+    "deleteSubmit": "Delete"
+  },
+  "productionCenters": {
+    "eyebrow": "Production",
+    "title": "Production centers",
+    "description": "Create zones such as Kitchen, Bar, Room 1 or Kitchen 2. Then assign each product to one of these zones.",
+    "namePlaceholder": "E.g.: Kitchen, Bar, Room 1",
+    "noPrinterOption": "No printer",
+    "positionPlaceholder": "Order",
+    "createSubmit": "Create production center",
+    "emptyState": "You don't have any production centers yet.",
+    "printerSummary": "Printer: {printer} · Order {position}",
+    "printerUndefined": "Not set",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "activeFieldLabel": "Active",
+    "editSubmit": "Save production center",
+    "deleteToggle": "Delete production center",
+    "deleteWarning": "Products linked to this center will be left without one.",
+    "deleteConfirmLabel": "I confirm I want to delete it",
+    "deleteSubmit": "Delete"
+  },
+  "imageUpload": {
+    "hint": "Upload the product image.",
+    "uploadError": "Upload error: {message}"
+  }
+}

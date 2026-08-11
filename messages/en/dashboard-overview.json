@@ -1,0 +1,188 @@
+{
+  "home": {
+    "billing": {
+      "trial": "Trial",
+      "growth": "Growth",
+      "essentials": "Essentials",
+      "subscription": "Subscription",
+      "trialDaysLeft": "{days, plural, one {# day} other {# days}}",
+      "active": "Active",
+      "renew": "Renew"
+    },
+    "notFound": "Restaurant not found",
+    "eyebrow": "Dashboard",
+    "statusOnline": "Online",
+    "statusOffline": "Offline",
+    "addressFallback": "Restaurant operations summary.",
+    "metrics": {
+      "reservationsToday": "Reservations today",
+      "coversToday": "{count} covers",
+      "qrActive": "QR active",
+      "qrOpenOrders": "open orders"
+    },
+    "ops": {
+      "sectionLabel": "Operations",
+      "title": "Right now",
+      "reservationsToday": "reservations today",
+      "guestsReserved": "covers reserved",
+      "pending": "pending",
+      "occupancy": "Reservation occupancy",
+      "seatsAndTables": "{guests}/{capacity} seats · {tables} tables",
+      "usefulCapacity": "Usable capacity",
+      "seatsConfigured": "seats configured"
+    },
+    "reservationsCard": {
+      "sectionLabel": "Reservations",
+      "title": "Upcoming",
+      "viewAll": "View reservations",
+      "empty": "No upcoming reservations yet.",
+      "pax": "{count} pax",
+      "mobile": "Mobile",
+      "mobileEmpty": "No mobile number",
+      "email": "Email",
+      "emailEmpty": "No email"
+    },
+    "marketingTeaser": {
+      "sectionLabel": "Marketing Growth",
+      "title": "Recover customers and boost repeat visits.",
+      "text": "Unlock automated campaigns, at-risk customers, birthdays, VIP segmentation, and campaign ROI.",
+      "badge": "Growth",
+      "features": {
+        "riskyCustomers": "At-risk customers",
+        "autoCampaigns": "Automated campaigns",
+        "autoBirthdays": "Automated birthdays",
+        "campaignRoi": "Campaign ROI"
+      },
+      "upgradeLabel": "Upgrade",
+      "price": "+€{price}/month",
+      "priceNote": "Keeps the same renewal date, and Stripe calculates the difference."
+    },
+    "marketingActive": {
+      "sectionLabel": "Marketing",
+      "title": "ROI and retention",
+      "text": "Measure the impact of campaigns on at-risk customers.",
+      "viewMarketing": "View marketing",
+      "riskyCustomers": "at-risk customers",
+      "riskyValue": "value at risk",
+      "estimatedRevenue": "estimated revenue",
+      "estimatedRoi": "estimated ROI",
+      "recommendedCampaign": "Recommended campaign",
+      "recommendedCampaignText": "Recover customers with no recent visit using a controlled incentive."
+    },
+    "reservationLink": {
+      "sectionLabel": "Online reservations",
+      "title": "Public link",
+      "text": "Use this link on the channels where customers look for a table.",
+      "active": "Active",
+      "urlLabel": "Reservation URL",
+      "open": "Open",
+      "howToUse": "How to use it",
+      "steps": {
+        "googleMaps": { "title": "Google Maps", "text": "Paste it into your Google Business Profile's reservation button." },
+        "socials": { "title": "Instagram and Facebook", "text": "Use it in your bio, pinned stories, and automated replies." },
+        "website": { "title": "Website", "text": "Set it as the main online-reservation button." }
+      }
+    }
+  },
+  "calendar": {
+    "notFound": "Restaurant not found",
+    "backToDashboard": "← Back to dashboard",
+    "eyebrow": "MesaLink · Calendar",
+    "title": "Calendar",
+    "stats": {
+      "reservationsMonth": "Reservations this month",
+      "guestsMonth": "Guests this month",
+      "pending": "Pending",
+      "mode": "Mode",
+      "modeCapacity": "Capacity",
+      "modeTables": "Tables"
+    },
+    "mobile": {
+      "sectionLabel": "Days of the month",
+      "hint": "Tap a day to open it"
+    },
+    "guestUnit": "p",
+    "reservationsCount": "{count, plural, one {# reservation} other {# reservations}}",
+    "meal": {
+      "lunch": "Lunch",
+      "dinner": "Dinner"
+    },
+    "pendingCount": "{count, plural, one {# pending} other {# pending}}",
+    "weekdaysShort": {
+      "monday": "Mon",
+      "tuesday": "Tue",
+      "wednesday": "Wed",
+      "thursday": "Thu",
+      "friday": "Fri",
+      "saturday": "Sat",
+      "sunday": "Sun"
+    }
+  },
+  "day": {
+    "notFound": "Restaurant not found",
+    "eyebrow": "Today's Service",
+    "metrics": {
+      "covers": "Covers",
+      "coversSub": "{capacity} seats",
+      "seated": "Seated",
+      "seatedSub": "in the room",
+      "pending": "Pending",
+      "pendingSub": "approval",
+      "revenue": "Revenue",
+      "revenueSub": "estimated"
+    },
+    "occupancy": "Occupancy",
+    "actionNeeded": "Action needed",
+    "pendingReservations": "Pending reservations",
+    "pendingCount": "{count, plural, one {# pending} other {# pending}}",
+    "service": "Service",
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+    "reservationsCount": "{count, plural, one {# reservation} other {# reservations}}",
+    "emptyLunch": "No lunch reservations.",
+    "emptyDinner": "No dinner reservations.",
+    "row": {
+      "guests": "{count, plural, one {# guest} other {# guests}}",
+      "table": "Table {number}",
+      "noTable": "No table",
+      "online": "Online",
+      "manual": "Manual",
+      "viewContact": "View contact",
+      "hideContact": "Hide contact",
+      "mobile": "Mobile",
+      "mobileEmpty": "No mobile number",
+      "email": "Email",
+      "emailEmpty": "No email",
+      "finishNote": "When finished, the customer automatically receives a review request."
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Decline",
+      "seat": "Seat",
+      "noShow": "No-show",
+      "finish": "Finish"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "CONFIRMED": "Confirmed",
+      "SEATED": "Seated",
+      "FINISHED": "Finished",
+      "NO_SHOW": "No-show",
+      "CANCELLED": "Cancelled",
+      "REJECTED": "Declined"
+    },
+    "approvalReason": {
+      "LARGE_GROUP": "Large group",
+      "TABLE_MERGE": "Merged tables",
+      "CAPACITY_LIMIT": "Capacity limit"
+    },
+    "vipEmail": {
+      "subject": "{customerName}, you've reached {tier} status",
+      "heading": "Congratulations, {customerName}.",
+      "text": "You've just reached {tier} status in our VIP Club.",
+      "benefitLabel": "VIP Benefit",
+      "cta": "Book a table",
+      "footerNote": "You received this email because you agreed to receive communications from this restaurant."
+    }
+  }
+}

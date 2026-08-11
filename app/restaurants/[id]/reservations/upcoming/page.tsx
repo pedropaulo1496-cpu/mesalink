@@ -7,18 +7,18 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import { getLocale, getTranslations } from "next-intl/server";
 
-function getStatusLabel(status: string) {
-  const labels: Record<string, string> = {
-    PENDING: "Pendente",
-    CONFIRMED: "Confirmada",
-    SEATED: "Sentado",
-    FINISHED: "Finalizada",
-    NO_SHOW: "No-show",
-    CANCELLED: "Cancelada",
-    REJECTED: "Recusada",
-  };
+const dashboardDateLocales: Record<string, string> = {
+  pt: "pt-PT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  es: "es-ES",
+};
 
+function getStatusLabel(status: string, labels: Record<string, string>) {
   return labels[status] ?? status;
 }
 
@@ -40,17 +40,21 @@ function dayKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
-function formatDayLabel(date: Date) {
+function formatDayLabel(
+  date: Date,
+  labels: { today: string; tomorrow: string },
+  intlLocale: string,
+) {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
   const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-  if (target.getTime() === today.getTime()) return "Hoje";
-  if (target.getTime() === tomorrow.getTime()) return "Amanhã";
+  if (target.getTime() === today.getTime()) return labels.today;
+  if (target.getTime() === tomorrow.getTime()) return labels.tomorrow;
 
-  const label = target.toLocaleDateString("pt-PT", {
+  const label = target.toLocaleDateString(intlLocale, {
     weekday: "long",
     day: "2-digit",
     month: "long",
@@ -72,6 +76,10 @@ export default async function UpcomingReservationsPage({
 
   const { id } = await params;
 
+  const t = await getTranslations("dashboardCrm.reservations.upcoming");
+  const locale = await getLocale();
+  const intlLocale = dashboardDateLocales[locale] ?? "pt-PT";
+
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
@@ -83,7 +91,7 @@ export default async function UpcomingReservationsPage({
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
-        Restaurante não encontrado.
+        {t("notFound")}
       </main>
     );
   }
@@ -122,7 +130,15 @@ export default async function UpcomingReservationsPage({
 
     if (!groupIndexByKey.has(key)) {
       groupIndexByKey.set(key, groups.length);
-      groups.push({ key, label: formatDayLabel(date), reservations: [] });
+      groups.push({
+        key,
+        label: formatDayLabel(
+          date,
+          { today: t("today"), tomorrow: t("tomorrow") },
+          intlLocale,
+        ),
+        reservations: [],
+      });
     }
 
     groups[groupIndexByKey.get(key)!].reservations.push(reservation);
@@ -136,22 +152,21 @@ export default async function UpcomingReservationsPage({
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
       <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
-        <RestaurantSidebar id={id} restaurantName={restaurant.name} active="Reservas" />
+        <RestaurantSidebar id={id} restaurantName={restaurant.name} active="reservations" />
 
         <section className="min-w-0 px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-                Reservas
+                {t("eyebrow")}
               </p>
 
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
-                Próximas reservas
+                {t("title")}
               </h1>
 
               <p className="mt-3 text-sm text-[#6B6258]">
-                {upcomingReservations.length} reserva
-                {upcomingReservations.length === 1 ? "" : "s"} · {totalGuests} pax no total
+                {t("summary", { count: upcomingReservations.length, guests: totalGuests })}
               </p>
             </div>
 
@@ -159,14 +174,14 @@ export default async function UpcomingReservationsPage({
               href={`/restaurants/${id}/reservations`}
               className="flex h-11 w-fit items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-5 text-sm font-semibold transition hover:bg-[#FFF9F0]"
             >
-              Ver calendário
+              {t("viewCalendar")}
             </Link>
           </header>
 
           <section className="mt-6 flex flex-col gap-6">
             {groups.length === 0 ? (
               <div className="rounded-[32px] border border-[#E1D0B8] bg-white p-6 text-sm text-[#6B6258] shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
-                Ainda não há próximas reservas.
+                {t("empty")}
               </div>
             ) : (
               groups.map((group) => (
@@ -175,7 +190,12 @@ export default async function UpcomingReservationsPage({
 
                   <div className="mt-3 overflow-hidden rounded-[28px] border border-[#E1D0B8] bg-white shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
                     {group.reservations.map((reservation) => (
-                      <ReservationRow key={reservation.id} reservation={reservation} />
+                      <ReservationRow
+                        key={reservation.id}
+                        reservation={reservation}
+                        t={t}
+                        intlLocale={intlLocale}
+                      />
                     ))}
                   </div>
                 </div>
@@ -190,12 +210,22 @@ export default async function UpcomingReservationsPage({
   );
 }
 
-function ReservationRow({ reservation }: { reservation: any }) {
+function ReservationRow({
+  reservation,
+  t,
+  intlLocale,
+}: {
+  reservation: any;
+  t: any;
+  intlLocale: string;
+}) {
+  const statusLabels = t.raw("statusLabels") as Record<string, string>;
+
   return (
     <details className="group border-b border-[#E8DCCB] last:border-b-0">
       <summary className="grid cursor-pointer list-none grid-cols-[64px_1fr_auto] items-center gap-3 px-4 py-4 transition hover:bg-[#FFF9F0] sm:grid-cols-[70px_1fr_auto_auto] sm:gap-4">
         <p className="font-semibold">
-          {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+          {new Date(reservation.date).toLocaleTimeString(intlLocale, {
             hour: "2-digit",
             minute: "2-digit",
           })}
@@ -204,7 +234,9 @@ function ReservationRow({ reservation }: { reservation: any }) {
         <div className="min-w-0">
           <p className="truncate font-semibold">{reservation.customerName}</p>
           <p className="mt-0.5 text-xs text-[#6B6258]">
-            {reservation.tableNumber ? `Mesa ${reservation.tableNumber}` : "Sem mesa"}
+            {reservation.tableNumber
+              ? t("row.table", { number: reservation.tableNumber })
+              : t("row.noTable")}
           </p>
         </div>
 
@@ -213,23 +245,23 @@ function ReservationRow({ reservation }: { reservation: any }) {
             String(reservation.status),
           )}`}
         >
-          {getStatusLabel(String(reservation.status))}
+          {getStatusLabel(String(reservation.status), statusLabels)}
         </span>
 
         <p className="text-right text-sm font-bold text-[#9B6F3B]">
-          {reservation.guests} pax
+          {t("row.guests", { count: reservation.guests })}
         </p>
       </summary>
 
       <div className="grid gap-2 border-t border-[#E8DCCB] bg-[#FFF9F0] px-4 py-3 text-xs text-[#6B6258] sm:grid-cols-2">
         <div>
-          <p className="font-semibold text-[#16120E]">Telemóvel</p>
-          <p className="mt-1">{reservation.phone || "Sem telemóvel"}</p>
+          <p className="font-semibold text-[#16120E]">{t("row.phoneLabel")}</p>
+          <p className="mt-1">{reservation.phone || t("row.noPhone")}</p>
         </div>
 
         <div>
-          <p className="font-semibold text-[#16120E]">Email</p>
-          <p className="mt-1 break-all">{reservation.email || "Sem email"}</p>
+          <p className="font-semibold text-[#16120E]">{t("row.emailLabel")}</p>
+          <p className="mt-1 break-all">{reservation.email || t("row.noEmail")}</p>
         </div>
       </div>
     </details>

@@ -11,6 +11,18 @@ import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import UpgradeToGrowthButton from "@/components/UpgradeToGrowthButton";
 import DashboardRecoveryButton from "@/components/marketing/DashboardRecoveryButton";
+import { getLocale, getTranslations } from "next-intl/server";
+
+type TFunc = (key: string, values?: Record<string, string | number>) => string;
+
+const dashboardDateLocales: Record<string, string> = {
+  pt: "pt-PT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  es: "es-ES",
+};
 
 function money(value: number) {
   return `${value.toFixed(2)}€`;
@@ -50,6 +62,10 @@ export default async function RestaurantPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = await getTranslations("dashboardOverview.home");
+  const locale = await getLocale();
+  const intlLocale = dashboardDateLocales[locale] ?? "pt-PT";
+
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
 
@@ -91,18 +107,18 @@ const isGrowthPlan =
   trialActive || (subscriptionActive && subscriptionPlan === "GROWTH");
   const isEssentialsPlan = subscriptionActive && subscriptionPlan === "ESSENTIALS";
   const billingLabel = trialActive
-    ? "Trial"
+    ? t("billing.trial")
     : subscriptionActive && subscriptionPlan === "GROWTH"
-      ? "Growth"
+      ? t("billing.growth")
       : subscriptionActive && subscriptionPlan === "ESSENTIALS"
-        ? "Essentials"
-        : "Subscrição";
+        ? t("billing.essentials")
+        : t("billing.subscription");
 
   const billingSubLabel = trialActive
-    ? `${trialDaysLeft} dia(s)`
+    ? t("billing.trialDaysLeft", { days: trialDaysLeft })
     : subscriptionActive
-      ? "Ativo"
-      : "Renovar";
+      ? t("billing.active")
+      : t("billing.renew");
 
   const billingProgress = trialActive ? trialProgress : subscriptionActive ? 100 : 0;
 
@@ -132,7 +148,7 @@ const isGrowthPlan =
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
-        Restaurante não encontrado
+        {t("notFound")}
       </main>
     );
   }
@@ -357,7 +373,7 @@ const isGrowthPlan =
           <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#9B6F3B]">
-                Dashboard
+                {t("eyebrow")}
               </p>
 
               <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -372,12 +388,12 @@ const isGrowthPlan =
                       : "border-[#E7B7A8] bg-[#FFF0EA] text-[#A14E36]"
                   }`}
                 >
-                  {restaurant.onlineReservationsEnabled ? "Online" : "Offline"}
+                  {restaurant.onlineReservationsEnabled ? t("statusOnline") : t("statusOffline")}
                 </span>
               </div>
 
               <p className="mt-3 text-sm text-[#6B6258]">
-                {restaurant.address || "Resumo operacional do restaurante."}
+                {restaurant.address || t("addressFallback")}
               </p>
             </div>
 
@@ -394,12 +410,13 @@ const isGrowthPlan =
           </header>
 
           <section className="mt-7 grid gap-3 sm:grid-cols-2">
-            <MetricCard label="Reservas hoje" value={reservationsToday.length} sub={`${guestsToday} covers`} strong />
-            <MetricCard label="QR ativos" value={qrOrdersOpen} sub="pedidos em aberto" />
+            <MetricCard label={t("metrics.reservationsToday")} value={reservationsToday.length} sub={t("metrics.coversToday", { count: guestsToday })} strong />
+            <MetricCard label={t("metrics.qrActive")} value={qrOrdersOpen} sub={t("metrics.qrOpenOrders")} />
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-2">
             <CompactOpsCard
+              t={t}
               reservationsToday={reservationsToday.length}
               pendingToday={pendingToday.length}
               guestsToday={guestsToday}
@@ -408,12 +425,13 @@ const isGrowthPlan =
               tablesCount={restaurant.tables.length}
             />
 
-            <ReservationLinkCard id={id} publicUrl={publicUrl} websiteUrl={websiteUrl} />
+            <ReservationLinkCard t={t} id={id} publicUrl={publicUrl} websiteUrl={websiteUrl} />
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-            <ReservationsCompactCard id={id} reservations={nextReservations} />
+            <ReservationsCompactCard t={t} intlLocale={intlLocale} id={id} reservations={nextReservations} />
             <MarketingRoiCard
+              t={t}
               restaurantId={id}
               isGrowth={isGrowthPlan}
               riskyCustomers={riskyCustomers}
@@ -551,6 +569,7 @@ function MetricCard({
 }
 
 function CompactOpsCard({
+  t,
   reservationsToday,
   pendingToday,
   guestsToday,
@@ -558,6 +577,7 @@ function CompactOpsCard({
   occupancyRate,
   tablesCount,
 }: {
+  t: TFunc;
   reservationsToday: number;
   pendingToday: number;
   guestsToday: number;
@@ -567,21 +587,21 @@ function CompactOpsCard({
 }) {
   return (
     <Panel>
-      <SectionLabel>Operação</SectionLabel>
+      <SectionLabel>{t("ops.sectionLabel")}</SectionLabel>
       <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-        Agora
+        {t("ops.title")}
       </h2>
 
       <div className="mt-5 grid grid-cols-3 gap-3">
-        <SmallStat value={reservationsToday} label="reservas hoje" />
-        <SmallStat value={guestsToday} label="covers reservados" />
-        <SmallStat value={pendingToday} label="pendentes" />
+        <SmallStat value={reservationsToday} label={t("ops.reservationsToday")} />
+        <SmallStat value={guestsToday} label={t("ops.guestsReserved")} />
+        <SmallStat value={pendingToday} label={t("ops.pending")} />
       </div>
 
       <div className="mt-5 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
         <div className="flex items-center justify-between">
           <p className="text-sm text-[#6B6258]">
-            Ocupação reservas
+            {t("ops.occupancy")}
           </p>
           <p className="text-lg font-semibold">{occupancyRate}%</p>
         </div>
@@ -589,47 +609,57 @@ function CompactOpsCard({
           <div className="h-full rounded-full bg-[#C8A56A]" style={{ width: `${Math.min(occupancyRate, 100)}%` }} />
         </div>
         <p className="mt-2 text-xs font-bold text-[#6B6258]">
-          {guestsToday}/{totalCapacity || 0} lugares · {tablesCount} mesas
+          {t("ops.seatsAndTables", { guests: guestsToday, capacity: totalCapacity || 0, tables: tablesCount })}
         </p>
       </div>
 
       <div className="mt-4 rounded-2xl border border-[#E1D0B8] bg-white p-4">
-        <p className="text-sm font-semibold">Capacidade útil</p>
+        <p className="text-sm font-semibold">{t("ops.usefulCapacity")}</p>
         <p className="mt-2 text-2xl font-semibold tracking-[-0.05em]">
           {totalCapacity || 0}
         </p>
-        <p className="text-xs text-[#6B6258]">lugares configurados</p>
+        <p className="text-xs text-[#6B6258]">{t("ops.seatsConfigured")}</p>
       </div>
     </Panel>
   );
 }
 
-function ReservationsCompactCard({ id, reservations }: { id: string; reservations: any[] }) {
+function ReservationsCompactCard({
+  t,
+  intlLocale,
+  id,
+  reservations,
+}: {
+  t: TFunc;
+  intlLocale: string;
+  id: string;
+  reservations: any[];
+}) {
   return (
     <Panel compact>
       <div className="flex items-center justify-between gap-4">
         <div>
-          <SectionLabel>Reservas</SectionLabel>
+          <SectionLabel>{t("reservationsCard.sectionLabel")}</SectionLabel>
           <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
-            Próximas
+            {t("reservationsCard.title")}
           </h2>
         </div>
         <Link
           href={`/restaurants/${id}/reservations/upcoming`}
           className="text-sm font-semibold text-[#9B6F3B]"
         >
-          Ver reservas
+          {t("reservationsCard.viewAll")}
         </Link>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-[24px] border border-[#E8DCCB] bg-[#FFF9F0]">
         {reservations.length === 0 ? (
           <div className="p-4 text-sm text-[#6B6258]">
-            Ainda não há próximas reservas.
+            {t("reservationsCard.empty")}
           </div>
         ) : (
           reservations.map((reservation) => (
-            <ReservationMiniLine key={reservation.id} reservation={reservation} />
+            <ReservationMiniLine key={reservation.id} t={t} intlLocale={intlLocale} reservation={reservation} />
           ))
         )}
       </div>
@@ -637,12 +667,20 @@ function ReservationsCompactCard({ id, reservations }: { id: string; reservation
   );
 }
 
-function ReservationMiniLine({ reservation }: { reservation: any }) {
+function ReservationMiniLine({
+  t,
+  intlLocale,
+  reservation,
+}: {
+  t: TFunc;
+  intlLocale: string;
+  reservation: any;
+}) {
   return (
     <details className="group border-b border-[#E8DCCB] last:border-b-0">
       <summary className="grid cursor-pointer list-none grid-cols-[70px_1fr_auto] items-center gap-3 px-4 py-3 transition hover:bg-white">
         <p className="font-semibold">
-          {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+          {new Date(reservation.date).toLocaleTimeString(intlLocale, {
             hour: "2-digit",
             minute: "2-digit",
           })}
@@ -650,21 +688,21 @@ function ReservationMiniLine({ reservation }: { reservation: any }) {
         <div className="min-w-0">
           <p className="truncate font-semibold">{reservation.customerName}</p>
           <p className="text-xs text-[#6B6258]">
-            {new Date(reservation.date).toLocaleDateString("pt-PT")}
+            {new Date(reservation.date).toLocaleDateString(intlLocale)}
           </p>
         </div>
-        <p className="text-sm font-bold text-[#9B6F3B]">{reservation.guests} pax</p>
+        <p className="text-sm font-bold text-[#9B6F3B]">{t("reservationsCard.pax", { count: reservation.guests })}</p>
       </summary>
 
       <div className="grid gap-2 border-t border-[#E8DCCB] bg-white px-4 py-3 text-xs text-[#6B6258] sm:grid-cols-2">
         <div>
-          <p className="font-semibold text-[#16120E]">Telemóvel</p>
-          <p className="mt-1">{reservation.phone || "Sem telemóvel"}</p>
+          <p className="font-semibold text-[#16120E]">{t("reservationsCard.mobile")}</p>
+          <p className="mt-1">{reservation.phone || t("reservationsCard.mobileEmpty")}</p>
         </div>
 
         <div>
-          <p className="font-semibold text-[#16120E]">Email</p>
-          <p className="mt-1 break-all">{reservation.email || "Sem email"}</p>
+          <p className="font-semibold text-[#16120E]">{t("reservationsCard.email")}</p>
+          <p className="mt-1 break-all">{reservation.email || t("reservationsCard.emailEmpty")}</p>
         </div>
       </div>
     </details>
@@ -672,12 +710,14 @@ function ReservationMiniLine({ reservation }: { reservation: any }) {
 }
 
 function MarketingRoiCard({
+  t,
   restaurantId,
   isGrowth,
   riskyCustomers,
   riskyRevenue,
   averageTicket,
 }: {
+  t: TFunc;
   restaurantId: string;
   isGrowth: boolean;
   riskyCustomers: any[];
@@ -690,39 +730,38 @@ function MarketingRoiCard({
         <div className="flex h-full flex-col">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <SectionLabel>Marketing Growth</SectionLabel>
+              <SectionLabel>{t("marketingTeaser.sectionLabel")}</SectionLabel>
               <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
-                Recupere clientes e aumente visitas recorrentes.
+                {t("marketingTeaser.title")}
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">
-                Desbloqueie campanhas automáticas, clientes em risco,
-                aniversários, segmentação VIP e ROI das campanhas.
+                {t("marketingTeaser.text")}
               </p>
             </div>
 
             <span className="w-fit rounded-full border border-[#D8C5A5] bg-[#FFF9F0] px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#9B6F3B]">
-              Growth
+              {t("marketingTeaser.badge")}
             </span>
           </div>
 
           <div className="mt-5 grid gap-2 sm:grid-cols-2">
-            <GrowthFeature text="Clientes em risco" />
-            <GrowthFeature text="Campanhas automáticas" />
-            <GrowthFeature text="Aniversários automáticos" />
-            <GrowthFeature text="ROI das campanhas" />
+            <GrowthFeature text={t("marketingTeaser.features.riskyCustomers")} />
+            <GrowthFeature text={t("marketingTeaser.features.autoCampaigns")} />
+            <GrowthFeature text={t("marketingTeaser.features.autoBirthdays")} />
+            <GrowthFeature text={t("marketingTeaser.features.campaignRoi")} />
           </div>
 
           <div className="mt-auto pt-5">
             <div className="flex flex-col gap-4 rounded-[24px] border border-[#D8C5A5] bg-[#FFF9F0] p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-[#9B6F3B]">
-                  Upgrade
+                  {t("marketingTeaser.upgradeLabel")}
                 </p>
                 <p className="mt-1 text-3xl font-semibold tracking-[-0.05em]">
-                  +20€/mês
+                  {t("marketingTeaser.price", { price: 20 })}
                 </p>
                 <p className="mt-1 text-xs font-semibold text-[#6B6258]">
-                  Mantém a mesma data de renovação e o Stripe calcula a diferença.
+                  {t("marketingTeaser.priceNote")}
                 </p>
               </div>
 
@@ -743,12 +782,12 @@ function MarketingRoiCard({
     <Panel compact>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <SectionLabel>Marketing</SectionLabel>
+          <SectionLabel>{t("marketingActive.sectionLabel")}</SectionLabel>
           <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
-            ROI e retenção
+            {t("marketingActive.title")}
           </h2>
           <p className="mt-2 text-sm text-[#6B6258]">
-            Mede o impacto das campanhas sobre clientes em risco.
+            {t("marketingActive.text")}
           </p>
         </div>
 
@@ -756,23 +795,23 @@ function MarketingRoiCard({
           href={`/restaurants/${restaurantId}/marketing`}
           className="rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
         >
-          Ver marketing
+          {t("marketingActive.viewMarketing")}
         </Link>
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-4">
-        <SmallStat value={targetCustomers} label="clientes em risco" />
-        <SmallStat value={money(riskyRevenue)} label="valor em risco" />
-        <SmallStat value={money(expectedRevenue)} label="receita estimada" />
-        <SmallStat value={`${roi}%`} label="ROI estimado" />
+        <SmallStat value={targetCustomers} label={t("marketingActive.riskyCustomers")} />
+        <SmallStat value={money(riskyRevenue)} label={t("marketingActive.riskyValue")} />
+        <SmallStat value={money(expectedRevenue)} label={t("marketingActive.estimatedRevenue")} />
+        <SmallStat value={`${roi}%`} label={t("marketingActive.estimatedRoi")} />
       </div>
 
            <div className="mt-5 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="font-semibold">Campanha recomendada</p>
+            <p className="font-semibold">{t("marketingActive.recommendedCampaign")}</p>
             <p className="mt-1 text-xs font-bold text-[#6B6258]">
-              Recuperar clientes sem visita recente com incentivo controlado.
+              {t("marketingActive.recommendedCampaignText")}
             </p>
           </div>
 
@@ -798,10 +837,12 @@ function GrowthFeature({ text }: { text: string }) {
 }
 
 function ReservationLinkCard({
+  t,
   id,
   publicUrl,
   websiteUrl,
 }: {
+  t: TFunc;
   id: string;
   publicUrl: string;
   websiteUrl: string;
@@ -811,24 +852,24 @@ function ReservationLinkCard({
       <div className="flex h-full flex-col">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <SectionLabel>Reservas online</SectionLabel>
+            <SectionLabel>{t("reservationLink.sectionLabel")}</SectionLabel>
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
-              Link público
+              {t("reservationLink.title")}
             </h2>
             <p className="mt-2 max-w-xl text-sm leading-6 text-[#6B6258]">
-              Usa este link nos canais onde os clientes procuram mesa.
+              {t("reservationLink.text")}
             </p>
           </div>
 
           <span className="rounded-full border border-[#B7D7B8] bg-[#ECF7EC] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#3F6A4D]">
-            Ativo
+            {t("reservationLink.active")}
           </span>
         </div>
 
         <div className="mt-5 rounded-[26px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9B6F3B]">
-              URL de reservas
+              {t("reservationLink.urlLabel")}
             </p>
 
             <Link
@@ -836,7 +877,7 @@ function ReservationLinkCard({
               target="_blank"
               className="text-xs font-semibold text-[#9B6F3B] hover:text-[#16120E]"
             >
-              Abrir
+              {t("reservationLink.open")}
             </Link>
           </div>
 
@@ -853,24 +894,24 @@ function ReservationLinkCard({
 
         <div className="mt-4 flex-1 rounded-[26px] border border-[#E1D0B8] bg-white p-4">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9B6F3B]">
-            Como usar
+            {t("reservationLink.howToUse")}
           </p>
 
           <div className="mt-4 grid gap-3">
             <InstructionStep
               number="1"
-              title="Google Maps"
-              text="Cole no botão de reservas do Google Business Profile."
+              title={t("reservationLink.steps.googleMaps.title")}
+              text={t("reservationLink.steps.googleMaps.text")}
             />
             <InstructionStep
               number="2"
-              title="Instagram e Facebook"
-              text="Use na bio, stories fixos e respostas automáticas."
+              title={t("reservationLink.steps.socials.title")}
+              text={t("reservationLink.steps.socials.text")}
             />
             <InstructionStep
               number="3"
-              title="Website"
-              text="Coloque como botão principal de reserva online."
+              title={t("reservationLink.steps.website.title")}
+              text={t("reservationLink.steps.website.text")}
             />
           </div>
         </div>

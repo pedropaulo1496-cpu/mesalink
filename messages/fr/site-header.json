@@ -1,0 +1,14 @@
+{
+  "full": {
+    "software": "Logiciel",
+    "growth": "Croissance",
+    "platform": "Plateforme",
+    "pricing": "Tarifs",
+    "login": "Connexion",
+    "cta": "Commencer"
+  },
+  "compact": {
+    "login": "Connexion",
+    "cta": "Essayer"
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "main": {
+    "nav": {
+      "back": "← 返回仪表盘",
+      "badge": "MesaLink 账单"
+    },
+    "hero": {
+      "kicker": "Growth. Visibility. Control.",
+      "title": "选择合适的方案，助力餐厅增长。",
+      "description": "所有方案均包含网站、预订、QR点餐、CRM、评价管理和一体化运营。Growth 方案还新增营销工具，帮助挽回顾客并增加回头客。"
+    },
+    "stats": {
+      "currentPlan": {
+        "label": "当前方案"
+      },
+      "trial": {
+        "label": "Trial",
+        "daysLeft": "{days} 天",
+        "ended": "已结束"
+      },
+      "commissions": {
+        "label": "佣金",
+        "value": "0€"
+      },
+      "yearlyPayment": {
+        "label": "年付",
+        "value": "赠送 1 个月"
+      }
+    },
+    "planStatus": {
+      "trialFull": "完整试用",
+      "noPlan": "无有效方案"
+    },
+    "accountState": {
+      "kicker": "账户状态",
+      "trialText": "您正在体验 MesaLink 的全部功能。",
+      "activeText": "您的订阅已生效。",
+      "noPlanText": "请选择一个方案以继续使用平台。"
+    },
+    "trialBox": {
+      "title": "完整试用进行中",
+      "text": "您还有 {days} 天可以体验网站、QR点餐、CRM、评价管理和营销工具，然后再选择方案。"
+    },
+    "upgradeBox": {
+      "title": "可升级",
+      "text": "仅需 +20€/月 即可开通 Growth，解锁自动营销、挽回流失顾客和冷门时段促销活动。续订日期保持不变，Stripe 会自动计算按比例差价。"
+    },
+    "badges": {
+      "currentPlan": "当前方案",
+      "basePlan": "基础方案",
+      "recommended": "最受推荐"
+    },
+    "planCard": {
+      "perMonth": "/月",
+      "yearlyLabel": "年付",
+      "yearlySuffix": "/年",
+      "yearlyNote": "· 赠送 1 个月 · 节省 {saving}",
+      "currentPlanCta": "当前方案 · 打开仪表盘 →",
+      "ctaMonthly": "月付 {price} →",
+      "ctaYearly": "年付 {price} →",
+      "essentials": {
+        "description": "适合希望将预订、网站、QR点餐、CRM、评价管理和日常运营整合到同一系统中的餐厅。",
+        "features": [
+          "更多直接预订",
+          "包含高级网站",
+          "包含 QR 点餐",
+          "客户 CRM",
+          "Google 评价管理",
+          "餐桌地图",
+          "基础报表",
+          "预订零佣金"
+        ]
+      },
+      "growth": {
+        "description": "适合希望通过营销挽回流失顾客、提升冷门时段业绩、增加回头客的餐厅。",
+        "features": [
+          "包含 Essentials 全部功能",
+          "包含 MesaLink 营销工具",
+          "挽回沉睡顾客",
+          "冷门时段促销活动",
+          "流失风险顾客提醒",
+          "自动生日提醒",
+          "VIP 会员忠诚计划",
+          "更多回头客"
+        ],
+        "upgrade": {
+          "kicker": "升级",
+          "price": "+20€/月",
+          "note": "保留当前的续订日期。"
+        }
+      }
+    },
+    "platformSection": {
+      "kicker": "Restaurant Essentials",
+      "title": "为餐厅打造的持续进化平台。",
+      "text": "MesaLink 将持续推出新工具，帮助餐厅实现增长、提升曝光度并简化日常运营。",
+      "features": {
+        "revenue": { "title": "更多营收", "text": "QR 点餐 + 营销" },
+        "visibility": { "title": "更高曝光度", "text": "网站 + 评价管理" },
+        "control": { "title": "更强管控力", "text": "CRM + 预订" },
+        "commissions": { "title": "0€ 佣金", "text": "直接预订" }
+      }
+    },
+    "taxBilling": {
+      "kicker": "税务开票",
+      "title": "税务开票在 MesaLink 之外处理。",
+      "text": "税务开票由您自行选择的认证软件在外部处理，该费用不由 MesaLink 收取。",
+      "note": "MesaLink 将预订、客户、QR点餐、网站、评价管理和营销整合在同一套运营体系中。"
+    }
+  },
+  "success": {
+    "kicker": "订阅已生效",
+    "title": "{plan} 方案已激活。",
+    "subtitle": "您的订阅已成功确认，现在可以不间断地继续使用 MesaLink。",
+    "stats": {
+      "plan": "当前方案",
+      "cycle": "计费周期",
+      "commissions": "佣金"
+    },
+    "billingCycle": {
+      "yearly": "年付",
+      "monthly": "月付"
+    },
+    "available": {
+      "title": "您的账户中已可使用",
+      "items": {
+        "reservations": "在线预订，零佣金",
+        "website": "专业网站",
+        "qrOrdering": "QR 点餐",
+        "crm": "客户 CRM",
+        "googleReviews": "Google 评价管理",
+        "marketingGrowth": "Growth 营销"
+      }
+    },
+    "nextSteps": {
+      "title": "实用后续步骤",
+      "items": {
+        "reviewHours": "检查营业时间和容量设置",
+        "confirmTables": "确认餐厅区域和餐桌",
+        "publishWebsite": "发布网站和 QR 点餐",
+        "shareLink": "分享预订链接",
+        "trackResults": "在仪表盘中跟踪业绩"
+      }
+    },
+    "billingNote": {
+      "title": "税务开票说明",
+      "text": "税务开票由您自行选择的认证软件在外部处理。MesaLink 将预订、客户、QR点餐、网站、评价管理和营销整合在同一套运营体系中。"
+    },
+    "cta": "打开仪表盘 →"
+  },
+  "upgradeButton": {
+    "loading": "升级中...",
+    "cta": "升级到 Growth →",
+    "error": "升级失败。"
+  }
+}

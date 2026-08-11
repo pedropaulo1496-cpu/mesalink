@@ -1,0 +1,135 @@
+{
+  "header": {
+    "eyebrow": "Catalogue central",
+    "title": "Menu & Produits",
+    "description": "Gérez un catalogue unique pour le QR Ordering et le Site Web. Activez ou désactivez chaque produit par canal.",
+    "notFound": "Restaurant introuvable"
+  },
+  "channels": {
+    "qr": "QR",
+    "website": "Site Web"
+  },
+  "metrics": {
+    "categoriesLabel": "Catégories",
+    "categoriesSub": "organisation",
+    "productsLabel": "Produits",
+    "productsActiveSub": "{count} actifs",
+    "qrOrderingLabel": "QR Ordering",
+    "qrOrderingSub": "visibles sur QR"
+  },
+  "catalog": {
+    "eyebrow": "Catalogue",
+    "title": "Produits du restaurant",
+    "note": "QR Ordering et le Site Web utilisent ce catalogue.",
+    "emptyState": "Créez la première catégorie pour commencer."
+  },
+  "categories": {
+    "createEyebrow": "Catégorie",
+    "createTitle": "Créer une catégorie",
+    "namePlaceholder": "Ex : Entrées, Boissons, Desserts",
+    "positionPlaceholder": "Ordre de la catégorie",
+    "createSubmit": "Créer la catégorie",
+    "orderSummary": "Ordre {position} · {active}/{total} actifs",
+    "productCount": "{count} produits",
+    "editToggle": "Modifier la catégorie",
+    "editSubmit": "Enregistrer la catégorie",
+    "emptyProducts": "Pas encore de produits.",
+    "deleteToggle": "Supprimer la catégorie",
+    "deleteWarning": "Cela supprimera la catégorie « {name} » et tous les produits qu'elle contient.",
+    "deleteConfirmLabel": "Je confirme vouloir supprimer la catégorie et ses produits",
+    "deleteSubmit": "Supprimer définitivement"
+  },
+  "productForm": {
+    "eyebrow": "Produit",
+    "title": "Ajouter un produit",
+    "categoryPlaceholder": "Choisir une catégorie",
+    "namePlaceholder": "Nom du produit",
+    "descriptionPlaceholder": "Description courte",
+    "pricePlaceholder": "Prix",
+    "skuPlaceholder": "SKU / Code interne",
+    "vatOption": "TVA {rate}%",
+    "sortOrderPlaceholder": "Ordre dans le menu",
+    "allergensPlaceholder": "Allergènes. Ex : gluten, lait, fruits à coque",
+    "productionCentersLabel": "Productions",
+    "noPrinterAssigned": "Sans imprimante",
+    "printNamePlaceholder": "Nom pour l'impression",
+    "submit": "Ajouter le produit"
+  },
+  "channelToggles": {
+    "active": "Actif",
+    "qrOrdering": "QR Ordering",
+    "website": "Site Web",
+    "featured": "Mis en avant"
+  },
+  "productCard": {
+    "noImage": "IMG",
+    "inactiveBadge": "Inactif",
+    "featuredBadge": "Mis en avant",
+    "noProductionCenter": "Sans production",
+    "orderMeta": "Ordre {sortOrder}",
+    "allergensMeta": "Allergènes : {allergens}",
+    "printNameMeta": "Impression : {printName}",
+    "vatBadge": "TVA {rate}%",
+    "descriptionPlaceholder": "Description",
+    "skuPlaceholder": "SKU",
+    "orderPlaceholder": "Ordre",
+    "allergensPlaceholder": "Allergènes",
+    "submitEdit": "Enregistrer les modifications",
+    "removeImageButton": "Supprimer l'image",
+    "deleteToggle": "Supprimer",
+    "deleteConfirmLabel": "Confirmer la suppression",
+    "deleteSubmit": "Supprimer le produit"
+  },
+  "printers": {
+    "eyebrow": "Imprimantes",
+    "title": "Imprimantes du restaurant",
+    "namePlaceholder": "Ex : Epson Cuisine",
+    "typeOptions": {
+      "kitchen": "Cuisine",
+      "bar": "Bar",
+      "room": "Salle",
+      "cashier": "Caisse",
+      "other": "Autre"
+    },
+    "methodOptions": {
+      "browser": "Navigateur",
+      "bridge": "Print Bridge",
+      "network": "Réseau/IP"
+    },
+    "ipPlaceholder": "IP (facultatif)",
+    "ipPlaceholderEdit": "IP",
+    "portPlaceholder": "Port",
+    "createSubmit": "Créer l'imprimante",
+    "emptyState": "Vous n'avez pas encore d'imprimantes.",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "activeFieldLabel": "Active",
+    "editSubmit": "Enregistrer l'imprimante",
+    "deleteConfirmLabel": "Je confirme la suppression de l'imprimante",
+    "deleteSubmit": "Supprimer"
+  },
+  "productionCenters": {
+    "eyebrow": "Production",
+    "title": "Centres de production",
+    "description": "Créez des zones comme Cuisine, Bar, Salle 1 ou Cuisine 2. Associez ensuite chaque produit à l'une de ces zones.",
+    "namePlaceholder": "Ex : Cuisine, Bar, Salle 1",
+    "noPrinterOption": "Sans imprimante",
+    "positionPlaceholder": "Ordre",
+    "createSubmit": "Créer la production",
+    "emptyState": "Vous n'avez pas encore de centres de production.",
+    "printerSummary": "Imprimante : {printer} · Ordre {position}",
+    "printerUndefined": "Non définie",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "activeFieldLabel": "Active",
+    "editSubmit": "Enregistrer la production",
+    "deleteToggle": "Supprimer la production",
+    "deleteWarning": "Les produits associés se retrouveront sans production.",
+    "deleteConfirmLabel": "Je confirme vouloir supprimer",
+    "deleteSubmit": "Supprimer"
+  },
+  "imageUpload": {
+    "hint": "Téléchargez l'image du produit.",
+    "uploadError": "Erreur de téléchargement : {message}"
+  }
+}

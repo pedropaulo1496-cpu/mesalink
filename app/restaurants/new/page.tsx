@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 async function createRestaurant(formData: FormData) {
   "use server";
@@ -25,47 +27,52 @@ async function createRestaurant(formData: FormData) {
   }
 }
 
-export default function NewRestaurantPage() {
+export default async function NewRestaurantPage() {
+  const t = await getTranslations("restaurants.new");
+
   return (
     <main className="min-h-screen bg-gray-50 p-10">
       <div className="max-w-xl mx-auto bg-white p-8 rounded-xl shadow">
-        <h1 className="text-3xl font-bold mb-6">Criar Restaurante</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <LanguageSwitcher />
+        </div>
 
         <form action={createRestaurant} className="space-y-4">
           <input
             name="name"
-            placeholder="Nome"
+            placeholder={t("namePlaceholder")}
             className="w-full border p-3 rounded"
             required
           />
 
           <input
             name="slug"
-            placeholder="slug-exemplo"
+            placeholder={t("slugPlaceholder")}
             className="w-full border p-3 rounded"
             required
           />
 
           <input
             name="email"
-            placeholder="Email"
+            placeholder={t("emailPlaceholder")}
             className="w-full border p-3 rounded"
           />
 
           <input
             name="phone"
-            placeholder="Telefone"
+            placeholder={t("phonePlaceholder")}
             className="w-full border p-3 rounded"
           />
 
           <input
             name="address"
-            placeholder="Morada"
+            placeholder={t("addressPlaceholder")}
             className="w-full border p-3 rounded"
           />
 
           <button className="w-full bg-black text-white p-3 rounded">
-            Guardar
+            {t("submit")}
           </button>
         </form>
       </div>

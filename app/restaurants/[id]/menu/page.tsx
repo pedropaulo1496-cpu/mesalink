@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -347,6 +348,8 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
 
   const { id } = await params;
 
+  const t = await getTranslations("dashboardMenu");
+
  const restaurant = await prisma.restaurant.findUnique({
   where: { id },
   include: {
@@ -389,7 +392,7 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
-        Restaurante não encontrado
+        {t("header.notFound")}
       </main>
     );
   }
@@ -425,67 +428,66 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
         <RestaurantSidebar
           id={id}
           restaurantName={restaurant.name}
-          active="Menu & Produtos"
+          active="menu"
         />
 
         <div className="min-w-0 px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <header className="border-b border-[#E1D0B8] pb-6">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-              Catálogo central
+              {t("header.eyebrow")}
             </p>
 
             <div className="mt-2 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
               <div>
                 <h1 className="text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
-                  Menu & Produtos
+                  {t("header.title")}
                 </h1>
 
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">
-                  Gere um único catálogo para o QR Ordering e Website.
-                  Ative ou desative cada produto por canal.
+                  {t("header.description")}
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <StatusPill label="QR" value={qrProducts} />
-                <StatusPill label="Website" value={websiteProducts} />
+                <StatusPill label={t("channels.qr")} value={qrProducts} />
+                <StatusPill label={t("channels.website")} value={websiteProducts} />
               </div>
             </div>
           </header>
 
           <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <MetricCard label="Categorias" value={restaurant.orderingCategories.length} sub="organização" />
-            <MetricCard label="Produtos" value={totalProducts} sub={`${activeProducts} ativos`} />
-            <MetricCard label="QR Ordering" value={qrProducts} sub="visíveis no QR" />
+            <MetricCard label={t("metrics.categoriesLabel")} value={restaurant.orderingCategories.length} sub={t("metrics.categoriesSub")} />
+            <MetricCard label={t("metrics.productsLabel")} value={totalProducts} sub={t("metrics.productsActiveSub", { count: activeProducts })} />
+            <MetricCard label={t("metrics.qrOrderingLabel")} value={qrProducts} sub={t("metrics.qrOrderingSub")} />
           </section>
 
           <section className="mt-5 grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
             <div className="space-y-5">
-<CreateCategoryCard restaurantId={restaurant.id} />
-<CreateProductCard restaurant={restaurant} />
+<CreateCategoryCard restaurantId={restaurant.id} t={t} />
+<CreateProductCard restaurant={restaurant} t={t} />
             </div>
 
             <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-                    Catálogo
+                    {t("catalog.eyebrow")}
                   </p>
 
                   <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
-                    Produtos do restaurante
+                    {t("catalog.title")}
                   </h2>
                 </div>
 
                 <p className="text-xs font-bold text-[#6B6258]">
-                  QR Ordering e Website usam este catálogo.
+                  {t("catalog.note")}
                 </p>
               </div>
 
               <div className="mt-6 space-y-3">
                 {restaurant.orderingCategories.length === 0 ? (
                   <div className="rounded-[24px] border border-dashed border-[#E1D0B8] bg-[#FFF9F0] p-6 text-sm text-[#6B6258]">
-                    Cria a primeira categoria para começar.
+                    {t("catalog.emptyState")}
                   </div>
                 ) : (
                   restaurant.orderingCategories.map((category, index) => (
@@ -495,6 +497,7 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
   restaurantId={restaurant.id}
   productionCenters={restaurant.productProductionCenters}
   open={index === 0}
+  t={t}
 />
                   ))
                 )}
@@ -509,15 +512,35 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
   );
 }
 
-function PrinterCard({ restaurant }: { restaurant: any }) {
+function PrinterCard({
+  restaurant,
+  t,
+}: {
+  restaurant: any;
+  t: Awaited<ReturnType<typeof getTranslations>>;
+}) {
+  const printerTypes = [
+    { value: "KITCHEN", label: t("printers.typeOptions.kitchen") },
+    { value: "BAR", label: t("printers.typeOptions.bar") },
+    { value: "ROOM", label: t("printers.typeOptions.room") },
+    { value: "CASHIER", label: t("printers.typeOptions.cashier") },
+    { value: "OTHER", label: t("printers.typeOptions.other") },
+  ];
+
+  const printerMethods = [
+    { value: "BROWSER", label: t("printers.methodOptions.browser") },
+    { value: "BRIDGE", label: t("printers.methodOptions.bridge") },
+    { value: "NETWORK", label: t("printers.methodOptions.network") },
+  ];
+
   return (
     <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-        Impressoras
+        {t("printers.eyebrow")}
       </p>
 
       <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-        Impressoras do restaurante
+        {t("printers.title")}
       </h2>
 
       <form action={createPrinter} className="mt-5 space-y-3">
@@ -525,40 +548,38 @@ function PrinterCard({ restaurant }: { restaurant: any }) {
 
         <input
           name="name"
-          placeholder="Ex: Epson Cozinha"
+          placeholder={t("printers.namePlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
           <select name="type" defaultValue="KITCHEN" className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E]">
-            <option value="KITCHEN">Cozinha</option>
-            <option value="BAR">Bar</option>
-            <option value="ROOM">Sala</option>
-            <option value="CASHIER">Caixa</option>
-            <option value="OTHER">Outra</option>
+            {printerTypes.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
           </select>
 
           <select name="method" defaultValue="BROWSER" className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E]">
-            <option value="BROWSER">Browser</option>
-            <option value="BRIDGE">Print Bridge</option>
-            <option value="NETWORK">Rede/IP</option>
+            {printerMethods.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
           </select>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <input name="ipAddress" placeholder="IP opcional" className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E]" />
-          <input name="port" type="number" placeholder="Porta" className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E]" />
+          <input name="ipAddress" placeholder={t("printers.ipPlaceholder")} className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E]" />
+          <input name="port" type="number" placeholder={t("printers.portPlaceholder")} className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E]" />
         </div>
 
         <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white">
-          Criar impressora
+          {t("printers.createSubmit")}
         </button>
       </form>
 
       <div className="mt-5 space-y-2">
         {restaurant.printers.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-[#E8DCCB] bg-[#FFF9F0] p-4 text-sm text-[#6B6258]">
-            Ainda não tens impressoras.
+            {t("printers.emptyState")}
           </p>
         ) : (
           restaurant.printers.map((printer: any) => (
@@ -573,7 +594,7 @@ function PrinterCard({ restaurant }: { restaurant: any }) {
                     </p>
                   </div>
 
-                  <ChannelBadge label={printer.active ? "Ativa" : "Inativa"} active={printer.active} />
+                  <ChannelBadge label={printer.active ? t("printers.statusActive") : t("printers.statusInactive")} active={printer.active} />
                 </div>
               </summary>
 
@@ -585,32 +606,30 @@ function PrinterCard({ restaurant }: { restaurant: any }) {
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <select name="type" defaultValue={printer.type} className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]">
-                    <option value="KITCHEN">Cozinha</option>
-                    <option value="BAR">Bar</option>
-                    <option value="ROOM">Sala</option>
-                    <option value="CASHIER">Caixa</option>
-                    <option value="OTHER">Outra</option>
+                    {printerTypes.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
 
                   <select name="method" defaultValue={printer.method} className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]">
-                    <option value="BROWSER">Browser</option>
-                    <option value="BRIDGE">Print Bridge</option>
-                    <option value="NETWORK">Rede/IP</option>
+                    {printerMethods.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <input name="ipAddress" defaultValue={printer.ipAddress || ""} placeholder="IP" className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]" />
-                  <input name="port" type="number" defaultValue={printer.port || ""} placeholder="Porta" className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]" />
+                  <input name="ipAddress" defaultValue={printer.ipAddress || ""} placeholder={t("printers.ipPlaceholderEdit")} className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]" />
+                  <input name="port" type="number" defaultValue={printer.port || ""} placeholder={t("printers.portPlaceholder")} className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]" />
                 </div>
 
                 <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3 text-sm font-bold text-[#6B6258]">
-                  <span>Ativa</span>
+                  <span>{t("printers.activeFieldLabel")}</span>
                   <input name="active" type="checkbox" defaultChecked={printer.active} className="h-4 w-4 accent-[#16120E]" />
                 </label>
 
                 <button className="h-10 w-full rounded-full bg-[#16120E] text-xs font-semibold text-white">
-                  Guardar impressora
+                  {t("printers.editSubmit")}
                 </button>
               </form>
 
@@ -620,11 +639,11 @@ function PrinterCard({ restaurant }: { restaurant: any }) {
 
                 <label className="flex items-center gap-2 text-xs font-bold text-[#A14E36]">
                   <input name="confirmDelete" type="checkbox" className="h-4 w-4 accent-red-400" />
-                  Confirmo apagar impressora
+                  {t("printers.deleteConfirmLabel")}
                 </label>
 
                 <button className="mt-3 h-9 rounded-full border border-red-300/30 bg-red-400/20 px-4 text-xs font-semibold uppercase text-[#A14E36]">
-                  Apagar
+                  {t("printers.deleteSubmit")}
                 </button>
               </form>
             </details>
@@ -635,20 +654,25 @@ function PrinterCard({ restaurant }: { restaurant: any }) {
   );
 }
 
-function ProductionCenterCard({ restaurant }: { restaurant: any }) {
+function ProductionCenterCard({
+  restaurant,
+  t,
+}: {
+  restaurant: any;
+  t: Awaited<ReturnType<typeof getTranslations>>;
+}) {
   return (
     <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-        Produção
+        {t("productionCenters.eyebrow")}
       </p>
 
       <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-        Centros de produção
+        {t("productionCenters.title")}
       </h2>
 
       <p className="mt-2 text-sm leading-6 text-[#6B6258]">
-        Cria zonas como Cozinha, Bar, Sala 1 ou Cozinha 2. Depois associas cada
-        produto a uma destas zonas.
+        {t("productionCenters.description")}
       </p>
 
       <form action={createProductionCenter} className="mt-5 space-y-3">
@@ -656,7 +680,7 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
 
         <input
           name="name"
-          placeholder="Ex: Cozinha, Bar, Sala 1"
+          placeholder={t("productionCenters.namePlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
@@ -665,7 +689,7 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
   defaultValue=""
   className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E]"
 >
-  <option value="">Sem impressora</option>
+  <option value="">{t("productionCenters.noPrinterOption")}</option>
   {restaurant.printers.map((printer: any) => (
     <option key={printer.id} value={printer.id}>
       {printer.name} · {printer.method}
@@ -676,19 +700,19 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
         <input
           name="position"
           type="number"
-          placeholder="Ordem"
+          placeholder={t("productionCenters.positionPlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
         <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:opacity-90">
-          Criar produção
+          {t("productionCenters.createSubmit")}
         </button>
       </form>
 
       <div className="mt-5 space-y-2">
         {restaurant.productProductionCenters.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-[#E8DCCB] bg-[#FFF9F0] p-4 text-sm text-[#6B6258]">
-            Ainda não tens centros de produção.
+            {t("productionCenters.emptyState")}
           </p>
         ) : (
           restaurant.productProductionCenters.map((center: any) => (
@@ -704,13 +728,15 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
                     </p>
 
                     <p className="mt-1 text-xs font-semibold text-[#6B6258]">
-                      Impressora: {center.printer?.name || "Não definida"} · Ordem{" "}
-                      {center.position}
+                      {t("productionCenters.printerSummary", {
+                        printer: center.printer?.name || t("productionCenters.printerUndefined"),
+                        position: center.position,
+                      })}
                     </p>
                   </div>
 
                   <ChannelBadge
-                    label={center.active ? "Ativa" : "Inativa"}
+                    label={center.active ? t("productionCenters.statusActive") : t("productionCenters.statusInactive")}
                     active={center.active}
                   />
                 </div>
@@ -738,7 +764,7 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
   defaultValue={center.printerId || ""}
   className="h-11 w-full rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]"
 >
-  <option value="">Sem impressora</option>
+  <option value="">{t("productionCenters.noPrinterOption")}</option>
   {restaurant.printers.map((printer: any) => (
     <option key={printer.id} value={printer.id}>
       {printer.name} · {printer.method}
@@ -754,7 +780,7 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
                 />
 
                 <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3 text-sm font-bold text-[#6B6258]">
-                  <span>Ativa</span>
+                  <span>{t("productionCenters.activeFieldLabel")}</span>
                   <input
                     name="active"
                     type="checkbox"
@@ -764,13 +790,13 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
                 </label>
 
                 <button className="h-10 w-full rounded-full bg-[#16120E] text-xs font-semibold text-white">
-                  Guardar produção
+                  {t("productionCenters.editSubmit")}
                 </button>
               </form>
 
               <details className="mt-3">
                 <summary className="inline-flex cursor-pointer list-none rounded-full border border-red-300/20 bg-[#FFF0EA] px-4 py-2 text-xs font-semibold uppercase text-[#A14E36]">
-                  Eliminar produção
+                  {t("productionCenters.deleteToggle")}
                 </summary>
 
                 <form
@@ -789,7 +815,7 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
                   />
 
                   <p className="text-xs font-bold text-[#A14E36]">
-                    Os produtos associados ficam sem produção.
+                    {t("productionCenters.deleteWarning")}
                   </p>
 
                   <label className="mt-3 flex items-center gap-2 text-xs font-bold text-[#A14E36]">
@@ -798,11 +824,11 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
                       type="checkbox"
                       className="h-4 w-4 accent-red-400"
                     />
-                    Confirmo que quero apagar
+                    {t("productionCenters.deleteConfirmLabel")}
                   </label>
 
                   <button className="mt-3 h-9 rounded-full border border-red-300/30 bg-red-400/20 px-4 text-xs font-semibold uppercase text-[#A14E36]">
-                    Apagar
+                    {t("productionCenters.deleteSubmit")}
                   </button>
                 </form>
               </details>
@@ -814,15 +840,21 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
   );
 }
 
-function CreateCategoryCard({ restaurantId }: { restaurantId: string }) {
+function CreateCategoryCard({
+  restaurantId,
+  t,
+}: {
+  restaurantId: string;
+  t: Awaited<ReturnType<typeof getTranslations>>;
+}) {
   return (
     <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-        Categoria
+        {t("categories.createEyebrow")}
       </p>
 
       <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-        Criar categoria
+        {t("categories.createTitle")}
       </h2>
 
       <form action={createCategory} className="mt-5 space-y-3">
@@ -830,34 +862,42 @@ function CreateCategoryCard({ restaurantId }: { restaurantId: string }) {
 
         <input
           name="name"
-          placeholder="Ex: Entradas, Bebidas, Sobremesas"
+          placeholder={t("categories.namePlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
         <input
           name="position"
           type="number"
-          placeholder="Ordem da categoria"
+          placeholder={t("categories.positionPlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
         <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:opacity-90">
-          Criar categoria
+          {t("categories.createSubmit")}
         </button>
       </form>
     </div>
   );
 }
 
-function CreateProductCard({ restaurant }: { restaurant: any }) {
+function CreateProductCard({
+  restaurant,
+  t,
+}: {
+  restaurant: any;
+  t: Awaited<ReturnType<typeof getTranslations>>;
+}) {
+  const vatRates = [0, 6, 13, 23];
+
   return (
     <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-        Produto
+        {t("productForm.eyebrow")}
       </p>
 
       <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-        Adicionar produto
+        {t("productForm.title")}
       </h2>
 
       <form action={createProduct} className="mt-5 space-y-3">
@@ -867,7 +907,7 @@ function CreateProductCard({ restaurant }: { restaurant: any }) {
           name="categoryId"
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
         >
-          <option value="">Escolher categoria</option>
+          <option value="">{t("productForm.categoryPlaceholder")}</option>
           {restaurant.orderingCategories.map((category: any) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -877,13 +917,13 @@ function CreateProductCard({ restaurant }: { restaurant: any }) {
 
         <input
           name="name"
-          placeholder="Nome do produto"
+          placeholder={t("productForm.namePlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
         <input
           name="description"
-          placeholder="Descrição curta"
+          placeholder={t("productForm.descriptionPlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
@@ -891,14 +931,14 @@ function CreateProductCard({ restaurant }: { restaurant: any }) {
           name="price"
           type="number"
           step="0.01"
-          placeholder="Preço"
+          placeholder={t("productForm.pricePlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
           <input
             name="sku"
-            placeholder="SKU / Código interno"
+            placeholder={t("productForm.skuPlaceholder")}
             className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
           />
 
@@ -907,30 +947,29 @@ function CreateProductCard({ restaurant }: { restaurant: any }) {
             defaultValue="23"
             className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
           >
-            <option value="0">IVA 0%</option>
-            <option value="6">IVA 6%</option>
-            <option value="13">IVA 13%</option>
-            <option value="23">IVA 23%</option>
+            {vatRates.map((rate) => (
+              <option key={rate} value={rate}>{t("productForm.vatOption", { rate })}</option>
+            ))}
           </select>
         </div>
 
         <input
           name="sortOrder"
           type="number"
-          placeholder="Ordem no menu"
+          placeholder={t("productForm.sortOrderPlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
         <input
           name="allergens"
-          placeholder="Alergénios. Ex: glúten, leite, frutos secos"
+          placeholder={t("productForm.allergensPlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-3">
   <p className="mb-2 text-xs font-bold text-[#9B6F3B]">
-    Produções
+    {t("productForm.productionCentersLabel")}
   </p>
 
   <div className="space-y-2">
@@ -956,7 +995,7 @@ function CreateProductCard({ restaurant }: { restaurant: any }) {
 
           <input
             name="printName"
-            placeholder="Nome para impressão"
+            placeholder={t("productForm.printNamePlaceholder")}
             className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
           />
         </div>
@@ -968,10 +1007,11 @@ function CreateProductCard({ restaurant }: { restaurant: any }) {
           activeInOrdering
           activeOnWebsite
           featured={false}
+          t={t}
         />
 
         <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:opacity-90">
-          Adicionar produto
+          {t("productForm.submit")}
         </button>
       </form>
     </div>
@@ -983,11 +1023,13 @@ function CategoryCard({
   restaurantId,
   productionCenters,
   open,
+  t,
 }: {
   category: any;
   restaurantId: string;
   productionCenters: any[];
   open: boolean;
+  t: Awaited<ReturnType<typeof getTranslations>>;
 }) {
   const activeProducts = category.products.filter((product: any) => product.active).length;
 
@@ -1005,14 +1047,18 @@ function CategoryCard({
           <div className="min-w-0">
             <h3 className="truncate text-xl font-semibold">{category.name}</h3>
             <p className="mt-0.5 text-xs font-bold text-[#6B6258]">
-              Ordem {category.position} · {activeProducts}/{category.products.length} ativos
+              {t("categories.orderSummary", {
+                position: category.position,
+                active: activeProducts,
+                total: category.products.length,
+              })}
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           <span className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-            {category.products.length} produtos
+            {t("categories.productCount", { count: category.products.length })}
           </span>
         </div>
       </summary>
@@ -1020,7 +1066,7 @@ function CategoryCard({
       <div className="mt-4 space-y-4 border-t border-[#E8DCCB] pt-4">
         <details className="rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4">
           <summary className="cursor-pointer list-none text-sm font-semibold text-[#9B6F3B]">
-            Editar categoria
+            {t("categories.editToggle")}
           </summary>
 
           <form
@@ -1044,7 +1090,7 @@ function CategoryCard({
             />
 
             <button className="h-11 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white">
-              Guardar categoria
+              {t("categories.editSubmit")}
             </button>
           </form>
         </details>
@@ -1052,7 +1098,7 @@ function CategoryCard({
         <div className="space-y-2">
           {category.products.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-[#E8DCCB] p-4 text-sm text-[#6B6258]">
-              Ainda sem produtos.
+              {t("categories.emptyProducts")}
             </p>
           ) : (
             category.products.map((product: any) => (
@@ -1061,6 +1107,7 @@ function CategoryCard({
   product={product}
   restaurantId={restaurantId}
   productionCenters={productionCenters}
+  t={t}
 />
             ))
           )}
@@ -1068,7 +1115,7 @@ function CategoryCard({
 
         <details className="pt-1">
           <summary className="inline-flex cursor-pointer list-none rounded-full border border-red-300/20 bg-[#FFF0EA] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#A14E36] transition hover:bg-[#FFE7DE]">
-            Eliminar categoria
+            {t("categories.deleteToggle")}
           </summary>
 
           <form
@@ -1079,7 +1126,7 @@ function CategoryCard({
             <input type="hidden" name="categoryId" value={category.id} />
 
             <p className="text-sm font-bold text-[#A14E36]">
-              Isto vai eliminar a categoria “{category.name}” e todos os produtos dentro dela.
+              {t("categories.deleteWarning", { name: category.name })}
             </p>
 
             <label className="mt-3 flex items-center gap-2 text-xs font-bold text-[#A14E36]">
@@ -1088,11 +1135,11 @@ function CategoryCard({
                 type="checkbox"
                 className="h-4 w-4 accent-red-400"
               />
-              Confirmo que quero apagar a categoria e os produtos
+              {t("categories.deleteConfirmLabel")}
             </label>
 
             <button className="mt-3 rounded-full border border-red-300/30 bg-red-400/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#A14E36] transition hover:bg-[#FFE7DE]">
-              Apagar definitivamente
+              {t("categories.deleteSubmit")}
             </button>
           </form>
         </details>
@@ -1105,11 +1152,15 @@ function ProductCard({
   product,
   restaurantId,
   productionCenters,
+  t,
 }: {
   product: any;
   restaurantId: string;
   productionCenters: any[];
+  t: Awaited<ReturnType<typeof getTranslations>>;
 }) {
+  const vatRates = [0, 6, 13, 23];
+
   return (
     <details
       className={`rounded-2xl border ${
@@ -1128,7 +1179,7 @@ function ProductCard({
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-[#9B8F82]">
-              IMG
+              {t("productCard.noImage")}
             </div>
           )}
         </div>
@@ -1137,28 +1188,28 @@ function ProductCard({
           <div className="flex flex-wrap items-center gap-2">
             <p className="truncate font-semibold text-[#16120E]">{product.name}</p>
 
-            {!product.active && <ChannelBadge label="Inativo" active={false} />}
-            {product.featured && <ChannelBadge label="Destaque" active />}
+            {!product.active && <ChannelBadge label={t("productCard.inactiveBadge")} active={false} />}
+            {product.featured && <ChannelBadge label={t("productCard.featuredBadge")} active />}
            <ChannelBadge
   label={product.productProductionCenters?.length
   ? product.productProductionCenters
   .map((p: any) => p.productionCenter.name)
   .join(", ")
-  : "Sem produção"}
+  : t("productCard.noProductionCenter")}
   active={product.productProductionCenters?.length > 0}
 />
           </div>
 
           <div className="mt-2 flex flex-wrap gap-1.5">
-            <ChannelBadge label="QR" active={product.activeInOrdering} />
-            <ChannelBadge label="Website" active={product.activeOnWebsite} />
+            <ChannelBadge label={t("channels.qr")} active={product.activeInOrdering} />
+            <ChannelBadge label={t("channels.website")} active={product.activeOnWebsite} />
           </div>
 
           <p className="mt-1 truncate text-xs font-bold text-[#6B6258]">
             {product.sku ? `${product.sku} · ` : ""}
-            Ordem {product.sortOrder}
-            {product.allergens ? ` · Alergénios: ${product.allergens}` : ""}
-            {product.printName ? ` · Impressão: ${product.printName}` : ""}
+            {t("productCard.orderMeta", { sortOrder: product.sortOrder })}
+            {product.allergens ? ` · ${t("productCard.allergensMeta", { allergens: product.allergens })}` : ""}
+            {product.printName ? ` · ${t("productCard.printNameMeta", { printName: product.printName })}` : ""}
           </p>
         </div>
 
@@ -1168,7 +1219,7 @@ function ProductCard({
           </p>
 
           <span className="mt-1 inline-flex rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-2 py-0.5 text-[10px] font-semibold text-[#9B6F3B]">
-            IVA {product.vatRate}%
+            {t("productCard.vatBadge", { rate: product.vatRate })}
           </span>
         </div>
       </summary>
@@ -1188,7 +1239,7 @@ function ProductCard({
             <input
               name="description"
               defaultValue={product.description || ""}
-              placeholder="Descrição"
+              placeholder={t("productCard.descriptionPlaceholder")}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
@@ -1205,16 +1256,15 @@ function ProductCard({
               defaultValue={product.vatRate}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             >
-              <option value="0">IVA 0%</option>
-              <option value="6">IVA 6%</option>
-              <option value="13">IVA 13%</option>
-              <option value="23">IVA 23%</option>
+              {vatRates.map((rate) => (
+                <option key={rate} value={rate}>{t("productForm.vatOption", { rate })}</option>
+              ))}
             </select>
 
             <input
               name="sku"
               defaultValue={product.sku || ""}
-              placeholder="SKU"
+              placeholder={t("productCard.skuPlaceholder")}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
@@ -1222,20 +1272,20 @@ function ProductCard({
               name="sortOrder"
               type="number"
               defaultValue={product.sortOrder}
-              placeholder="Ordem"
+              placeholder={t("productCard.orderPlaceholder")}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="allergens"
               defaultValue={product.allergens || ""}
-              placeholder="Alergénios"
+              placeholder={t("productCard.allergensPlaceholder")}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
            <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-3 lg:col-span-2">
   <p className="mb-2 text-xs font-bold text-[#9B6F3B]">
-    Produções
+    {t("productForm.productionCentersLabel")}
   </p>
 
   <div className="grid gap-2 sm:grid-cols-2">
@@ -1249,7 +1299,7 @@ function ProductCard({
         </span>
         
         <p className="mt-1 text-xs font-semibold text-[#7D746A]">
-  {center.printer?.name ?? "Sem impressora"}
+  {center.printer?.name ?? t("productForm.noPrinterAssigned")}
 </p>
 
         <input
@@ -1272,7 +1322,7 @@ function ProductCard({
             <input
               name="printName"
               defaultValue={product.printName || ""}
-              placeholder="Nome para impressão"
+              placeholder={t("productForm.printNamePlaceholder")}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
@@ -1286,11 +1336,12 @@ function ProductCard({
             activeInOrdering={product.activeInOrdering}
             activeOnWebsite={product.activeOnWebsite}
             featured={product.featured}
+            t={t}
           />
 
           <div className="flex flex-wrap gap-2">
             <button className="h-10 rounded-full bg-[#16120E] px-5 text-xs font-semibold text-white">
-              Guardar alterações
+              {t("productCard.submitEdit")}
             </button>
           </div>
         </form>
@@ -1302,14 +1353,14 @@ function ProductCard({
               <input type="hidden" name="productId" value={product.id} />
 
               <button className="h-9 rounded-full border border-yellow-300/20 bg-[#FFF9F0] px-4 text-xs font-semibold uppercase text-[#9B6F3B]">
-                Remover imagem
+                {t("productCard.removeImageButton")}
               </button>
             </form>
           )}
 
           <details className="rounded-full">
             <summary className="flex h-9 cursor-pointer list-none items-center rounded-full border border-red-300/20 bg-[#FFF0EA] px-4 text-xs font-semibold uppercase text-[#A14E36]">
-              Eliminar
+              {t("productCard.deleteToggle")}
             </summary>
 
             <form
@@ -1325,11 +1376,11 @@ function ProductCard({
                   type="checkbox"
                   className="h-4 w-4 accent-red-400"
                 />
-                Confirmar eliminação
+                {t("productCard.deleteConfirmLabel")}
               </label>
 
               <button className="mt-2 h-9 rounded-full border border-red-300/30 bg-red-400/20 px-4 text-xs font-semibold uppercase text-[#A14E36]">
-                Eliminar produto
+                {t("productCard.deleteSubmit")}
               </button>
             </form>
           </details>
@@ -1344,17 +1395,19 @@ function ChannelCheckboxes({
   activeInOrdering,
   activeOnWebsite,
   featured,
+  t,
 }: {
   active: boolean;
   activeInOrdering: boolean;
   activeOnWebsite: boolean;
   featured: boolean;
+  t: Awaited<ReturnType<typeof getTranslations>>;
 }) {
   const options = [
-    { name: "active", label: "Ativo", checked: active },
-    { name: "activeInOrdering", label: "QR Ordering", checked: activeInOrdering },
-    { name: "activeOnWebsite", label: "Website", checked: activeOnWebsite },
-    { name: "featured", label: "Destaque", checked: featured },
+    { name: "active", label: t("channelToggles.active"), checked: active },
+    { name: "activeInOrdering", label: t("channelToggles.qrOrdering"), checked: activeInOrdering },
+    { name: "activeOnWebsite", label: t("channelToggles.website"), checked: activeOnWebsite },
+    { name: "featured", label: t("channelToggles.featured"), checked: featured },
   ];
 
   return (

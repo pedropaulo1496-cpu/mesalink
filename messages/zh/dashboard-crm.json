@@ -1,0 +1,290 @@
+{
+  "reservations": {
+    "list": {
+      "notFound": "未找到该餐厅。",
+      "header": {
+        "eyebrow": "预订",
+        "today": "今天",
+        "newReservation": "新建预订"
+      },
+      "approvals": {
+        "eyebrow": "待审批",
+        "heading": "需要处理的预订",
+        "pendingCount": "{count} 个待处理",
+        "guests": "{count} 位客人"
+      },
+      "legend": {
+        "low": "低占用率",
+        "medium": "中等",
+        "high": "高"
+      },
+      "weekdays": {
+        "mon": "周一",
+        "tue": "周二",
+        "wed": "周三",
+        "thu": "周四",
+        "fri": "周五",
+        "sat": "周六",
+        "sun": "周日"
+      },
+      "calendar": {
+        "lunch": "午餐",
+        "dinner": "晚餐"
+      },
+      "approvalReasons": {
+        "LARGE_GROUP": "大团体",
+        "TABLE_MERGE": "拼桌",
+        "CAPACITY_LIMIT": "容量限制"
+      }
+    },
+    "new": {
+      "notFound": "未找到该餐厅",
+      "back": "返回预订列表",
+      "eyebrow": "新建预订",
+      "title": "创建手动预订。",
+      "description": {
+        "prefix": "为",
+        "suffix": "的日历添加一条预订。邮箱和出生日期为选填项，但有助于 CRM 和营销活动。"
+      },
+      "miniCards": {
+        "status": {
+          "label": "状态",
+          "value": "自动确认"
+        },
+        "table": {
+          "label": "桌位",
+          "auto": "自动分配",
+          "none": "未分配桌位"
+        },
+        "crm": {
+          "label": "CRM",
+          "value": "客户信息自动更新"
+        }
+      },
+      "errors": {
+        "noTable": "该时间段没有适合此人数的空桌。",
+        "conflict": "该时间段附近已存在一条预订。",
+        "email": "请输入有效的邮箱地址，或将该字段留空。"
+      },
+      "sections": {
+        "customer": "客户",
+        "reservation": "预订",
+        "time": "时间",
+        "notes": "备注"
+      },
+      "fields": {
+        "customerName": {
+          "label": "客户姓名",
+          "placeholder": "例如：张伟"
+        },
+        "phone": {
+          "label": "电话",
+          "placeholder": "例如：912345678"
+        },
+        "email": {
+          "label": "建议填写邮箱",
+          "placeholder": "例如：customer@email.com",
+          "helper": "有助于确认通知、营销活动和客户历史记录。"
+        },
+        "birthDate": {
+          "label": "建议填写出生日期",
+          "helper": "有助于生日营销和忠诚度活动。"
+        },
+        "guests": {
+          "label": "人数",
+          "placeholder": "例如：4"
+        },
+        "date": {
+          "label": "日期"
+        },
+        "notes": {
+          "placeholder": "例如：1位素食者、生日、安静的桌位、儿童座椅……"
+        }
+      },
+      "tableInfo": {
+        "auto": "系统将根据人数和空位情况自动分配桌位。",
+        "capacityMode": {
+          "prefix": "该餐厅目前处于",
+          "bold": "容量",
+          "suffix": "模式，预订将在不分配桌位的情况下创建。"
+        }
+      },
+      "submit": "创建预订",
+      "cancel": "取消"
+    },
+    "upcoming": {
+      "notFound": "未找到该餐厅。",
+      "eyebrow": "预订",
+      "title": "即将到来的预订",
+      "summary": "共 {count} 笔预订 · 共 {guests} 位客人",
+      "viewCalendar": "查看日历",
+      "empty": "目前还没有即将到来的预订。",
+      "today": "今天",
+      "tomorrow": "明天",
+      "statusLabels": {
+        "PENDING": "待确认",
+        "CONFIRMED": "已确认",
+        "SEATED": "已入座",
+        "FINISHED": "已完成",
+        "NO_SHOW": "未到店",
+        "CANCELLED": "已取消",
+        "REJECTED": "已拒绝"
+      },
+      "row": {
+        "table": "{number} 号桌",
+        "noTable": "无桌位",
+        "guests": "{count} 位",
+        "phoneLabel": "手机",
+        "noPhone": "无手机号码",
+        "emailLabel": "邮箱",
+        "noEmail": "无邮箱"
+      }
+    }
+  },
+  "customers": {
+    "list": {
+      "notFound": "未找到该餐厅。",
+      "eyebrow": "客户",
+      "title": "CRM",
+      "subtitleSuffix": "客户、营销活动、VIP 与流失风险。",
+      "newCustomerLink": "新建客户",
+      "importCsvLink": "导入 CSV",
+      "importResult": "导入完成：新建 {created} 个 · 更新 {updated} 个 · 跳过 {skipped} 个。",
+      "errors": {
+        "missing": "请至少填写姓名，以及邮箱或电话其中之一。",
+        "email": "请输入有效的邮箱地址，或将该字段留空。"
+      },
+      "metrics": {
+        "customers": "客户",
+        "vips": "VIP",
+        "atRisk": "风险客户",
+        "covers": "客流量",
+        "value": "价值"
+      },
+      "newCustomerForm": {
+        "title": "新建客户",
+        "subtitle": "手动添加到 CRM。",
+        "fields": {
+          "name": "姓名",
+          "phone": "电话",
+          "email": "邮箱",
+          "birthDate": "出生日期",
+          "tags": "标签：VIP、生日、公司",
+          "notes": "备注"
+        },
+        "submit": "创建客户"
+      },
+      "importForm": {
+        "title": "导入客户",
+        "subtitle": "通过 CSV 导入客户，兼容 Excel。",
+        "formatHelp": {
+          "prefix": "以下是 CSV 应遵循的格式，标签使用",
+          "suffix": "分隔。"
+        },
+        "downloadSample": "下载示例",
+        "submit": "导入客户"
+      },
+      "table": {
+        "title": "客户库",
+        "subtitle": "已登记 {count} 位客户",
+        "noEmail": "无邮箱",
+        "noPhone": "无电话",
+        "columns": {
+          "tags": "标签",
+          "visits": "到店次数",
+          "value": "价值",
+          "lastVisit": "最近到店",
+          "risk": "风险"
+        },
+        "view": "查看",
+        "empty": {
+          "title": "目前还没有客户。",
+          "subtitle": "手动创建客户、导入 CSV，或通过预订自动获取客户。"
+        }
+      },
+      "sort": {
+        "recent": "最近",
+        "name": "姓名",
+        "visits": "到店次数",
+        "value": "价值",
+        "birthday": "生日",
+        "risk": "风险"
+      }
+    },
+    "detail": {
+      "back": "返回客户列表",
+      "riskBadge": {
+        "high": "高风险",
+        "medium": "中风险"
+      },
+      "noEmail": "无邮箱",
+      "noPhone": "无电话",
+      "createCampaign": "创建营销活动",
+      "metrics": {
+        "value": "价值",
+        "visits": "到店次数",
+        "covers": "客流量",
+        "noShows": "未到店次数",
+        "riskScore": "风险分数"
+      },
+      "profile": {
+        "eyebrow": "档案",
+        "heading": "客户信息",
+        "fields": {
+          "email": "邮箱",
+          "phone": "电话",
+          "lastVisit": "最近到店",
+          "vipTier": "VIP 等级",
+          "marketing": "营销授权"
+        },
+        "defaultTier": "普通客户",
+        "marketingYes": "已授权",
+        "marketingNo": "未授权"
+      },
+      "history": {
+        "eyebrow": "历史记录",
+        "heading": "预订记录",
+        "guests": "{count} 位客人",
+        "table": "{number} 号桌",
+        "noTable": "无桌位",
+        "empty": "该客户暂无预订记录。",
+        "statusLabels": {
+          "PENDING": "待确认",
+          "CONFIRMED": "已确认",
+          "SEATED": "已入座",
+          "FINISHED": "已完成",
+          "NO_SHOW": "未到店",
+          "CANCELLED": "已取消",
+          "REJECTED": "已拒绝"
+        }
+      },
+      "notes": {
+        "eyebrow": "内部备注",
+        "heading": "团队备注",
+        "description": "关于该客户偏好和历史的私密信息。",
+        "placeholder": "例如：偏好靠窗的桌位……",
+        "submit": "保存备注"
+      },
+      "tags": {
+        "eyebrow": "标签",
+        "heading": "客户分组",
+        "description": "使用标签标记本地客户、游客、企业客户、网红或高价值客户。",
+        "empty": "该客户暂无标签。",
+        "inputPlaceholder": "例如：本地、高价值、网红",
+        "submit": "保存标签"
+      },
+      "growth": {
+        "eyebrow": "增长",
+        "heading": "营销活动记录",
+        "empty": "该客户暂无营销活动记录。"
+      },
+      "marketingTypes": {
+        "VIP_UPGRADE": "VIP 升级",
+        "INACTIVE_RECOVERY": "唤回活动",
+        "BIRTHDAY": "生日活动",
+        "MANUAL_CAMPAIGN": "营销活动",
+        "REVIEW_REQUEST": "评价邀请"
+      }
+    }
+  }
+}

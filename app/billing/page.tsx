@@ -1,11 +1,15 @@
 import CheckoutButton from "@/components/CheckoutButton";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
 import UpgradeToGrowthButton from "@/components/UpgradeToGrowthButton";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+
+type TFunc = (key: string, values?: Record<string, string | number>) => string;
 
 type BillingPageProps = {
   searchParams?: Promise<{
@@ -14,6 +18,8 @@ type BillingPageProps = {
 };
 
 export default async function BillingPage({ searchParams }: BillingPageProps) {
+  const t = await getTranslations("dashboardBilling.main");
+
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -69,12 +75,12 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
   const hasActiveSubscription = isEssentials || isGrowth;
 
   const currentPlan = trialActive
-    ? "Trial completo"
+    ? t("planStatus.trialFull")
     : isGrowth
       ? "Growth"
       : isEssentials
         ? "Essentials"
-        : "Sem plano ativo";
+        : t("planStatus.noPlan");
 
   const backHref = restaurantId ? `/restaurants/${restaurantId}` : "/dashboard";
   const trialProgress = trialActive ? Math.min(100, Math.round(((7 - trialDaysLeft) / 7) * 100)) : 0;
@@ -87,39 +93,41 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
             href={backHref}
             className="rounded-full border border-[#E1D0B8] bg-white px-4 py-2 text-sm font-semibold text-[#6B6258] transition hover:text-[#16120E]"
           >
-            ← Voltar ao dashboard
+            {t("nav.back")}
           </Link>
 
-          <span className="hidden rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-[#9B6F3B] sm:inline-flex">
-            MesaLink Billing
-          </span>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+
+            <span className="hidden rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-[#9B6F3B] sm:inline-flex">
+              {t("nav.badge")}
+            </span>
+          </div>
         </div>
 
         <section className="mt-8 overflow-hidden rounded-[44px] border border-[#D8C5A5] bg-[#FFF9F0] shadow-[0_30px_110px_rgba(80,55,30,0.12)]">
           <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="p-7 sm:p-10">
               <p className="text-xs font-black uppercase tracking-[0.32em] text-[#9B6F3B]">
-                Growth. Visibility. Control.
+                {t("hero.kicker")}
               </p>
 
               <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[0.9] tracking-[-0.07em] sm:text-6xl">
-                Escolha o plano certo para fazer crescer o restaurante.
+                {t("hero.title")}
               </h1>
 
               <p className="mt-6 max-w-2xl text-base leading-7 text-[#6B6258]">
-                Todos os planos incluem Website, Reservas, QR Ordering, CRM,
-                Reviews e operação integrada. O Growth adiciona Marketing para
-                recuperar clientes e aumentar visitas recorrentes.
+                {t("hero.description")}
               </p>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-4">
-                <Info label="Plano atual" value={currentPlan} />
+                <Info label={t("stats.currentPlan.label")} value={currentPlan} />
                 <Info
-                  label="Trial"
-                  value={trialActive ? `${trialDaysLeft} dias` : "Terminado"}
+                  label={t("stats.trial.label")}
+                  value={trialActive ? t("stats.trial.daysLeft", { days: trialDaysLeft }) : t("stats.trial.ended")}
                 />
-                <Info label="Comissões" value="0€" />
-                <Info label="Pagamento anual" value="1 mês grátis" />
+                <Info label={t("stats.commissions.label")} value={t("stats.commissions.value")} />
+                <Info label={t("stats.yearlyPayment.label")} value={t("stats.yearlyPayment.value")} />
               </div>
             </div>
 
@@ -127,7 +135,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
               <div className="flex items-start justify-between gap-5">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.28em] text-[#D8C5A5]">
-                    Estado da conta
+                    {t("accountState.kicker")}
                   </p>
 
                   <h2 className="mt-4 text-4xl font-semibold tracking-[-0.06em]">
@@ -136,10 +144,10 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
                   <p className="mt-3 text-sm leading-6 text-white/62">
                     {trialActive
-                      ? "Está a experimentar todas as funcionalidades da MesaLink."
+                      ? t("accountState.trialText")
                       : hasActiveSubscription
-                        ? "A sua subscrição está ativa."
-                        : "Escolha um plano para continuar a usar a plataforma."}
+                        ? t("accountState.activeText")
+                        : t("accountState.noPlanText")}
                   </p>
                 </div>
 
@@ -149,11 +157,10 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
               {trialActive && (
                 <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.07] p-5">
                   <p className="font-semibold text-[#D8C5A5]">
-                    Trial completo ativo
+                    {t("trialBox.title")}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-white/65">
-                    Ainda tem {trialDaysLeft} dia(s) para testar Website, QR
-                    Ordering, CRM, Reviews e Marketing antes de escolher plano.
+                    {t("trialBox.text", { days: trialDaysLeft })}
                   </p>
                 </div>
               )}
@@ -161,13 +168,10 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
               {isEssentials && (
                 <div className="mt-8 rounded-[28px] border border-[#D8C5A5]/30 bg-[#D8C5A5]/10 p-5">
                   <p className="font-semibold text-[#D8C5A5]">
-                    Upgrade disponível
+                    {t("upgradeBox.title")}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-white/65">
-                    Ative o Growth por apenas +20€/mês e desbloqueie Marketing
-                    automático, recuperação de clientes e campanhas para dias
-                    fracos. Mantém a mesma data de
-                    renovação e o Stripe calcula a diferença proporcional.
+                    {t("upgradeBox.text")}
                   </p>
                   <div className="mt-4">
                     <UpgradeToGrowthButton />
@@ -186,21 +190,13 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
         <section className="mt-7 grid gap-5 lg:grid-cols-2">
           <PlanCard
+            t={t}
             title="Essentials"
-            badge={isEssentials ? "Plano atual" : "Plano base"}
+            badge={isEssentials ? t("badges.currentPlan") : t("badges.basePlan")}
             price="55€"
             yearlyPrice="605€"
-            description="Para restaurantes que querem centralizar reservas, website, QR Ordering, CRM, reviews e operação num único sistema."
-            features={[
-              "Mais reservas diretas",
-              "Website premium incluído",
-              "QR Ordering incluído",
-              "CRM de clientes",
-              "Google Reviews",
-              "Mapa de mesas",
-              "Relatórios essenciais",
-              "Sem comissões por reserva",
-            ]}
+            description={t("planCard.essentials.description")}
+            features={t.raw("planCard.essentials.features") as string[]}
             active={trialActive || isEssentials}
             action={
               isEssentials ? (
@@ -208,20 +204,20 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                   href={backHref}
                   className="flex h-14 w-full items-center justify-center rounded-full bg-[#17130F] px-8 text-base font-semibold text-white shadow-[0_18px_50px_rgba(23,19,15,0.18)] transition hover:bg-[#2A2118]"
                 >
-                  Plano atual · Abrir Dashboard →
+                  {t("planCard.currentPlanCta")}
                 </Link>
               ) : (
                <div className="grid gap-2 sm:grid-cols-2">
                   <CheckoutButton
                     product="ESSENTIALS"
                     billing="MONTHLY"
-                    label="Mensal 55€ →"
+                    label={t("planCard.ctaMonthly", { price: "55€" })}
                     variant="dark"
                   />
                   <CheckoutButton
                     product="ESSENTIALS"
                     billing="YEARLY"
-                    label="Anual 605€ →"
+                    label={t("planCard.ctaYearly", { price: "605€" })}
                     variant="outline"
                   />
                 </div>
@@ -230,21 +226,13 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           />
 
           <PlanCard
+            t={t}
             title="Growth"
-            badge={isGrowth ? "Plano atual" : "Mais recomendado"}
+            badge={isGrowth ? t("badges.currentPlan") : t("badges.recommended")}
             price="75€"
             yearlyPrice="825€"
-            description="Para restaurantes que querem recuperar clientes, promover dias fracos e aumentar visitas recorrentes com Marketing."
-            features={[
-              "Tudo do Essentials",
-              "Marketing MesaLink incluído",
-              "Recuperar clientes inativos",
-              "Campanhas para dias fracos",
-              "Clientes em risco",
-              "Aniversários automáticos",
-              "Fidelização VIP",
-              "Mais visitas recorrentes",
-            ]}
+            description={t("planCard.growth.description")}
+            features={t.raw("planCard.growth.features") as string[]}
             active={trialActive || isGrowth}
             highlighted
             action={
@@ -253,20 +241,20 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                   href={backHref}
                   className="flex h-14 w-full items-center justify-center rounded-full bg-[#17130F] px-8 text-base font-semibold text-white shadow-[0_18px_50px_rgba(23,19,15,0.18)] transition hover:bg-[#2A2118]"
                 >
-                  Plano atual · Abrir Dashboard →
+                  {t("planCard.currentPlanCta")}
                 </Link>
               ) : isEssentials ? (
                 <div className="rounded-[24px] border border-[#D8C5A5]/35 bg-white/[0.06] p-4">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-[#D8C5A5]">
-                        Upgrade
+                        {t("planCard.growth.upgrade.kicker")}
                       </p>
                       <p className="mt-1 text-2xl font-semibold tracking-[-0.05em]">
-                        +20€/mês
+                        {t("planCard.growth.upgrade.price")}
                       </p>
                       <p className="mt-1 text-xs text-white/62">
-                        Mantém a data de renovação atual.
+                        {t("planCard.growth.upgrade.note")}
                       </p>
                     </div>
 
@@ -278,13 +266,13 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                   <CheckoutButton
                     product="GROWTH"
                     billing="MONTHLY"
-                    label="Mensal 75€ →"
+                    label={t("planCard.ctaMonthly", { price: "75€" })}
                     variant="gold"
                   />
                   <CheckoutButton
                     product="GROWTH"
                     billing="YEARLY"
-                    label="Anual 825€ →"
+                    label={t("planCard.ctaYearly", { price: "825€" })}
                     variant="goldOutline"
                   />
                 </div>
@@ -296,24 +284,22 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
         <section className="mt-7">
           <div className="rounded-[34px] border border-[#D8C5A5] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">
-              Restaurant Essentials
+              {t("platformSection.kicker")}
             </p>
 
             <h3 className="mt-3 text-3xl font-semibold tracking-[-0.055em]">
-              Uma plataforma viva para restaurantes.
+              {t("platformSection.title")}
             </h3>
 
             <p className="mt-3 text-sm leading-6 text-[#6B6258]">
-              A MesaLink continuará a lançar novas ferramentas para ajudar
-              restaurantes a crescer, ganhar visibilidade e simplificar a
-              operação diária.
+              {t("platformSection.text")}
             </p>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <MiniFeature title="Mais receita" text="QR Ordering + Marketing" />
-              <MiniFeature title="Mais visibilidade" text="Website + Reviews" />
-              <MiniFeature title="Mais controlo" text="CRM + Reservas" />
-              <MiniFeature title="0€ comissões" text="Reservas diretas" />
+              <MiniFeature title={t("platformSection.features.revenue.title")} text={t("platformSection.features.revenue.text")} />
+              <MiniFeature title={t("platformSection.features.visibility.title")} text={t("platformSection.features.visibility.text")} />
+              <MiniFeature title={t("platformSection.features.control.title")} text={t("platformSection.features.control.text")} />
+              <MiniFeature title={t("platformSection.features.commissions.title")} text={t("platformSection.features.commissions.text")} />
             </div>
           </div>
 
@@ -373,6 +359,7 @@ function TrialRing({ percentage }: { percentage: number }) {
 }
 
 function PlanCard({
+  t,
   title,
   badge,
   price,
@@ -383,6 +370,7 @@ function PlanCard({
   action,
   highlighted,
 }: {
+  t: TFunc;
   title: string;
   badge: string;
   price: string;
@@ -394,6 +382,7 @@ function PlanCard({
   highlighted?: boolean;
 }) {
   const saving = title === "Growth" ? "75€" : "55€";
+  const yearlyNote = t("planCard.yearlyNote", { saving }).replace(/^[·\s]+/, "");
 
   return (
     <div
@@ -454,7 +443,7 @@ function PlanCard({
               highlighted ? "text-white/62" : "text-[#6B6258]"
             }`}
           >
-            /mês
+            {t("planCard.perMonth")}
           </span>
         </div>
 
@@ -472,7 +461,7 @@ function PlanCard({
                 : "font-semibold text-[#9B6F3B]"
             }
           >
-            Pagamento anual
+            {t("planCard.yearlyLabel")}
           </p>
 
           <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs leading-5">
@@ -481,9 +470,9 @@ function PlanCard({
                 highlighted ? "font-black text-white" : "font-black text-[#16120E]"
               }
             >
-              {yearlyPrice}/ano
+              {yearlyPrice}{t("planCard.yearlySuffix")}
             </span>
-            <span>1 mês grátis · poupa {saving}</span>
+            <span>{yearlyNote}</span>
           </div>
         </div>
 

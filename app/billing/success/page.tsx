@@ -1,4 +1,6 @@
 import Link from "next/link";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { getTranslations } from "next-intl/server";
 
 type BillingSuccessPageProps = {
   searchParams?: Promise<{
@@ -10,16 +12,22 @@ type BillingSuccessPageProps = {
 export default async function BillingSuccessPage({
   searchParams,
 }: BillingSuccessPageProps) {
+  const t = await getTranslations("dashboardBilling.success");
+
   const params = searchParams ? await searchParams : {};
   const product = String(params?.product || "").toUpperCase();
   const billing = String(params?.billing || "").toUpperCase();
 
   const planName = product === "GROWTH" ? "Growth" : "Essentials";
-  const billingLabel = billing === "YEARLY" ? "Pagamento anual" : "Pagamento mensal";
+  const billingLabel = billing === "YEARLY" ? t("billingCycle.yearly") : t("billingCycle.monthly");
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#F5EFE6] text-[#16120E]">
       <Background />
+
+      <div className="fixed right-4 top-4 z-30">
+        <LanguageSwitcher />
+      </div>
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-6 py-14 text-center sm:px-8">
         <div className="w-full overflow-hidden rounded-[42px] border border-[#D8C5A5] bg-white p-7 shadow-[0_30px_110px_rgba(80,55,30,0.12)] sm:p-10">
@@ -28,51 +36,50 @@ export default async function BillingSuccessPage({
           </div>
 
           <p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">
-            Subscrição ativa
+            {t("kicker")}
           </p>
 
           <h1 className="mt-4 text-4xl font-semibold tracking-[-0.06em] sm:text-6xl">
-            Plano {planName} ativado.
+            {t("title", { plan: planName })}
           </h1>
 
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-[#6B6258]">
-            A sua subscrição foi confirmada com sucesso. Agora pode continuar a
-            usar a MesaLink sem interrupções.
+            {t("subtitle")}
           </p>
 
           <div className="mx-auto mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
-            <SuccessStat value={planName} label="plano ativo" />
-            <SuccessStat value={billingLabel} label="ciclo escolhido" />
-            <SuccessStat value="0€" label="comissões" />
+            <SuccessStat value={planName} label={t("stats.plan")} />
+            <SuccessStat value={billingLabel} label={t("stats.cycle")} />
+            <SuccessStat value="0€" label={t("stats.commissions")} />
           </div>
 
           <div className="mt-8 grid gap-5 text-left md:grid-cols-2">
             <div className="rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-5">
               <h2 className="font-semibold text-[#16120E]">
-                Já disponível na sua conta
+                {t("available.title")}
               </h2>
 
               <ul className="mt-4 space-y-2 text-sm leading-6 text-[#6B6258]">
-                <li>✓ Reservas online sem comissões</li>
-                <li>✓ Website profissional</li>
-                <li>✓ QR Ordering</li>
-                <li>✓ CRM de clientes</li>
-                <li>✓ Google Reviews</li>
-                {planName === "Growth" && <li>✓ Marketing Growth</li>}
+                <li>✓ {t("available.items.reservations")}</li>
+                <li>✓ {t("available.items.website")}</li>
+                <li>✓ {t("available.items.qrOrdering")}</li>
+                <li>✓ {t("available.items.crm")}</li>
+                <li>✓ {t("available.items.googleReviews")}</li>
+                {planName === "Growth" && <li>✓ {t("available.items.marketingGrowth")}</li>}
               </ul>
             </div>
 
             <div className="rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-5">
               <h2 className="font-semibold text-[#16120E]">
-                Próximos passos úteis
+                {t("nextSteps.title")}
               </h2>
 
               <ol className="mt-4 space-y-2 text-sm leading-6 text-[#6B6258]">
-                <li>1. Rever horários e capacidade</li>
-                <li>2. Confirmar salas e mesas</li>
-                <li>3. Publicar website e QR Ordering</li>
-                <li>4. Partilhar o link de reservas</li>
-                <li>5. Acompanhar resultados no dashboard</li>
+                <li>1. {t("nextSteps.items.reviewHours")}</li>
+                <li>2. {t("nextSteps.items.confirmTables")}</li>
+                <li>3. {t("nextSteps.items.publishWebsite")}</li>
+                <li>4. {t("nextSteps.items.shareLink")}</li>
+                <li>5. {t("nextSteps.items.trackResults")}</li>
               </ol>
             </div>
           </div>
@@ -81,7 +88,7 @@ export default async function BillingSuccessPage({
             href="/dashboard"
             className="mt-8 inline-flex h-14 w-full items-center justify-center rounded-full bg-[#16120E] px-8 font-semibold text-white shadow-[0_18px_50px_rgba(23,19,15,0.18)] transition hover:bg-[#2A2118]"
           >
-            Abrir dashboard →
+            {t("cta")}
           </Link>
         </div>
       </div>

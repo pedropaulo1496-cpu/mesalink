@@ -1,0 +1,29 @@
+{
+  "badge": "7天免费试用",
+  "aside": {
+    "label": "新手引导",
+    "title": "设置您的餐厅。",
+    "description": "创建您的初始面板，开始接受预订、管理客户、发布网站，并通过CRM、营销和二维码点餐为增长做好准备。",
+    "steps": {
+      "step1": "创建餐厅",
+      "step2": "设置营业时间和餐桌",
+      "step3": "启用预订、网站和二维码点餐"
+    },
+    "trial": {
+      "title": "包含完整试用",
+      "text": "7天内您可以免费体验MesaLink，无需承诺。"
+    }
+  },
+  "form": {
+    "label": "餐厅信息",
+    "title": "创建餐厅",
+    "description": "这些信息会显示在管理面板、网站和公开预订页面上。您可以稍后修改所有内容。",
+    "errorEmail": "请输入有效的电子邮件地址，或将该字段留空。",
+    "namePlaceholder": "餐厅名称",
+    "emailPlaceholder": "餐厅电子邮件",
+    "phonePlaceholder": "电话",
+    "addressPlaceholder": "地址",
+    "submit": "创建餐厅 →",
+    "footnote": "MesaLink 负责连接预订、网站、二维码点餐、客户、营销与运营。"
+  }
+}

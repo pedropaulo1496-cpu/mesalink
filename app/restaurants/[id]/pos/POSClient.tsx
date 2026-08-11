@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 type POSReport = {
   totalRevenue: number;
@@ -224,7 +225,6 @@ type QRAlert = {
 function formatMoney(value: number) {
   return `${value.toFixed(2)}€`;
 }
-
 function getCartItemGross(item: CartItem) {
   return item.quantity * item.unitPrice;
 }
@@ -306,6 +306,7 @@ export default function POSClient({
   qrAlerts: QRAlert[];
   printJobs: any[];
 }) {
+  const t = useTranslations("dashboardPos.client");
   const POS_ENABLED = false;
 
   if (!POS_ENABLED) {
@@ -460,7 +461,7 @@ export default function POSClient({
   function selectTable(tableId: string) {
     if (!openCashRegister) {
       setPosTab("CASH");
-      alert("Tens de abrir a caixa antes de abrir mesas.");
+      alert(t("alerts.openCashBeforeTable"));
       return;
     }
 
@@ -480,7 +481,7 @@ export default function POSClient({
   function quickSale() {
     if (!openCashRegister) {
       setPosTab("CASH");
-      alert("Tens de abrir a caixa antes de iniciar venda rápida.");
+      alert(t("alerts.openCashBeforeQuickSale"));
       return;
     }
 
@@ -599,7 +600,7 @@ export default function POSClient({
       );
 
       if (!response.ok) {
-        alert("Erro ao enviar pedido.");
+        alert(t("alerts.sendOrderError"));
         return;
       }
 
@@ -638,7 +639,9 @@ export default function POSClient({
     }
 
     if (nextQuantity === 0) {
-      const confirmed = window.confirm(`Remover ${item.productName} da conta?`);
+      const confirmed = window.confirm(
+        t("alerts.removeItemConfirm", { name: item.productName }),
+      );
       if (!confirmed) return;
     }
 
@@ -661,7 +664,7 @@ export default function POSClient({
     );
 
     if (!response.ok) {
-      alert("Erro ao atualizar a conta.");
+      alert(t("alerts.updateAccountError"));
       setSavingAccount(null);
       return;
     }
@@ -691,7 +694,7 @@ export default function POSClient({
     );
 
     if (!response.ok) {
-      alert("Erro ao abrir mesa.");
+      alert(t("alerts.openTableError"));
       setOpeningSession(false);
       return;
     }
@@ -705,7 +708,7 @@ export default function POSClient({
     router.refresh();
 
     if (!data?.success) {
-      alert("Mesa aberta, mas houve uma resposta inesperada.");
+      alert(t("alerts.openTableUnexpectedResponse"));
     }
   }
 
@@ -713,7 +716,7 @@ export default function POSClient({
     if (!selectedSession || !selectedTable) return;
 
     const confirmed = window.confirm(
-      `Cancelar a Mesa ${selectedTable.number}? A mesa volta a ficar livre e os pedidos ficam cancelados.`,
+      t("alerts.cancelTableConfirm", { number: selectedTable.number }),
     );
 
     if (!confirmed) return;
@@ -735,7 +738,7 @@ export default function POSClient({
     );
 
     if (!response.ok) {
-      alert("Erro ao cancelar mesa.");
+      alert(t("alerts.cancelTableError"));
       setCancellingSession(false);
       return;
     }
@@ -778,7 +781,7 @@ export default function POSClient({
     const result = await response.json().catch(() => null);
 
     if (!response.ok) {
-      alert(result?.error ?? "Erro ao transferir.");
+      alert(result?.error ?? t("alerts.transferError"));
       setTransferringTable(false);
       return;
     }
@@ -806,7 +809,7 @@ export default function POSClient({
     if (!selectedSession || paymentTotal <= 0) return;
 
     if (cart.length > 0) {
-      alert("Envia primeiro os novos produtos antes de cobrar.");
+      alert(t("alerts.sendCartBeforeCharge"));
       return;
     }
 
@@ -817,7 +820,7 @@ export default function POSClient({
     );
 
     if (hasUnsavedChanges) {
-      alert("Guarda ou cancela as alterações da conta antes de cobrar.");
+      alert(t("alerts.unsavedAccountChanges"));
       return;
     }
 
@@ -850,7 +853,7 @@ export default function POSClient({
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      alert(data?.error ?? "Erro ao receber pagamento parcial.");
+      alert(data?.error ?? t("alerts.partialPaymentError"));
       setPartialPaymentLoading(false);
       return;
     }
@@ -899,7 +902,7 @@ export default function POSClient({
     const result = await response.json().catch(() => null);
 
     if (!response.ok) {
-      alert(result?.error ?? "Erro ao atualizar item.");
+      alert(result?.error ?? t("alerts.updateItemError"));
       setSavingLine(false);
       return;
     }
@@ -942,7 +945,7 @@ export default function POSClient({
     const result = await response.json().catch(() => null);
 
     if (!response.ok) {
-      alert(result?.error ?? "Erro ao aplicar desconto.");
+      alert(result?.error ?? t("alerts.applyDiscountError"));
       setDiscountLoading(false);
       return;
     }
@@ -984,7 +987,7 @@ export default function POSClient({
     );
 
     if (!response.ok) {
-      alert("Erro ao fechar mesa.");
+      alert(t("alerts.closeTableError"));
       setClosingPayment(false);
       return;
     }
@@ -1016,7 +1019,7 @@ export default function POSClient({
     );
 
     if (!response.ok) {
-      alert("Erro ao abrir caixa.");
+      alert(t("alerts.openCashRegisterError"));
       setSavingCashRegister(false);
       return;
     }
@@ -1050,7 +1053,7 @@ export default function POSClient({
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data?.error ?? "Erro ao guardar movimento.");
+        alert(data?.error ?? t("alerts.saveCashMovementError"));
         return;
       }
 
@@ -1060,7 +1063,7 @@ export default function POSClient({
 
       window.location.reload();
     } catch {
-      alert("Erro ao guardar movimento.");
+      alert(t("alerts.saveCashMovementError"));
     } finally {
       setSavingCashMovement(false);
     }
@@ -1088,7 +1091,7 @@ export default function POSClient({
     );
 
     if (!response.ok) {
-      alert("Erro ao fechar caixa.");
+      alert(t("alerts.closeCashRegisterError"));
       setSavingCashRegister(false);
       return;
     }
@@ -1125,7 +1128,7 @@ export default function POSClient({
   }
 
   async function rejectQrOrder(orderId: string) {
-    const confirmed = window.confirm("Rejeitar este pedido QR?");
+    const confirmed = window.confirm(t("alerts.rejectQrOrderConfirm"));
     if (!confirmed) return;
 
     setHandlingQrOrderId(orderId);
@@ -1166,7 +1169,7 @@ export default function POSClient({
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      alert(data?.error ?? "Erro ao resolver alerta QR.");
+      alert(data?.error ?? t("alerts.resolveQrAlertError"));
       setHandlingQrAlertId(null);
       return;
     }
@@ -1252,20 +1255,20 @@ export default function POSClient({
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">
-            Coming Soon
+            {t("comingSoonBanner.badge")}
           </p>
 
           <h2 className="mt-2 text-2xl font-black">
-            MesaLink POS
+            {t("comingSoonBanner.title")}
           </h2>
 
           <p className="mt-2 text-sm text-[#6B6258]">
-            Estamos a finalizar o POS, faturação, impressão e versão mobile.
+            {t("comingSoonBanner.description")}
           </p>
         </div>
 
         <span className="rounded-full bg-[#16120E] px-5 py-3 text-xs font-black text-white">
-          Coming Soon
+          {t("comingSoonBanner.badge")}
         </span>
       </div>
     </div>
@@ -1276,15 +1279,15 @@ export default function POSClient({
           <div className="flex items-start justify-between gap-5">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.42em] text-[#B58A45]">
-                MESALINK POS
+                {t("header.eyebrow")}
               </p>
 
               <h1 className="mt-2 text-[34px] font-black tracking-[-0.04em] text-[#0E0D0C]">
                 {!selectedTableId
-                  ? "Mesas"
+                  ? t("header.titleTables")
                   : selectedIsQuickSale
-                    ? "Venda rápida"
-                    : `Mesa ${selectedTable?.number}`}
+                    ? t("header.titleQuickSale")
+                    : t("header.titleTable", { number: selectedTable?.number })}
               </h1>
 
               {selectedTableId && (
@@ -1292,7 +1295,7 @@ export default function POSClient({
                   onClick={backToTables}
                   className="mt-3 text-sm font-bold text-[#8B7C68] hover:text-[#0E0D0C]"
                 >
-                  ← Voltar às mesas
+                  {t("header.backToTables")}
                 </button>
               )}
             </div>
@@ -1305,13 +1308,13 @@ export default function POSClient({
                 className="mt-4 flex h-11 items-center gap-2 rounded-full bg-[#11100F] px-5 text-xs font-black uppercase tracking-[0.12em] text-white shadow-[0_14px_28px_rgba(0,0,0,0.14)] transition hover:translate-y-[-1px]"
               >
                 <span>🖨️</span>
-                <span>Impressoras</span>
+                <span>{t("header.printersButton")}</span>
               </button>
             ) : (
               <div className="mt-4 rounded-2xl border border-[#E8E0D4] bg-white px-5 py-3 text-sm font-black text-[#0E0D0C] shadow-[0_12px_30px_rgba(30,20,10,0.04)]">
                 {selectedIsQuickSale
-                  ? "Sem mesa"
-                  : `${selectedTable?.capacity} lugares`}
+                  ? t("header.noTable")
+                  : t("header.seatsCount", { count: selectedTable?.capacity })}
               </div>
             )}
           </div>
@@ -1333,9 +1336,7 @@ export default function POSClient({
                 >
                   <span>🔔</span>
                   <span>
-                    QR Orders: {qrAttentionCount} alerta
-                    {qrAttentionCount === 1 ? "" : "s"} pendente
-                    {qrAttentionCount === 1 ? "" : "s"}
+                    {t("header.qrAttention", { count: qrAttentionCount })}
                   </span>
                 </button>
               )}
@@ -1615,6 +1616,8 @@ export default function POSClient({
 
 
 function POSComingSoon({ restaurantName }: { restaurantName: string }) {
+  const t = useTranslations("dashboardPos.client");
+
   return (
     <section className="flex min-h-screen flex-1 items-center justify-center overflow-y-auto bg-[#FBFAF7] px-4 py-8 text-[#16120E] sm:px-6 lg:px-10">
       <div className="w-full max-w-5xl">
@@ -1623,7 +1626,7 @@ function POSComingSoon({ restaurantName }: { restaurantName: string }) {
             <div className="bg-[#FFF4DF] p-7 sm:p-10 lg:p-12">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#E1C48C] bg-white/70 px-4 py-2 text-[11px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">
                 <span className="h-2 w-2 rounded-full bg-[#C8A56A]" />
-                Coming Soon
+                {t("comingSoonPage.badge")}
               </div>
 
               <h1 className="mt-8 text-5xl font-black leading-[0.9] tracking-[-0.07em] text-[#0E0D0C] sm:text-6xl">
@@ -1631,14 +1634,12 @@ function POSComingSoon({ restaurantName }: { restaurantName: string }) {
               </h1>
 
               <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-[#6B6258]">
-                Estamos a finalizar a nova geração do POS para garantir uma
-                experiência estável em sala, caixa, produção, faturação e
-                impressão.
+                {t("comingSoonPage.description")}
               </p>
 
               <div className="mt-8 rounded-[28px] border border-[#E1D0B8] bg-white p-5">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9B6F3B]">
-                  Restaurante
+                  {t("comingSoonPage.restaurantLabel")}
                 </p>
 
                 <p className="mt-2 text-2xl font-black tracking-[-0.045em] text-[#16120E]">
@@ -1653,32 +1654,31 @@ function POSComingSoon({ restaurantName }: { restaurantName: string }) {
               </div>
 
               <h2 className="mt-7 text-center text-3xl font-black tracking-[-0.055em] text-[#0E0D0C]">
-                Em desenvolvimento
+                {t("comingSoonPage.developingTitle")}
               </h2>
 
               <p className="mx-auto mt-3 max-w-md text-center text-sm font-semibold leading-6 text-[#6B6258]">
-                O POS ainda não está disponível para clientes. Quando estiver
-                pronto, será ativado automaticamente nesta área.
+                {t("comingSoonPage.developingDescription")}
               </p>
 
               <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <POSComingSoonFeature text="Gestão de mesas" />
-                <POSComingSoonFeature text="QR Ordering" />
-                <POSComingSoonFeature text="Caixa" />
-                <POSComingSoonFeature text="Produção" />
-                <POSComingSoonFeature text="Impressoras" />
-                <POSComingSoonFeature text="Split bill" />
-                <POSComingSoonFeature text="Mobile POS" />
+                <POSComingSoonFeature text={t("comingSoonPage.features.tables")} />
+                <POSComingSoonFeature text={t("comingSoonPage.features.qrOrdering")} />
+                <POSComingSoonFeature text={t("comingSoonPage.features.cashRegister")} />
+                <POSComingSoonFeature text={t("comingSoonPage.features.invoicing")} />
+                <POSComingSoonFeature text={t("comingSoonPage.features.production")} />
+                <POSComingSoonFeature text={t("comingSoonPage.features.printers")} />
+                <POSComingSoonFeature text={t("comingSoonPage.features.splitBill")} />
+                <POSComingSoonFeature text={t("comingSoonPage.features.mobilePos")} />
               </div>
 
               <div className="mt-8 rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 text-center">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9B6F3B]">
-                  Disponível em breve
+                  {t("comingSoonPage.availableSoonLabel")}
                 </p>
 
                 <p className="mt-2 text-sm font-semibold leading-6 text-[#6B6258]">
-                  Até lá, continua a usar Reservas, Clientes, QR Ordering,
-                  Website e Marketing.
+                  {t("comingSoonPage.availableSoonDescription")}
                 </p>
               </div>
             </div>
@@ -1718,6 +1718,7 @@ function QrOrdersView({
   onReject: (orderId: string) => void;
   onResolveAlert: (alertId: string, type: "waiter" | "bill") => void;
 }) {
+  const t = useTranslations("dashboardPos.client");
   const totalPending = orders.length + alerts.length;
 
   if (totalPending === 0) {
@@ -1725,13 +1726,13 @@ function QrOrdersView({
       <section className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white p-8 text-center">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.36em] text-[#B58A45]">
-            QR Orders
+            {t("qrOrders.eyebrow")}
           </p>
           <h2 className="mt-2 text-[30px] font-black tracking-[-0.05em] text-[#0E0D0C]">
-            Tudo resolvido
+            {t("qrOrders.allResolvedTitle")}
           </h2>
           <p className="mt-3 text-sm font-medium text-[#7D746A]">
-            Pedidos QR, chamadas de empregado e pedidos de conta aparecem aqui.
+            {t("qrOrders.allResolvedDescription")}
           </p>
         </div>
       </section>
@@ -1743,25 +1744,25 @@ function QrOrdersView({
       <div className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
-            QR Orders
+            {t("qrOrders.eyebrow")}
           </p>
           <h2 className="mt-1 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
-            Centro de pedidos QR
+            {t("qrOrders.centerTitle")}
           </h2>
           <p className="mt-1 text-sm font-bold text-[#7D746A]">
-            Pedidos, chamadas de empregado e pedidos de conta.
+            {t("qrOrders.centerDescription")}
           </p>
         </div>
 
         <span className="animate-pulse rounded-full bg-[#11100F] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-[#D8AE62]">
-          {totalPending} pendente{totalPending === 1 ? "" : "s"}
+          {t("qrOrders.pendingBadge", { count: totalPending })}
         </span>
       </div>
 
       {alerts.length > 0 && (
         <div className="mb-5">
           <p className="mb-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#B58A45]">
-            Alertas da mesa
+            {t("qrOrders.tableAlertsLabel")}
           </p>
 
           <div className="grid gap-3 xl:grid-cols-2">
@@ -1779,15 +1780,18 @@ function QrOrdersView({
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-black text-[#0E0D0C]">
-                          Mesa {alertItem.tableNumber}
+                          {t("qrOrders.tableLabel", {
+                            number: alertItem.tableNumber,
+                          })}
                         </p>
                         <p className="mt-1 text-xs font-bold text-[#8B7C68]">
-                          Chamou empregado ·{" "}
-                          {new Date(
-                            alertItem.requestedWaiterAt,
-                          ).toLocaleTimeString("pt-PT", {
-                            hour: "2-digit",
-                            minute: "2-digit",
+                          {t("qrOrders.calledWaiterLabel", {
+                            time: new Date(
+                              alertItem.requestedWaiterAt,
+                            ).toLocaleTimeString("pt-PT", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }),
                           })}
                         </p>
                       </div>
@@ -1800,8 +1804,8 @@ function QrOrdersView({
                       className="mt-4 h-10 w-full rounded-xl bg-[#11100F] text-xs font-black text-white transition hover:bg-[#2A2723] disabled:opacity-50"
                     >
                       {loadingAlertId === key
-                        ? "A resolver..."
-                        : "Marcar resolvido"}
+                        ? t("qrOrders.resolveButtonLoading")
+                        : t("qrOrders.resolveButton")}
                     </button>
                   </div>,
                 );
@@ -1818,15 +1822,18 @@ function QrOrdersView({
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-black text-[#0E0D0C]">
-                          Mesa {alertItem.tableNumber}
+                          {t("qrOrders.tableLabel", {
+                            number: alertItem.tableNumber,
+                          })}
                         </p>
                         <p className="mt-1 text-xs font-bold text-[#8B7C68]">
-                          Pediu a conta ·{" "}
-                          {new Date(
-                            alertItem.requestedBillAt,
-                          ).toLocaleTimeString("pt-PT", {
-                            hour: "2-digit",
-                            minute: "2-digit",
+                          {t("qrOrders.askedBillLabel", {
+                            time: new Date(
+                              alertItem.requestedBillAt,
+                            ).toLocaleTimeString("pt-PT", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }),
                           })}
                         </p>
                       </div>
@@ -1839,8 +1846,8 @@ function QrOrdersView({
                       className="mt-4 h-10 w-full rounded-xl bg-[#11100F] text-xs font-black text-white transition hover:bg-[#2A2723] disabled:opacity-50"
                     >
                       {loadingAlertId === key
-                        ? "A resolver..."
-                        : "Marcar resolvido"}
+                        ? t("qrOrders.resolveButtonLoading")
+                        : t("qrOrders.resolveButton")}
                     </button>
                   </div>,
                 );
@@ -1855,7 +1862,7 @@ function QrOrdersView({
       {orders.length > 0 && (
         <div>
           <p className="mb-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#B58A45]">
-            Pedidos para aprovação
+            {t("qrOrders.ordersForApprovalLabel")}
           </p>
 
           <div className="grid gap-3 xl:grid-cols-2">
@@ -1870,7 +1877,7 @@ function QrOrdersView({
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-black text-[#0E0D0C]">
-                        Mesa {order.tableNumber}
+                        {t("qrOrders.tableLabel", { number: order.tableNumber })}
                       </p>
 
                       <p className="mt-1 text-xs font-bold text-[#8B7C68]">
@@ -1879,8 +1886,9 @@ function QrOrdersView({
                           minute: "2-digit",
                         })}
                         {" · "}
-                        {order.items.length} produto
-                        {order.items.length === 1 ? "" : "s"}
+                        {t("qrOrders.productCount", {
+                          count: order.items.length,
+                        })}
                       </p>
                     </div>
 
@@ -1904,7 +1912,7 @@ function QrOrdersView({
 
                     {order.notes && (
                       <p className="mt-2 rounded-xl bg-[#FFF8EC] px-3 py-2 text-xs font-bold text-[#8B6D3E]">
-                        Nota: {order.notes}
+                        {t("qrOrders.noteLabel", { notes: order.notes })}
                       </p>
                     )}
                   </div>
@@ -1915,7 +1923,7 @@ function QrOrdersView({
                       disabled={loading}
                       className="h-10 rounded-xl border border-[#F0D4C8] bg-[#FFF7F3] text-xs font-black text-[#B4583C] transition hover:bg-[#FFECE3] disabled:opacity-50"
                     >
-                      Rejeitar
+                      {t("qrOrders.rejectButton")}
                     </button>
 
                     <button
@@ -1923,7 +1931,9 @@ function QrOrdersView({
                       disabled={loading}
                       className="h-10 rounded-xl bg-[#11100F] text-xs font-black text-white transition hover:bg-[#2A2723] disabled:opacity-50"
                     >
-                      {loading ? "A guardar..." : "Aceitar pedido"}
+                      {loading
+                        ? t("qrOrders.acceptButtonLoading")
+                        : t("qrOrders.acceptButton")}
                     </button>
                   </div>
                 </div>
@@ -1937,6 +1947,7 @@ function QrOrdersView({
 }
 
 function ProductionView({ jobs }: { jobs: any[] }) {
+  const t = useTranslations("dashboardPos.client");
   const [printerFilter, setPrinterFilter] = useState("ALL");
   const printers = [
     ...new Set(
@@ -1961,7 +1972,7 @@ function ProductionView({ jobs }: { jobs: any[] }) {
     });
 
     if (!response.ok) {
-      alert("Erro ao atualizar impressão.");
+      alert(t("production.printUpdateError"));
       return;
     }
 
@@ -1973,12 +1984,12 @@ function ProductionView({ jobs }: { jobs: any[] }) {
     const centerName =
       job.productionCenter?.name ??
       job.payload?.productionCenter?.name ??
-      "Produção";
+      t("production.eyebrow");
 
     const printerName =
       job.productionCenter?.printerName ??
       job.payload?.productionCenter?.printerName ??
-      "Não definida";
+      t("production.notDefinedLabel");
 
     const html = `
       <!doctype html>
@@ -2034,9 +2045,9 @@ function ProductionView({ jobs }: { jobs: any[] }) {
           <h1>${centerName}</h1>
 
           <div class="meta">
-            Impressora: ${printerName}<br />
-            Origem: ${job.payload?.source ?? "POS"}<br />
-            Hora: ${new Date(job.createdAt).toLocaleTimeString("pt-PT", {
+            ${t("production.printTemplate.printerLabel")} ${printerName}<br />
+            ${t("production.printTemplate.sourceLabel")} ${job.payload?.source ?? "POS"}<br />
+            ${t("production.printTemplate.timeLabel")} ${new Date(job.createdAt).toLocaleTimeString("pt-PT", {
               hour: "2-digit",
               minute: "2-digit",
             })}
@@ -2051,7 +2062,7 @@ function ProductionView({ jobs }: { jobs: any[] }) {
                   ${item.quantity}x ${item.name}
                   ${
                     item.notes
-                      ? `<div class="notes">Nota: ${item.notes}</div>`
+                      ? `<div class="notes">${t("production.printTemplate.noteLabel")} ${item.notes}</div>`
                       : ""
                   }
                 </div>
@@ -2077,7 +2088,7 @@ function ProductionView({ jobs }: { jobs: any[] }) {
     const win = window.open("", "_blank", "width=420,height=700");
 
     if (!win) {
-      alert("O browser bloqueou a janela de impressão.");
+      alert(t("production.printBlockedError"));
       return;
     }
 
@@ -2108,16 +2119,16 @@ function ProductionView({ jobs }: { jobs: any[] }) {
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
-            Produção
+            {t("production.eyebrow")}
           </p>
 
           <h2 className="mt-1 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
-            Tickets pendentes
+            {t("production.title")}
           </h2>
         </div>
 
         <span className="rounded-full bg-[#11100F] px-4 py-2 text-xs font-black uppercase text-white">
-          {jobs.length} pendente{jobs.length === 1 ? "" : "s"}
+          {t("production.pendingBadge", { count: jobs.length })}
         </span>
       </div>
 
@@ -2128,7 +2139,7 @@ function ProductionView({ jobs }: { jobs: any[] }) {
             printerFilter === "ALL" ? "bg-[#11100F] text-white" : "bg-[#F3EEE8]"
           }`}
         >
-          Todas
+          {t("production.allFilter")}
         </button>
 
         {printers.map((printer) => (
@@ -2148,7 +2159,7 @@ function ProductionView({ jobs }: { jobs: any[] }) {
 
       {jobs.length === 0 ? (
         <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] p-6 text-center">
-          <p className="font-bold text-[#7D746A]">Sem tickets pendentes</p>
+          <p className="font-bold text-[#7D746A]">{t("production.noJobsLabel")}</p>
         </div>
       ) : (
         <div className="grid gap-3 xl:grid-cols-2">
@@ -2158,12 +2169,12 @@ function ProductionView({ jobs }: { jobs: any[] }) {
             const centerName =
               job.productionCenter?.name ??
               job.payload?.productionCenter?.name ??
-              "Sem produção";
+              t("production.noCenterLabel");
 
             const printerName =
               job.productionCenter?.printerName ??
               job.payload?.productionCenter?.printerName ??
-              "Não definida";
+              t("production.notDefinedLabel");
 
             return (
               <div
@@ -2177,12 +2188,12 @@ function ProductionView({ jobs }: { jobs: any[] }) {
                     </p>
 
                     <p className="mt-1 text-xs font-bold text-[#8B7C68]">
-                      Impressora:
+                      {t("production.printerLabel")}
                       <span className="ml-1 text-[#0E0D0C]">{printerName}</span>
                     </p>
 
                     <p className="mt-1 text-xs font-bold text-[#8B7C68]">
-                      Método:
+                      {t("production.methodLabel")}
                       <span className="ml-1 text-[#0E0D0C]">
                         {job.productionCenter?.printer?.method ?? "BROWSER"}
                       </span>
@@ -2206,7 +2217,7 @@ function ProductionView({ jobs }: { jobs: any[] }) {
 
                       {item.notes && (
                         <p className="mt-1 text-xs font-bold text-[#9B6F3B]">
-                          Nota: {item.notes}
+                          {t("production.noteLabel", { notes: item.notes })}
                         </p>
                       )}
                     </div>
@@ -2214,10 +2225,11 @@ function ProductionView({ jobs }: { jobs: any[] }) {
                 </div>
 
                 <p className="mt-3 text-[11px] font-bold text-[#8B7C68]">
-                  Criado às{" "}
-                  {new Date(job.createdAt).toLocaleTimeString("pt-PT", {
-                    hour: "2-digit",
-                    minute: "2-digit",
+                  {t("production.createdAtLabel", {
+                    time: new Date(job.createdAt).toLocaleTimeString("pt-PT", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }),
                   })}
                 </p>
 
@@ -2226,21 +2238,21 @@ function ProductionView({ jobs }: { jobs: any[] }) {
                     onClick={() => printJob(job)}
                     className="h-10 rounded-xl border border-[#E8E0D4] bg-white text-xs font-black text-[#0E0D0C]"
                   >
-                    Imprimir
+                    {t("production.printButton")}
                   </button>
 
                   <button
                     onClick={() => updatePrintJob(job.id, "PRINTED")}
                     className="h-10 rounded-xl bg-[#11100F] text-xs font-black text-white"
                   >
-                    Impresso
+                    {t("production.printedButton")}
                   </button>
 
                   <button
                     onClick={() => updatePrintJob(job.id, "FAILED")}
                     className="h-10 rounded-xl border border-red-300/20 bg-[#FFF0EA] text-xs font-black text-[#A14E36]"
                   >
-                    Falhou
+                    {t("production.failedButton")}
                   </button>
                 </div>
               </div>
@@ -2259,14 +2271,15 @@ function POSTabs({
   activeTab: POSTab;
   onChange: (tab: POSTab) => void;
 }) {
+  const t = useTranslations("dashboardPos.client");
   const tabs: { key: POSTab; label: string }[] = [
-    { key: "TABLES", label: "Mesas" },
-    { key: "CASH", label: "Caixa" },
-    { key: "SERVICE", label: "Serviço" },
-    { key: "KITCHEN", label: "QR Orders" },
-    { key: "PRODUCTION", label: "Produção" },
-    { key: "HISTORY", label: "Histórico" },
-    { key: "STATS", label: "Estatísticas" },
+    { key: "TABLES", label: t("tabs.tables") },
+    { key: "CASH", label: t("tabs.cash") },
+    { key: "SERVICE", label: t("tabs.service") },
+    { key: "KITCHEN", label: t("tabs.kitchen") },
+    { key: "PRODUCTION", label: t("tabs.production") },
+    { key: "HISTORY", label: t("tabs.history") },
+    { key: "STATS", label: t("tabs.stats") },
   ];
 
   return (
@@ -2313,6 +2326,8 @@ function CashRegisterView({
   onCashIn: () => void;
   onCashOut: () => void;
 }) {
+  const t = useTranslations("dashboardPos.client");
+
   if (!openCashRegister) {
     return (
       <section className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white p-8">
@@ -2322,18 +2337,17 @@ function CashRegisterView({
           </div>
 
           <p className="mt-7 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
-            Caixa fechada
+            {t("cashRegister.closedTitle")}
           </p>
           <p className="mx-auto mt-3 max-w-[320px] text-sm leading-6 text-[#7D746A]">
-            Abre a caixa antes de começar o serviço para associar os pagamentos
-            do POS ao fecho do dia.
+            {t("cashRegister.closedDescription")}
           </p>
 
           <button
             onClick={onOpenCash}
             className="mt-7 rounded-2xl bg-[#11100F] px-7 py-4 text-sm font-black text-white shadow-[0_18px_35px_rgba(0,0,0,0.16)] transition hover:translate-y-[-1px]"
           >
-            Abrir caixa
+            {t("cashRegister.openButton")}
           </button>
         </div>
       </section>
@@ -2341,12 +2355,12 @@ function CashRegisterView({
   }
 
   const cards = [
-    { label: "Valor inicial", value: openingAmount },
-    { label: "Dinheiro", value: cashTotal },
-    { label: "Multibanco", value: cardTotal },
-    { label: "Transferência", value: transferTotal },
-    { label: "Total recebido", value: registerTotal },
-    { label: "Dinheiro esperado", value: expectedCash },
+    { label: t("cashRegister.cards.openingAmount"), value: openingAmount },
+    { label: t("cashRegister.cards.cash"), value: cashTotal },
+    { label: t("cashRegister.cards.card"), value: cardTotal },
+    { label: t("cashRegister.cards.transfer"), value: transferTotal },
+    { label: t("cashRegister.cards.totalReceived"), value: registerTotal },
+    { label: t("cashRegister.cards.expectedCash"), value: expectedCash },
   ];
 
   return (
@@ -2354,16 +2368,20 @@ function CashRegisterView({
       <div className="mb-6 flex items-start justify-between gap-5">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.36em] text-[#B58A45]">
-            Caixa
+            {t("cashRegister.eyebrow")}
           </p>
           <h2 className="mt-2 text-[32px] font-black tracking-[-0.05em] text-[#0E0D0C]">
-            Caixa aberta
+            {t("cashRegister.openTitle")}
           </h2>
           <p className="mt-2 text-sm font-medium text-[#7D746A]">
-            Aberta desde{" "}
-            {new Date(openCashRegister.openedAt).toLocaleTimeString("pt-PT", {
-              hour: "2-digit",
-              minute: "2-digit",
+            {t("cashRegister.openSince", {
+              time: new Date(openCashRegister.openedAt).toLocaleTimeString(
+                "pt-PT",
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                },
+              ),
             })}
           </p>
         </div>
@@ -2375,21 +2393,21 @@ function CashRegisterView({
             }}
             className="rounded-2xl border border-[#D7EAD9] bg-[#F4FFF5] px-4 py-3 text-sm font-black text-[#166534]"
           >
-            + Entrada
+            {t("cashRegister.cashInButton")}
           </button>
 
           <button
             onClick={onCashOut}
             className="rounded-2xl border border-[#F1D5D5] bg-[#FFF5F5] px-4 py-3 text-sm font-black text-[#991B1B]"
           >
-            - Saída
+            {t("cashRegister.cashOutButton")}
           </button>
 
           <button
             onClick={onCloseCash}
             className="rounded-2xl border border-[#D8AE62] bg-white px-5 py-3 text-sm font-black text-[#0E0D0C] transition hover:bg-[#FBF4E8]"
           >
-            Fechar caixa
+            {t("cashRegister.closeButton")}
           </button>
         </div>
       </div>
@@ -2413,7 +2431,7 @@ function CashRegisterView({
       {openCashRegister.movements.length > 0 && (
         <div className="mt-5 rounded-[24px] border border-[#E8E0D4] bg-white p-5">
           <p className="text-xs font-black uppercase tracking-[0.22em] text-[#B58A45]">
-            Movimentos de caixa
+            {t("cashRegister.movementsTitle")}
           </p>
 
           <div className="mt-4 space-y-3">
@@ -2427,11 +2445,13 @@ function CashRegisterView({
                 >
                   <div>
                     <p className="text-sm font-black text-[#0E0D0C]">
-                      {isIn ? "Entrada" : "Saída"}
+                      {isIn
+                        ? t("cashRegister.movementIn")
+                        : t("cashRegister.movementOut")}
                     </p>
 
                     <p className="mt-1 text-xs font-bold text-[#8B7C68]">
-                      {movement.reason || "Sem motivo"}
+                      {movement.reason || t("cashRegister.noReason")}
                     </p>
                   </div>
 
@@ -2454,12 +2474,12 @@ function CashRegisterView({
 
       <div className="mt-5 rounded-[24px] border border-[#E8E0D4] bg-white p-5">
         <p className="text-xs font-black uppercase tracking-[0.22em] text-[#B58A45]">
-          Pagamentos
+          {t("cashRegister.paymentsTitle")}
         </p>
         <p className="mt-2 text-sm font-medium text-[#7D746A]">
-          {openCashRegister.payments.length} pagamento
-          {openCashRegister.payments.length === 1 ? "" : "s"} associado
-          {openCashRegister.payments.length === 1 ? "" : "s"} a esta caixa.
+          {t("cashRegister.paymentsAssociated", {
+            count: openCashRegister.payments.length,
+          })}
         </p>
       </div>
     </section>
@@ -2473,6 +2493,7 @@ function ServiceView({
   sessions: POSTableSession[];
   todayPayments: POSTodayPayment[];
 }) {
+  const t = useTranslations("dashboardPos.client");
   const openTables = sessions.filter((session) => session.tableId).length;
   const seatedGuests = sessions.reduce(
     (sum, session) => sum + Number(session.guestCount ?? 1),
@@ -2516,15 +2537,17 @@ function ServiceView({
       <div className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B58A45]">
-            Serviço
+            {t("service.eyebrow")}
           </p>
           <h2 className="mt-1 text-2xl font-black tracking-[-0.04em] text-[#0E0D0C]">
-            Hoje
+            {t("service.title")}
           </h2>
         </div>
 
         <div className="text-right">
-          <p className="text-xs font-bold text-[#8B7C68]">Total previsto</p>
+          <p className="text-xs font-bold text-[#8B7C68]">
+            {t("service.totalProjectedLabel")}
+          </p>
           <p className="text-3xl font-black tracking-[-0.06em] text-[#0E0D0C]">
             {formatMoney(totalProjectedRevenue)}
           </p>
@@ -2532,20 +2555,32 @@ function ServiceView({
       </div>
 
       <div className="grid grid-cols-4 gap-3">
-        <SmallMetric label="Faturado" value={formatMoney(closedRevenue)} />
-        <SmallMetric label="Em aberto" value={formatMoney(openRevenue)} />
-        <SmallMetric label="Mesas abertas" value={String(openTables)} />
-        <SmallMetric label="Pessoas" value={String(totalGuests)} />
+        <SmallMetric
+          label={t("service.invoicedLabel")}
+          value={formatMoney(closedRevenue)}
+        />
+        <SmallMetric
+          label={t("service.openLabel")}
+          value={formatMoney(openRevenue)}
+        />
+        <SmallMetric
+          label={t("service.openTablesLabel")}
+          value={String(openTables)}
+        />
+        <SmallMetric label={t("service.peopleLabel")} value={String(totalGuests)} />
       </div>
 
       <div className="mt-4 grid grid-cols-4 gap-3">
         <SmallMetric
-          label="Ticket/pessoa"
+          label={t("service.ticketPerPersonLabel")}
           value={formatMoney(averagePerGuest)}
         />
-        <SmallMetric label="Dinheiro" value={formatMoney(cashTotal)} />
-        <SmallMetric label="Multibanco" value={formatMoney(cardTotal)} />
-        <SmallMetric label="Transferência" value={formatMoney(transferTotal)} />
+        <SmallMetric label={t("service.cashLabel")} value={formatMoney(cashTotal)} />
+        <SmallMetric label={t("service.cardLabel")} value={formatMoney(cardTotal)} />
+        <SmallMetric
+          label={t("service.transferLabel")}
+          value={formatMoney(transferTotal)}
+        />
       </div>
     </section>
   );
@@ -2571,6 +2606,7 @@ function HistoryView({
   payments: POSHistoryPayment[];
   loading: boolean;
 }) {
+  const t = useTranslations("dashboardPos.client");
   const total = payments.reduce(
     (sum, payment) => sum + Number(payment.amount ?? 0),
     0,
@@ -2589,9 +2625,9 @@ function HistoryView({
     .reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
 
   const methodLabel = (method: string) => {
-    if (method === "CASH") return "Dinheiro";
-    if (method === "CARD") return "Multibanco";
-    if (method === "BANK_TRANSFER") return "Transferência";
+    if (method === "CASH") return t("history.methods.cash");
+    if (method === "CARD") return t("history.methods.card");
+    if (method === "BANK_TRANSFER") return t("history.methods.bankTransfer");
     return method;
   };
 
@@ -2600,19 +2636,19 @@ function HistoryView({
       <div className="mb-6 flex items-start justify-between gap-5">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.36em] text-[#B58A45]">
-            Histórico
+            {t("history.eyebrow")}
           </p>
           <h2 className="mt-2 text-[32px] font-black tracking-[-0.05em] text-[#0E0D0C]">
-            Pagamentos
+            {t("history.title")}
           </h2>
           <p className="mt-2 text-sm font-medium text-[#7D746A]">
-            Últimos {payments.length} pagamentos fechados no POS.
+            {t("history.subtitle", { count: payments.length })}
           </p>
         </div>
 
         <div className="rounded-2xl border border-[#E8E0D4] bg-[#FCFBF9] px-5 py-4 text-right">
           <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#B58A45]">
-            Total
+            {t("history.totalLabel")}
           </p>
           <p className="mt-1 text-[28px] font-black tracking-[-0.06em] text-[#0E0D0C]">
             {formatMoney(total)}
@@ -2623,7 +2659,7 @@ function HistoryView({
       <div className="mb-5 grid grid-cols-3 gap-3">
         <div className="rounded-[22px] border border-[#EEE7DD] bg-[#FCFBF9] p-4">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7C68]">
-            Dinheiro
+            {t("history.cashLabel")}
           </p>
           <p className="mt-2 text-xl font-black text-[#0E0D0C]">
             {formatMoney(cashTotal)}
@@ -2632,7 +2668,7 @@ function HistoryView({
 
         <div className="rounded-[22px] border border-[#EEE7DD] bg-[#FCFBF9] p-4">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7C68]">
-            Multibanco
+            {t("history.cardLabel")}
           </p>
           <p className="mt-2 text-xl font-black text-[#0E0D0C]">
             {formatMoney(cardTotal)}
@@ -2641,7 +2677,7 @@ function HistoryView({
 
         <div className="rounded-[22px] border border-[#EEE7DD] bg-[#FCFBF9] p-4">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7C68]">
-            Transferência
+            {t("history.transferLabel")}
           </p>
           <p className="mt-2 text-xl font-black text-[#0E0D0C]">
             {formatMoney(transferTotal)}
@@ -2651,16 +2687,16 @@ function HistoryView({
 
       {loading ? (
         <div className="flex min-h-[260px] items-center justify-center rounded-[24px] border border-[#E8E0D4] bg-[#FCFBF9] text-sm font-black text-[#8B7C68]">
-          A carregar histórico...
+          {t("history.loadingLabel")}
         </div>
       ) : payments.length === 0 ? (
         <div className="flex min-h-[260px] items-center justify-center rounded-[24px] border border-[#E8E0D4] bg-[#FCFBF9] text-center">
           <div>
             <p className="text-xl font-black text-[#0E0D0C]">
-              Ainda sem pagamentos
+              {t("history.emptyTitle")}
             </p>
             <p className="mt-2 text-sm font-medium text-[#7D746A]">
-              Quando fechares mesas, os pagamentos aparecem aqui.
+              {t("history.emptyDescription")}
             </p>
           </div>
         </div>
@@ -2682,7 +2718,9 @@ function HistoryView({
                 <div className="flex items-start justify-between gap-5">
                   <div>
                     <p className="text-sm font-black text-[#0E0D0C]">
-                      {tableNumber ? `Mesa ${tableNumber}` : "Venda rápida"}
+                      {tableNumber
+                        ? t("history.tableLabel", { number: tableNumber })
+                        : t("history.quickSaleLabel")}
                     </p>
 
                     <p className="mt-1 text-xs font-bold text-[#8B7C68]">
@@ -2716,7 +2754,9 @@ function HistoryView({
 
                       {aggregatedItems.length > 5 && (
                         <p className="text-xs font-bold text-[#B58A45]">
-                          + {aggregatedItems.length - 5} produtos
+                          {t("history.moreProductsLabel", {
+                            count: aggregatedItems.length - 5,
+                          })}
                         </p>
                       )}
                     </div>
@@ -4458,6 +4498,7 @@ function CartLineEditorModal({
     />
   );
 }
+
 function LineEditorModal({
   line,
   loading,

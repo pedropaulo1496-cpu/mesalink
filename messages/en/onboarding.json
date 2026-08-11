@@ -1,0 +1,29 @@
+{
+  "badge": "7-day free trial",
+  "aside": {
+    "label": "Onboarding",
+    "title": "Set up your restaurant.",
+    "description": "Create your dashboard to start taking reservations, manage customers, publish your website, and prepare for growth with CRM, Marketing, and QR Ordering.",
+    "steps": {
+      "step1": "Create restaurant",
+      "step2": "Set up hours and tables",
+      "step3": "Activate reservations, website, and QR"
+    },
+    "trial": {
+      "title": "Full trial included",
+      "text": "For 7 days, explore MesaLink with no commitment."
+    }
+  },
+  "form": {
+    "label": "Restaurant details",
+    "title": "Create restaurant",
+    "description": "This information appears on the dashboard, your website, and the public booking page. You can change everything later.",
+    "errorEmail": "Enter a valid email or leave the field blank.",
+    "namePlaceholder": "Restaurant name",
+    "emailPlaceholder": "Restaurant email",
+    "phonePlaceholder": "Phone",
+    "addressPlaceholder": "Address",
+    "submit": "Create restaurant →",
+    "footnote": "MesaLink connects reservations, website, QR Ordering, customers, marketing, and operations."
+  }
+}

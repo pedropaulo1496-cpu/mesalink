@@ -1,6 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+
+const orderDateLocales: Record<string, string> = {
+  pt: "pt-PT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  es: "es-ES",
+};
 
 type Product = {
   id: string;
@@ -54,12 +65,15 @@ type TableSession = {
   orders: SessionOrder[];
 } | null;
 
-function statusLabel(status: string) {
-  if (status === "PENDING") return "Recebido";
-  if (status === "PREPARING") return "A preparar";
-  if (status === "READY") return "Pronto";
-  if (status === "DELIVERED") return "Entregue";
-  if (status === "CANCELLED") return "Cancelado";
+function statusLabel(
+  status: string,
+  t: (key: string) => string,
+) {
+  if (status === "PENDING") return t("statusLabels.pending");
+  if (status === "PREPARING") return t("statusLabels.preparing");
+  if (status === "READY") return t("statusLabels.ready");
+  if (status === "DELIVERED") return t("statusLabels.delivered");
+  if (status === "CANCELLED") return t("statusLabels.cancelled");
   return status;
 }
 
@@ -79,8 +93,8 @@ function statusTone(status: string) {
   return "border-[#E1D0B8] bg-[#F7F0E7] text-[#6B6258]";
 }
 
-function orderTime(date: string) {
-  return new Date(date).toLocaleTimeString("pt-PT", {
+function orderTime(date: string, intlLocale: string) {
+  return new Date(date).toLocaleTimeString(intlLocale, {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -107,6 +121,9 @@ export default function PublicOrderingClient({
   qrAllowBillRequest: boolean;
   qrWelcomeMessage: string | null;
 }) {
+  const t = useTranslations("publicFlows.qrOrdering");
+  const locale = useLocale();
+  const intlLocale = orderDateLocales[locale] ?? "pt-PT";
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [isRequestingBill, setIsRequestingBill] = useState(false);
@@ -165,16 +182,20 @@ export default function PublicOrderingClient({
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#F5EFE6] p-6 text-[#16120E]">
         <div className="max-w-md rounded-[32px] border border-[#E1D0B8] bg-white p-8 text-center shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
+          <div className="mb-4 flex items-center justify-end">
+            <LanguageSwitcher />
+          </div>
+
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
             MesaLink QR Ordering
           </p>
 
           <h1 className="mt-3 text-2xl font-semibold tracking-[-0.05em]">
-            QR Ordering indisponível
+            {t("unavailableTitle")}
           </h1>
 
           <p className="mt-3 text-sm font-medium leading-6 text-[#6B6258]">
-            Este restaurante desativou temporariamente os pedidos por QR Code.
+            {t("unavailableText")}
           </p>
         </div>
       </main>
@@ -250,10 +271,10 @@ export default function PublicOrderingClient({
       }
 
       setCart([]);
-      setSuccessMessage("Pedido enviado com sucesso.");
+      setSuccessMessage(t("messages.orderSuccess"));
       await loadSession();
     } catch {
-      setSuccessMessage("Não foi possível enviar o pedido. Tente novamente.");
+      setSuccessMessage(t("messages.orderError"));
     } finally {
       setIsSending(false);
     }
@@ -286,15 +307,15 @@ export default function PublicOrderingClient({
 
       if (!response.ok) {
         console.error("request waiter failed:", data);
-        setSuccessMessage(data?.error || "Não foi possível chamar o empregado.");
+        setSuccessMessage(data?.error || t("messages.waiterError"));
         return;
       }
 
       await loadSession();
-      setSuccessMessage("Empregado chamado.");
+      setSuccessMessage(t("messages.waiterCalled"));
     } catch (error) {
       console.error("request waiter catch:", error);
-      setSuccessMessage("Não foi possível chamar o empregado.");
+      setSuccessMessage(t("messages.waiterError"));
     } finally {
       setIsRequestingWaiter(false);
     }
@@ -318,9 +339,9 @@ export default function PublicOrderingClient({
       }
 
       await loadSession();
-      setSuccessMessage("Conta pedida.");
+      setSuccessMessage(t("messages.billRequested"));
     } catch {
-      setSuccessMessage("Não foi possível pedir a conta.");
+      setSuccessMessage(t("messages.billError"));
     } finally {
       setIsRequestingBill(false);
     }
@@ -330,9 +351,13 @@ export default function PublicOrderingClient({
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
       <div className="mx-auto max-w-md px-4 pb-36 pt-5">
         <header className="sticky top-0 z-20 -mx-4 border-b border-[#E1D0B8] bg-[#F5EFE6]/92 px-4 pb-4 pt-3 backdrop-blur-xl">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#9B6F3B]">
-            MesaLink QR Ordering
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#9B6F3B]">
+              MesaLink QR Ordering
+            </p>
+
+            <LanguageSwitcher />
+          </div>
 
           <div className="mt-2 flex items-end justify-between gap-3">
             <div>
@@ -341,7 +366,7 @@ export default function PublicOrderingClient({
               </h1>
 
               <p className="mt-1 text-sm font-medium text-[#6B6258]">
-                Mesa {tableNumber}
+                {t("table", { number: tableNumber })}
               </p>
             </div>
           </div>
@@ -350,13 +375,13 @@ export default function PublicOrderingClient({
             <div className="mt-4 flex flex-wrap gap-2">
               {session?.requestedWaiterAt && (
                 <span className="rounded-full border border-[#E1D0B8] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6B6258]">
-                  Empregado chamado
+                  {t("waiterCalledBadge")}
                 </span>
               )}
 
               {session?.requestedBillAt && (
                 <span className="rounded-full border border-[#E8D2A3] bg-[#FFF1D0] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-                  Conta pedida
+                  {t("billRequestedBadge")}
                 </span>
               )}
             </div>
@@ -381,10 +406,10 @@ export default function PublicOrderingClient({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9B6F3B]">
-                Pedido da mesa
+                {t("orderStatus.title")}
               </p>
               <h2 className="mt-1 text-xl font-semibold tracking-[-0.05em]">
-                Estado atual
+                {t("orderStatus.subtitle")}
               </h2>
             </div>
 
@@ -393,22 +418,32 @@ export default function PublicOrderingClient({
               onClick={loadSession}
               className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-1 text-[10px] font-semibold uppercase text-[#6B6258] transition hover:bg-[#F7F0E7]"
             >
-              {isLoadingSession ? "..." : "Atualizar"}
+              {isLoadingSession ? t("orderStatus.refreshing") : t("orderStatus.refresh")}
             </button>
           </div>
 
           {!session || session.orders.length === 0 ? (
             <p className="mt-4 text-sm font-medium text-[#6B6258]">
-              Ainda não há pedidos nesta mesa.
+              {t("orderStatus.empty")}
             </p>
           ) : (
             <div className="mt-4 space-y-4">
               {activeOrders.length > 0 && (
-                <OrderGroup title="Pedidos ativos" orders={activeOrders} />
+                <OrderGroup
+                  title={t("orderStatus.activeOrders")}
+                  orders={activeOrders}
+                  t={t}
+                  intlLocale={intlLocale}
+                />
               )}
 
               {deliveredOrders.length > 0 && (
-                <OrderGroup title="Histórico" orders={deliveredOrders} />
+                <OrderGroup
+                  title={t("orderStatus.history")}
+                  orders={deliveredOrders}
+                  t={t}
+                  intlLocale={intlLocale}
+                />
               )}
             </div>
           )}
@@ -422,7 +457,7 @@ export default function PublicOrderingClient({
                   disabled={isRequestingWaiter}
                   className="h-11 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-xs font-semibold text-[#16120E] transition hover:bg-[#F7F0E7] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {isRequestingWaiter ? "A chamar..." : "Chamar empregado"}
+                  {isRequestingWaiter ? t("actions.callingWaiter") : t("actions.callWaiter")}
                 </button>
               )}
 
@@ -433,7 +468,7 @@ export default function PublicOrderingClient({
                   disabled={!session?.id || isRequestingBill}
                   className="h-11 rounded-full border border-[#E8D2A3] bg-[#FFF1D0] px-3 text-xs font-semibold text-[#9B6F3B] transition hover:bg-[#FFF9F0] disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {isRequestingBill ? "A pedir..." : "Pedir conta"}
+                  {isRequestingBill ? t("actions.requestingBill") : t("actions.requestBill")}
                 </button>
               )}
             </div>
@@ -441,8 +476,7 @@ export default function PublicOrderingClient({
 
           {!session?.id && (qrAllowWaiterCall || qrAllowBillRequest) && (
             <p className="mt-2 text-center text-[11px] font-medium text-[#8B8177]">
-              Pode chamar o empregado antes de fazer pedido. A conta fica
-              disponível depois de abrir a mesa.
+              {t("actions.hint")}
             </p>
           )}
         </section>
@@ -456,7 +490,7 @@ export default function PublicOrderingClient({
                     {category.name}
                   </h2>
                   <p className="mt-1 text-xs font-medium text-[#6B6258]">
-                    {category.products.length} produto(s)
+                    {t("product.count", { count: category.products.length })}
                   </p>
                 </div>
 
@@ -501,12 +535,12 @@ export default function PublicOrderingClient({
 
                           <div className="mt-2 flex flex-wrap gap-1.5">
                             <span className="rounded-full border border-[#E1D0B8] bg-[#F7F0E7] px-2 py-0.5 text-[9px] font-semibold text-[#6B6258]">
-                              IVA {product.vatRate}%
+                              {t("product.vat", { rate: product.vatRate })}
                             </span>
 
                             {product.featured && (
                               <span className="rounded-full border border-[#E8D2A3] bg-[#FFF1D0] px-2 py-0.5 text-[9px] font-semibold text-[#9B6F3B]">
-                                Destaque
+                                {t("product.featured")}
                               </span>
                             )}
                           </div>
@@ -544,7 +578,7 @@ export default function PublicOrderingClient({
                                 onClick={() => addToCart(product)}
                                 className="rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white"
                               >
-                                Adicionar
+                                {t("product.add")}
                               </button>
                             )}
                           </div>
@@ -564,8 +598,8 @@ export default function PublicOrderingClient({
           <div className="flex items-center justify-between gap-3 rounded-full border border-[#E1D0B8] bg-white p-2 pl-5 shadow-[0_18px_55px_rgba(80,55,30,0.09)]">
             <p className="text-sm font-semibold text-[#16120E]">
               {cartCount > 0
-                ? `${cartCount} item(s) · ${total.toFixed(2)}€`
-                : "Carrinho vazio"}
+                ? t("cart.summary", { count: cartCount, total: total.toFixed(2) })
+                : t("cart.empty")}
             </p>
 
             <button
@@ -574,7 +608,7 @@ export default function PublicOrderingClient({
               disabled={cart.length === 0 || isSending}
               className="rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {isSending ? "A enviar..." : "Enviar pedido"}
+              {isSending ? t("cart.sending") : t("cart.send")}
             </button>
           </div>
         </div>
@@ -586,9 +620,13 @@ export default function PublicOrderingClient({
 function OrderGroup({
   title,
   orders,
+  t,
+  intlLocale,
 }: {
   title: string;
   orders: SessionOrder[];
+  t: (key: string, values?: Record<string, string | number>) => string;
+  intlLocale: string;
 }) {
   return (
     <div>
@@ -609,11 +647,11 @@ function OrderGroup({
                     order.status,
                   )}`}
                 >
-                  {statusLabel(order.status)}
+                  {statusLabel(order.status, t)}
                 </span>
 
                 <span className="text-[11px] font-semibold text-[#8B8177]">
-                  {orderTime(order.createdAt)}
+                  {orderTime(order.createdAt, intlLocale)}
                 </span>
               </div>
 

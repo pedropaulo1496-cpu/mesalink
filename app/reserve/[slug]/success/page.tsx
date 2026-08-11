@@ -1,3 +1,15 @@
+import { getLocale, getTranslations } from "next-intl/server";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+
+const successDateLocales: Record<string, string> = {
+  pt: "pt-PT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  es: "es-ES",
+};
+
 export default async function ReservationSuccessPage({
   searchParams,
 }: {
@@ -10,6 +22,10 @@ export default async function ReservationSuccessPage({
   }>;
 }) {
   const { name, guests, date, status, already } = await searchParams;
+
+  const t = await getTranslations("publicFlows.reserveSuccess");
+  const locale = await getLocale();
+  const intlLocale = successDateLocales[locale] ?? "pt-PT";
 
   const reservationDate = date ? new Date(date) : null;
   const isPending = status === "PENDING";
@@ -31,6 +47,10 @@ export default async function ReservationSuccessPage({
             </div>
           </div>
 
+          <div className="mb-4 flex items-center justify-end">
+            <LanguageSwitcher />
+          </div>
+
           <div className="text-center">
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
               MesaLink
@@ -38,35 +58,35 @@ export default async function ReservationSuccessPage({
 
             <h1 className="text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">
               {isAlreadyBooked
-                ? "Reserva já efetuada"
+                ? t("titleAlready")
                 : isPending
-                  ? "Pedido recebido"
-                  : "Reserva confirmada"}
+                  ? t("titlePending")
+                  : t("titleConfirmed")}
             </h1>
 
             <p className="mt-3 text-sm leading-6 text-[#6B6258]">
               {isAlreadyBooked
-                ? "Esta reserva já se encontrava registada — não é preciso voltar a submeter."
+                ? t("textAlready")
                 : isPending
-                  ? "O restaurante recebeu o seu pedido e irá responder em breve."
-                  : "A sua reserva foi registada com sucesso."}
+                  ? t("textPending")
+                  : t("textConfirmed")}
             </p>
           </div>
 
           <div className="mt-8 space-y-3 rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-            {name && <InfoRow label="Nome" value={name} />}
-            {guests && <InfoRow label="Pessoas" value={guests} />}
+            {name && <InfoRow label={t("labels.name")} value={name} />}
+            {guests && <InfoRow label={t("labels.guests")} value={guests} />}
 
             {reservationDate && (
               <>
                 <InfoRow
-                  label="Data"
-                  value={reservationDate.toLocaleDateString("pt-PT")}
+                  label={t("labels.date")}
+                  value={reservationDate.toLocaleDateString(intlLocale)}
                 />
 
                 <InfoRow
-                  label="Hora"
-                  value={reservationDate.toLocaleTimeString("pt-PT", {
+                  label={t("labels.time")}
+                  value={reservationDate.toLocaleTimeString(intlLocale, {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -75,8 +95,8 @@ export default async function ReservationSuccessPage({
             )}
 
             <InfoRow
-              label="Estado"
-              value={isPending ? "Pendente de aprovação" : "Confirmada"}
+              label={t("labels.status")}
+              value={isPending ? t("statusPending") : t("statusConfirmed")}
               highlight
             />
           </div>
@@ -87,11 +107,11 @@ export default async function ReservationSuccessPage({
             rel="noopener noreferrer"
             className="mt-6 flex h-12 w-full items-center justify-center rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:bg-[#2A2118] active:scale-[0.99]"
           >
-            Conhecer o MesaLink
+            {t("cta")}
           </a>
 
           <p className="mt-6 text-center text-xs text-[#9B8F82]">
-            Powered by <span className="font-semibold text-[#6B6258]">MesaLink</span>
+            {t("poweredBy")}
           </p>
         </div>
       </section>

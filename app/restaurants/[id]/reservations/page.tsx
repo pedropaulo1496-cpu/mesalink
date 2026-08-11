@@ -7,6 +7,18 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import { getLocale, getTranslations } from "next-intl/server";
+
+const dashboardDateLocales: Record<string, string> = {
+  pt: "pt-PT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  es: "es-ES",
+};
+
+const weekdayKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
 function isLunch(date: Date) {
   return date.getHours() < 17;
@@ -27,13 +39,10 @@ async function updateReservationStatus(formData: FormData) {
   redirect(`/restaurants/${restaurantId}/reservations`);
 }
 
-function getApprovalReasonLabel(reason: string | null) {
-  const labels: Record<string, string> = {
-    LARGE_GROUP: "Grupo grande",
-    TABLE_MERGE: "Junção de mesas",
-    CAPACITY_LIMIT: "Limite de capacidade",
-  };
-
+function getApprovalReasonLabel(
+  reason: string | null,
+  labels: Record<string, string>,
+) {
   return reason ? labels[reason] ?? reason : null;
 }
 
@@ -87,6 +96,10 @@ export default async function ReservationsPage({
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
 
+  const t = await getTranslations("dashboardCrm.reservations.list");
+  const locale = await getLocale();
+  const intlLocale = dashboardDateLocales[locale] ?? "pt-PT";
+
     const currentDate = query.month ? new Date(`${query.month}-01`) : new Date();
 
   const year = currentDate.getFullYear();
@@ -128,7 +141,7 @@ export default async function ReservationsPage({
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
-        Restaurante não encontrado.
+        {t("notFound")}
       </main>
     );
   }
@@ -157,7 +170,12 @@ export default async function ReservationsPage({
     (reservation) => reservation.status === "PENDING",
   );
 
-  const monthName = currentDate.toLocaleDateString("pt-PT", {
+  const approvalReasonLabels = t.raw("approvalReasons" as never) as Record<
+    string,
+    string
+  >;
+
+  const monthName = currentDate.toLocaleDateString(intlLocale, {
     month: "long",
     year: "numeric",
   });
@@ -168,14 +186,14 @@ export default async function ReservationsPage({
         <RestaurantSidebar
   id={id}
   restaurantName={restaurant.name}
-  active="Reservas"
+  active="reservations"
 />
 
         <section className="min-w-0 px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
   <div>
     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-      Reservas
+      {t("header.eyebrow")}
     </p>
 
     <h1 className="mt-2 text-4xl font-semibold capitalize tracking-[-0.065em] sm:text-5xl">
@@ -195,7 +213,7 @@ export default async function ReservationsPage({
       href={`/restaurants/${id}/reservations?month=${thisMonth}`}
       className="flex h-10 items-center justify-center rounded-full px-5 text-sm font-semibold transition hover:bg-[#FFF9F0]"
     >
-      Hoje
+      {t("header.today")}
     </Link>
 
     <Link
@@ -211,7 +229,7 @@ export default async function ReservationsPage({
       href={`/restaurants/${id}/reservations/new`}
       className="flex h-10 items-center justify-center rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
     >
-      + Nova reserva
+      + {t("header.newReservation")}
     </Link>
   </div>
 </header>
@@ -220,15 +238,14 @@ export default async function ReservationsPage({
             <section className="mt-6 rounded-[28px] border border-[#D8C5A5] bg-[#FFF9F0] p-5">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div>
-                  <SectionLabel>Aprovações</SectionLabel>
+                  <SectionLabel>{t("approvals.eyebrow")}</SectionLabel>
                   <h2 className="mt-2 text-2xl font-semibold tracking-[-0.055em]">
-                    Reservas que precisam de decisão
+                    {t("approvals.heading")}
                   </h2>
                 </div>
 
                 <span className="w-fit rounded-full bg-[#16120E] px-4 py-2 text-sm font-semibold text-white">
-                  {pendingReservations.length} pendente
-                  {pendingReservations.length === 1 ? "" : "s"}
+                  {t("approvals.pendingCount", { count: pendingReservations.length })}
                 </span>
               </div>
 
@@ -238,6 +255,11 @@ export default async function ReservationsPage({
                     key={reservation.id}
                     restaurantId={id}
                     reservation={reservation}
+                    intlLocale={intlLocale}
+                    guestsLabel={(count: number) =>
+                      t("approvals.guests", { count })
+                    }
+                    approvalReasonLabels={approvalReasonLabels}
                   />
                 ))}
               </div>
@@ -248,16 +270,16 @@ export default async function ReservationsPage({
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 
               <div className="flex flex-wrap gap-4 text-sm text-[#6B6258]">
-                <LegendDot color="bg-[#ECF7EC]" label="Baixa ocupação" />
-                <LegendDot color="bg-[#FFF1D0]" label="Média" />
-                <LegendDot color="bg-[#FFF0EA]" label="Alta" />
+                <LegendDot color="bg-[#ECF7EC]" label={t("legend.low")} />
+                <LegendDot color="bg-[#FFF1D0]" label={t("legend.medium")} />
+                <LegendDot color="bg-[#FFF0EA]" label={t("legend.high")} />
               </div>
             </div>
 
             <div className="mt-6 grid grid-cols-7 border-y border-l border-[#E8DCCB] text-center text-xs font-semibold uppercase tracking-[0.16em] text-[#6B6258]">
-              {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => (
+              {weekdayKeys.map((day) => (
                 <div key={day} className="border-r border-[#E8DCCB] px-3 py-3">
-                  {day}
+                  {t(`weekdays.${day}`)}
                 </div>
               ))}
             </div>
@@ -303,6 +325,8 @@ export default async function ReservationsPage({
                     reservations={dayReservations.length}
                     pending={pendingCount}
                     occupancy={occupancy}
+                    lunchLabel={t("calendar.lunch")}
+                    dinnerLabel={t("calendar.dinner")}
                   />
                 );
               })}
@@ -326,6 +350,8 @@ function CalendarDay({
   reservations,
   pending,
   occupancy,
+  lunchLabel,
+  dinnerLabel,
 }: {
   restaurantId: string;
   date: Date;
@@ -336,6 +362,8 @@ function CalendarDay({
   reservations: number;
   pending: number;
   occupancy: number;
+  lunchLabel: string;
+  dinnerLabel: string;
 }) {
   const key = dateKey(date);
 
@@ -375,8 +403,8 @@ function CalendarDay({
 
       {hasActivity ? (
         <div className="mt-4 space-y-2">
-          <CompactService label="Almoço" value={lunchGuests} />
-          <CompactService label="Jantar" value={dinnerGuests} />
+          <CompactService label={lunchLabel} value={lunchGuests} />
+          <CompactService label={dinnerLabel} value={dinnerGuests} />
 
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#E8DCCB]">
             <div
@@ -404,6 +432,9 @@ function CompactService({ label, value }: { label: string; value: number }) {
 function PendingApproval({
   restaurantId,
   reservation,
+  intlLocale,
+  guestsLabel,
+  approvalReasonLabels,
 }: {
   restaurantId: string;
   reservation: {
@@ -413,8 +444,14 @@ function PendingApproval({
     date: Date | string;
     approvalReason?: string | null;
   };
+  intlLocale: string;
+  guestsLabel: (count: number) => string;
+  approvalReasonLabels: Record<string, string>;
 }) {
-  const reason = getApprovalReasonLabel(reservation.approvalReason ?? null);
+  const reason = getApprovalReasonLabel(
+    reservation.approvalReason ?? null,
+    approvalReasonLabels,
+  );
 
   return (
     <div className="rounded-2xl border border-[#E8DCCB] bg-white p-4">
@@ -422,12 +459,12 @@ function PendingApproval({
         <div>
           <p className="font-semibold">{reservation.customerName}</p>
           <p className="mt-1 text-xs text-[#6B6258]">
-            {new Date(reservation.date).toLocaleDateString("pt-PT")} ·{" "}
-            {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+            {new Date(reservation.date).toLocaleDateString(intlLocale)} ·{" "}
+            {new Date(reservation.date).toLocaleTimeString(intlLocale, {
               hour: "2-digit",
               minute: "2-digit",
             })}{" "}
-            · {reservation.guests} pessoas
+            · {guestsLabel(reservation.guests)}
           </p>
 
           {reason && (

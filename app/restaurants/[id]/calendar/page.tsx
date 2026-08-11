@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import BottomNav from "@/components/BottomNav";
+import { getLocale, getTranslations } from "next-intl/server";
+
+const dashboardDateLocales: Record<string, string> = {
+  pt: "pt-PT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  es: "es-ES",
+};
 
 function getMonthDays(year: number, month: number) {
   const days = [];
@@ -35,6 +45,10 @@ export default async function CalendarPage({
   const { id } = await params;
   const { year, month } = await searchParams;
 
+  const t = await getTranslations("dashboardOverview.calendar");
+  const locale = await getLocale();
+  const intlLocale = dashboardDateLocales[locale] ?? "pt-PT";
+
   const today = new Date();
 
   const selectedYear = year ? Number(year) : today.getFullYear();
@@ -61,7 +75,7 @@ export default async function CalendarPage({
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
-        Restaurante não encontrado
+        {t("notFound")}
       </main>
     );
   }
@@ -140,7 +154,7 @@ export default async function CalendarPage({
   const firstDayOfWeek = monthStart.getDay() === 0 ? 6 : monthStart.getDay() - 1;
   const emptyDays = Array.from({ length: firstDayOfWeek });
 
-  const monthLabel = monthStart.toLocaleDateString("pt-PT", {
+  const monthLabel = monthStart.toLocaleDateString(intlLocale, {
     month: "long",
     year: "numeric",
   });
@@ -155,15 +169,15 @@ export default async function CalendarPage({
                 href={`/restaurants/${id}`}
                 className="inline-flex text-sm font-semibold text-[#6B6258] transition hover:text-[#16120E]"
               >
-                ← Voltar ao dashboard
+                {t("backToDashboard")}
               </Link>
 
               <p className="mt-5 text-xs font-semibold uppercase tracking-[0.32em] text-[#9B6F3B]">
-                MesaLink · Calendário
+                {t("eyebrow")}
               </p>
 
               <h1 className="mt-3 text-4xl font-semibold leading-none tracking-[-0.065em] sm:text-5xl">
-                Calendário
+                {t("title")}
               </h1>
 
               <p className="mt-3 text-sm text-[#6B6258]">
@@ -194,22 +208,22 @@ export default async function CalendarPage({
         </header>
 
         <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <StatCard label="Reservas no mês" value={monthReservations.length} />
-          <StatCard label="Pessoas no mês" value={totalGuests} />
-          <StatCard label="Pendentes" value={pendingReservations.length} />
+          <StatCard label={t("stats.reservationsMonth")} value={monthReservations.length} />
+          <StatCard label={t("stats.guestsMonth")} value={totalGuests} />
+          <StatCard label={t("stats.pending")} value={pendingReservations.length} />
           <StatCard
-            label="Modo"
-            value={restaurant.reservationMode === "CAPACITY" ? "Capacidade" : "Mesas"}
+            label={t("stats.mode")}
+            value={restaurant.reservationMode === "CAPACITY" ? t("stats.modeCapacity") : t("stats.modeTables")}
           />
         </section>
 
         <section className="grid gap-3 md:hidden">
           <div className="flex items-center justify-between px-1">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9B6F3B]">
-              Dias do mês
+              {t("mobile.sectionLabel")}
             </p>
             <p className="text-xs font-semibold text-[#6B6258]">
-              Toca num dia para abrir
+              {t("mobile.hint")}
             </p>
           </div>
 
@@ -255,7 +269,7 @@ export default async function CalendarPage({
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9B6F3B]">
-                      {day.toLocaleDateString("pt-PT", { weekday: "short" })}
+                      {day.toLocaleDateString(intlLocale, { weekday: "short" })}
                     </p>
                     <p className="mt-1 text-3xl font-semibold tracking-[-0.06em] text-[#16120E]">
                       {day.getDate()}
@@ -264,22 +278,22 @@ export default async function CalendarPage({
 
                   <div className="text-right">
                     <p className="text-2xl font-semibold tracking-[-0.05em] text-[#9B6F3B]">
-                      {totalDayGuests}p
+                      {totalDayGuests}{t("guestUnit")}
                     </p>
                     <p className="text-xs font-semibold text-[#6B6258]">
-                      {dayReservations.length} reservas
+                      {t("reservationsCount", { count: dayReservations.length })}
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-2">
-                  <CalendarMeal label="Almoço" value={lunchGuests} active={lunchGuests > 0} />
-                  <CalendarMeal label="Jantar" value={dinnerGuests} active={dinnerGuests > 0} />
+                  <CalendarMeal label={t("meal.lunch")} value={lunchGuests} unit={t("guestUnit")} active={lunchGuests > 0} />
+                  <CalendarMeal label={t("meal.dinner")} value={dinnerGuests} unit={t("guestUnit")} active={dinnerGuests > 0} />
                 </div>
 
                 {pendingCount > 0 && (
                   <div className="mt-3 rounded-2xl border border-[#E5C46D] bg-[#FFF8E2] px-3 py-2 text-xs font-black text-[#9B6F3B]">
-                    {pendingCount} pendente{pendingCount > 1 ? "s" : ""}
+                    {t("pendingCount", { count: pendingCount })}
                   </div>
                 )}
               </Link>
@@ -289,12 +303,22 @@ export default async function CalendarPage({
 
         <section className="hidden overflow-hidden rounded-[32px] border border-[#E1D0B8] bg-white shadow-[0_22px_70px_rgba(80,55,30,0.055)] md:block">
           <div className="grid grid-cols-7 border-b border-[#E1D0B8] bg-[#FFF9F0]">
-            {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => (
+            {(
+              [
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday",
+                "saturday",
+                "sunday",
+              ] as const
+            ).map((day) => (
               <div
                 key={day}
                 className="p-4 text-center text-xs font-semibold uppercase tracking-[0.22em] text-[#6B6258]"
               >
-                {day}
+                {t(`weekdaysShort.${day}`)}
               </div>
             ))}
           </div>
@@ -359,27 +383,29 @@ export default async function CalendarPage({
 
                     {totalDayGuests > 0 && (
                       <span className="rounded-full bg-[#EFE5D6] px-2 py-1 text-xs font-bold text-[#9B6F3B]">
-                        {totalDayGuests}p
+                        {totalDayGuests}{t("guestUnit")}
                       </span>
                     )}
                   </div>
 
                   <div className="space-y-2 text-xs">
                     <CalendarMeal
-                      label="Almoço"
+                      label={t("meal.lunch")}
                       value={lunchGuests}
+                      unit={t("guestUnit")}
                       active={lunchGuests > 0}
                     />
 
                     <CalendarMeal
-                      label="Jantar"
+                      label={t("meal.dinner")}
                       value={dinnerGuests}
+                      unit={t("guestUnit")}
                       active={dinnerGuests > 0}
                     />
 
                     {pendingCount > 0 && (
                       <div className="rounded-xl border border-[#E5C46D] bg-[#FFF8E2] px-2 py-1 font-bold text-[#9B6F3B]">
-                        {pendingCount} pendente{pendingCount > 1 ? "s" : ""}
+                        {t("pendingCount", { count: pendingCount })}
                       </div>
                     )}
                   </div>
@@ -398,10 +424,12 @@ export default async function CalendarPage({
 function CalendarMeal({
   label,
   value,
+  unit,
   active,
 }: {
   label: string;
   value: number;
+  unit: string;
   active: boolean;
 }) {
   return (
@@ -414,7 +442,7 @@ function CalendarMeal({
     >
       <span>{label}</span>
       <strong className={active ? "text-[#9B6F3B]" : "text-[#B0A396]"}>
-        {value}p
+        {value}{unit}
       </strong>
     </div>
   );

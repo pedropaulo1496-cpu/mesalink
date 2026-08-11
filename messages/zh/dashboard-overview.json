@@ -1,0 +1,188 @@
+{
+  "home": {
+    "billing": {
+      "trial": "Trial",
+      "growth": "Growth",
+      "essentials": "Essentials",
+      "subscription": "订阅",
+      "trialDaysLeft": "{days} 天",
+      "active": "有效",
+      "renew": "续订"
+    },
+    "notFound": "未找到该餐厅",
+    "eyebrow": "仪表盘",
+    "statusOnline": "在线",
+    "statusOffline": "离线",
+    "addressFallback": "餐厅运营概览。",
+    "metrics": {
+      "reservationsToday": "今日预订",
+      "coversToday": "{count} 位客人",
+      "qrActive": "QR 活跃",
+      "qrOpenOrders": "待处理订单"
+    },
+    "ops": {
+      "sectionLabel": "运营",
+      "title": "实时状态",
+      "reservationsToday": "今日预订",
+      "guestsReserved": "已预订客人",
+      "pending": "待确认",
+      "occupancy": "预订占用率",
+      "seatsAndTables": "{guests}/{capacity} 座位 · {tables} 张桌",
+      "usefulCapacity": "可用容量",
+      "seatsConfigured": "已设置座位"
+    },
+    "reservationsCard": {
+      "sectionLabel": "预订",
+      "title": "即将到来",
+      "viewAll": "查看预订",
+      "empty": "暂无即将到来的预订。",
+      "pax": "{count} 人",
+      "mobile": "手机",
+      "mobileEmpty": "无手机号码",
+      "email": "邮箱",
+      "emailEmpty": "无邮箱"
+    },
+    "marketingTeaser": {
+      "sectionLabel": "Marketing Growth",
+      "title": "挽回流失客户，提升复访率。",
+      "text": "解锁自动化营销活动、风险客户识别、生日提醒、VIP 分级与活动 ROI 分析。",
+      "badge": "Growth",
+      "features": {
+        "riskyCustomers": "风险客户",
+        "autoCampaigns": "自动化营销活动",
+        "autoBirthdays": "自动生日提醒",
+        "campaignRoi": "活动 ROI"
+      },
+      "upgradeLabel": "升级",
+      "price": "+{price}€/月",
+      "priceNote": "续订日期保持不变，差价由 Stripe 自动计算。"
+    },
+    "marketingActive": {
+      "sectionLabel": "营销",
+      "title": "ROI 与客户留存",
+      "text": "衡量营销活动对风险客户的影响。",
+      "viewMarketing": "查看营销",
+      "riskyCustomers": "风险客户",
+      "riskyValue": "风险金额",
+      "estimatedRevenue": "预计收入",
+      "estimatedRoi": "预计 ROI",
+      "recommendedCampaign": "推荐活动",
+      "recommendedCampaignText": "以适度优惠挽回近期未光顾的客户。"
+    },
+    "reservationLink": {
+      "sectionLabel": "在线预订",
+      "title": "公开链接",
+      "text": "在客户寻找餐位的各个渠道使用此链接。",
+      "active": "已启用",
+      "urlLabel": "预订链接",
+      "open": "打开",
+      "howToUse": "使用方法",
+      "steps": {
+        "googleMaps": { "title": "Google 地图", "text": "粘贴到您 Google 商家资料的预订按钮中。" },
+        "socials": { "title": "Instagram 和 Facebook", "text": "用于个人简介、置顶动态和自动回复。" },
+        "website": { "title": "网站", "text": "设为在线预订的主按钮。" }
+      }
+    }
+  },
+  "calendar": {
+    "notFound": "未找到该餐厅",
+    "backToDashboard": "← 返回仪表盘",
+    "eyebrow": "MesaLink · 日历",
+    "title": "日历",
+    "stats": {
+      "reservationsMonth": "本月预订",
+      "guestsMonth": "本月客人",
+      "pending": "待确认",
+      "mode": "模式",
+      "modeCapacity": "按容量",
+      "modeTables": "按桌位"
+    },
+    "mobile": {
+      "sectionLabel": "本月日期",
+      "hint": "点击某天以查看详情"
+    },
+    "guestUnit": "人",
+    "reservationsCount": "{count} 笔预订",
+    "meal": {
+      "lunch": "午餐",
+      "dinner": "晚餐"
+    },
+    "pendingCount": "{count} 笔待确认",
+    "weekdaysShort": {
+      "monday": "一",
+      "tuesday": "二",
+      "wednesday": "三",
+      "thursday": "四",
+      "friday": "五",
+      "saturday": "六",
+      "sunday": "日"
+    }
+  },
+  "day": {
+    "notFound": "未找到该餐厅",
+    "eyebrow": "当日服务",
+    "metrics": {
+      "covers": "客人数",
+      "coversSub": "{capacity} 座位",
+      "seated": "已入座",
+      "seatedSub": "在场",
+      "pending": "待确认",
+      "pendingSub": "待批准",
+      "revenue": "营收",
+      "revenueSub": "预估"
+    },
+    "occupancy": "占用率",
+    "actionNeeded": "需要处理",
+    "pendingReservations": "待确认预订",
+    "pendingCount": "{count} 笔待确认",
+    "service": "服务",
+    "lunch": "午餐",
+    "dinner": "晚餐",
+    "reservationsCount": "{count} 笔预订",
+    "emptyLunch": "午餐时段暂无预订。",
+    "emptyDinner": "晚餐时段暂无预订。",
+    "row": {
+      "guests": "{count} 位",
+      "table": "{number} 号桌",
+      "noTable": "未分配餐桌",
+      "online": "在线",
+      "manual": "手动",
+      "viewContact": "查看联系方式",
+      "hideContact": "隐藏联系方式",
+      "mobile": "手机",
+      "mobileEmpty": "无手机号码",
+      "email": "邮箱",
+      "emailEmpty": "无邮箱",
+      "finishNote": "完成后，系统将自动向客户发送评价邀请。"
+    },
+    "actions": {
+      "approve": "批准",
+      "reject": "拒绝",
+      "seat": "入座",
+      "noShow": "未出现",
+      "finish": "完成"
+    },
+    "status": {
+      "PENDING": "待确认",
+      "CONFIRMED": "已确认",
+      "SEATED": "已入座",
+      "FINISHED": "已完成",
+      "NO_SHOW": "未出现",
+      "CANCELLED": "已取消",
+      "REJECTED": "已拒绝"
+    },
+    "approvalReason": {
+      "LARGE_GROUP": "大型团体",
+      "TABLE_MERGE": "并桌",
+      "CAPACITY_LIMIT": "容量限制"
+    },
+    "vipEmail": {
+      "subject": "{customerName}，您已达到 {tier} 等级",
+      "heading": "恭喜，{customerName}。",
+      "text": "您刚刚在我们的 VIP 俱乐部达到了 {tier} 等级。",
+      "benefitLabel": "VIP 权益",
+      "cta": "预订餐桌",
+      "footerNote": "您收到此邮件是因为您同意接收该餐厅的通讯信息。"
+    }
+  }
+}

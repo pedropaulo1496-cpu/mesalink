@@ -1,0 +1,560 @@
+{
+  "client": {
+    "comingSoonBanner": {
+      "badge": "Coming Soon",
+      "title": "MesaLink POS",
+      "description": "We're putting the finishing touches on the POS, invoicing, printing and mobile version."
+    },
+    "comingSoonPage": {
+      "badge": "Coming Soon",
+      "description": "We're finishing the next generation of the POS to guarantee a stable experience for the floor, cash register, production, invoicing and printing.",
+      "restaurantLabel": "Restaurant",
+      "developingTitle": "In development",
+      "developingDescription": "The POS isn't available to customers yet. Once it's ready, it will be activated automatically in this area.",
+      "features": {
+        "tables": "Table management",
+        "qrOrdering": "QR Ordering",
+        "cashRegister": "Cash register",
+        "invoicing": "Moloni invoicing",
+        "production": "Production",
+        "printers": "Printers",
+        "splitBill": "Split bill",
+        "mobilePos": "Mobile POS"
+      },
+      "availableSoonLabel": "Available soon",
+      "availableSoonDescription": "In the meantime, keep using Reservations, Customers, QR Ordering, Website and Marketing."
+    },
+    "header": {
+      "eyebrow": "MESALINK POS",
+      "titleTables": "Tables",
+      "titleQuickSale": "Quick sale",
+      "titleTable": "Table {number}",
+      "backToTables": "← Back to tables",
+      "printersButton": "Printers",
+      "seatsCount": "{count} seats",
+      "noTable": "No table",
+      "experimentalBanner": {
+        "title": "Experimental mode active",
+        "description": "Testing tables, orders and payments. For legal invoicing, set up Moloni.",
+        "cta": "Moloni"
+      },
+      "qrAttention": "QR Orders: {count, plural, one {# pending alert} other {# pending alerts}}"
+    },
+    "tabs": {
+      "tables": "Tables",
+      "cash": "Cash register",
+      "service": "Service",
+      "kitchen": "QR Orders",
+      "production": "Production",
+      "history": "History",
+      "fiscal": "Invoicing",
+      "documents": "Documents",
+      "stats": "Statistics"
+    },
+    "tables": {
+      "allFilter": "All",
+      "openFilter": "Open",
+      "freeFilter": "Free",
+      "tablesCount": "{count} tables",
+      "tableLabel": "Table",
+      "freeLabel": "Free"
+    },
+    "products": {
+      "emptyState": "You don't have any products yet",
+      "productsCount": "{count} products"
+    },
+    "cart": {
+      "eyebrow": "Bill",
+      "openBadge": "Open",
+      "guestOrderCount": "{guestCount} pax · {orderCount, plural, one {# order} other {# orders}}",
+      "cancelTableButton": "Cancel table",
+      "cancellingLabel": "Cancelling...",
+      "currentAccountLabel": "Current bill",
+      "emptyAccountTitle": "No pending items on the bill",
+      "emptyAccountDescription": "Paid products stop showing here.",
+      "emptyCartTitle": "Empty bill",
+      "emptyCartDescription": "Select products to start a bill on the POS.",
+      "editButton": "Edit",
+      "editItemTitle": "Edit item",
+      "removeItemTitle": "Remove item",
+      "saveButton": "Save",
+      "savingLabel": "...",
+      "cancelDraftButton": "Cancel",
+      "newProductsLabel": "New products",
+      "noteLabel": "Note: {notes}",
+      "sendOrderButton": "Send order",
+      "editLink": "edit",
+      "summary": {
+        "account": "Bill",
+        "discount": "Disc.",
+        "paid": "Paid",
+        "remaining": "Due"
+      },
+      "totalToPayLabel": "Total to pay",
+      "chargeButton": "Charge",
+      "splitButton": "Split",
+      "discountButton": "Discount",
+      "transferButton": "Transfer"
+    },
+    "openTableModal": {
+      "eyebrow": "Open table",
+      "title": "Table {number}",
+      "description": "Enter the number of seated guests to calculate the average ticket per person.",
+      "peopleLabel": "People",
+      "paxLabel": "pax",
+      "confirmButton": "Open table",
+      "confirmButtonLoading": "Opening..."
+    },
+    "splitItemsModal": {
+      "eyebrow": "Split bill",
+      "title": "Choose items",
+      "description": "Select the products this customer will pay for.",
+      "availableLabel": "Available:",
+      "selectedLabel": "Selected",
+      "confirmButton": "Receive selected"
+    },
+    "transferModal": {
+      "eyebrow": "Transfer",
+      "title": "Target table and items",
+      "description": "Choose a target table and transfer everything or just some items.",
+      "targetTableLabel": "Target table",
+      "tableLabel": "Table",
+      "quickTransferLabel": "Quick transfer",
+      "quickTransferDescriptionWithTable": "Move the whole bill to Table {number}.",
+      "quickTransferDescriptionNoTable": "Move the whole bill to the chosen table.",
+      "transferAllButton": "Transfer everything",
+      "itemsLabel": "Items",
+      "selectedCount": "{selected}/{total} selected",
+      "noItemsLabel": "There are no items to transfer.",
+      "availableLabel": "Available: {quantity} × {price}",
+      "closeButton": "Close",
+      "transferSelectedButton": "Transfer selected",
+      "transferSelectedButtonLoading": "Transferring...",
+      "alerts": {
+        "chooseTargetTable": "Choose the target table.",
+        "selectAtLeastOneItem": "Select at least one item.",
+        "transferAllConfirm": "Transfer the whole bill to Table {number}?"
+      }
+    },
+    "discountModal": {
+      "eyebrow": "Discount",
+      "title": "Table discount",
+      "valuePlaceholder": "0",
+      "reasonPlaceholder": "Reason",
+      "removeButton": "Remove discount",
+      "saveButton": "Save discount"
+    },
+    "lineEditor": {
+      "editNewProductEyebrow": "Edit new product",
+      "editNewProductDescription": "Before sending to kitchen/printer.",
+      "editLineEyebrow": "Edit line",
+      "editLineDescription": "Quantity, price, discount and note.",
+      "quantityLabel": "Quantity",
+      "priceLabel": "Price",
+      "discountPercentLabel": "Discount (%)",
+      "discountAmountLabel": "Discount (€)",
+      "notesLabel": "Optional text",
+      "notesPlaceholder": "No salad, no onion...",
+      "subtotalLabel": "Subtotal",
+      "discountLabel": "Discount",
+      "totalLabel": "Total",
+      "removeButton": "Remove",
+      "saveButton": "✓ Save",
+      "saveButtonLoading": "Saving..."
+    },
+    "partialPayment": {
+      "eyebrow": "Partial payment",
+      "description": "Receive only the selected items.",
+      "confirmButton": "Confirm payment",
+      "confirmButtonLoading": "Receiving..."
+    },
+    "paymentMethods": {
+      "card": { "label": "Card", "description": "Card or terminal" },
+      "cash": { "label": "Cash", "description": "Cash payment" },
+      "bankTransfer": { "label": "Bank transfer", "description": "Bank transfer" }
+    },
+    "paymentModal": {
+      "eyebrow": "Charge",
+      "title": "Table {number}",
+      "description": "Choose the payment method to close the table.",
+      "totalLabel": "Total",
+      "paxLabel": "{count} pax",
+      "perPersonLabel": "{amount} / person",
+      "splitLabel": "Split bill",
+      "splitPerPaymentLabel": "{amount} per payment",
+      "chargeWithInvoiceButton": "Charge and issue invoice",
+      "confirmButtonLoading": "Closing...",
+      "confirmButtonWithInvoice": "Charge without invoice",
+      "confirmButtonDefault": "Close table"
+    },
+    "invoiceModal": {
+      "title": "Issue document",
+      "description": "Choose the customer type and the fiscal details.",
+      "finalConsumerButton": "Final Consumer",
+      "vatCustomerButton": "Customer with Tax ID",
+      "vatPlaceholder": "Tax ID",
+      "fetchVatButton": "Fetch data",
+      "namePlaceholder": "Name",
+      "addressPlaceholder": "Billing address",
+      "emailPlaceholder": "Email",
+      "cancelButton": "Cancel",
+      "confirmButtonLoading": "Issuing...",
+      "confirmButtonSimplified": "Issue Simplified Invoice",
+      "confirmButtonFull": "Issue Invoice"
+    },
+    "creditNoteModal": {
+      "eyebrow": "Credit note",
+      "title": "Void document",
+      "documentLabel": "Document: {number} · {amount}",
+      "noDocumentNumber": "No number",
+      "reasonLabel": "Reason",
+      "defaultReason": "Document void",
+      "cancelButton": "Cancel",
+      "confirmButton": "Issue credit note",
+      "confirmButtonLoading": "Issuing..."
+    },
+    "cashRegister": {
+      "closedTitle": "Cash register closed",
+      "closedDescription": "Open the cash register before starting service to link POS payments to the end-of-day close.",
+      "openButton": "Open cash register",
+      "cards": {
+        "openingAmount": "Opening amount",
+        "cash": "Cash",
+        "card": "Card",
+        "transfer": "Bank transfer",
+        "totalReceived": "Total received",
+        "expectedCash": "Expected cash"
+      },
+      "eyebrow": "Cash register",
+      "openTitle": "Cash register open",
+      "openSince": "Open since {time}",
+      "cashInButton": "+ Cash in",
+      "cashOutButton": "- Cash out",
+      "closeButton": "Close cash register",
+      "movementsTitle": "Cash movements",
+      "movementIn": "Cash in",
+      "movementOut": "Cash out",
+      "noReason": "No reason given",
+      "paymentsTitle": "Payments",
+      "paymentsAssociated": "{count, plural, one {# payment linked to this cash register.} other {# payments linked to this cash register.}}",
+      "modal": {
+        "openEyebrow": "Open cash register",
+        "closeEyebrow": "Close cash register",
+        "openValueTitle": "Opening amount",
+        "closeValueTitle": "Counted amount",
+        "openDescription": "Enter the cash float you'll start service with.",
+        "closeDescription": "Enter the cash physically counted in the register.",
+        "amountLabel": "Opening amount",
+        "amountLabelClosing": "Counted amount",
+        "expectedCashLabel": "Expected cash",
+        "differenceLabel": "Difference",
+        "openConfirm": "Open cash register",
+        "closeConfirm": "Close cash register",
+        "savingLabel": "Saving..."
+      },
+      "movementModal": {
+        "eyebrow": "Cash movement",
+        "inTitle": "Cash in",
+        "outTitle": "Cash out",
+        "inDescription": "Record cash that came into the register.",
+        "outDescription": "Record cash taken out of the register, such as purchases or change.",
+        "amountLabel": "Amount",
+        "reasonLabel": "Reason",
+        "inPlaceholder": "E.g.: Cash top-up",
+        "outPlaceholder": "E.g.: Supermarket purchases",
+        "saveIn": "Save cash in",
+        "saveOut": "Save cash out",
+        "savingLabel": "Saving..."
+      }
+    },
+    "service": {
+      "eyebrow": "Service",
+      "title": "Today",
+      "totalProjectedLabel": "Total projected",
+      "invoicedLabel": "Invoiced",
+      "openLabel": "Open",
+      "openTablesLabel": "Open tables",
+      "peopleLabel": "People",
+      "ticketPerPersonLabel": "Ticket/person",
+      "cashLabel": "Cash",
+      "cardLabel": "Card",
+      "transferLabel": "Bank transfer"
+    },
+    "qrOrders": {
+      "eyebrow": "QR Orders",
+      "allResolvedTitle": "All resolved",
+      "allResolvedDescription": "QR orders, waiter calls and bill requests appear here.",
+      "centerTitle": "QR orders center",
+      "centerDescription": "Orders, waiter calls and bill requests.",
+      "pendingBadge": "{count, plural, one {# pending} other {# pending}}",
+      "tableAlertsLabel": "Table alerts",
+      "tableLabel": "Table {number}",
+      "calledWaiterLabel": "Called the waiter · {time}",
+      "askedBillLabel": "Requested the bill · {time}",
+      "resolveButton": "Mark as resolved",
+      "resolveButtonLoading": "Resolving...",
+      "ordersForApprovalLabel": "Orders awaiting approval",
+      "productCount": "{count, plural, one {# product} other {# products}}",
+      "noteLabel": "Note: {notes}",
+      "rejectButton": "Reject",
+      "acceptButton": "Accept order",
+      "acceptButtonLoading": "Saving..."
+    },
+    "production": {
+      "eyebrow": "Production",
+      "noCenterLabel": "No production center",
+      "notDefinedLabel": "Not defined",
+      "title": "Pending tickets",
+      "pendingBadge": "{count, plural, one {# pending} other {# pending}}",
+      "allFilter": "All",
+      "noJobsLabel": "No pending tickets",
+      "printerLabel": "Printer:",
+      "methodLabel": "Method:",
+      "createdAtLabel": "Created at {time}",
+      "printButton": "Print",
+      "printedButton": "Printed",
+      "failedButton": "Failed",
+      "noteLabel": "Note: {notes}",
+      "printBlockedError": "The browser blocked the print window.",
+      "printUpdateError": "Error updating the print job.",
+      "printTemplate": {
+        "printerLabel": "Printer:",
+        "sourceLabel": "Source:",
+        "timeLabel": "Time:",
+        "noteLabel": "Note:"
+      }
+    },
+    "history": {
+      "eyebrow": "History",
+      "title": "Payments",
+      "subtitle": "{count, plural, one {Latest # payment closed on the POS.} other {Latest # payments closed on the POS.}}",
+      "totalLabel": "Total",
+      "cashLabel": "Cash",
+      "cardLabel": "Card",
+      "transferLabel": "Bank transfer",
+      "loadingLabel": "Loading history...",
+      "emptyTitle": "No payments yet",
+      "emptyDescription": "When you close tables, payments will appear here.",
+      "quickSaleLabel": "Quick sale",
+      "tableLabel": "Table {number}",
+      "fiscalDocumentLabel": "Fiscal document: {number}",
+      "noDocumentNumber": "No number",
+      "openPdfLabel": "Open PDF",
+      "moreProductsLabel": "+ {count} products",
+      "methods": {
+        "cash": "Cash",
+        "card": "Card",
+        "bankTransfer": "Bank transfer"
+      }
+    },
+    "fiscal": {
+      "requiredView": {
+        "eyebrow": "Setup required",
+        "title": "Set up invoicing before using the POS",
+        "description": "To open tables, charge or close sales, the restaurant needs to connect its Moloni account and choose the fiscal series for Invoice, Simplified Invoice and Credit Note.",
+        "configureButton": "Set up Moloni"
+      },
+      "serieSelect": {
+        "placeholderOption": "Select series",
+        "notCommunicatedSuffix": " — not communicated to the tax authority"
+      },
+      "settingsView": {
+        "eyebrow": "Invoicing",
+        "title": "Moloni integration",
+        "incompleteWarningTitle": "Incomplete setup",
+        "incompleteWarningDescription": "To activate the POS, you need to set up the invoice, simplified invoice and credit note series.",
+        "loadingLabel": "Loading...",
+        "setupEyebrow": "Setup required",
+        "setupTitle": "Connect Moloni to issue legal invoices",
+        "setupDescription": "MesaLink uses Moloni to issue certified invoices, simplified invoices, credit notes, fiscal QR codes and SAF-T. Once set up, you can issue documents directly from the POS.",
+        "steps": {
+          "step1": { "title": "1. Create a Moloni account", "text": "Create or access the restaurant's Moloni account." },
+          "step2": { "title": "2. Create fiscal series", "text": "In Moloni, create series for Invoice, Simplified Invoice and Credit Note." },
+          "step3": { "title": "3. Communicate series to the tax authority", "text": "Series must be communicated/active before issuing real documents." },
+          "step4": { "title": "4. Connect to MesaLink", "text": "Once connected, choose the series on this page and save." }
+        },
+        "importantTitle": "Important",
+        "importantDescription": "While Moloni isn't set up, the POS can run in experimental mode, but shouldn't be used for legal invoicing.",
+        "openMoloniButton": "Open Moloni",
+        "createMoloniAccountButton": "Create Moloni account",
+        "infoCards": {
+          "provider": "Provider",
+          "company": "Company",
+          "active": "Active",
+          "activeYes": "Yes",
+          "activeNo": "No",
+          "invoiceSeries": "Invoice series",
+          "simplifiedSeries": "Simplified invoice series",
+          "creditNoteSeries": "Credit note series",
+          "notConfigured": "Not configured"
+        },
+        "seriesSectionEyebrow": "Setup required",
+        "seriesSectionTitle": "Fiscal series",
+        "seriesSectionDescription": "To activate the POS in live mode, choose the Moloni series used for Invoice, Simplified Invoice and Credit Note.",
+        "serieLabels": {
+          "invoice": "Invoice",
+          "simplifiedInvoice": "Simplified Invoice",
+          "creditNote": "Credit Note"
+        },
+        "recommendationEyebrow": "MesaLink recommendation",
+        "recommendationTitle": "Moloni ON is enough to get started",
+        "recommendationDescription": "We recommend the Moloni ON plan to use invoicing integrated with MesaLink. It includes API, SAF-T, series communication to the tax authority, customers, items and fiscal documents. If you need more documents or features, you can upgrade directly on Moloni.",
+        "viewPlansButton": "View Moloni plans",
+        "noSeriesTitle": "Don't have fiscal series yet?",
+        "noSeriesSteps": {
+          "step1": "1. Open Moloni",
+          "step2": "2. Go to Settings → Document series",
+          "step3": "3. Create/communicate the series to the tax authority",
+          "step4": "4. Come back to MesaLink and save the series"
+        },
+        "saveButton": "Save series",
+        "saveButtonLoading": "Saving..."
+      },
+      "documentsView": {
+        "eyebrow": "Documents",
+        "title": "Fiscal documents",
+        "description": "All certified invoicing is managed directly in Moloni. Use this page only as a quick guide for invoices, credit notes and SAF-T.",
+        "moloniCardEyebrow": "Moloni",
+        "moloniCardTitle": "Open fiscal documents",
+        "moloniCardDescription": "View invoices, issue credit notes and export the SAF-T directly from the restaurant's Moloni account.",
+        "openMoloniButton": "Open Moloni",
+        "helpCards": {
+          "creditNote": {
+            "title": "Issue a Credit Note",
+            "steps": {
+              "step1": "Open Moloni",
+              "step2": "Go to Documents",
+              "step3": "Open Invoices or Credit Notes",
+              "step4": "Choose the invoice to correct",
+              "step5": "Create Credit Note",
+              "step6": "Issue the document"
+            }
+          },
+          "saft": {
+            "title": "Export SAF-T",
+            "steps": {
+              "step1": "Open Moloni",
+              "step2": "Go to Tax Authority",
+              "step3": "Open SAF-T (PT) File",
+              "step4": "Choose the period",
+              "step5": "Export the file"
+            }
+          },
+          "invoices": {
+            "title": "View Invoices",
+            "steps": {
+              "step1": "Open Moloni",
+              "step2": "Go to Documents",
+              "step3": "Open Invoices"
+            }
+          },
+          "creditNotesList": {
+            "title": "View Credit Notes",
+            "steps": {
+              "step1": "Open Moloni",
+              "step2": "Go to Documents",
+              "step3": "Open Credit Notes"
+            }
+          }
+        },
+        "importantInfoTitle": "Important information",
+        "importantInfoDescription": "Issued invoices shouldn't be deleted. If there's a mistake, a Credit Note should be issued, followed by a new, correct invoice."
+      }
+    },
+    "stats": {
+      "eyebrow": "Statistics",
+      "title": "Today's report",
+      "invoicedLabel": "Invoiced",
+      "paymentsLabel": "Payments",
+      "peopleLabel": "People",
+      "avgTicketLabel": "Average ticket",
+      "perPersonLabel": "Per person",
+      "paymentMethodsTitle": "Payment methods",
+      "cashLabel": "Cash",
+      "cardLabel": "Card",
+      "transferLabel": "Bank transfer",
+      "topProductsTitle": "Best-selling products",
+      "noProductsLabel": "No products sold yet.",
+      "loadingLabel": "Loading statistics...",
+      "emptyLabel": "No data to show."
+    },
+    "comingSoonSection": {
+      "eyebrow": "Coming soon",
+      "description": "This area is already prepared for the next phase of the POS."
+    },
+    "alerts": {
+      "openCashBeforeTable": "You need to open the cash register before opening tables.",
+      "openCashBeforeQuickSale": "You need to open the cash register before starting a quick sale.",
+      "sendOrderError": "Error sending order.",
+      "removeItemConfirm": "Remove {name} from the bill?",
+      "updateAccountError": "Error updating the bill.",
+      "openTableError": "Error opening table.",
+      "openTableUnexpectedResponse": "Table opened, but there was an unexpected response.",
+      "cancelTableConfirm": "Cancel Table {number}? The table will become free again and its orders will be cancelled.",
+      "cancelTableError": "Error cancelling table.",
+      "transferError": "Error transferring.",
+      "sendCartBeforeCharge": "Send the new products first before charging.",
+      "unsavedAccountChanges": "Save or cancel the bill changes before charging.",
+      "partialPaymentError": "Error receiving partial payment.",
+      "updateItemError": "Error updating item.",
+      "applyDiscountError": "Error applying discount.",
+      "creditNoteError": "Error issuing credit note.",
+      "creditNoteSuccess": "Credit note issued successfully.",
+      "genericError": "Error.",
+      "vatRequired": "Enter the Tax ID first.",
+      "fetchVatDataError": "Error fetching data.",
+      "vatInvalidLength": "The Tax ID must have 9 digits.",
+      "customerNameRequired": "Enter the customer's fiscal name.",
+      "customerError": "Unable to create the fiscal customer.",
+      "seriesNotCommunicated": "This restaurant's Moloni series hasn't been communicated to the tax authority yet. Go to Moloni > Settings > Document series and communicate/activate the fiscal series.",
+      "issueInvoiceError": "Error issuing invoice.",
+      "invoiceSuccess": "Invoice issued successfully.",
+      "closeTableError": "Error closing table.",
+      "openCashRegisterError": "Error opening cash register.",
+      "saveCashMovementError": "Error saving movement.",
+      "closeCashRegisterError": "Error closing cash register.",
+      "rejectQrOrderConfirm": "Reject this QR order?",
+      "resolveQrAlertError": "Error resolving QR alert.",
+      "saveSeriesError": "Error saving series.",
+      "seriesSaved": "Series saved."
+    }
+  },
+  "printBridge": {
+    "eyebrow": "MesaLink Print Bridge",
+    "title": "Automatic printing",
+    "downloadButton": "⬇ Download for Windows",
+    "installGuideButton": "Installation guide",
+    "description": "Connect this restaurant to a Windows computer to automatically print tickets on USB, Bluetooth, Network or PDF printers.",
+    "connect": {
+      "title": "Connect a new computer",
+      "deviceNameDefault": "Main PC",
+      "generateTokenButton": "Generate Bridge token",
+      "copyTokenHintPrefix": "Then copy the token into the",
+      "copyTokenHintApp": "MesaLink-Print-Bridge app."
+    },
+    "connectedComputers": {
+      "title": "Connected computers",
+      "emptyState": "No computer connected yet.",
+      "lastConnectionLabel": "Last connection:",
+      "never": "Never",
+      "activeLabel": "Active",
+      "inactiveLabel": "Inactive",
+      "tokenLabel": "Token",
+      "removeDeviceButton": "Remove device"
+    },
+    "mapPrinters": {
+      "title": "Map printers",
+      "description": "Choose which Windows printer each MesaLink printer should use on this computer.",
+      "emptyState": "Connect a computer first to be able to map printers.",
+      "windowsPrintersFoundLabel": "Windows printers found: {count}",
+      "noAssociationOption": "No association",
+      "saveButton": "Save",
+      "testButton": "Test"
+    },
+    "testPrint": {
+      "jobTitle": "Print test",
+      "itemName": "MesaLink Print Bridge test",
+      "itemNotes": "If this receipt printed, everything is set up correctly."
+    }
+  }
+}

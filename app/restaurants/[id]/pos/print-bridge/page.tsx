@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 
 async function createBridgeDevice(formData: FormData) {
@@ -109,24 +110,26 @@ async function testPrinter(formData: FormData) {
 
   if (!restaurantId || !restaurantPrinterId) return;
 
+  const t = await getTranslations("dashboardPos.printBridge");
+
   await prisma.printJob.create({
     data: {
       restaurantId,
       printerId: restaurantPrinterId,
       status: "PENDING",
       type: "TEST",
-      title: "Teste de impressão",
+      title: t("testPrint.jobTitle"),
       payload: {
         source: "PRINT_BRIDGE_TEST",
         productionCenter: {
-          name: "Teste de impressão",
+          name: t("testPrint.jobTitle"),
         },
         items: [
           {
             id: "test",
-            name: "Teste MesaLink Print Bridge",
+            name: t("testPrint.itemName"),
             quantity: 1,
-            notes: "Se este talão saiu, está tudo configurado.",
+            notes: t("testPrint.itemNotes"),
           },
         ],
         createdAt: new Date(),
@@ -143,6 +146,8 @@ export default async function PrintBridgePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  const t = await getTranslations("dashboardPos.printBridge");
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
@@ -172,17 +177,17 @@ export default async function PrintBridgePage({
       <RestaurantSidebar
         id={restaurant.id}
         restaurantName={restaurant.name}
-        active="Print Bridge"
+        active="printBridge"
       />
 
       <section className="flex-1 p-10">
         <div className="mx-auto max-w-5xl">
           <p className="text-[11px] font-black uppercase tracking-[0.36em] text-[#B58A45]">
-            MesaLink Print Bridge
+            {t("eyebrow")}
           </p>
 
           <h1 className="mt-2 text-4xl font-black tracking-[-0.05em]">
-            Impressão automática
+            {t("title")}
           </h1>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -190,7 +195,7 @@ export default async function PrintBridgePage({
     href="/downloads/MesaLink-Print-Bridge-Setup.exe"
     className="inline-flex items-center rounded-full bg-[#11100F] px-5 py-3 text-sm font-black text-white"
   >
-    ⬇ Download para Windows
+    {t("downloadButton")}
   </a>
 
   <a
@@ -198,19 +203,18 @@ export default async function PrintBridgePage({
     target="_blank"
     className="inline-flex items-center rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-black text-[#11100F]"
   >
-    Guia de instalação
+    {t("installGuideButton")}
   </a>
 </div>
 
           <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-[#7D746A]">
-            Liga este restaurante a um computador Windows para imprimir tickets
-            automaticamente em impressoras USB, Bluetooth, Rede ou PDF.
+            {t("description")}
           </p>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-6">
               <h2 className="text-xl font-black tracking-[-0.04em]">
-                Ligar novo computador
+                {t("connect.title")}
               </h2>
 
               <form action={createBridgeDevice} className="mt-5 space-y-3">
@@ -218,30 +222,30 @@ export default async function PrintBridgePage({
 
                 <input
                   name="deviceName"
-                  defaultValue="PC Principal"
+                  defaultValue={t("connect.deviceNameDefault")}
                   className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold outline-none"
                 />
 
                 <button className="h-12 w-full rounded-full bg-[#11100F] text-sm font-black text-white">
-                  Gerar token do Bridge
+                  {t("connect.generateTokenButton")}
                 </button>
               </form>
 
               <p className="mt-4 text-xs font-bold leading-5 text-[#7D746A]">
-                Depois copia o token para a aplicação{" "}
-                <span className="text-[#11100F]">MesaLink-Print-Bridge.</span>
+                {t("connect.copyTokenHintPrefix")}{" "}
+                <span className="text-[#11100F]">{t("connect.copyTokenHintApp")}</span>
               </p>
             </div>
 
             <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-6">
               <h2 className="text-xl font-black tracking-[-0.04em]">
-                Computadores ligados
+                {t("connectedComputers.title")}
               </h2>
 
               <div className="mt-5 space-y-3">
                 {restaurant.printBridgeRestaurants.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-[#E1D0B8] bg-[#FFF9F0] p-5 text-sm font-bold text-[#7D746A]">
-                    Ainda não há nenhum computador ligado.
+                    {t("connectedComputers.emptyState")}
                   </div>
                 ) : (
                   restaurant.printBridgeRestaurants.map((link) => (
@@ -256,23 +260,25 @@ export default async function PrintBridgePage({
                           </p>
 
                           <p className="mt-1 text-xs font-bold text-[#7D746A]">
-                            Última ligação:{" "}
+                            {t("connectedComputers.lastConnectionLabel")}{" "}
                             {link.bridgeDevice.lastSeenAt
                               ? new Date(
                                   link.bridgeDevice.lastSeenAt,
                                 ).toLocaleString("pt-PT")
-                              : "Nunca"}
+                              : t("connectedComputers.never")}
                           </p>
                         </div>
 
                         <span className="rounded-full bg-[#FFF8EC] px-3 py-1 text-[10px] font-black uppercase text-[#9B6F3B]">
-                          {link.bridgeDevice.active ? "Ativo" : "Inativo"}
+                          {link.bridgeDevice.active
+                            ? t("connectedComputers.activeLabel")
+                            : t("connectedComputers.inactiveLabel")}
                         </span>
                       </div>
 
                       <div className="mt-4 rounded-xl bg-white p-3">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#B58A45]">
-                          Token
+                          {t("connectedComputers.tokenLabel")}
                         </p>
                         <code className="mt-2 block break-all text-xs font-bold text-[#11100F]">
                           {link.bridgeDevice.token}
@@ -289,7 +295,7 @@ export default async function PrintBridgePage({
   <button
     className="rounded-full border border-[#F0D4C8] bg-[#FFF7F3] px-4 py-2 text-xs font-black uppercase text-[#B4583C]"
   >
-    Remover dispositivo
+    {t("connectedComputers.removeDeviceButton")}
   </button>
 </form>
                     </div>
@@ -301,18 +307,17 @@ export default async function PrintBridgePage({
 
           <div className="mt-6 rounded-[28px] border border-[#E1D0B8] bg-white p-6">
   <h2 className="text-xl font-black tracking-[-0.04em]">
-    Mapear impressoras
+    {t("mapPrinters.title")}
   </h2>
 
   <p className="mt-2 text-sm font-semibold leading-6 text-[#7D746A]">
-    Escolhe que impressora Windows cada impressora MesaLink deve usar neste
-    computador.
+    {t("mapPrinters.description")}
   </p>
 
   <div className="mt-5 space-y-4">
     {restaurant.printBridgeRestaurants.length === 0 ? (
       <div className="rounded-2xl border border-dashed border-[#E1D0B8] bg-[#FFF9F0] p-5 text-sm font-bold text-[#7D746A]">
-        Liga primeiro um computador para poder mapear impressoras.
+        {t("mapPrinters.emptyState")}
       </div>
     ) : (
       restaurant.printBridgeRestaurants.map((link) => {
@@ -332,7 +337,9 @@ export default async function PrintBridgePage({
                 {link.bridgeDevice.name}
               </p>
               <p className="mt-1 text-xs font-bold text-[#7D746A]">
-                Impressoras Windows encontradas: {windowsPrinters.length}
+                {t("mapPrinters.windowsPrintersFoundLabel", {
+                  count: windowsPrinters.length,
+                })}
               </p>
             </div>
 
@@ -378,7 +385,7 @@ export default async function PrintBridgePage({
                       defaultValue={mapping?.windowsPrinterName ?? ""}
                       className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#11100F]"
                     >
-                      <option value="">Sem associação</option>
+                      <option value="">{t("mapPrinters.noAssociationOption")}</option>
 
                       {windowsPrinters.map((windowsPrinter) => (
                         <option key={windowsPrinter} value={windowsPrinter}>
@@ -389,14 +396,14 @@ export default async function PrintBridgePage({
 
                     <div className="flex gap-2">
   <button className="h-11 rounded-full bg-[#11100F] px-5 text-xs font-black uppercase text-white">
-    Guardar
+    {t("mapPrinters.saveButton")}
   </button>
 
   <button
     formAction={testPrinter}
     className="h-11 rounded-full border border-[#E1D0B8] bg-white px-5 text-xs font-black uppercase text-[#11100F]"
   >
-    Testar
+    {t("mapPrinters.testButton")}
   </button>
 </div>
                   </form>

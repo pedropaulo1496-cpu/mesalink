@@ -17,8 +17,24 @@
 /.next/
 /out/
 
+# serwist (generated service worker)
+/public/sw.js
+/public/sw.js.map
+/public/swe-worker-*.js
+/public/swe-worker-*.js.map
+
 # production
 /build
+
+# Android/TWA build outputs and private signing material
+/.android-signing/
+/android-twa/.gradle/
+/android-twa/app/build/
+/android-twa/build/
+/android-twa/app-release-*.apk
+/android-twa/app-release-*.aab
+/android-twa/*.apk
+/android-twa/*.aab
 
 # misc
 .DS_Store

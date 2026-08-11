@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
+  const t = useTranslations("footer");
+
   return (
     <footer className="border-t border-[#E1D0B8] bg-[#EFE5D6] text-[#16120E]">
       <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-14">
@@ -12,37 +17,37 @@ export default function Footer() {
             </h3>
 
             <p className="mt-4 max-w-sm text-sm leading-6 text-[#6B6258]">
-               Crescimento, visibilidade e controlo.
-               Tudo o que o restaurante precisa, num único sistema.
+              {t("tagline")}
             </p>
           </div>
 
           <div>
             <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
-              Links
+              {t("linksTitle")}
             </h4>
 
             <div className="space-y-3">
-              <FooterLink href="/pricing">Preços</FooterLink>
-              <FooterLink href="/contact">Contacto</FooterLink>
-              <FooterLink href="/login">Entrar</FooterLink>
+              <FooterLink href="/software-para-restaurantes">{t("software")}</FooterLink>
+              <FooterLink href="/pricing">{t("pricing")}</FooterLink>
+              <FooterLink href="/contact">{t("contact")}</FooterLink>
+              <FooterLink href="/login">{t("login")}</FooterLink>
             </div>
           </div>
 
           <div>
             <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
-              Legal
+              {t("legalTitle")}
             </h4>
 
             <div className="space-y-3">
-              <FooterLink href="/privacy">Política de Privacidade</FooterLink>
-              <FooterLink href="/terms">Termos e Condições</FooterLink>
+              <FooterLink href="/privacy">{t("privacy")}</FooterLink>
+              <FooterLink href="/terms">{t("terms")}</FooterLink>
             </div>
           </div>
         </div>
 
         <div className="mt-10 flex flex-col gap-4 border-t border-[#E1D0B8] pt-6 text-sm text-[#6B6258] md:flex-row md:items-center md:justify-between">
-          <p>© 2026 MesaLink. Todos os direitos reservados.</p>
+          <p>{t("copyright")}</p>
           <p>info@mesalink.pt</p>
         </div>
       </div>

@@ -3,6 +3,16 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import { getLocale, getTranslations } from "next-intl/server";
+
+const dashboardDateLocales: Record<string, string> = {
+  pt: "pt-PT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  es: "es-ES",
+};
 
 export default async function CustomerDetailPage({
   params,
@@ -10,6 +20,18 @@ export default async function CustomerDetailPage({
   params: Promise<{ id: string; customerId: string }>;
 }) {
   const { id, customerId } = await params;
+
+  const t = await getTranslations("dashboardCrm.customers.detail");
+  const locale = await getLocale();
+  const intlLocale = dashboardDateLocales[locale] ?? "pt-PT";
+  const historyStatusLabels = t.raw("history.statusLabels" as never) as Record<
+    string,
+    string
+  >;
+  const marketingTypeLabels = t.raw("marketingTypes" as never) as Record<
+    string,
+    string
+  >;
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
@@ -64,7 +86,7 @@ export default async function CustomerDetailPage({
   const lastReservation = customer.reservations[0];
 
   const lastVisit = lastReservation
-    ? new Date(lastReservation.date).toLocaleDateString("pt-PT")
+    ? new Date(lastReservation.date).toLocaleDateString(intlLocale)
     : "-";
 
   return (
@@ -73,7 +95,7 @@ export default async function CustomerDetailPage({
         <RestaurantSidebar
           id={id}
           restaurantName={restaurant.name}
-          active="Clientes"
+          active="customers"
         />
 
         <section className="min-w-0 px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
@@ -83,7 +105,7 @@ export default async function CustomerDetailPage({
                 href={`/restaurants/${id}/customers`}
                 className="text-sm font-semibold text-[#9B6F3B]"
               >
-                ← Voltar aos clientes
+                ← {t("back")}
               </Link>
 
               <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -93,14 +115,14 @@ export default async function CustomerDetailPage({
 
                 {vipTier && <VipBadge tier={vipTier} />}
 
-                {riskScore >= 75 && <RiskBadge label="Risco alto" />}
+                {riskScore >= 75 && <RiskBadge label={t("riskBadge.high")} />}
                 {riskScore >= 50 && riskScore < 75 && (
-                  <RiskBadge label="Risco médio" />
+                  <RiskBadge label={t("riskBadge.medium")} />
                 )}
               </div>
 
               <p className="mt-3 text-sm text-[#6B6258]">
-                {customer.email || "Sem email"} · {customer.phone || "Sem telefone"}
+                {customer.email || t("noEmail")} · {customer.phone || t("noPhone")}
               </p>
             </div>
 
@@ -108,43 +130,43 @@ export default async function CustomerDetailPage({
               href={`/restaurants/${id}/marketing/campaigns/new`}
               className="w-fit rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white"
             >
-              Criar campanha
+              {t("createCampaign")}
             </Link>
           </header>
 
           <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <MetricCard label="Valor" value={`${estimatedValue.toFixed(0)}€`} tone="gold" />
-            <MetricCard label="Visitas" value={totalVisits} />
-            <MetricCard label="Covers" value={totalGuests} tone="green" />
-            <MetricCard label="No-shows" value={noShows} tone="red" />
-            <MetricCard label="Risk Score" value={riskScore} tone={riskScore >= 50 ? "red" : "green"} />
+            <MetricCard label={t("metrics.value")} value={`${estimatedValue.toFixed(0)}€`} tone="gold" />
+            <MetricCard label={t("metrics.visits")} value={totalVisits} />
+            <MetricCard label={t("metrics.covers")} value={totalGuests} tone="green" />
+            <MetricCard label={t("metrics.noShows")} value={noShows} tone="red" />
+            <MetricCard label={t("metrics.riskScore")} value={riskScore} tone={riskScore >= 50 ? "red" : "green"} />
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
             <Panel>
-              <SectionLabel>Perfil</SectionLabel>
+              <SectionLabel>{t("profile.eyebrow")}</SectionLabel>
 
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-                Dados do cliente
+                {t("profile.heading")}
               </h2>
 
               <div className="mt-6 grid gap-3">
-                <ProfileLine label="Email" value={customer.email || "Sem email"} />
-                <ProfileLine label="Telefone" value={customer.phone || "Sem telefone"} />
-                <ProfileLine label="Última visita" value={lastVisit} />
-                <ProfileLine label="VIP Tier" value={vipTier || "Cliente"} />
+                <ProfileLine label={t("profile.fields.email")} value={customer.email || t("noEmail")} />
+                <ProfileLine label={t("profile.fields.phone")} value={customer.phone || t("noPhone")} />
+                <ProfileLine label={t("profile.fields.lastVisit")} value={lastVisit} />
+                <ProfileLine label={t("profile.fields.vipTier")} value={vipTier || t("profile.defaultTier")} />
                 <ProfileLine
-                  label="Marketing"
-                  value={customer.marketingOptIn ? "Autorizado" : "Não autorizado"}
+                  label={t("profile.fields.marketing")}
+                  value={customer.marketingOptIn ? t("profile.marketingYes") : t("profile.marketingNo")}
                 />
               </div>
             </Panel>
 
             <Panel>
-              <SectionLabel>Histórico</SectionLabel>
+              <SectionLabel>{t("history.eyebrow")}</SectionLabel>
 
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-                Reservas
+                {t("history.heading")}
               </h2>
 
               <div className="mt-6 overflow-hidden rounded-[26px] border border-[#E8DCCB] bg-[#FFF9F0]">
@@ -155,11 +177,16 @@ export default async function CustomerDetailPage({
                     guests={reservation.guests}
                     status={reservation.status}
                     table={reservation.table?.number}
+                    intlLocale={intlLocale}
+                    guestsLabel={(count: number) => t("history.guests", { count })}
+                    tableLabel={(number: number) => t("history.table", { number })}
+                    noTableLabel={t("history.noTable")}
+                    statusLabels={historyStatusLabels}
                   />
                 ))}
 
                 {customer.reservations.length === 0 && (
-                  <EmptyLine text="Ainda não existem reservas deste cliente." />
+                  <EmptyLine text={t("history.empty")} />
                 )}
               </div>
             </Panel>
@@ -167,14 +194,14 @@ export default async function CustomerDetailPage({
 
           <section className="mt-6">
   <Panel>
-    <SectionLabel>Notas internas</SectionLabel>
+    <SectionLabel>{t("notes.eyebrow")}</SectionLabel>
 
     <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-      Conhecimento da equipa
+      {t("notes.heading")}
     </h2>
 
     <p className="mt-2 text-sm text-[#6B6258]">
-      Informação privada sobre preferências e histórico deste cliente.
+      {t("notes.description")}
     </p>
 
     <form
@@ -197,7 +224,7 @@ export default async function CustomerDetailPage({
         name="notes"
         defaultValue={customer.notes ?? ""}
         rows={8}
-        placeholder="Ex: Prefere mesa junto à janela..."
+        placeholder={t("notes.placeholder")}
         className="w-full rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 text-sm font-medium text-[#16120E] outline-none focus:border-[#C8A56A]"
       />
 
@@ -206,7 +233,7 @@ export default async function CustomerDetailPage({
           type="submit"
           className="rounded-full bg-[#16120E] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
         >
-          Guardar notas
+          {t("notes.submit")}
         </button>
       </div>
     </form>
@@ -215,15 +242,14 @@ export default async function CustomerDetailPage({
 
 <section className="mt-6">
   <Panel>
-    <SectionLabel>Tags</SectionLabel>
+    <SectionLabel>{t("tags.eyebrow")}</SectionLabel>
 
     <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-      Segmentação
+      {t("tags.heading")}
     </h2>
 
     <p className="mt-2 text-sm text-[#6B6258]">
-      Use tags para identificar clientes locais, turistas, empresas,
-      influencers ou clientes de alto valor.
+      {t("tags.description")}
     </p>
 
     <div className="mt-5 flex flex-wrap gap-2">
@@ -238,7 +264,7 @@ export default async function CustomerDetailPage({
         ))
       ) : (
         <p className="text-sm text-[#6B6258]">
-          Ainda não existem tags neste cliente.
+          {t("tags.empty")}
         </p>
       )}
     </div>
@@ -268,7 +294,7 @@ export default async function CustomerDetailPage({
       <input
         name="tags"
         defaultValue={(customer.tags ?? []).join(", ")}
-        placeholder="Ex: local, alto valor, influencer"
+        placeholder={t("tags.inputPlaceholder")}
         className="h-13 min-h-[52px] w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
       />
 
@@ -277,7 +303,7 @@ export default async function CustomerDetailPage({
           type="submit"
           className="rounded-full bg-[#16120E] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
         >
-          Guardar tags
+          {t("tags.submit")}
         </button>
       </div>
     </form>
@@ -286,10 +312,10 @@ export default async function CustomerDetailPage({
 
           <section className="mt-6">
             <Panel>
-              <SectionLabel>Growth</SectionLabel>
+              <SectionLabel>{t("growth.eyebrow")}</SectionLabel>
 
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-                Atividade de marketing
+                {t("growth.heading")}
               </h2>
 
               <div className="mt-6 overflow-hidden rounded-[26px] border border-[#E8DCCB] bg-[#FFF9F0]">
@@ -300,11 +326,13 @@ export default async function CustomerDetailPage({
                     status={action.status}
                     sentAt={action.sentAt}
                     revenue={Number(action.estimatedRevenue || 0)}
+                    intlLocale={intlLocale}
+                    marketingTypeLabels={marketingTypeLabels}
                   />
                 ))}
 
                 {customer.marketingActions.length === 0 && (
-                  <EmptyLine text="Ainda não existem ações de marketing para este cliente." />
+                  <EmptyLine text={t("growth.empty")} />
                 )}
               </div>
             </Panel>
@@ -347,25 +375,35 @@ function ReservationLine({
   guests,
   status,
   table,
+  intlLocale,
+  guestsLabel,
+  tableLabel,
+  noTableLabel,
+  statusLabels,
 }: {
   date: Date;
   guests: number;
   status: string;
   table?: number;
+  intlLocale: string;
+  guestsLabel: (count: number) => string;
+  tableLabel: (number: number) => string;
+  noTableLabel: string;
+  statusLabels: Record<string, string>;
 }) {
   return (
     <div className="flex items-center justify-between border-b border-[#E8DCCB] px-5 py-4 last:border-b-0">
       <div>
         <p className="font-semibold">
-          {new Date(date).toLocaleDateString("pt-PT")}
+          {new Date(date).toLocaleDateString(intlLocale)}
         </p>
         <p className="mt-1 text-xs text-[#6B6258]">
-          {guests} pessoas · {table ? `Mesa ${table}` : "Sem mesa"}
+          {guestsLabel(guests)} · {table ? tableLabel(table) : noTableLabel}
         </p>
       </div>
 
       <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#9B6F3B]">
-        {status}
+        {statusLabels[status] ?? status}
       </span>
     </div>
   );
@@ -376,31 +414,24 @@ function MarketingLine({
   status,
   sentAt,
   revenue,
+  intlLocale,
+  marketingTypeLabels,
 }: {
   type: string;
   status: string;
   sentAt: Date;
   revenue: number;
+  intlLocale: string;
+  marketingTypeLabels: Record<string, string>;
 }) {
-  const label =
-    type === "VIP_UPGRADE"
-      ? "Upgrade VIP"
-      : type === "INACTIVE_RECOVERY"
-        ? "Recuperação"
-        : type === "BIRTHDAY"
-          ? "Aniversário"
-          : type === "MANUAL_CAMPAIGN"
-            ? "Campanha"
-            : type === "REVIEW_REQUEST"
-              ? "Review"
-              : type;
+  const label = marketingTypeLabels[type] ?? type;
 
   return (
     <div className="flex items-center justify-between border-b border-[#E8DCCB] px-5 py-4 last:border-b-0">
       <div>
         <p className="font-semibold">{label}</p>
         <p className="mt-1 text-xs text-[#6B6258]">
-          {new Date(sentAt).toLocaleDateString("pt-PT")} · {status}
+          {new Date(sentAt).toLocaleDateString(intlLocale)} · {status}
         </p>
       </div>
 

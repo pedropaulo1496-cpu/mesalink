@@ -10,12 +10,15 @@ import ProductImageUpload from "@/components/ProductImageUpload";
 import OrderingLiveOrders from "@/components/OrderingLiveOrders";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import { getTranslations } from "next-intl/server";
 
 const TABS = [
-  { key: "orders", label: "Pedidos" },
-  { key: "qr", label: "QR Codes" },
-  { key: "settings", label: "Definições" },
+  { key: "orders" },
+  { key: "qr" },
+  { key: "settings" },
 ] as const;
+
+type T = (key: string, values?: Record<string, string | number>) => string;
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -354,6 +357,8 @@ trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     ? query.tab!
     : "orders";
 
+  const t = await getTranslations("dashboardOperations.ordering.main");
+
   const now = new Date();
 
   const trialActive =
@@ -369,8 +374,8 @@ const canUseQrOrdering =
   }
 
  const qrStatusLabel = canUseQrOrdering
-  ? "Ativo"
-  : "Inativo";
+  ? t("status.active")
+  : t("status.inactive");
   
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
@@ -409,7 +414,7 @@ const canUseQrOrdering =
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#FFF9F0] p-6 text-[#16120E]">
-        Restaurante não encontrado
+        {t("notFound")}
       </main>
     );
   }
@@ -440,7 +445,7 @@ const canUseQrOrdering =
         <RestaurantSidebar
   id={id}
   restaurantName={restaurant.name}
-  active="QR Ordering"
+  active="qrOrdering"
 />
 
         <div className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-7 lg:pt-7">
@@ -448,12 +453,12 @@ const canUseQrOrdering =
             <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-                  QR Ordering
+                  {t("header.eyebrow")}
                 </p>
 
                 <div className="mt-2 flex flex-wrap items-center gap-3">
                   <h1 className="text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
-                    Pedidos à mesa
+                    {t("header.title")}
                   </h1>
 
                   <span
@@ -468,8 +473,7 @@ const canUseQrOrdering =
                 </div>
 
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">
-                  Gere o menu digital, recebe pedidos por mesa e prepara QR Codes
-                  para cada zona do restaurante.
+                  {t("header.description")}
                 </p>
               </div>
 
@@ -479,14 +483,14 @@ const canUseQrOrdering =
                   target="_blank"
                   className="inline-flex h-11 items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-5 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
                 >
-                  Imprimir QRs
+                  {t("header.printQrsButton")}
                 </Link>
 
                 <Link
                   href={`/restaurants/${id}/tables`}
                   className="inline-flex h-11 items-center justify-center rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
                 >
-                  Abrir sala
+                  {t("header.openRoomButton")}
                 </Link>
               </div>
             </div>
@@ -507,7 +511,7 @@ const canUseQrOrdering =
                         : "border border-[#E8DCCB] bg-[#FFF9F0] text-[#6B6258] hover:border-[#C8A56A] hover:bg-white hover:text-[#16120E]"
                     }`}
                   >
-                    {tab.label}
+                    {t(`tabs.${tab.key}`)}
                   </Link>
                 );
               })}
@@ -516,24 +520,24 @@ const canUseQrOrdering =
 
           <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              label="Mesas abertas"
+              label={t("metrics.openTables.label")}
               value={restaurant.orderingTableSessions.length}
-              sub="sessões QR"
+              sub={t("metrics.openTables.sub")}
             />
             <MetricCard
-              label="Pedidos ativos"
+              label={t("metrics.activeOrders.label")}
               value={activeOrders}
-              sub="por preparar/entregar"
+              sub={t("metrics.activeOrders.sub")}
             />
             <MetricCard
-              label="Produtos"
+              label={t("metrics.products.label")}
               value={totalProducts}
-              sub={`${activeProducts} ativos`}
+              sub={t("metrics.products.subActive", { count: activeProducts })}
             />
             <MetricCard
-              label="Mesas"
+              label={t("metrics.tables.label")}
               value={restaurant.tables.length}
-              sub="QR Codes"
+              sub={t("metrics.tables.sub")}
             />
           </section>
 
@@ -542,12 +546,15 @@ const canUseQrOrdering =
               <OrdersTab
                 restaurantId={restaurant.id}
                 sessions={restaurant.orderingTableSessions}
+                t={t}
               />
             )}
 
-            {activeTab === "qr" && <QrTab restaurant={restaurant} />}
+            {activeTab === "qr" && <QrTab restaurant={restaurant} t={t} />}
 
-            {activeTab === "settings" && <SettingsTab restaurant={restaurant} />}
+            {activeTab === "settings" && (
+              <SettingsTab restaurant={restaurant} t={t} />
+            )}
           </section>
         </div>
       </div>
@@ -570,9 +577,11 @@ function safeDate(value: any) {
 function OrdersTab({
   restaurantId,
   sessions,
+  t,
 }: {
   restaurantId: string;
   sessions: any[];
+  t: T;
 }) {
   const safeSessions = sessions.map((session) => ({
     id: session.id,
@@ -622,22 +631,22 @@ function OrdersTab({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-            Pedidos
+            {t("orders.eyebrow")}
           </p>
 
           <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
-            Mesas com pedidos QR
+            {t("orders.title")}
           </h2>
 
           {pendingActions.length > 0 && (
             <p className="mt-2 text-sm font-bold text-[#A14E36]">
-              {pendingActions.length} alerta(s) pendente(s)
+              {t("orders.pendingAlerts", { count: pendingActions.length })}
             </p>
           )}
         </div>
 
         <span className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-          Atualiza automaticamente
+          {t("orders.autoRefreshBadge")}
         </span>
       </div>
 
@@ -718,17 +727,17 @@ function OrderStatusButton({
   );
 }
 
-function MenuTab({ restaurant }: { restaurant: any }) {
+function MenuTab({ restaurant, t }: { restaurant: any; t: T }) {
   return (
     <section className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
       <div className="space-y-5">
         <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-            Categoria
+            {t("menu.categoryEyebrow")}
           </p>
 
           <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-            Criar categoria
+            {t("menu.createCategoryTitle")}
           </h2>
 
           <form action={createCategory} className="mt-5 space-y-3">
@@ -736,30 +745,30 @@ function MenuTab({ restaurant }: { restaurant: any }) {
 
             <input
               name="name"
-              placeholder="Ex: Entradas, Bebidas, Sobremesas"
+              placeholder={t("menu.categoryNamePlaceholder")}
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="position"
               type="number"
-              placeholder="Ordem da categoria"
+              placeholder={t("menu.categoryPositionPlaceholder")}
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:opacity-90">
-              Criar categoria
+              {t("menu.createCategoryButton")}
             </button>
           </form>
         </div>
 
         <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-            Produto
+            {t("menu.productEyebrow")}
           </p>
 
           <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-            Adicionar produto
+            {t("menu.addProductTitle")}
           </h2>
 
           <form action={createProduct} className="mt-5 space-y-3">
@@ -769,7 +778,7 @@ function MenuTab({ restaurant }: { restaurant: any }) {
               name="categoryId"
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             >
-              <option value="">Escolher categoria</option>
+              <option value="">{t("menu.chooseCategoryOption")}</option>
               {restaurant.orderingCategories.map((category: any) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -779,13 +788,13 @@ function MenuTab({ restaurant }: { restaurant: any }) {
 
             <input
               name="name"
-              placeholder="Nome do produto"
+              placeholder={t("menu.productNamePlaceholder")}
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="description"
-              placeholder="Descrição curta"
+              placeholder={t("menu.productDescriptionPlaceholder")}
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
@@ -793,13 +802,13 @@ function MenuTab({ restaurant }: { restaurant: any }) {
               name="price"
               type="number"
               step="0.01"
-              placeholder="Preço"
+              placeholder={t("menu.pricePlaceholder")}
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="sku"
-              placeholder="SKU / Código interno"
+              placeholder={t("menu.skuPlaceholder")}
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
@@ -808,22 +817,22 @@ function MenuTab({ restaurant }: { restaurant: any }) {
               defaultValue="23"
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             >
-              <option value="0">IVA 0%</option>
-              <option value="6">IVA 6%</option>
-              <option value="13">IVA 13%</option>
-              <option value="23">IVA 23%</option>
+              <option value="0">{t("menu.vatOption", { rate: 0 })}</option>
+              <option value="6">{t("menu.vatOption", { rate: 6 })}</option>
+              <option value="13">{t("menu.vatOption", { rate: 13 })}</option>
+              <option value="23">{t("menu.vatOption", { rate: 23 })}</option>
             </select>
 
             <input
               name="sortOrder"
               type="number"
-              placeholder="Ordem no menu"
+              placeholder={t("menu.sortOrderPlaceholder")}
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="allergens"
-              placeholder="Alergénios. Ex: glúten, leite, frutos secos"
+              placeholder={t("menu.allergensPlaceholder")}
               className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
@@ -835,11 +844,11 @@ function MenuTab({ restaurant }: { restaurant: any }) {
                 type="checkbox"
                 className="h-4 w-4 accent-[#16120E]"
               />
-              Produto em destaque
+              {t("menu.featuredLabel")}
             </label>
 
             <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:opacity-90">
-              Adicionar produto
+              {t("menu.addProductButton")}
             </button>
           </form>
         </div>
@@ -849,23 +858,23 @@ function MenuTab({ restaurant }: { restaurant: any }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-              Menu digital
+              {t("menu.digitalMenuEyebrow")}
             </p>
 
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
-              Produtos do QR Ordering
+              {t("menu.productsTitle")}
             </h2>
           </div>
 
           <p className="text-xs font-bold text-[#6B6258]">
-            Use “abrir” para editar os produtos.
+            {t("menu.editHint")}
           </p>
         </div>
 
         <div className="mt-6 space-y-3">
           {restaurant.orderingCategories.length === 0 ? (
             <div className="rounded-[24px] border border-dashed border-[#E1D0B8] bg-[#FFF9F0] p-6 text-sm text-[#6B6258]">
-              Cria a primeira categoria para começar o menu digital.
+              {t("menu.emptyCategories")}
             </div>
           ) : (
             restaurant.orderingCategories.map((category: any, index: number) => (
@@ -874,6 +883,7 @@ function MenuTab({ restaurant }: { restaurant: any }) {
                 category={category}
                 restaurantId={restaurant.id}
                 open={index === 0}
+                t={t}
               />
             ))
           )}
@@ -887,10 +897,12 @@ function CategoryCard({
   category,
   restaurantId,
   open,
+  t,
 }: {
   category: any;
   restaurantId: string;
   open: boolean;
+  t: T;
 }) {
   return (
     <details
@@ -906,18 +918,19 @@ function CategoryCard({
           <div className="min-w-0">
             <h3 className="truncate text-xl font-semibold">{category.name}</h3>
             <p className="mt-0.5 text-xs font-bold text-[#6B6258]">
-              Ordem {category.position} · {category.products.length} produtos
+              {t("menu.orderValue", { value: category.position })} ·{" "}
+              {t("menu.productCount", { count: category.products.length })}
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           <span className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-            {category.products.length} produtos
+            {t("menu.productCount", { count: category.products.length })}
           </span>
 
           <span className="rounded-full border border-[#E8DCCB] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6B6258]">
-            Abrir
+            {t("menu.openBadge")}
           </span>
         </div>
       </summary>
@@ -925,7 +938,7 @@ function CategoryCard({
       <div className="mt-4 space-y-4 border-t border-[#E8DCCB] pt-4">
         <details className="rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4">
           <summary className="cursor-pointer list-none text-sm font-semibold text-[#9B6F3B]">
-            Editar categoria
+            {t("menu.editCategoryLabel")}
           </summary>
 
           <form
@@ -949,7 +962,7 @@ function CategoryCard({
             />
 
             <button className="h-11 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white">
-              Guardar
+              {t("menu.saveButton")}
             </button>
           </form>
         </details>
@@ -957,7 +970,7 @@ function CategoryCard({
         <div className="space-y-2">
           {category.products.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-[#E8DCCB] p-4 text-sm text-[#6B6258]">
-              Ainda sem produtos.
+              {t("menu.noProductsYet")}
             </p>
           ) : (
             category.products.map((product: any) => (
@@ -965,6 +978,7 @@ function CategoryCard({
                 key={product.id}
                 product={product}
                 restaurantId={restaurantId}
+                t={t}
               />
             ))
           )}
@@ -972,7 +986,7 @@ function CategoryCard({
 
         <details className="pt-1">
           <summary className="inline-flex cursor-pointer list-none rounded-full border border-red-300/20 bg-[#FFF0EA] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#A14E36] transition hover:bg-[#FFE7DE]">
-            Eliminar categoria
+            {t("menu.deleteCategoryLabel")}
           </summary>
 
           <form
@@ -983,7 +997,7 @@ function CategoryCard({
             <input type="hidden" name="categoryId" value={category.id} />
 
             <p className="text-sm font-bold text-[#A14E36]">
-              Isto vai eliminar a categoria “{category.name}” e todos os produtos dentro dela.
+              {t("menu.deleteCategoryWarning", { name: category.name })}
             </p>
 
             <label className="mt-3 flex items-center gap-2 text-xs font-bold text-[#A14E36]">
@@ -992,11 +1006,11 @@ function CategoryCard({
                 type="checkbox"
                 className="h-4 w-4 accent-red-400"
               />
-              Confirmo que quero apagar a categoria e os produtos
+              {t("menu.deleteCategoryConfirmLabel")}
             </label>
 
             <button className="mt-3 rounded-full border border-red-300/30 bg-red-400/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#A14E36] transition hover:bg-[#FFE7DE]">
-              Apagar definitivamente
+              {t("menu.deletePermanentlyButton")}
             </button>
           </form>
         </details>
@@ -1008,9 +1022,11 @@ function CategoryCard({
 function ProductCard({
   product,
   restaurantId,
+  t,
 }: {
   product: any;
   restaurantId: string;
+  t: T;
 }) {
   return (
     <details
@@ -1041,21 +1057,23 @@ function ProductCard({
 
             {!product.active && (
               <span className="rounded-full border border-red-300/20 bg-[#FFF0EA] px-2 py-0.5 text-[9px] font-semibold uppercase text-[#A14E36]">
-                Inativo
+                {t("menu.inactiveBadge")}
               </span>
             )}
 
             {product.featured && (
               <span className="rounded-full border border-yellow-300/20 bg-[#FFF9F0] px-2 py-0.5 text-[9px] font-semibold uppercase text-[#9B6F3B]">
-                Destaque
+                {t("menu.featuredBadge")}
               </span>
             )}
           </div>
 
           <p className="mt-1 truncate text-xs font-bold text-[#6B6258]">
             {product.sku ? `${product.sku} · ` : ""}
-            Ordem {product.sortOrder}
-            {product.allergens ? ` · Alergénios: ${product.allergens}` : ""}
+            {t("menu.orderValue", { value: product.sortOrder })}
+            {product.allergens
+              ? ` · ${t("menu.allergensPrefix", { allergens: product.allergens })}`
+              : ""}
           </p>
         </div>
 
@@ -1065,7 +1083,7 @@ function ProductCard({
           </p>
 
           <span className="mt-1 inline-flex rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-2 py-0.5 text-[10px] font-semibold text-[#9B6F3B]">
-            IVA {product.vatRate}%
+            {t("menu.vatOption", { rate: product.vatRate })}
           </span>
         </div>
       </summary>
@@ -1085,7 +1103,7 @@ function ProductCard({
             <input
               name="description"
               defaultValue={product.description || ""}
-              placeholder="Descrição"
+              placeholder={t("menu.editDescriptionPlaceholder")}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
@@ -1102,16 +1120,16 @@ function ProductCard({
               defaultValue={product.vatRate}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none focus:border-[#C8A56A]"
             >
-              <option value="0">IVA 0%</option>
-              <option value="6">IVA 6%</option>
-              <option value="13">IVA 13%</option>
-              <option value="23">IVA 23%</option>
+              <option value="0">{t("menu.vatOption", { rate: 0 })}</option>
+              <option value="6">{t("menu.vatOption", { rate: 6 })}</option>
+              <option value="13">{t("menu.vatOption", { rate: 13 })}</option>
+              <option value="23">{t("menu.vatOption", { rate: 23 })}</option>
             </select>
 
             <input
               name="sku"
               defaultValue={product.sku || ""}
-              placeholder="SKU"
+              placeholder={t("menu.editSkuPlaceholder")}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
@@ -1119,14 +1137,14 @@ function ProductCard({
               name="sortOrder"
               type="number"
               defaultValue={product.sortOrder}
-              placeholder="Ordem"
+              placeholder={t("menu.editSortOrderPlaceholder")}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
             <input
               name="allergens"
               defaultValue={product.allergens || ""}
-              placeholder="Alergénios"
+              placeholder={t("menu.editAllergensPlaceholder")}
               className="h-11 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
             />
 
@@ -1142,12 +1160,12 @@ function ProductCard({
               defaultChecked={product.featured}
               className="h-4 w-4 accent-[#16120E]"
             />
-            Produto em destaque
+            {t("menu.featuredLabel")}
           </label>
 
           <div className="flex flex-wrap gap-2">
             <button className="h-10 rounded-full bg-[#16120E] px-5 text-xs font-semibold text-white">
-              Guardar alterações
+              {t("menu.saveChangesButton")}
             </button>
           </div>
         </form>
@@ -1159,7 +1177,7 @@ function ProductCard({
             <input type="hidden" name="active" value={String(product.active)} />
 
             <button className="h-9 rounded-full border border-[#E8DCCB] bg-white px-4 text-xs font-semibold uppercase text-[#6B6258] transition hover:border-[#C8A56A] hover:text-[#9B6F3B]">
-              {product.active ? "Desativar" : "Ativar"}
+              {product.active ? t("menu.deactivateButton") : t("menu.activateButton")}
             </button>
           </form>
 
@@ -1169,14 +1187,14 @@ function ProductCard({
               <input type="hidden" name="productId" value={product.id} />
 
               <button className="h-9 rounded-full border border-yellow-300/20 bg-[#FFF9F0] px-4 text-xs font-semibold uppercase text-[#9B6F3B]">
-                Remover imagem
+                {t("menu.removeImageButton")}
               </button>
             </form>
           )}
 
           <details className="rounded-full">
             <summary className="flex h-9 cursor-pointer list-none items-center rounded-full border border-red-300/20 bg-[#FFF0EA] px-4 text-xs font-semibold uppercase text-[#A14E36]">
-              Eliminar
+              {t("menu.deleteLabel")}
             </summary>
 
             <form
@@ -1192,11 +1210,11 @@ function ProductCard({
                   type="checkbox"
                   className="h-4 w-4 accent-red-400"
                 />
-                Confirmar eliminação
+                {t("menu.confirmDeleteLabel")}
               </label>
 
               <button className="mt-2 h-9 rounded-full border border-red-300/30 bg-red-400/20 px-4 text-xs font-semibold uppercase text-[#A14E36]">
-                Eliminar produto
+                {t("menu.deleteProductButton")}
               </button>
             </form>
           </details>
@@ -1206,21 +1224,15 @@ function ProductCard({
   );
 }
 
-function QrTab({ restaurant }: { restaurant: any }) {
+function QrTab({ restaurant, t }: { restaurant: any; t: T }) {
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
     "http://localhost:3000";
 
   const templates = [
-    { key: "premium", name: "Premium Black" },
-    { key: "minimal", name: "Minimal White" },
-    { key: "mesalink", name: "MesaLink" },
-  ];
-
-  const sizes = [
-    { key: "small", name: "Pequeno" },
-    { key: "medium", name: "Médio" },
-    { key: "large", name: "Grande" },
+    { key: "premium", name: t("qr.templateNames.premium") },
+    { key: "minimal", name: t("qr.templateNames.minimal") },
+    { key: "mesalink", name: t("qr.templateNames.mesalink") },
   ];
 
   return (
@@ -1228,27 +1240,27 @@ function QrTab({ restaurant }: { restaurant: any }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-            QR Codes
+            {t("qr.eyebrow")}
           </p>
 
           <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
-            Gestão de QR Codes
+            {t("qr.title")}
           </h2>
 
           <p className="mt-2 max-w-2xl text-sm font-bold text-[#6B6258]">
-            Gere mesas, escolhe template/tamanho e imprime QR Codes sem ocupar a página toda.
+            {t("qr.description")}
           </p>
         </div>
 
         <span className="rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-          {restaurant.tables.length} mesas
+          {t("qr.tablesCount", { count: restaurant.tables.length })}
         </span>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="space-y-4">
           <div className="rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-            <h3 className="text-lg font-semibold">Adicionar mesas</h3>
+            <h3 className="text-lg font-semibold">{t("qr.addTablesTitle")}</h3>
 
             <form
               action={createQrTables}
@@ -1262,7 +1274,7 @@ function QrTab({ restaurant }: { restaurant: any }) {
                 min="1"
                 max="100"
                 defaultValue="10"
-                placeholder="Quantidade"
+                placeholder={t("qr.quantityPlaceholder")}
                 className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
               />
 
@@ -1272,22 +1284,22 @@ function QrTab({ restaurant }: { restaurant: any }) {
                 min="1"
                 max="50"
                 defaultValue="2"
-                placeholder="Capacidade padrão"
+                placeholder={t("qr.defaultCapacityPlaceholder")}
                 className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
               />
 
               <button className="h-12 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white">
-                Gerar mesas
+                {t("qr.generateTablesButton")}
               </button>
             </form>
 
             <p className="mt-3 text-xs font-bold text-[#9B8F82]">
-              As mesas criadas aqui também aparecem na gestão de sala.
+              {t("qr.createHint")}
             </p>
           </div>
 
           <div className="rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-  <h3 className="text-lg font-semibold">Impressão rápida</h3>
+  <h3 className="text-lg font-semibold">{t("qr.quickPrintTitle")}</h3>
 
   <div className="mt-4 space-y-3">
     {templates.map((template) => (
@@ -1305,17 +1317,17 @@ function QrTab({ restaurant }: { restaurant: any }) {
           }`}
         >
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-60">
-            MesaLink QR Ordering
+            {t("qr.previewBrand")}
           </p>
 
-          <p className="mt-2 text-2xl font-semibold">Mesa 1</p>
+          <p className="mt-2 text-2xl font-semibold">{t("qr.tableLabel", { number: 1 })}</p>
 
           <div className="mt-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-xs font-semibold text-[#16120E] shadow-sm">
             QR
           </div>
 
           <p className="mt-3 text-xs font-bold opacity-70">
-            Preview {template.name}
+            {t("qr.previewLabel", { name: template.name })}
           </p>
         </div>
 
@@ -1324,7 +1336,7 @@ function QrTab({ restaurant }: { restaurant: any }) {
           target="_blank"
           className="mt-3 flex h-10 items-center justify-center rounded-full bg-[#16120E] text-xs font-semibold uppercase tracking-[0.14em] text-white"
         >
-          Imprimir todas
+          {t("qr.printAllButton")}
         </a>
       </div>
     ))}
@@ -1335,21 +1347,21 @@ function QrTab({ restaurant }: { restaurant: any }) {
         <div className="rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h3 className="text-lg font-semibold">Mesas QR</h3>
+              <h3 className="text-lg font-semibold">{t("qr.tablesListTitle")}</h3>
               <p className="mt-1 text-xs font-bold text-[#6B6258]">
-                Lista compacta para restaurantes com muitas mesas.
+                {t("qr.tablesListHint")}
               </p>
             </div>
 
             <span className="w-fit rounded-full border border-[#E8DCCB] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6B6258]">
-              {restaurant.tables.length} total
+              {t("qr.totalLabel", { count: restaurant.tables.length })}
             </span>
           </div>
 
           <div className="mt-4 max-h-[620px] space-y-2 overflow-y-auto pr-1">
             {restaurant.tables.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-[#E1D0B8] p-5 text-sm font-bold text-[#6B6258]">
-                Ainda não tens mesas criadas.
+                {t("qr.noTablesYet")}
               </div>
             ) : (
               restaurant.tables.map((table: any) => {
@@ -1363,15 +1375,15 @@ function QrTab({ restaurant }: { restaurant: any }) {
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                       <div>
                         <p className="font-semibold text-[#16120E]">
-                          Mesa {table.number}
+                          {t("qr.tableLabel", { number: table.number })}
                         </p>
                         <p className="text-xs font-bold text-[#6B6258]">
-                          {table.capacity} lugares
+                          {t("qr.seatsCount", { count: table.capacity })}
                         </p>
                       </div>
 
                       <span className="rounded-full border border-[#E8DCCB] px-3 py-1 text-[10px] font-semibold uppercase text-[#6B6258]">
-                        Abrir
+                        {t("qr.openBadge")}
                       </span>
                     </summary>
 
@@ -1386,7 +1398,7 @@ function QrTab({ restaurant }: { restaurant: any }) {
                           target="_blank"
                           className="flex h-10 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-xs font-semibold text-[#9B6F3B]"
                         >
-                          Abrir QR
+                          {t("qr.openQrButton")}
                         </a>
 
                         <a
@@ -1394,13 +1406,13 @@ function QrTab({ restaurant }: { restaurant: any }) {
                           target="_blank"
                           className="flex h-10 items-center justify-center rounded-full border border-violet-300/20 bg-[#FFF9F0] px-3 text-xs font-semibold text-[#9B6F3B]"
                         >
-                          Imprimir
+                          {t("qr.printButton")}
                         </a>
                       </div>
 
                       <details className="mt-3">
                         <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.14em] text-[#A14E36]">
-                          Remover mesa
+                          {t("qr.removeTableLabel")}
                         </summary>
 
                         <form
@@ -1416,11 +1428,11 @@ function QrTab({ restaurant }: { restaurant: any }) {
                               type="checkbox"
                               className="h-4 w-4 accent-red-400"
                             />
-                            Confirmo que quero remover esta mesa
+                            {t("qr.removeTableConfirmLabel")}
                           </label>
 
                           <button className="mt-2 rounded-full border border-red-300/30 bg-red-400/20 px-4 py-2 text-xs font-semibold uppercase text-[#A14E36]">
-                            Remover
+                            {t("qr.removeButton")}
                           </button>
                         </form>
                       </details>
@@ -1436,20 +1448,20 @@ function QrTab({ restaurant }: { restaurant: any }) {
   );
 }
 
-function SettingsTab({ restaurant }: { restaurant: any }) {
+function SettingsTab({ restaurant, t }: { restaurant: any; t: T }) {
   return (
     <section className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-          Definições
+          {t("settings.eyebrow")}
         </p>
 
         <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-          QR Ordering
+          {t("settings.title")}
         </h2>
 
         <p className="mt-2 text-sm font-bold text-[#6B6258]">
-          Personaliza o comportamento do QR Ordering.
+          {t("settings.description")}
         </p>
       </div>
 
@@ -1463,11 +1475,11 @@ function SettingsTab({ restaurant }: { restaurant: any }) {
         <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4">
           <div>
             <p className="font-semibold text-[#16120E]">
-              Ativar QR Ordering
+              {t("settings.enableQr.title")}
             </p>
 
             <p className="text-xs font-bold text-[#6B6258]">
-              Permite pedidos através do QR Code.
+              {t("settings.enableQr.hint")}
             </p>
           </div>
 
@@ -1482,11 +1494,11 @@ function SettingsTab({ restaurant }: { restaurant: any }) {
         <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4">
           <div>
             <p className="font-semibold text-[#16120E]">
-              Permitir chamar empregado
+              {t("settings.allowWaiterCall.title")}
             </p>
 
             <p className="text-xs font-bold text-[#6B6258]">
-              Mostra o botão de assistência ao cliente.
+              {t("settings.allowWaiterCall.hint")}
             </p>
           </div>
 
@@ -1501,11 +1513,11 @@ function SettingsTab({ restaurant }: { restaurant: any }) {
         <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] p-4">
           <div>
             <p className="font-semibold text-[#16120E]">
-              Permitir pedir conta
+              {t("settings.allowBillRequest.title")}
             </p>
 
             <p className="text-xs font-bold text-[#6B6258]">
-              Mostra o botão para solicitar a conta.
+              {t("settings.allowBillRequest.hint")}
             </p>
           </div>
 
@@ -1518,19 +1530,19 @@ function SettingsTab({ restaurant }: { restaurant: any }) {
         </label>
 
         <button className="h-12 rounded-full bg-[#16120E] px-6 text-sm font-semibold text-white">
-          Guardar definições
+          {t("settings.saveButton")}
         </button>
       </form>
     </section>
   );
 }
 
-function statusLabel(status: string) {
-  if (status === "PENDING") return "Recebido";
-  if (status === "PREPARING") return "A preparar";
-  if (status === "READY") return "Pronto";
-  if (status === "DELIVERED") return "Entregue";
-  if (status === "CANCELLED") return "Cancelado";
+function statusLabel(status: string, t: T) {
+  if (status === "PENDING") return t("statusLabels.pending");
+  if (status === "PREPARING") return t("statusLabels.preparing");
+  if (status === "READY") return t("statusLabels.ready");
+  if (status === "DELIVERED") return t("statusLabels.delivered");
+  if (status === "CANCELLED") return t("statusLabels.cancelled");
   return status;
 }
 

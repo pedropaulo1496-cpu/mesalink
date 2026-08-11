@@ -1,0 +1,358 @@
+{
+  "general": {
+    "notFound": "Restaurante no encontrado",
+    "header": {
+      "eyebrow": "MesaLink Control",
+      "title": "Configuración",
+      "badge": "Gestión operativa"
+    },
+    "reservations": {
+      "eyebrow": "Reservas",
+      "title": "Reglas principales",
+      "description": "Define si el restaurante funciona por mesas o por capacidad, y cuándo una reserva debe quedar pendiente.",
+      "modeLabel": "Modo de reservas",
+      "modeTables": "Por Mesas",
+      "modeCapacity": "Por Capacidad",
+      "totalCapacityLabel": "Capacidad total",
+      "totalCapacityPlaceholder": "Ej.: 60",
+      "totalCapacityHintAdvanced": "Se usa solo cuando el modo es Por Capacidad.",
+      "totalCapacityHintBasic": "Número máximo de personas que puede aceptar por franja horaria.",
+      "manualApprovalLabel": "Aprobación manual a partir de",
+      "manualApprovalPlaceholder": "Ej.: 8",
+      "manualApprovalHint": "Las reservas con este número de personas o más quedan pendientes.",
+      "tableMergeTitle": "Aprobación al unir mesas",
+      "tableMergeText": "Las solicitudes que requieran unir mesas quedan pendientes.",
+      "proBadge": "Función Pro",
+      "proTitle": "Gestión de mesas disponible en Pro",
+      "proFeatures": {
+        "map": "Plano de sala",
+        "byTable": "Reservas por mesa",
+        "merge": "Unión de mesas",
+        "unlimited": "Reservas ilimitadas"
+      },
+      "upgradeButton": "Mejorar a Pro",
+      "onlineTitle": "Aceptar reservas online",
+      "onlineText": "Si está desactivado, la página pública informa a los clientes de que el restaurante no está aceptando reservas."
+    },
+    "hours": {
+      "eyebrow": "Horarios",
+      "title": "Funcionamiento semanal",
+      "lunch": "Almuerzo",
+      "dinner": "Cena",
+      "days": {
+        "monday": "Lunes",
+        "tuesday": "Martes",
+        "wednesday": "Miércoles",
+        "thursday": "Jueves",
+        "friday": "Viernes",
+        "saturday": "Sábado",
+        "sunday": "Domingo"
+      }
+    },
+    "reviews": {
+      "eyebrow": "Marketing y Reseñas",
+      "title": "Reseñas de Google",
+      "description": "Configura el enlace donde los clientes satisfechos pueden compartir su experiencia en Google.",
+      "urlLabel": "URL de reseñas de Google",
+      "urlHint": "Este botón solo aparece al cliente cuando este enlace está completado.",
+      "thresholdLabel": "Mínimo para sugerir Google",
+      "threshold5": "5 estrellas",
+      "threshold4": "4 estrellas o más",
+      "threshold3": "3 estrellas o más"
+    },
+    "saveButton": "Guardar cambios",
+    "printers": {
+      "eyebrow": "Impresoras",
+      "title": "Impresoras del restaurante",
+      "namePlaceholder": "Ej.: Epson Cocina",
+      "typeKitchen": "Cocina",
+      "typeBar": "Bar",
+      "typeRoom": "Sala",
+      "typeCashier": "Caja",
+      "typeOther": "Otra",
+      "methodBrowser": "Navegador / Tablet",
+      "methodBluetooth": "Bluetooth",
+      "methodBridge": "Print Bridge",
+      "methodNetwork": "Red/IP",
+      "ipPlaceholder": "IP opcional",
+      "portPlaceholder": "Puerto",
+      "methodHint": "Navegador/Tablet abre la impresión normal del dispositivo. Bluetooth sirve para tablets/Android con una impresora emparejada o una app/bridge de impresión. Red/IP usa la dirección de la impresora.",
+      "createButton": "Crear impresora",
+      "emptyState": "Todavía no tienes impresoras.",
+      "statusActive": "Activa",
+      "statusInactive": "Inactiva",
+      "editIpPlaceholder": "IP",
+      "editPortPlaceholder": "Puerto",
+      "editMethodHint": "Para Bluetooth, empareja la impresora en el tablet/Android y usa la impresión del dispositivo o una app/bridge compatible. IP/puerto solo es necesario en Red/IP.",
+      "activeLabel": "Activa",
+      "saveButton": "Guardar impresora",
+      "confirmDeleteLabel": "Confirmo que quiero eliminar esta impresora",
+      "deleteButton": "Eliminar"
+    },
+    "productionCenters": {
+      "eyebrow": "Producción",
+      "title": "Centros de producción",
+      "description": "Crea zonas como Cocina, Bar, Sala 1 o Cocina 2. Después asocia cada producto a una de estas zonas.",
+      "namePlaceholder": "Ej.: Cocina, Bar, Sala 1",
+      "noPrinterOption": "Sin impresora",
+      "positionPlaceholder": "Orden",
+      "createButton": "Crear centro de producción",
+      "emptyState": "Todavía no tienes centros de producción.",
+      "printerLabel": "Impresora",
+      "printerNotSet": "No definida",
+      "orderLabel": "Orden",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo",
+      "activeLabel": "Activo",
+      "saveButton": "Guardar centro de producción",
+      "deleteToggleLabel": "Eliminar centro de producción",
+      "deleteWarning": "Los productos asociados se quedarán sin centro de producción.",
+      "confirmDeleteLabel": "Confirmo que quiero eliminar",
+      "deleteButton": "Eliminar"
+    },
+    "printersComingSoon": {
+      "eyebrow": "Impresoras",
+      "title": "Impresoras próximamente",
+      "description": "La configuración de impresoras y centros de producción todavía está en desarrollo. Habilitaremos esta área cuando la impresión esté lista para el uso real en restaurantes.",
+      "badge": "Próximamente",
+      "features": {
+        "kitchen": { "title": "Cocina", "text": "Tickets enviados a la impresora de la cocina." },
+        "bar": { "title": "Bar", "text": "Bebidas y pedidos separados por centro de producción." },
+        "room": { "title": "Sala", "text": "Impresión para sala, barra o caja." },
+        "bluetooth": { "title": "Bluetooth", "text": "Preparado para bridge Bluetooth de tablet/app." },
+        "network": { "title": "Red/IP", "text": "Impresoras por dirección IP y puerto." },
+        "bridge": { "title": "Print Bridge", "text": "Servicio local para impresión automática." }
+      },
+      "noteTitle": "Nota importante",
+      "noteText": "Mientras esta función no esté finalizada, la impresión por centro de producción, Bluetooth y bridge no debe considerarse lista para la operación diaria."
+    }
+  },
+  "applyMondayButton": {
+    "button": "Aplicar Lunes a todos",
+    "confirmAlert": "Horario del lunes aplicado a todos los días."
+  },
+  "fiscal": {
+    "eyebrow": "Fiscalidad",
+    "title": "Facturación Moloni",
+    "subtitle": "Conecta la cuenta Moloni de {restaurantName}. Las facturas se emitirán bajo la propia entidad fiscal del restaurante.",
+    "status": {
+      "eyebrow": "Estado de la integración",
+      "titleConnected": "Moloni conectado",
+      "titleDisconnected": "Moloni no conectado",
+      "descConnected": "La cuenta Moloni de este restaurante está conectada. Elige la serie fiscal para la emisión de documentos.",
+      "descDisconnected": "El restaurante necesita autorizar su propia cuenta Moloni para que las facturas se emitan con el NIF, dirección, ATCUD y código QR fiscal correctos.",
+      "badgeConnected": "Conectado",
+      "badgePending": "Pendiente"
+    },
+    "info": {
+      "providerLabel": "Proveedor",
+      "companyIdLabel": "Company ID",
+      "companyIdEmpty": "Todavía no conectado",
+      "currentSerieLabel": "Serie actual",
+      "currentSerieEmpty": "No configurada"
+    },
+    "series": {
+      "title": "Series Moloni",
+      "loading": "Cargando series...",
+      "empty": "No se encontraron series. Confirma en Moloni si existe una serie activa.",
+      "choose": "Elige la serie utilizada para emitir facturas en el POS.",
+      "invoiceLabel": "Factura",
+      "simplifiedLabel": "Factura Simplificada",
+      "creditNoteLabel": "Nota de Crédito",
+      "selectPlaceholder": "Seleccionar serie",
+      "notReportedSuffix": " — no comunicada a la AT",
+      "notReadyTitle": "Serie todavía no comunicada a la AT",
+      "notReadyText": "Esta serie existe en Moloni, pero todavía no tiene códigos AT/ATCUD. El restaurante debe ir a Moloni > Configuración > Series de documentos y comunicar/activar la serie fiscal antes de emitir facturas.",
+      "saveButtonSaving": "Guardando...",
+      "saveButtonNotReady": "Serie no comunicada a la AT",
+      "saveButtonDefault": "Guardar series"
+    },
+    "connectButton": "Conectar Moloni",
+    "updateButton": "Actualizar conexión Moloni",
+    "documents": {
+      "title": "Últimos documentos",
+      "emptyTitle": "Todavía no existen documentos.",
+      "emptyText": "Cuando el POS emita facturas o notas de crédito, aparecerán aquí.",
+      "colNumber": "Número",
+      "colType": "Tipo",
+      "colStatus": "Estado",
+      "colValue": "Importe"
+    },
+    "alerts": {
+      "saveError": "Error al guardar las series.",
+      "genericError": "Error.",
+      "saved": "Series guardadas."
+    }
+  },
+  "website": {
+    "header": {
+      "eyebrow": "Website",
+      "title": "Website Studio",
+      "statusOnline": "En línea",
+      "statusOffline": "Fuera de línea",
+      "savedBadge": "Guardado",
+      "subtitle": "Crea un sitio web profesional para tu restaurante en pocos minutos.",
+      "improveTextButton": "Mejorar textos",
+      "viewSiteButton": "Ver sitio",
+      "saveButton": "Guardar cambios"
+    },
+    "publish": {
+      "title": "Publicación",
+      "description": "Controla si el sitio está en línea y cuál es su dirección pública.",
+      "enableLabel": "Activar sitio web público",
+      "enableDescriptionBefore": "Cuando está activo, el restaurante está disponible en",
+      "linkLabel": "Enlace público",
+      "templateLabel": "Plantilla",
+      "templateOptions": {
+        "premium": "Premium Restaurant",
+        "luxury": "Luxury Dining",
+        "minimal": "Minimal Clean",
+        "social": "Instagram First"
+      }
+    },
+    "aiBuilder": {
+      "title": "IA Website Builder",
+      "description": "Función en desarrollo.",
+      "cardTitle": "IA Website Builder",
+      "cardText": "Creación automática de contenido para sitios web.",
+      "comingSoonBadge": "Próximamente"
+    },
+    "firstImpression": {
+      "title": "Primera impresión",
+      "description": "Lo que el cliente ve en los primeros 3 segundos.",
+      "headlineLabel": "Titular",
+      "cuisineLabel": "Tipo de cocina",
+      "cuisinePlaceholder": "Portuguesa, Japonesa, Brunch...",
+      "descriptionLabel": "Descripción breve",
+      "descriptionPlaceholder": "Un espacio acogedor para comer bien, quedarte un poco más y volver."
+    },
+    "story": {
+      "title": "Historia",
+      "description": "Aquí comienza el alma del restaurante.",
+      "aboutTitleLabel": "Título de la sección sobre nosotros",
+      "aboutTitlePlaceholder": "Nuestra casa",
+      "aboutTextLabel": "Texto sobre el restaurante",
+      "aboutTextPlaceholder": "Cuenta la historia, el concepto y el ambiente.",
+      "featureTitleLabel": "Destacado",
+      "featureTitlePlaceholder": "Una experiencia en la mesa",
+      "featureTextLabel": "Texto del destacado",
+      "featureTextPlaceholder": "Una experiencia pensada para reunir a las personas."
+    },
+    "texts": {
+      "title": "Textos del sitio web",
+      "description": "Personaliza los textos principales del sitio.",
+      "sectionTitleLabel": "Título de la sección principal",
+      "sectionTitlePlaceholder": "Sobre nosotros",
+      "sectionTextLabel": "Texto de la sección principal",
+      "sectionTextPlaceholder": "Texto libre sobre el espacio.",
+      "galleryTitleLabel": "Título de la galería",
+      "galleryTitlePlaceholder": "Galería",
+      "galleryDescriptionLabel": "Descripción de la galería",
+      "galleryDescriptionPlaceholder": "Descripción breve de la galería.",
+      "locationTitleLabel": "Título de la ubicación",
+      "locationTitlePlaceholder": "Dónde estamos",
+      "locationDescriptionLabel": "Texto de la ubicación",
+      "locationDescriptionPlaceholder": "Dirección, zona o indicación útil.",
+      "finalCtaTitleLabel": "Título final",
+      "finalCtaTitlePlaceholder": "Reserva en {name}",
+      "finalCtaTextLabel": "Texto final",
+      "finalCtaTextPlaceholder": "Llamada final a reservar, visitar o contactar."
+    },
+    "images": {
+      "title": "Imágenes",
+      "description": "Las mejores fotografías de tu local.",
+      "logoLabel": "Logo",
+      "heroLabel": "Foto principal",
+      "photoNameLabel": "Nombre de la foto {number}",
+      "photoPlaceholderFirst": "Ambiente",
+      "photoPlaceholderOther": "Foto {number}"
+    },
+    "menus": {
+      "title": "Menús",
+      "description": "Añade uno o varios menús en PDF, con el nombre que quieras.",
+      "sectionTitleLabel": "Título de la sección",
+      "sectionTitlePlaceholder": "Menú",
+      "sectionDescriptionLabel": "Descripción de la sección",
+      "sectionDescriptionPlaceholder": "Consulta nuestros menús.",
+      "itemLabel": "Menú {index}",
+      "removeButton": "Eliminar",
+      "nameLabel": "Nombre del menú",
+      "namePlaceholder": "Ej.: Carta, Cócteles, Vinos, Brunch...",
+      "pdfLabel": "PDF del menú",
+      "emptyState": "Todavía no has añadido ningún menú.",
+      "addButton": "+ Añadir menú"
+    },
+    "style": {
+      "title": "Estilo",
+      "description": "Ajusta la identidad visual del sitio.",
+      "instagramLabel": "Instagram",
+      "instagramPlaceholder": "@restaurante",
+      "primaryColorLabel": "Color principal"
+    },
+    "contacts": {
+      "title": "Contactos",
+      "description": "Edita los contactos que aparecen en el sitio web público.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "info@restaurante.es",
+      "phoneLabel": "Teléfono",
+      "phonePlaceholder": "+34 612 345 678",
+      "addressLabel": "Dirección",
+      "addressPlaceholder": "Calle, número, ciudad"
+    },
+    "seo": {
+      "title": "SEO y dominio",
+      "description": "Mejora tu presencia en Google y prepara el sitio web para crecer.",
+      "titleLabel": "Título SEO",
+      "titlePlaceholder": "{name} | Reservas online",
+      "descriptionLabel": "Descripción SEO",
+      "descriptionPlaceholder": "Descripción para Google y comparticiones.",
+      "domainLabel": "Dominio propio",
+      "domainCardTitle": "Dominio propio",
+      "domainCardText": "Pronto podrás usar un dominio propio en lugar de un subdominio de MesaLink.",
+      "comingSoonBadge": "Próximamente"
+    },
+    "quality": {
+      "eyebrow": "Calidad",
+      "on": "ON",
+      "off": "OFF",
+      "galleryLabel": "Galería:",
+      "menuLabel": "Menú:",
+      "menuYes": "Sí",
+      "menuNo": "No"
+    },
+    "publicCard": {
+      "eyebrow": "Sitio web público",
+      "viewButton": "Ver sitio web",
+      "saveButton": "Guardar cambios"
+    },
+    "checklist": {
+      "eyebrow": "Checklist",
+      "websiteActive": "Sitio web activo",
+      "headlineFilled": "Titular completado",
+      "mainPhoto": "Foto principal",
+      "menuUploaded": "Menú cargado",
+      "contactVisible": "Contacto visible"
+    },
+    "previewCard": {
+      "eyebrow": "Vista previa rápida"
+    },
+    "preview": {
+      "reserveBadge": "Reservar",
+      "cuisineFallback": "Restaurante",
+      "descriptionFallback": "Reserva tu mesa online en pocos segundos.",
+      "templateLabel": "Plantilla",
+      "menusLabel": "Menús",
+      "photosLabel": "Fotos",
+      "photoLabel": "Foto",
+      "photoNumberFallback": "Foto {index}",
+      "menuSectionLabel": "Menú",
+      "menuTitleFallback": "Menús",
+      "menuLoadedCount": "{count} menú(s) cargado(s).",
+      "menuNotLoaded": "Añade uno o varios menús en PDF."
+    },
+    "aiErrors": {
+      "generateFailed": "Error al generar contenido con IA",
+      "generateFailedAlert": "Error al generar contenido con IA. Confirma tu OPENAI_API_KEY e inténtalo de nuevo."
+    }
+  }
+}

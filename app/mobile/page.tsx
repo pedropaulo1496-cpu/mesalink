@@ -1,46 +1,16 @@
 "use client";
 
 import Footer from "@/components/Footer";
+import SiteHeader from "@/components/SiteHeader";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { useEffect, useState, type ReactNode } from "react";
-
-const brand = {
-  mesa: "#C8A56A",
-  link: "#17130F",
-};
-
-const growthFeatures = [
-  ["QR Ordering", "Pedidos"],
-  ["Marketing", "Campanhas"],
-  ["CRM", "Clientes"],
-  ["Recuperação", "Inativos"],
-  ["Aniversários", "Automático"],
-  ["Clientes em risco", "Retenção"],
-];
-
-const visibilityFeatures = [
-  ["Website", "SEO"],
-  ["Reservas", "Diretas"],
-  ["Google Reviews", "Reputação"],
-  ["Instagram", "Bio"],
-  ["Domínio", "Premium"],
-  ["Galeria", "Menus"],
-];
-
-const controlFeatures = [
-  ["Calendário", "Agenda"],
-  ["Mesas", "Sala"],
-  ["Relatórios", "Dados"],
-  ["Serviço do dia", "Timeline"],
-  ["Faturação", "Fiscal"],
-  ["Tempo real", "Controlo"],
-];
 
 export default function MobilePage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#F4ECDF] text-[#17130F]">
-      <Header />
+      <SiteHeader variant="compact" />
       <Hero />
       <FeatureCards />
       <QRSection />
@@ -52,36 +22,9 @@ export default function MobilePage() {
   );
 }
 
-function Header() {
-  return (
-    <header className="sticky top-0 z-50 border-b border-[#DECDB4] bg-[#F4ECDF]/90 px-5 py-4 backdrop-blur-xl">
-      <nav className="mx-auto flex max-w-md items-center justify-between">
-        <Link href="/" className="text-3xl font-semibold tracking-[-0.06em]">
-          <span style={{ color: brand.mesa }}>Mesa</span>
-          <span style={{ color: brand.link }}>Link</span>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="rounded-full border border-[#D8C5A5] bg-[#FFF9F0] px-4 py-2 text-xs font-semibold"
-          >
-            Entrar
-          </Link>
-
-          <Link
-            href="/register"
-            className="rounded-full bg-[#17130F] px-4 py-2 text-xs font-semibold text-white shadow-[0_12px_32px_rgba(80,55,30,0.18)]"
-          >
-            Testar
-          </Link>
-        </div>
-      </nav>
-    </header>
-  );
-}
-
 function Hero() {
+  const t = useTranslations("marketing.mobileHome");
+
   return (
     <section className="relative px-5 pb-10 pt-10">
       <Glow />
@@ -93,16 +36,15 @@ function Hero() {
           transition={{ duration: 0.55 }}
           className="text-center"
         >
-          <Pill>Restaurant Growth System</Pill>
+          <Pill>{t("hero.badge")}</Pill>
 
           <h1 className="mt-6 text-[50px] font-semibold leading-[0.86] tracking-[-0.085em] min-[390px]:text-[58px]">
-            O restaurante já mudou.
-            <span className="block text-[#C8A56A]">O software também.</span>
+            {t("hero.titleLine1")}
+            <span className="block text-[#C8A56A]">{t("hero.titleLine2")}</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-sm text-base leading-7 text-[#5C5348]">
-            MesaLink liga reservas, QR Ordering, website, CRM e marketing num
-            sistema vivo que trabalha por si todos os dias.
+            {t("hero.subtitle")}
           </p>
 
           <div className="mt-7 grid gap-3">
@@ -110,14 +52,14 @@ function Hero() {
               href="/register"
               className="flex h-14 items-center justify-center rounded-full bg-[#17130F] px-6 text-base font-semibold text-white shadow-[0_22px_65px_rgba(80,55,30,0.26)]"
             >
-              Começar teste gratuito →
+              {t("hero.ctaPrimary")}
             </Link>
 
             <Link
               href="/contact"
               className="flex h-14 items-center justify-center rounded-full border border-[#B9965E] bg-[#FFF9F0] px-6 text-base font-semibold"
             >
-              Pedir demonstração
+              {t("hero.ctaSecondary")}
             </Link>
           </div>
         </motion.div>
@@ -130,11 +72,13 @@ function Hero() {
 }
 
 function LivePhone() {
+  const t = useTranslations("marketing.mobileHome");
+
   const events = [
-    ["Reserva recebida", "Mesa 8 · 19:30", "✓"],
-    ["Pedido QR", "Mesa 7 · 42€", "↗"],
-    ["Cliente recuperado", "Ana voltou", "+68€"],
-    ["Review Google", "★★★★★", "5.0"],
+    [t("hero.phone.event1Title"), t("hero.phone.event1Text"), "✓"],
+    [t("hero.phone.event2Title"), t("hero.phone.event2Text"), "↗"],
+    [t("hero.phone.event3Title"), t("hero.phone.event3Text"), "+68€"],
+    [t("hero.phone.event4Title"), "★★★★★", "5.0"],
   ];
 
   const { scrollYProgress } = useScroll();
@@ -145,14 +89,14 @@ function LivePhone() {
     <motion.div style={{ y: phoneY }} className="relative mx-auto mt-10 max-w-[365px]">
       <div className="absolute -left-4 top-20 z-20 rounded-2xl border border-[#E5D6C1] bg-white/90 px-4 py-3 shadow-[0_18px_55px_rgba(80,55,30,0.16)] backdrop-blur">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-          Reserva
+          {t("hero.phone.badgeReservation")}
         </p>
-        <p className="mt-1 text-xs font-semibold">Confirmada</p>
+        <p className="mt-1 text-xs font-semibold">{t("hero.phone.badgeConfirmed")}</p>
       </div>
 
       <div className="absolute -right-4 bottom-28 z-20 rounded-2xl border border-[#E5D6C1] bg-white/90 px-4 py-3 shadow-[0_18px_55px_rgba(80,55,30,0.16)] backdrop-blur">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-          Growth
+          {t("hero.phone.badgeGrowth")}
         </p>
         <p className="mt-1 text-xs font-semibold">+18%</p>
       </div>
@@ -163,10 +107,10 @@ function LivePhone() {
         <div className="p-5">
           <div className="flex items-center justify-between">
             <p className="text-lg font-semibold tracking-[-0.04em]">
-              MesaLink
+              {t("hero.phone.appName")}
             </p>
             <span className="rounded-full bg-[#FFF9F0] px-3 py-1 text-xs font-semibold text-[#9B6F3B]">
-              Live
+              {t("hero.phone.live")}
             </span>
           </div>
 
@@ -177,7 +121,7 @@ function LivePhone() {
             <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#C8A56A]/25 blur-3xl" />
 
             <p className="relative text-xs font-semibold uppercase tracking-[0.22em] text-[#D8C5A5]">
-              Reservas hoje
+              {t("hero.phone.reservationsTodayLabel")}
             </p>
 
             <p className="relative mt-2 text-4xl font-semibold tracking-[-0.075em]">
@@ -185,17 +129,17 @@ function LivePhone() {
             </p>
 
             <p className="relative mt-1 text-xs text-emerald-300">
-              QR Ordering + Marketing + Reservas
+              {t("hero.phone.reservationsTodayCaption")}
             </p>
 
             <div className="relative mt-4 grid grid-cols-2 gap-2">
               <div className="rounded-2xl bg-white/10 px-3 py-2">
                 <p className="text-lg font-semibold">132</p>
-                <p className="text-[10px] text-white/60">esta semana</p>
+                <p className="text-[10px] text-white/60">{t("hero.phone.statWeekLabel")}</p>
               </div>
               <div className="rounded-2xl bg-white/10 px-3 py-2">
                 <p className="text-lg font-semibold">74%</p>
-                <p className="text-[10px] text-white/60">ocupação</p>
+                <p className="text-[10px] text-white/60">{t("hero.phone.statOccupancyLabel")}</p>
               </div>
             </div>
           </motion.div>
@@ -228,36 +172,68 @@ function LivePhone() {
 }
 
 function FeatureCards() {
+  const t = useTranslations("marketing.mobileHome");
+
+  const growthFeatures = [
+    [t("featureCards.growthItem1Name"), t("featureCards.growthItem1Label")],
+    [t("featureCards.growthItem2Name"), t("featureCards.growthItem2Label")],
+    [t("featureCards.growthItem3Name"), t("featureCards.growthItem3Label")],
+    [t("featureCards.growthItem4Name"), t("featureCards.growthItem4Label")],
+    [t("featureCards.growthItem5Name"), t("featureCards.growthItem5Label")],
+    [t("featureCards.growthItem6Name"), t("featureCards.growthItem6Label")],
+  ];
+
+  const visibilityFeatures = [
+    [t("featureCards.visibilityItem1Name"), t("featureCards.visibilityItem1Label")],
+    [t("featureCards.visibilityItem2Name"), t("featureCards.visibilityItem2Label")],
+    [t("featureCards.visibilityItem3Name"), t("featureCards.visibilityItem3Label")],
+    [t("featureCards.visibilityItem4Name"), t("featureCards.visibilityItem4Label")],
+    [t("featureCards.visibilityItem5Name"), t("featureCards.visibilityItem5Label")],
+    [t("featureCards.visibilityItem6Name"), t("featureCards.visibilityItem6Label")],
+  ];
+
+  const controlFeatures = [
+    [t("featureCards.controlItem1Name"), t("featureCards.controlItem1Label")],
+    [t("featureCards.controlItem2Name"), t("featureCards.controlItem2Label")],
+    [t("featureCards.controlItem3Name"), t("featureCards.controlItem3Label")],
+    [t("featureCards.controlItem4Name"), t("featureCards.controlItem4Label")],
+    [t("featureCards.controlItem5Name"), t("featureCards.controlItem5Label")],
+    [t("featureCards.controlItem6Name"), t("featureCards.controlItem6Label")],
+  ];
+
   return (
     <section className="px-5 py-12">
       <div className="mx-auto max-w-md">
-        <Pill>Growth. Visibility. Control.</Pill>
+        <Pill>{t("featureCards.label")}</Pill>
 
         <h2 className="mt-5 text-[42px] font-semibold leading-[0.9] tracking-[-0.075em]">
-          A operação toda
-          <span className="block text-[#C8A56A]">a trabalhar junta.</span>
+          {t("featureCards.titleLine1")}
+          <span className="block text-[#C8A56A]">{t("featureCards.titleLine2")}</span>
         </h2>
 
         <div className="mt-8 flex snap-x gap-4 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <MegaCard
             dark
-            title="Growth"
-            subtitle="Mais receita"
-            text="Ferramentas que atraem, vendem mais e fazem clientes voltar."
+            icon="↗"
+            title={t("featureCards.growthTitle")}
+            subtitle={t("featureCards.growthSubtitle")}
+            text={t("featureCards.growthText")}
             items={growthFeatures}
           />
 
           <MegaCard
-            title="Visibility"
-            subtitle="Mais descoberta"
-            text="Esteja onde os clientes procuram e transforme visitas em reservas."
+            icon="◎"
+            title={t("featureCards.visibilityTitle")}
+            subtitle={t("featureCards.visibilitySubtitle")}
+            text={t("featureCards.visibilityText")}
             items={visibilityFeatures}
           />
 
           <MegaCard
-            title="Control"
-            subtitle="Melhor gestão"
-            text="Tudo integrado num único sistema para decidir e operar melhor."
+            icon="≡"
+            title={t("featureCards.controlTitle")}
+            subtitle={t("featureCards.controlSubtitle")}
+            text={t("featureCards.controlText")}
             items={controlFeatures}
           />
         </div>
@@ -273,25 +249,26 @@ function FeatureCards() {
 }
 
 function QRSection() {
+  const t = useTranslations("marketing.mobileHome");
+
   return (
     <section className="px-5 py-12">
       <div className="mx-auto max-w-md overflow-hidden rounded-[36px] border border-[#D8C5A5] bg-[#FFF9F0] p-6 shadow-[0_24px_80px_rgba(80,55,30,0.10)]">
-        <Pill>QR Ordering</Pill>
+        <Pill>{t("qrSection.label")}</Pill>
 
         <h2 className="mt-5 text-[42px] font-semibold leading-[0.9] tracking-[-0.075em]">
-          Clientes pedem.
-          <span className="block text-[#C8A56A]">O restaurante controla.</span>
+          {t("qrSection.titleLine1")}
+          <span className="block text-[#C8A56A]">{t("qrSection.titleLine2")}</span>
         </h2>
 
         <p className="mt-5 text-base leading-7 text-[#5C5348]">
-          Menu digital por QR, pedidos por mesa, chamar empregado e pedir conta.
-          Tudo integrado no MesaLink.
+          {t("qrSection.subtitle")}
         </p>
 
         <div className="mt-6 grid gap-3">
-          <Event text="Mesa 12 · Pedido recebido" value="+24€" />
-          <Event text="Mesa 7 · Chamou empregado" value="Agora" />
-          <Event text="Mesa 4 · Pediu conta" value="Fechar" />
+          <Event text={t("qrSection.event1Text")} value={t("qrSection.event1Value")} />
+          <Event text={t("qrSection.event2Text")} value={t("qrSection.event2Value")} />
+          <Event text={t("qrSection.event3Text")} value={t("qrSection.event3Value")} />
         </div>
       </div>
     </section>
@@ -299,33 +276,35 @@ function QRSection() {
 }
 
 function PricingMini() {
+  const t = useTranslations("marketing.mobileHome");
+
   return (
     <section id="pricing" className="px-5 py-12">
       <div className="mx-auto max-w-md">
-        <Pill>Preços simples</Pill>
+        <Pill>{t("pricingMini.label")}</Pill>
 
         <h2 className="mt-5 text-[42px] font-semibold leading-[0.9] tracking-[-0.075em]">
-          Teste primeiro.
-          <span className="block text-[#C8A56A]">Escolha depois.</span>
+          {t("pricingMini.titleLine1")}
+          <span className="block text-[#C8A56A]">{t("pricingMini.titleLine2")}</span>
         </h2>
 
         <div className="mt-7 overflow-hidden rounded-[32px] border border-[#D8C5A5] bg-[#FFF9F0] shadow-[0_24px_80px_rgba(80,55,30,0.10)]">
           <MiniPlanRow
-            name="Essentials"
+            name={t("pricingMini.essentialsName")}
             price="55€"
-            text="Reservas, Website, QR Ordering, CRM e Reviews."
+            text={t("pricingMini.essentialsText")}
           />
 
           <MiniPlanRow
             featured
-            name="Growth"
+            name={t("pricingMini.growthName")}
             price="75€"
-            text="Tudo + Marketing, recuperação e clientes em risco."
+            text={t("pricingMini.growthText")}
           />
         </div>
 
         <p className="mt-4 text-center text-xs leading-5 text-[#6B6258]">
-          7 dias grátis. Anual com 1 mês grátis. Valores sem IVA.
+          {t("pricingMini.footerNote")}
         </p>
       </div>
     </section>
@@ -343,6 +322,8 @@ function MiniPlanRow({
   text: string;
   featured?: boolean;
 }) {
+  const t = useTranslations("marketing.mobileHome");
+
   return (
     <div
       data-plan-card={name.toLowerCase()}
@@ -367,14 +348,14 @@ function MiniPlanRow({
       <div className="flex shrink-0 items-end justify-between gap-3 min-[360px]:block min-[360px]:text-right">
         {featured && (
           <p className="mb-1 w-fit max-w-full rounded-full bg-[#D8C5A5] px-2 py-1 text-center text-[10px] font-semibold leading-tight text-[#17130F] min-[360px]:ml-auto">
-            Melhor
+            {t("pricingMini.bestBadge")}
           </p>
         )}
 
         <div className="whitespace-nowrap">
           <p className="text-3xl font-semibold tracking-[-0.075em]">{price}</p>
           <p className={`text-xs ${featured ? "text-white/55" : "text-[#6B6258]"}`}>
-            /mês
+            {t("pricingMini.perMonth")}
           </p>
         </div>
       </div>
@@ -383,29 +364,31 @@ function MiniPlanRow({
 }
 
 function FinalCTA() {
+  const t = useTranslations("marketing.mobileHome");
+
   return (
     <section className="px-5 pb-28 pt-10">
       <div className="relative mx-auto max-w-md overflow-hidden rounded-[40px] bg-[#211912] p-8 text-white shadow-[0_35px_100px_rgba(34,26,19,0.22)]">
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#C8A56A]/20 blur-[70px]" />
 
         <p className="relative text-xs font-semibold uppercase tracking-[0.28em] text-[#D8C5A5]">
-          Próximo passo
+          {t("finalCta.eyebrow")}
         </p>
 
         <h2 className="relative mt-5 text-[46px] font-semibold leading-[0.88] tracking-[-0.08em]">
-          O restaurante já evoluiu.
-          <span className="block text-[#D8C5A5]">Agora evolua o software.</span>
+          {t("finalCta.titleLine1")}
+          <span className="block text-[#D8C5A5]">{t("finalCta.titleLine2")}</span>
         </h2>
 
         <p className="relative mt-5 text-base leading-7 text-white/65">
-          Experimente a MesaLink durante 7 dias e veja tudo a trabalhar junto.
+          {t("finalCta.subtitle")}
         </p>
 
         <Link
           href="/register"
           className="relative mt-7 flex h-14 items-center justify-center rounded-full bg-[#D8C5A5] px-6 text-base font-semibold text-[#17130F]"
         >
-          Começar teste gratuito →
+          {t("finalCta.cta")}
         </Link>
       </div>
     </section>
@@ -417,12 +400,14 @@ function MegaCard({
   subtitle,
   text,
   items,
+  icon,
   dark = false,
 }: {
   title: string;
   subtitle: string;
   text: string;
   items: string[][];
+  icon: string;
   dark?: boolean;
 }) {
   return (
@@ -435,7 +420,7 @@ function MegaCard({
       }`}
     >
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#C8A56A] text-xl">
-        {title === "Growth" ? "↗" : title === "Visibility" ? "◎" : "≡"}
+        {icon}
       </div>
 
       <h3
@@ -536,11 +521,13 @@ function MiniPlan({
 }
 
 function TrustStrip() {
+  const t = useTranslations("marketing.mobileHome");
+
   return (
     <div className="mx-auto mt-8 grid max-w-md grid-cols-3 overflow-hidden rounded-[26px] border border-[#D8C5A5] bg-[#FFF9F0] text-center shadow-[0_18px_55px_rgba(80,55,30,0.08)]">
-      <TrustItem value="0€" label="comissões" />
-      <TrustItem value="7 dias" label="grátis" />
-      <TrustItem value="Tudo" label="incluído" />
+      <TrustItem value="0€" label={t("hero.trust.commissionLabel")} />
+      <TrustItem value={t("hero.trust.freeDays")} label={t("hero.trust.freeLabel")} />
+      <TrustItem value={t("hero.trust.allValue")} label={t("hero.trust.allLabel")} />
     </div>
   );
 }

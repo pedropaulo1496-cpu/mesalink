@@ -1,0 +1,194 @@
+{
+  "tables": {
+    "notFound": "未找到餐厅。",
+    "eyebrow": "餐厅",
+    "title": "桌位地图",
+    "tablesCount": "{count} 桌",
+    "seatsCount": "{count} 位",
+    "form": {
+      "start": "起始编号",
+      "quantity": "数量",
+      "capacity": "容量",
+      "shape": "形状",
+      "shapeSquare": "方形",
+      "shapeRound": "圆形",
+      "room": "区域",
+      "submit": "创建"
+    }
+  },
+  "qr": {
+    "notFound": "未找到餐厅",
+    "backToDashboard": "← 返回控制台",
+    "brandEyebrow": "MesaLink QR",
+    "title": "二维码",
+    "statusActive": "已启用",
+    "reservationQrEyebrow": "预订二维码",
+    "heroHeadline": "让任意一张桌子、橱窗或菜单都成为一个预订入口。",
+    "heroDescription": "此二维码会直接打开餐厅的公开预订页面,可用于 Google 商家资料、菜单、卡片、橱窗、Instagram 或印刷宣传物料。",
+    "info": {
+      "destinationTitle": "跳转目标",
+      "destinationText": "预订页面",
+      "commissionsTitle": "佣金",
+      "commissionsText": "0%",
+      "statusTitle": "状态",
+      "statusText": "随时可用"
+    },
+    "linkedUrlLabel": "二维码关联链接",
+    "downloadButton": "下载二维码",
+    "viewPublicPage": "查看公开页面",
+    "qrImageAlt": "预订二维码",
+    "onlineReservationsTitle": "在线预订",
+    "printHint": "打印此二维码并将其放置在菜单、卡片或橱窗上。",
+    "upcomingEyebrow": "即将推出",
+    "future": {
+      "perTableTitle": "每桌专属二维码",
+      "perTableText": "每张桌子都将拥有自己专属的二维码。",
+      "callWaiterTitle": "呼叫服务员",
+      "callWaiterText": "顾客可以直接通过二维码请求帮助。",
+      "tableOrdersTitle": "桌边点餐",
+      "tableOrdersText": "数字菜单及点餐信息将直接发送至后台。"
+    }
+  },
+  "ordering": {
+    "main": {
+      "notFound": "未找到餐厅",
+      "header": {
+        "eyebrow": "QR Ordering",
+        "title": "桌边点餐",
+        "description": "管理数字菜单,按桌接收订单,并为餐厅各区域生成二维码。",
+        "printQrsButton": "打印二维码",
+        "openRoomButton": "打开餐厅布局"
+      },
+      "status": {
+        "active": "已启用",
+        "inactive": "未启用"
+      },
+      "tabs": {
+        "orders": "订单",
+        "qr": "二维码",
+        "settings": "设置"
+      },
+      "metrics": {
+        "openTables": { "label": "开台数", "sub": "二维码会话" },
+        "activeOrders": { "label": "进行中订单", "sub": "待制作/待送出" },
+        "products": { "label": "商品", "subActive": "{count} 个已启用" },
+        "tables": { "label": "桌数", "sub": "二维码" }
+      },
+      "orders": {
+        "eyebrow": "订单",
+        "title": "有二维码订单的桌位",
+        "pendingAlerts": "{count} 条待处理提醒",
+        "autoRefreshBadge": "自动更新"
+      },
+      "menu": {
+        "categoryEyebrow": "分类",
+        "createCategoryTitle": "创建分类",
+        "categoryNamePlaceholder": "例如:前菜、饮品、甜点",
+        "categoryPositionPlaceholder": "分类排序",
+        "createCategoryButton": "创建分类",
+        "productEyebrow": "商品",
+        "addProductTitle": "添加商品",
+        "chooseCategoryOption": "选择分类",
+        "productNamePlaceholder": "商品名称",
+        "productDescriptionPlaceholder": "简短描述",
+        "pricePlaceholder": "价格",
+        "skuPlaceholder": "SKU / 内部编码",
+        "vatOption": "增值税 {rate}%",
+        "sortOrderPlaceholder": "菜单排序",
+        "allergensPlaceholder": "过敏原,例如:麸质、牛奶、坚果",
+        "featuredLabel": "推荐商品",
+        "addProductButton": "添加商品",
+        "digitalMenuEyebrow": "数字菜单",
+        "productsTitle": "QR Ordering 商品",
+        "editHint": "点击“打开”即可编辑商品。",
+        "emptyCategories": "创建第一个分类,开始设置数字菜单。",
+        "orderValue": "排序 {value}",
+        "productCount": "{count} 件商品",
+        "openBadge": "打开",
+        "editCategoryLabel": "编辑分类",
+        "saveButton": "保存",
+        "noProductsYet": "暂无商品。",
+        "deleteCategoryLabel": "删除分类",
+        "deleteCategoryWarning": "此操作将删除分类“{name}”及其中的所有商品。",
+        "deleteCategoryConfirmLabel": "我确认要删除该分类及其商品",
+        "deletePermanentlyButton": "永久删除",
+        "inactiveBadge": "未启用",
+        "featuredBadge": "推荐",
+        "allergensPrefix": "过敏原:{allergens}",
+        "editDescriptionPlaceholder": "描述",
+        "editSkuPlaceholder": "SKU",
+        "editSortOrderPlaceholder": "排序",
+        "editAllergensPlaceholder": "过敏原",
+        "saveChangesButton": "保存修改",
+        "activateButton": "启用",
+        "deactivateButton": "停用",
+        "removeImageButton": "移除图片",
+        "deleteLabel": "删除",
+        "confirmDeleteLabel": "确认删除",
+        "deleteProductButton": "删除商品"
+      },
+      "qr": {
+        "eyebrow": "二维码",
+        "title": "二维码管理",
+        "description": "管理桌位、选择模板/尺寸,无需离开此页面即可打印二维码。",
+        "tablesCount": "{count} 桌",
+        "addTablesTitle": "添加桌位",
+        "quantityPlaceholder": "数量",
+        "defaultCapacityPlaceholder": "默认容量",
+        "generateTablesButton": "生成桌位",
+        "createHint": "在此创建的桌位也会显示在餐厅布局管理中。",
+        "quickPrintTitle": "快速打印",
+        "templateNames": {
+          "premium": "Premium Black",
+          "minimal": "Minimal White",
+          "mesalink": "MesaLink"
+        },
+        "previewBrand": "MesaLink QR Ordering",
+        "previewLabel": "预览 {name}",
+        "printAllButton": "打印全部",
+        "tablesListTitle": "二维码桌位",
+        "tablesListHint": "适合桌位较多餐厅的紧凑列表。",
+        "totalLabel": "共 {count} 桌",
+        "noTablesYet": "还没有创建任何桌位。",
+        "tableLabel": "{number} 号桌",
+        "seatsCount": "{count} 位",
+        "openBadge": "打开",
+        "openQrButton": "打开二维码",
+        "printButton": "打印",
+        "removeTableLabel": "移除桌位",
+        "removeTableConfirmLabel": "我确认要移除这张桌位",
+        "removeButton": "移除"
+      },
+      "settings": {
+        "eyebrow": "设置",
+        "title": "QR Ordering",
+        "description": "自定义 QR Ordering 的行为方式。",
+        "enableQr": { "title": "启用 QR Ordering", "hint": "允许通过二维码下单。" },
+        "allowWaiterCall": { "title": "允许呼叫服务员", "hint": "显示顾客求助按钮。" },
+        "allowBillRequest": { "title": "允许请求结账", "hint": "显示请求结账按钮。" },
+        "saveButton": "保存设置"
+      },
+      "statusLabels": {
+        "pending": "已接收",
+        "preparing": "制作中",
+        "ready": "已完成",
+        "delivered": "已送达",
+        "cancelled": "已取消"
+      }
+    },
+    "print": {
+      "eyebrow": "QR Ordering",
+      "title": "二维码",
+      "tablesCount": "{count} 桌",
+      "tablesFilterEyebrow": "桌位",
+      "allTablesFilter": "全部",
+      "tableLabel": "{number} 号桌",
+      "templateEyebrow": "模板",
+      "sizeEyebrow": "尺寸",
+      "sizes": { "small": "小", "medium": "中", "large": "大" },
+      "templates": { "premium": "Premium", "minimal": "Minimal", "mesalink": "MesaLink" },
+      "cardBrand": "MesaLink QR Ordering",
+      "scanInstruction": "打开相机扫码即可点餐"
+    }
+  }
+}

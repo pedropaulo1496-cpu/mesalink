@@ -1,10 +1,12 @@
 "use client";
 
 import Footer from "@/components/Footer";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { useTranslations } from "next-intl";
 import { isValidEmail } from "@/lib/validation";
 
 const inputClass =
@@ -12,6 +14,7 @@ const inputClass =
 
 export default function RegisterPage() {
   const router = useRouter();
+  const t = useTranslations("auth.register");
 
   const [name, setName] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
@@ -25,17 +28,17 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (!isValidEmail(emailAddress)) {
-      setError("Introduza um email válido.");
+      setError(t("errors.invalidEmail"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("As passwords não coincidem.");
+      setError(t("errors.passwordMismatch"));
       return;
     }
 
     if (!acceptedTerms) {
-      setError("Tem de aceitar os Termos e a Política de Privacidade.");
+      setError(t("errors.termsRequired"));
       return;
     }
 
@@ -52,7 +55,7 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Erro ao criar conta.");
+        setError(data.error || t("errors.createFailed"));
         return;
       }
 
@@ -63,14 +66,14 @@ export default function RegisterPage() {
       });
 
       if (loginResult?.error) {
-        setError("Conta criada, mas erro ao iniciar sessão.");
+        setError(t("errors.loginAfterRegisterFailed"));
         return;
       }
 
       router.push("/onboarding");
       router.refresh();
     } catch {
-      setError("Erro ao criar conta.");
+      setError(t("errors.generic"));
     } finally {
       setLoading(false);
     }
@@ -78,6 +81,10 @@ export default function RegisterPage() {
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <div className="fixed right-4 top-4 z-30">
+        <LanguageSwitcher />
+      </div>
+
       <section className="flex min-h-screen items-center justify-center px-5 py-10">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
@@ -92,38 +99,38 @@ export default function RegisterPage() {
               href="/"
               className="text-sm font-semibold text-[#6B6258] hover:text-[#16120E]"
             >
-              ← Voltar
+              {t("back")}
             </Link>
 
             <h1 className="mt-6 text-4xl font-semibold tracking-[-0.055em]">
-              Comece hoje
+              {t("title")}
             </h1>
 
             <p className="mb-8 mt-3 text-sm leading-6 text-[#6B6258]">
-              Crie a sua conta e comece com 7 dias grátis.
+              {t("subtitle")}
             </p>
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                <input value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder="Nome" className={inputClass} required />
-                <input value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} type="email" placeholder="Email" className={inputClass} required />
-                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" className={inputClass} required />
-                <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" placeholder="Confirmar password" className={inputClass} required />
+                <input value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder={t("namePlaceholder")} className={inputClass} required />
+                <input value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} type="email" placeholder={t("emailPlaceholder")} className={inputClass} required />
+                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder={t("passwordPlaceholder")} className={inputClass} required />
+                <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" placeholder={t("confirmPasswordPlaceholder")} className={inputClass} required />
               </div>
 
               <div className="mt-6 flex items-start gap-3">
                 <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-1 h-4 w-4 accent-[#16120E]" />
 
                 <label className="text-sm leading-relaxed text-[#6B6258]">
-                  Li e aceito os{" "}
+                  {t("terms.prefix")}{" "}
                   <a href="/terms" target="_blank" className="font-semibold text-[#9B6F3B] hover:text-[#16120E]">
-                    Termos e Condições
+                    {t("terms.termsLink")}
                   </a>{" "}
-                  e a{" "}
+                  {t("terms.and")}{" "}
                   <a href="/privacy" target="_blank" className="font-semibold text-[#9B6F3B] hover:text-[#16120E]">
-                    Política de Privacidade
+                    {t("terms.privacyLink")}
                   </a>
-                  .
+                  {t("terms.suffix")}
                 </label>
               </div>
 
@@ -138,21 +145,21 @@ export default function RegisterPage() {
                 disabled={loading}
                 className="mt-8 flex h-14 w-full items-center justify-center rounded-full bg-[#16120E] text-base font-semibold text-white transition hover:bg-[#2A2118] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "A criar conta..." : "Criar conta"}
+                {loading ? t("submitLoading") : t("submit")}
               </button>
             </form>
 
             <div className="mt-8 border-t border-[#E8DCCB] pt-6 text-center">
-              <p className="text-sm text-[#6B6258]">Já tem conta?</p>
+              <p className="text-sm text-[#6B6258]">{t("hasAccount")}</p>
 
               <Link href="/login" className="mt-2 inline-block font-semibold text-[#9B6F3B] hover:text-[#16120E]">
-                Entrar
+                {t("loginLink")}
               </Link>
             </div>
           </div>
 
           <p className="mt-6 text-center text-xs text-[#9B8F82]">
-            17,50€ + IVA / mês · Sem comissões · 7 dias grátis
+            {t("tagline")}
           </p>
         </div>
       </section>

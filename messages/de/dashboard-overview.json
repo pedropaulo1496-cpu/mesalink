@@ -1,0 +1,188 @@
+{
+  "home": {
+    "billing": {
+      "trial": "Trial",
+      "growth": "Growth",
+      "essentials": "Essentials",
+      "subscription": "Abonnement",
+      "trialDaysLeft": "{days, plural, one {# Tag} other {# Tage}}",
+      "active": "Aktiv",
+      "renew": "Erneuern"
+    },
+    "notFound": "Restaurant nicht gefunden",
+    "eyebrow": "Dashboard",
+    "statusOnline": "Online",
+    "statusOffline": "Offline",
+    "addressFallback": "Betriebsübersicht des Restaurants.",
+    "metrics": {
+      "reservationsToday": "Reservierungen heute",
+      "coversToday": "{count} Gedecke",
+      "qrActive": "QR aktiv",
+      "qrOpenOrders": "offene Bestellungen"
+    },
+    "ops": {
+      "sectionLabel": "Betrieb",
+      "title": "Jetzt",
+      "reservationsToday": "Reservierungen heute",
+      "guestsReserved": "reservierte Gedecke",
+      "pending": "ausstehend",
+      "occupancy": "Reservierungsauslastung",
+      "seatsAndTables": "{guests}/{capacity} Plätze · {tables} Tische",
+      "usefulCapacity": "Nutzbare Kapazität",
+      "seatsConfigured": "Plätze konfiguriert"
+    },
+    "reservationsCard": {
+      "sectionLabel": "Reservierungen",
+      "title": "Anstehend",
+      "viewAll": "Reservierungen anzeigen",
+      "empty": "Noch keine anstehenden Reservierungen.",
+      "pax": "{count} Pers.",
+      "mobile": "Mobil",
+      "mobileEmpty": "Keine Mobilnummer",
+      "email": "E-Mail",
+      "emailEmpty": "Keine E-Mail"
+    },
+    "marketingTeaser": {
+      "sectionLabel": "Marketing Growth",
+      "title": "Kunden zurückgewinnen und wiederkehrende Besuche steigern.",
+      "text": "Schalten Sie automatische Kampagnen, Risikokunden, Geburtstage, VIP-Segmentierung und Kampagnen-ROI frei.",
+      "badge": "Growth",
+      "features": {
+        "riskyCustomers": "Risikokunden",
+        "autoCampaigns": "Automatische Kampagnen",
+        "autoBirthdays": "Automatische Geburtstage",
+        "campaignRoi": "Kampagnen-ROI"
+      },
+      "upgradeLabel": "Upgrade",
+      "price": "+{price}€/Monat",
+      "priceNote": "Behält dasselbe Verlängerungsdatum bei, Stripe berechnet die Differenz."
+    },
+    "marketingActive": {
+      "sectionLabel": "Marketing",
+      "title": "ROI und Kundenbindung",
+      "text": "Messen Sie die Wirkung von Kampagnen auf Risikokunden.",
+      "viewMarketing": "Marketing anzeigen",
+      "riskyCustomers": "Risikokunden",
+      "riskyValue": "Risikowert",
+      "estimatedRevenue": "geschätzter Umsatz",
+      "estimatedRoi": "geschätzter ROI",
+      "recommendedCampaign": "Empfohlene Kampagne",
+      "recommendedCampaignText": "Kunden ohne kürzlichen Besuch mit einem kontrollierten Anreiz zurückgewinnen."
+    },
+    "reservationLink": {
+      "sectionLabel": "Online-Reservierungen",
+      "title": "Öffentlicher Link",
+      "text": "Verwenden Sie diesen Link auf den Kanälen, über die Kunden nach einem Tisch suchen.",
+      "active": "Aktiv",
+      "urlLabel": "Reservierungs-URL",
+      "open": "Öffnen",
+      "howToUse": "So verwenden Sie ihn",
+      "steps": {
+        "googleMaps": { "title": "Google Maps", "text": "In den Reservierungs-Button Ihres Google Business-Profils einfügen." },
+        "socials": { "title": "Instagram und Facebook", "text": "In der Bio, angehefteten Stories und automatischen Antworten verwenden." },
+        "website": { "title": "Website", "text": "Als Haupt-Button für Online-Reservierungen einrichten." }
+      }
+    }
+  },
+  "calendar": {
+    "notFound": "Restaurant nicht gefunden",
+    "backToDashboard": "← Zurück zum Dashboard",
+    "eyebrow": "MesaLink · Kalender",
+    "title": "Kalender",
+    "stats": {
+      "reservationsMonth": "Reservierungen diesen Monat",
+      "guestsMonth": "Gäste diesen Monat",
+      "pending": "Ausstehend",
+      "mode": "Modus",
+      "modeCapacity": "Kapazität",
+      "modeTables": "Tische"
+    },
+    "mobile": {
+      "sectionLabel": "Tage des Monats",
+      "hint": "Tippen Sie auf einen Tag, um ihn zu öffnen"
+    },
+    "guestUnit": "P",
+    "reservationsCount": "{count, plural, one {# Reservierung} other {# Reservierungen}}",
+    "meal": {
+      "lunch": "Mittagessen",
+      "dinner": "Abendessen"
+    },
+    "pendingCount": "{count, plural, one {# ausstehend} other {# ausstehend}}",
+    "weekdaysShort": {
+      "monday": "Mo",
+      "tuesday": "Di",
+      "wednesday": "Mi",
+      "thursday": "Do",
+      "friday": "Fr",
+      "saturday": "Sa",
+      "sunday": "So"
+    }
+  },
+  "day": {
+    "notFound": "Restaurant nicht gefunden",
+    "eyebrow": "Tagesservice",
+    "metrics": {
+      "covers": "Gedecke",
+      "coversSub": "{capacity} Plätze",
+      "seated": "Platziert",
+      "seatedSub": "im Raum",
+      "pending": "Ausstehend",
+      "pendingSub": "Genehmigung",
+      "revenue": "Umsatz",
+      "revenueSub": "geschätzt"
+    },
+    "occupancy": "Auslastung",
+    "actionNeeded": "Handlung erforderlich",
+    "pendingReservations": "Ausstehende Reservierungen",
+    "pendingCount": "{count, plural, one {# ausstehend} other {# ausstehend}}",
+    "service": "Service",
+    "lunch": "Mittagessen",
+    "dinner": "Abendessen",
+    "reservationsCount": "{count, plural, one {# Reservierung} other {# Reservierungen}}",
+    "emptyLunch": "Keine Reservierungen zum Mittagessen.",
+    "emptyDinner": "Keine Reservierungen zum Abendessen.",
+    "row": {
+      "guests": "{count, plural, one {# Person} other {# Personen}}",
+      "table": "Tisch {number}",
+      "noTable": "Kein Tisch",
+      "online": "Online",
+      "manual": "Manuell",
+      "viewContact": "Kontakt anzeigen",
+      "hideContact": "Kontakt ausblenden",
+      "mobile": "Mobil",
+      "mobileEmpty": "Keine Mobilnummer",
+      "email": "E-Mail",
+      "emailEmpty": "Keine E-Mail",
+      "finishNote": "Beim Abschließen erhält der Kunde automatisch eine Bewertungsanfrage."
+    },
+    "actions": {
+      "approve": "Genehmigen",
+      "reject": "Ablehnen",
+      "seat": "Platzieren",
+      "noShow": "No-show",
+      "finish": "Abschließen"
+    },
+    "status": {
+      "PENDING": "Ausstehend",
+      "CONFIRMED": "Bestätigt",
+      "SEATED": "Platziert",
+      "FINISHED": "Abgeschlossen",
+      "NO_SHOW": "No-show",
+      "CANCELLED": "Storniert",
+      "REJECTED": "Abgelehnt"
+    },
+    "approvalReason": {
+      "LARGE_GROUP": "Große Gruppe",
+      "TABLE_MERGE": "Tische zusammengelegt",
+      "CAPACITY_LIMIT": "Kapazitätslimit"
+    },
+    "vipEmail": {
+      "subject": "{customerName}, Sie haben die Stufe {tier} erreicht",
+      "heading": "Herzlichen Glückwunsch, {customerName}.",
+      "text": "Sie haben soeben die Stufe {tier} in unserem VIP-Club erreicht.",
+      "benefitLabel": "VIP-Vorteil",
+      "cta": "Tisch reservieren",
+      "footerNote": "Sie erhalten diese E-Mail, weil Sie zugestimmt haben, Mitteilungen dieses Restaurants zu erhalten."
+    }
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "main": {
+    "nav": {
+      "back": "← Zurück zum Dashboard",
+      "badge": "MesaLink Abrechnung"
+    },
+    "hero": {
+      "kicker": "Growth. Visibility. Control.",
+      "title": "Wählen Sie den richtigen Plan, um Ihr Restaurant wachsen zu lassen.",
+      "description": "Alle Pläne umfassen Website, Reservierungen, QR Ordering, CRM, Bewertungen und einen integrierten Betrieb. Growth ergänzt Marketing, um Kunden zurückzugewinnen und wiederkehrende Besuche zu steigern."
+    },
+    "stats": {
+      "currentPlan": {
+        "label": "Aktueller Plan"
+      },
+      "trial": {
+        "label": "Trial",
+        "daysLeft": "{days} Tage",
+        "ended": "Beendet"
+      },
+      "commissions": {
+        "label": "Provisionen",
+        "value": "0€"
+      },
+      "yearlyPayment": {
+        "label": "Jährliche Zahlung",
+        "value": "1 Monat gratis"
+      }
+    },
+    "planStatus": {
+      "trialFull": "Vollständiger Test",
+      "noPlan": "Kein aktiver Plan"
+    },
+    "accountState": {
+      "kicker": "Kontostatus",
+      "trialText": "Sie testen gerade alle Funktionen von MesaLink.",
+      "activeText": "Ihr Abonnement ist aktiv.",
+      "noPlanText": "Wählen Sie einen Plan, um die Plattform weiter zu nutzen."
+    },
+    "trialBox": {
+      "title": "Vollständiger Test aktiv",
+      "text": "Sie haben noch {days} Tag(e), um Website, QR Ordering, CRM, Bewertungen und Marketing auszuprobieren, bevor Sie sich für einen Plan entscheiden."
+    },
+    "upgradeBox": {
+      "title": "Upgrade verfügbar",
+      "text": "Aktivieren Sie Growth für nur +20€/Monat und schalten Sie automatisches Marketing, Kundenrückgewinnung und Kampagnen für schwache Tage frei. Das Verlängerungsdatum bleibt gleich, Stripe berechnet automatisch die anteilige Differenz."
+    },
+    "badges": {
+      "currentPlan": "Aktueller Plan",
+      "basePlan": "Basisplan",
+      "recommended": "Am meisten empfohlen"
+    },
+    "planCard": {
+      "perMonth": "/Monat",
+      "yearlyLabel": "Jährliche Zahlung",
+      "yearlySuffix": "/Jahr",
+      "yearlyNote": "· 1 Monat gratis · sparen Sie {saving}",
+      "currentPlanCta": "Aktueller Plan · Dashboard öffnen →",
+      "ctaMonthly": "Monatlich {price} →",
+      "ctaYearly": "Jährlich {price} →",
+      "essentials": {
+        "description": "Für Restaurants, die Reservierungen, Website, QR Ordering, CRM, Bewertungen und Betrieb in einem einzigen System zentralisieren möchten.",
+        "features": [
+          "Mehr direkte Reservierungen",
+          "Premium-Website inklusive",
+          "QR Ordering inklusive",
+          "Kunden-CRM",
+          "Google Bewertungen",
+          "Tischplan",
+          "Wesentliche Berichte",
+          "Keine Provision pro Reservierung"
+        ]
+      },
+      "growth": {
+        "description": "Für Restaurants, die Gäste zurückgewinnen, schwache Tage beleben und wiederkehrende Besuche mit Marketing steigern möchten.",
+        "features": [
+          "Alles aus Essentials",
+          "MesaLink Marketing inklusive",
+          "Inaktive Kunden zurückgewinnen",
+          "Kampagnen für schwache Tage",
+          "Gefährdete Kunden",
+          "Automatische Geburtstage",
+          "VIP-Treueprogramm",
+          "Mehr wiederkehrende Besuche"
+        ],
+        "upgrade": {
+          "kicker": "Upgrade",
+          "price": "+20€/Monat",
+          "note": "Behält Ihr aktuelles Verlängerungsdatum bei."
+        }
+      }
+    },
+    "platformSection": {
+      "kicker": "Restaurant Essentials",
+      "title": "Eine lebendige Plattform für Restaurants.",
+      "text": "MesaLink wird weiterhin neue Tools einführen, um Restaurants beim Wachstum, bei der Sichtbarkeit und bei der Vereinfachung des Tagesgeschäfts zu unterstützen.",
+      "features": {
+        "revenue": { "title": "Mehr Umsatz", "text": "QR Ordering + Marketing" },
+        "visibility": { "title": "Mehr Sichtbarkeit", "text": "Website + Bewertungen" },
+        "control": { "title": "Mehr Kontrolle", "text": "CRM + Reservierungen" },
+        "commissions": { "title": "0€ Provisionen", "text": "Direkte Reservierungen" }
+      }
+    },
+    "taxBilling": {
+      "kicker": "Steuerliche Rechnungsstellung",
+      "title": "Steuerliche Rechnungsstellung außerhalb von MesaLink.",
+      "text": "Die steuerliche Rechnungsstellung wird extern von einer zertifizierten Software Ihrer Wahl übernommen. Diese Kosten werden nicht von MesaLink berechnet.",
+      "note": "MesaLink hält Reservierungen, Kunden, QR Ordering, Website, Bewertungen und Marketing in einem einzigen Betrieb miteinander verbunden."
+    }
+  },
+  "success": {
+    "kicker": "Aktives Abonnement",
+    "title": "Plan {plan} aktiviert.",
+    "subtitle": "Ihr Abonnement wurde erfolgreich bestätigt. Sie können MesaLink jetzt ohne Unterbrechung weiter nutzen.",
+    "stats": {
+      "plan": "aktiver Plan",
+      "cycle": "gewählter Zyklus",
+      "commissions": "Provisionen"
+    },
+    "billingCycle": {
+      "yearly": "Jährliche Zahlung",
+      "monthly": "Monatliche Zahlung"
+    },
+    "available": {
+      "title": "Bereits in Ihrem Konto verfügbar",
+      "items": {
+        "reservations": "Online-Reservierungen ohne Provisionen",
+        "website": "Professionelle Website",
+        "qrOrdering": "QR Ordering",
+        "crm": "Kunden-CRM",
+        "googleReviews": "Google Bewertungen",
+        "marketingGrowth": "Growth-Marketing"
+      }
+    },
+    "nextSteps": {
+      "title": "Nützliche nächste Schritte",
+      "items": {
+        "reviewHours": "Öffnungszeiten und Kapazität prüfen",
+        "confirmTables": "Räume und Tische bestätigen",
+        "publishWebsite": "Website und QR Ordering veröffentlichen",
+        "shareLink": "Reservierungslink teilen",
+        "trackResults": "Ergebnisse im Dashboard verfolgen"
+      }
+    },
+    "billingNote": {
+      "title": "Hinweis zur steuerlichen Rechnungsstellung",
+      "text": "Die steuerliche Rechnungsstellung wird extern von einer zertifizierten Software Ihrer Wahl übernommen. MesaLink hält Reservierungen, Kunden, QR Ordering, Website, Bewertungen und Marketing in einem einzigen Betrieb miteinander verbunden."
+    },
+    "cta": "Dashboard öffnen →"
+  },
+  "upgradeButton": {
+    "loading": "Wird aktualisiert...",
+    "cta": "Auf Growth upgraden →",
+    "error": "Fehler beim Upgrade."
+  }
+}

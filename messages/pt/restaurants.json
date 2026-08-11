@@ -1,0 +1,21 @@
+{
+  "list": {
+    "title": "Restaurantes",
+    "subtitle": "Gere todos os teus restaurantes.",
+    "createButton": "Criar Restaurante",
+    "manage": "Gerir",
+    "reservations": "Reservas",
+    "calendar": "Calendário",
+    "publicPage": "Página Pública",
+    "emptyState": "Ainda não tens restaurantes criados."
+  },
+  "new": {
+    "title": "Criar Restaurante",
+    "namePlaceholder": "Nome",
+    "slugPlaceholder": "slug-exemplo",
+    "emailPlaceholder": "Email",
+    "phonePlaceholder": "Telefone",
+    "addressPlaceholder": "Morada",
+    "submit": "Guardar"
+  }
+}

@@ -1,0 +1,379 @@
+{
+  "upsell": {
+    "eyebrow": "MesaLink Growth",
+    "title": "营销功能仅限 Growth 方案使用。",
+    "description": "Essentials 方案涵盖预订、网站、QR Ordering、CRM 和评价功能。若要唤回客户、创建营销活动并提升复购率,请升级至 Growth。",
+    "features": {
+      "recovery": {
+        "title": "客户唤回",
+        "text": "识别不活跃客户,并把他们带回来。"
+      },
+      "campaigns": {
+        "title": "自动营销活动",
+        "text": "在淡季、生日和特殊场合进行推广。"
+      },
+      "risk": {
+        "title": "流失风险客户",
+        "text": "找出可能不再光顾的客户,提前采取行动。"
+      },
+      "roi": {
+        "title": "ROI Growth",
+        "text": "追踪已回收收入与营销活动的成效。"
+      }
+    },
+    "footerNote": "Growth 包含 Essentials 的全部功能 + 营销套件。",
+    "upgradeCta": "升级到 Growth →"
+  },
+  "main": {
+    "eyebrow": "MesaLink Growth",
+    "title": "Growth Engine",
+    "subtitle": "在同一个增长引擎中汇聚已回收收入、Google 评价、VIP 客户、营销活动与自动化流程。",
+    "actions": {
+      "settings": "设置",
+      "recommendations": "推荐",
+      "newCampaign": "创建营销活动"
+    },
+    "badges": {
+      "active": "已启用"
+    },
+    "hero": {
+      "eyebrow": "Growth 表现",
+      "subtitle": "归因于 MesaLink 的收入",
+      "metrics": {
+        "roi": "ROI Growth",
+        "conversions": "转化数",
+        "googleReviews": "Google 评价",
+        "avgRating": "平均评分"
+      },
+      "insights": {
+        "recovery": {
+          "label": "唤回",
+          "sub": "已唤回 {count} 位客户"
+        },
+        "birthday": {
+          "label": "生日",
+          "sub": "本月有 {count} 位客户生日"
+        },
+        "campaigns": {
+          "label": "营销活动",
+          "sub": "已发送 {count} 次营销活动"
+        }
+      }
+    },
+    "revenue": {
+      "eyebrow": "收入",
+      "title": "已产生收入",
+      "period": "最近 6 个月"
+    },
+    "reviews": {
+      "eyebrow": "评价",
+      "title": "口碑声誉",
+      "stats": {
+        "received": "已收到评价",
+        "googleRate": "Google 转化率"
+      },
+      "recentLabel": "最新评价",
+      "empty": "目前还没有收到评价。",
+      "googleBadge": "Google",
+      "anonymousCustomer": "匿名客户"
+    },
+    "modules": {
+      "reviews": {
+        "title": "评价",
+        "label": "Google 评价",
+        "sub": "{count} 条正面评价"
+      },
+      "recovery": {
+        "title": "唤回",
+        "label": "已回收收入",
+        "sub": "{count} 位符合条件的客户"
+      },
+      "vip": {
+        "title": "VIP",
+        "label": "优选会员",
+        "sub": "{count} 位 Gold/Platinum 客户"
+      },
+      "risk": {
+        "title": "风险",
+        "label": "流失风险客户",
+        "sub": "潜在风险金额 {amount}€"
+      },
+      "campaigns": {
+        "title": "营销活动",
+        "label": "已发送营销活动",
+        "sub": "{count} 次转化"
+      }
+    },
+    "leaderboard": {
+      "eyebrow": "排行榜",
+      "title": "顶级客户",
+      "subtitle": "餐厅最有价值的客户。",
+      "estimatedRevenueLabel": "预估收入",
+      "customerFallback": "客户",
+      "visits": "{count} 次到访",
+      "valueLabel": "预估价值"
+    },
+    "vipClub": {
+      "eyebrow": "VIP 俱乐部",
+      "title": "忠实客户",
+      "tiers": {
+        "platinum": "Platinum",
+        "gold": "Gold",
+        "silver": "Silver",
+        "bronze": "Bronze"
+      },
+      "minVisits": "{count}+ 次到访"
+    },
+    "opportunities": {
+      "eyebrow": "机会",
+      "title": "待唤回客户",
+      "potential": {
+        "prefix": "预估潜力约",
+        "suffix": "来自超过 60 天未到访的客户。"
+      },
+      "criticalWarning": "有 {count} 位客户流失风险较高。",
+      "daysAgo": "{count} 天",
+      "noDate": "无日期",
+      "noEmail": "无邮箱",
+      "empty": "目前还没有符合唤回条件的客户。"
+    },
+    "timeline": {
+      "eyebrow": "时间线",
+      "title": "最近动态",
+      "empty": "目前还没有营销动作。",
+      "types": {
+        "recovery": "客户已唤回",
+        "birthday": "生日营销已发送",
+        "vipUpgrade": "VIP 升级已发送",
+        "campaign": "营销活动已发送",
+        "review": "评价邀请已发送"
+      },
+      "status": {
+        "converted": "已转化",
+        "booked": "已预订",
+        "clicked": "已点击",
+        "opened": "已打开",
+        "sent": "已发送"
+      }
+    },
+    "automations": {
+      "eyebrow": "自动化",
+      "title": "自动化引擎",
+      "reviewRequest": {
+        "title": "到店后评价邀请",
+        "description": "当预订被标记为已完成时,自动发送评价邀请。",
+        "note": "重要提示:只有在当日服务中将预订标记为已完成后,客户才会收到邮件。"
+      },
+      "vipClub": {
+        "title": "VIP 俱乐部",
+        "description": "满意的客户可以收到邀请、最新资讯和专属礼遇。"
+      },
+      "campaigns": {
+        "title": "营销活动",
+        "summary": "已发送 {sent} 次营销活动 • {conversions} 次转化 • 已产生 {revenue}€"
+      }
+    }
+  },
+  "campaignsNew": {
+    "eyebrow": "Marketing Suite",
+    "title": "新建营销活动",
+    "description": "向 VIP 客户、不活跃客户或已同意接收营销信息的全部客户发送营销活动。"
+  },
+  "recommendations": {
+    "eyebrow": "MesaLink Recommendations",
+    "title": "今天该做什么",
+    "subtitle": "基于 VIP 客户、流失风险、生日和不活跃情况生成的自动推荐。",
+    "backToGrowth": "返回 Growth",
+    "priority": {
+      "eyebrow": "建议优先事项",
+      "description": "MesaLink 会分析你的客户群,并推荐能带来最直接效果的商业行动。",
+      "messages": {
+        "risky": "在流失风险客户彻底流失前,尽快将他们唤回。",
+        "vip": "通过 VIP 营销活动激活你最优质的客户。",
+        "birthday": "本月发送一次生日营销活动。",
+        "none": "目前暂无重要推荐。"
+      }
+    },
+    "priorityBadge": "优先",
+    "miniStats": {
+      "customers": "客户数",
+      "potential": "潜力"
+    },
+    "cards": {
+      "risky": {
+        "label": "唤回",
+        "title": "流失风险客户",
+        "description": "流失风险为高或中等的客户。",
+        "cta": "创建唤回营销活动"
+      },
+      "vip": {
+        "label": "VIP 俱乐部",
+        "title": "Gold & Platinum",
+        "description": "值得专属营销活动的高价值客户。",
+        "cta": "创建 VIP 营销活动"
+      },
+      "birthday": {
+        "label": "生日",
+        "title": "本月生日客户",
+        "description": "本月生日且已同意接收营销信息的客户。",
+        "cta": "创建生日营销活动"
+      },
+      "inactive": {
+        "label": "不活跃",
+        "title": "无到访客户",
+        "description": "超过 60 天未到访的客户。",
+        "cta": "创建召回营销活动"
+      }
+    }
+  },
+  "settings": {
+    "eyebrow": "Growth Settings",
+    "title": "Growth 设置",
+    "subtitle": "设置人均客单价、Google 评价以及 MesaLink Growth 使用的自动礼遇。",
+    "backToGrowth": "返回 Growth",
+    "sections": {
+      "revenue": {
+        "eyebrow": "收入与 ROI",
+        "title": "平均客单价",
+        "description": "用于估算已回收收入、Growth ROI 以及营销活动的成效。",
+        "fieldLabel": "人均客单价 (€)"
+      },
+      "reviews": {
+        "eyebrow": "Google Reviews",
+        "title": "线上口碑",
+        "description": "设置满意客户提交评价后被引导前往的位置。",
+        "urlLabel": "Google Reviews 链接",
+        "thresholdLabel": "跳转 Google 的最低评分",
+        "stars": "{count} 星"
+      },
+      "offers": {
+        "eyebrow": "自动优惠",
+        "title": "Growth 激励方案",
+        "description": "用于自动生日邮件和唤回邮件中的优惠内容。",
+        "birthday": {
+          "label": "生日优惠",
+          "placeholder": "例如:生日当月免费甜点"
+        },
+        "recovery": {
+          "label": "唤回优惠",
+          "placeholder": "例如:下次到访享 9 折优惠"
+        }
+      },
+      "vip": {
+        "eyebrow": "VIP 俱乐部",
+        "title": "各等级礼遇",
+        "description": "为每个 VIP 等级设置不同的礼遇。当客户升级时,会自动获得对应的礼遇。",
+        "tiers": {
+          "bronze": "Bronze",
+          "silver": "Silver",
+          "gold": "Gold",
+          "platinum": "Platinum"
+        },
+        "placeholders": {
+          "bronze": "例如:欢迎饮品",
+          "silver": "例如:赠送甜点",
+          "gold": "例如:下次到访享 9 折优惠",
+          "platinum": "例如:特别体验或私人邀请"
+        }
+      }
+    },
+    "submit": "保存设置"
+  },
+  "birthdayCard": {
+    "title": "生日客户",
+    "subtitle": "本月有 {count} 位客户生日。",
+    "runNow": "立即执行",
+    "sending": "发送中...",
+    "error": "执行生日活动时出错。",
+    "successMessage": "活动已执行 • 已发送 {emailsSent} 封邮件 • 已跳过 {skipped} 位"
+  },
+  "audiencePreview": {
+    "options": {
+      "all": "所有营销客户",
+      "allVip": "所有 VIP",
+      "bronze": "VIP Bronze",
+      "silver": "VIP Silver",
+      "gold": "VIP Gold",
+      "platinum": "VIP Platinum",
+      "tag": "按标签",
+      "inactive": "不活跃客户",
+      "birthdays": "本月生日客户"
+    },
+    "tagPlaceholder": "例如:本地、达人、高价值",
+    "recipientsCount": "将有 {count} 位客户收到此次营销活动。"
+  },
+  "templates": {
+    "heading": "快捷营销活动",
+    "items": {
+      "missYou": {
+        "label": "🍷 我们很想念您",
+        "subject": "我们很想念您 🍽️",
+        "message": "距离您上次光临已经有一段时间了。\n\n我们非常期待您的再次光临。\n\n现在就预订您的餐桌,来看看有哪些新变化。"
+      },
+      "birthday": {
+        "label": "🎂 生日快乐",
+        "subject": "生日快乐 🎂",
+        "message": "全体团队祝您生日快乐。\n\n期待与您一起庆祝这个特别的日子。"
+      },
+      "review": {
+        "label": "⭐ 分享您的意见",
+        "subject": "您的意见对我们很重要",
+        "message": "感谢您的光临。\n\n您的意见能帮助我们不断提升顾客体验。"
+      },
+      "menuNews": {
+        "label": "🔥 菜单新品",
+        "subject": "菜单有新品啦 ✨",
+        "message": "我们刚推出了全新菜品和特别推荐。\n\n现在就预订您的餐桌,来尝尝看。"
+      },
+      "event": {
+        "label": "🎉 特别活动",
+        "subject": "餐厅特别活动 🎉",
+        "message": "我们即将举办一场特别活动。\n\n名额有限,请尽快预订您的餐桌。"
+      }
+    }
+  },
+  "recoveryButton": {
+    "cta": "唤回客户",
+    "sending": "发送中...",
+    "error": "执行唤回时出错。",
+    "successMessage": "已发送 {count} 封邮件。"
+  },
+  "newCampaignForm": {
+    "segmentLabel": "客户分组",
+    "subjectLabel": "主题",
+    "subjectPlaceholder": "例如:我们为您准备了新内容",
+    "messageLabel": "内容",
+    "messagePlaceholder": "撰写营销活动内容...",
+    "submit": "发送营销活动",
+    "segmentTemplates": {
+      "vip": {
+        "subject": "VIP 客户专属邀请",
+        "message": "我们为最重要的客户准备了一场特别体验。\n\n预订您的餐桌,尽享这项专属礼遇。"
+      },
+      "loyal": {
+        "subject": "为您准备的专属礼遇",
+        "message": "我们想以一份特别礼遇感谢您的一路支持。\n\n预订您的餐桌,前来享用这项礼遇。"
+      },
+      "inactive": {
+        "subject": "我们很想念您",
+        "message": "距离您上次光临已经有一段时间了,我们非常期待您的再次光临。\n\n预订您的餐桌,尽快再次光临我们。"
+      },
+      "birthdays": {
+        "subject": "生日快乐 🎉",
+        "message": "我们想和您一起庆祝这个特别的月份。\n\n预订您的餐桌,与我们一同举杯。"
+      },
+      "tag": {
+        "subject": "为您准备的特别推荐",
+        "message": "我们为精选客户准备了一份特别信息。\n\n预订您的餐桌,一探究竟。"
+      }
+    }
+  },
+  "recoveryCard": {
+    "title": "客户唤回",
+    "subtitle": "有 {count} 位客户超过 60 天未到访。",
+    "runNow": "立即执行",
+    "sending": "发送中...",
+    "error": "执行唤回时出错。",
+    "successMessage": "已发送 {emailsSent} 封邮件 • 已创建 {created} 个营销活动"
+  }
+}

@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "android:build": "powershell -ExecutionPolicy Bypass -File scripts/build-android.ps1"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@serwist/next": "^9.5.12",
     "@uploadthing/react": "^7.3.3",
     "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.3",
@@ -19,6 +21,7 @@
     "lucide-react": "^1.17.0",
     "next": "16.2.7",
     "next-auth": "^4.24.14",
+    "next-intl": "^4.13.5",
     "openai": "^6.42.0",
     "prisma": "^6.19.3",
     "qrcode": "^1.5.4",
@@ -27,6 +30,7 @@
     "react-dom": "19.2.4",
     "react-phone-number-input": "^3.4.17",
     "resend": "^6.12.4",
+    "serwist": "^9.5.12",
     "shadcn": "^4.11.0",
     "stripe": "^22.2.0",
     "tailwind-merge": "^3.6.0",
@@ -35,6 +39,7 @@
     "uploadthing": "^7.7.4"
   },
   "devDependencies": {
+    "@bubblewrap/cli": "^1.25.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",

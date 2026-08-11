@@ -1,0 +1,135 @@
+{
+  "header": {
+    "eyebrow": "中央目录",
+    "title": "菜单与产品",
+    "description": "为 QR Ordering 和网站管理同一个目录。可按渠道分别启用或停用每个产品。",
+    "notFound": "未找到该餐厅"
+  },
+  "channels": {
+    "qr": "QR",
+    "website": "网站"
+  },
+  "metrics": {
+    "categoriesLabel": "分类",
+    "categoriesSub": "组织结构",
+    "productsLabel": "产品",
+    "productsActiveSub": "{count} 个已启用",
+    "qrOrderingLabel": "QR Ordering",
+    "qrOrderingSub": "在 QR 中可见"
+  },
+  "catalog": {
+    "eyebrow": "目录",
+    "title": "餐厅产品",
+    "note": "QR Ordering 和网站共用这个目录。",
+    "emptyState": "创建第一个分类以开始使用。"
+  },
+  "categories": {
+    "createEyebrow": "分类",
+    "createTitle": "创建分类",
+    "namePlaceholder": "例如：前菜、饮品、甜品",
+    "positionPlaceholder": "分类排序",
+    "createSubmit": "创建分类",
+    "orderSummary": "排序 {position} · {active}/{total} 已启用",
+    "productCount": "{count} 个产品",
+    "editToggle": "编辑分类",
+    "editSubmit": "保存分类",
+    "emptyProducts": "暂无产品。",
+    "deleteToggle": "删除分类",
+    "deleteWarning": "此操作将删除分类“{name}”及其中的所有产品。",
+    "deleteConfirmLabel": "我确认要删除该分类及其产品",
+    "deleteSubmit": "永久删除"
+  },
+  "productForm": {
+    "eyebrow": "产品",
+    "title": "添加产品",
+    "categoryPlaceholder": "选择分类",
+    "namePlaceholder": "产品名称",
+    "descriptionPlaceholder": "简短描述",
+    "pricePlaceholder": "价格",
+    "skuPlaceholder": "SKU / 内部代码",
+    "vatOption": "增值税 {rate}%",
+    "sortOrderPlaceholder": "菜单中的排序",
+    "allergensPlaceholder": "过敏原。例如：麸质、牛奶、坚果",
+    "productionCentersLabel": "生产区域",
+    "noPrinterAssigned": "未设置打印机",
+    "printNamePlaceholder": "打印用名称",
+    "submit": "添加产品"
+  },
+  "channelToggles": {
+    "active": "启用",
+    "qrOrdering": "QR Ordering",
+    "website": "网站",
+    "featured": "推荐"
+  },
+  "productCard": {
+    "noImage": "IMG",
+    "inactiveBadge": "已停用",
+    "featuredBadge": "推荐",
+    "noProductionCenter": "无生产区域",
+    "orderMeta": "排序 {sortOrder}",
+    "allergensMeta": "过敏原：{allergens}",
+    "printNameMeta": "打印名称：{printName}",
+    "vatBadge": "增值税 {rate}%",
+    "descriptionPlaceholder": "描述",
+    "skuPlaceholder": "SKU",
+    "orderPlaceholder": "排序",
+    "allergensPlaceholder": "过敏原",
+    "submitEdit": "保存更改",
+    "removeImageButton": "移除图片",
+    "deleteToggle": "删除",
+    "deleteConfirmLabel": "确认删除",
+    "deleteSubmit": "删除产品"
+  },
+  "printers": {
+    "eyebrow": "打印机",
+    "title": "餐厅打印机",
+    "namePlaceholder": "例如：Epson 厨房打印机",
+    "typeOptions": {
+      "kitchen": "厨房",
+      "bar": "酒吧",
+      "room": "大厅",
+      "cashier": "收银台",
+      "other": "其他"
+    },
+    "methodOptions": {
+      "browser": "浏览器",
+      "bridge": "打印桥接（Print Bridge）",
+      "network": "网络/IP"
+    },
+    "ipPlaceholder": "IP（可选）",
+    "ipPlaceholderEdit": "IP",
+    "portPlaceholder": "端口",
+    "createSubmit": "创建打印机",
+    "emptyState": "您还没有添加任何打印机。",
+    "statusActive": "已启用",
+    "statusInactive": "已停用",
+    "activeFieldLabel": "启用",
+    "editSubmit": "保存打印机",
+    "deleteConfirmLabel": "我确认删除该打印机",
+    "deleteSubmit": "删除"
+  },
+  "productionCenters": {
+    "eyebrow": "生产",
+    "title": "生产区域",
+    "description": "创建区域，例如厨房、酒吧、大厅1或厨房2。然后将每个产品分配到其中一个区域。",
+    "namePlaceholder": "例如：厨房、酒吧、大厅1",
+    "noPrinterOption": "未设置打印机",
+    "positionPlaceholder": "排序",
+    "createSubmit": "创建生产区域",
+    "emptyState": "您还没有添加任何生产区域。",
+    "printerSummary": "打印机：{printer} · 排序 {position}",
+    "printerUndefined": "未设置",
+    "statusActive": "已启用",
+    "statusInactive": "已停用",
+    "activeFieldLabel": "启用",
+    "editSubmit": "保存生产区域",
+    "deleteToggle": "删除生产区域",
+    "deleteWarning": "关联的产品将变为没有生产区域。",
+    "deleteConfirmLabel": "我确认要删除",
+    "deleteSubmit": "删除"
+  },
+  "imageUpload": {
+    "hint": "请上传产品图片。",
+    "uploadError": "上传出错：{message}"
+  }
+}

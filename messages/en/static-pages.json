@@ -1,0 +1,175 @@
+{
+  "pricing": {
+    "hero": {
+      "badge": "Growth. Visibility. Control.",
+      "titleLine1": "Choose the right platform to",
+      "titleLine2": "grow your restaurant.",
+      "text": "Attract more customers, increase revenue and simplify operations with reservations, website, QR Ordering, CRM and Marketing all in one place.",
+      "stats": {
+        "trial": { "value": "7 days", "label": "full trial" },
+        "yearly": { "value": "1 month", "label": "free yearly" },
+        "commission": { "value": "€0", "label": "commissions" }
+      }
+    },
+    "plans": {
+      "essentials": {
+        "name": "Essentials",
+        "badge": "7-day free trial",
+        "description": "For restaurants that want to centralize reservations, website, QR Ordering, CRM, reviews and operations in a single system.",
+        "features": [
+          "More direct reservations",
+          "Premium website included",
+          "QR Ordering included",
+          "Customer CRM",
+          "Google Reviews",
+          "Table map",
+          "Essential reports",
+          "No commission per reservation"
+        ]
+      },
+      "growth": {
+        "name": "Growth",
+        "badge": "Most recommended",
+        "description": "For restaurants that want to win back customers, boost slow days and increase repeat visits with Marketing.",
+        "features": [
+          "Everything in Essentials",
+          "MesaLink Marketing included",
+          "Win back inactive customers",
+          "Campaigns for slow days",
+          "At-risk customers",
+          "Automatic birthdays",
+          "VIP loyalty",
+          "More repeat visits"
+        ]
+      },
+      "perMonth": "/mo",
+      "yearlyLabel": "Annual payment",
+      "yearlySuffix": "/yr",
+      "yearlyNote": "· 1 month free · save {saving}",
+      "ctaMonthly": "Start monthly →",
+      "ctaYearly": "Start yearly →"
+    },
+    "comparison": {
+      "badge": "Why MesaLink?",
+      "title": "Fewer separate systems. More growth.",
+      "text": "MesaLink brings together discovery, reservations, QR Ordering, CRM, Marketing and reviews to increase revenue, visibility and control.",
+      "headers": {
+        "need": "Need",
+        "traditional": "Traditional",
+        "mesalink": "MesaLink"
+      },
+      "rows": {
+        "website": { "need": "Website + SEO", "traditional": "Separate provider", "mesalink": "Included" },
+        "reservations": { "need": "Reservations", "traditional": "Isolated system", "mesalink": "Included" },
+        "qrOrdering": { "need": "QR Ordering", "traditional": "Separate add-on", "mesalink": "Included" },
+        "crm": { "need": "CRM", "traditional": "Spreadsheets or external tool", "mesalink": "Included" },
+        "marketing": { "need": "Marketing", "traditional": "Manual campaigns", "mesalink": "Growth" },
+        "reviews": { "need": "Reviews", "traditional": "No clear process", "mesalink": "Included" },
+        "billing": { "need": "Tax invoicing", "traditional": "External certified software", "mesalink": "Handled outside MesaLink" }
+      }
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Quick questions.",
+      "items": {
+        "trial": { "question": "Is there a free trial?", "answer": "Yes. You can try every feature for 7 days before choosing a plan." },
+        "yearlyDiscount": { "question": "Does the annual plan have a discount?", "answer": "Yes. With annual billing you get 1 month free: Essentials is €605/year and Growth is €825/year, excluding VAT." },
+        "growthDifference": { "question": "What's the difference with Growth?", "answer": "Growth adds Marketing to win back customers, boost slow days and increase repeat visits." },
+        "commissions": { "question": "Are there commissions per reservation?", "answer": "No. MesaLink doesn't charge a commission per reservation." },
+        "billing": { "question": "What about tax invoicing?", "answer": "Tax invoicing is handled externally by a certified software of your choice. That cost isn't charged by MesaLink." },
+        "cancel": { "question": "Can I cancel?", "answer": "Yes. You can cancel anytime." }
+      }
+    },
+    "finalCta": {
+      "eyebrow": "Start today",
+      "title": "Try everything for 7 days.",
+      "text": "Try every feature before choosing a plan. With annual billing, you get 1 month free.",
+      "cta": "Start free trial →"
+    }
+  },
+  "contact": {
+    "badge": "Contact us",
+    "title": "Let's connect your restaurant to the future.",
+    "text": "Have questions about MesaLink, implementation, pricing or want to see how the platform can work for your restaurant? Send us a message.",
+    "emailCard": {
+      "label": "Email",
+      "reply": "We reply as quickly as possible."
+    },
+    "infoCard": {
+      "title": "The Operating System for Restaurants",
+      "text": "Professional website, online reservations, table management, customers and future tools like AI, marketing and QR Ordering."
+    },
+    "form": {
+      "namePlaceholder": "Name",
+      "emailPlaceholder": "Email",
+      "restaurantPlaceholder": "Restaurant",
+      "messagePlaceholder": "Message",
+      "send": "Send message",
+      "note": "The form will be connected to email in the next step."
+    }
+  },
+  "terms": {
+    "eyebrow": "Legal",
+    "title": "Terms & Conditions",
+    "lastUpdated": "Last updated: {year}",
+    "backLink": "← Back",
+    "sections": {
+      "service": {
+        "title": "1. Service",
+        "text": "MesaLink is an online platform for restaurant reservation management, including a public reservations page, calendar, customers, QR Code and operational tools."
+      },
+      "usage": {
+        "title": "2. Use",
+        "text": "The user agrees to provide truthful information and to use the platform only for lawful purposes related to managing their restaurant."
+      },
+      "payments": {
+        "title": "3. Payments",
+        "text": "Paid plans are billed monthly or annually, as selected. Prices shown do not include VAT unless stated otherwise."
+      },
+      "cancellation": {
+        "title": "4. Cancellation",
+        "text": "The customer may cancel their subscription. Access to the service may remain available until the end of the period already paid for."
+      },
+      "liability": {
+        "title": "5. Liability",
+        "text": "MesaLink is not responsible for incorrect information entered by the restaurant, external internet outages, third-party services, or misuse of the platform."
+      },
+      "contact": {
+        "title": "6. Contact",
+        "text": "For questions related to these terms, contact:"
+      }
+    }
+  },
+  "privacy": {
+    "eyebrow": "Legal",
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: {year}",
+    "backLink": "← Back",
+    "sections": {
+      "dataCollected": {
+        "title": "1. Data we collect",
+        "text": "We may collect data such as name, email, phone number, restaurant information, reservations created, schedules, customers and data necessary to use the platform."
+      },
+      "purpose": {
+        "title": "2. Purpose",
+        "text": "Data is used to provide the MesaLink service, process reservations, manage accounts, communicate with users and improve the platform."
+      },
+      "customerData": {
+        "title": "3. Restaurant customers' data",
+        "text": "End customers' data is used only to manage reservations and communications related to those reservations."
+      },
+      "dataSharing": {
+        "title": "4. Data sharing",
+        "text": "We do not sell personal data. We may use third-party services necessary for hosting, payments, authentication, email or technical support."
+      },
+      "rights": {
+        "title": "5. Rights",
+        "text": "You may request access to, correction of, or deletion of your data via email:"
+      },
+      "security": {
+        "title": "6. Security",
+        "text": "We apply technical and organizational measures to protect the data processed on the platform."
+      }
+    }
+  }
+}

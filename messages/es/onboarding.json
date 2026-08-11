@@ -1,0 +1,29 @@
+{
+  "badge": "7 días gratis",
+  "aside": {
+    "label": "Primeros pasos",
+    "title": "Configura tu restaurante.",
+    "description": "Crea tu panel inicial para empezar a recibir reservas, gestionar clientes, publicar tu web y preparar el crecimiento con CRM, Marketing y QR Ordering.",
+    "steps": {
+      "step1": "Crear restaurante",
+      "step2": "Configurar horarios y mesas",
+      "step3": "Activar reservas, web y QR"
+    },
+    "trial": {
+      "title": "Prueba completa incluida",
+      "text": "Durante 7 días puedes explorar MesaLink sin compromiso."
+    }
+  },
+  "form": {
+    "label": "Datos del restaurante",
+    "title": "Crear restaurante",
+    "description": "Estos datos aparecen en el panel, en la web y en la página pública de reservas. Puedes cambiarlo todo más tarde.",
+    "errorEmail": "Introduce un email válido o deja el campo en blanco.",
+    "namePlaceholder": "Nombre del restaurante",
+    "emailPlaceholder": "Email del restaurante",
+    "phonePlaceholder": "Teléfono",
+    "addressPlaceholder": "Dirección",
+    "submit": "Crear restaurante →",
+    "footnote": "MesaLink conecta reservas, web, QR Ordering, clientes, marketing y operación."
+  }
+}

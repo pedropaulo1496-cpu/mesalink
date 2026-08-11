@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { UploadButton } from "@/lib/uploadthing";
 
 type ProductImageUploadProps = {
@@ -9,6 +10,8 @@ type ProductImageUploadProps = {
 export default function ProductImageUpload({
   inputName = "imageUrl",
 }: ProductImageUploadProps) {
+  const t = useTranslations("dashboardMenu");
+
   return (
     <div className="rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
       <input type="hidden" name={inputName} id={inputName} />
@@ -29,12 +32,12 @@ export default function ProductImageUpload({
           }
         }}
         onUploadError={(error: Error) => {
-          alert(`Erro no upload: ${error.message}`);
+          alert(t("imageUpload.uploadError", { message: error.message }));
         }}
       />
 
       <p className="mt-3 text-xs font-semibold text-[#6B6258]">
-        Faça upload da imagem do produto.
+        {t("imageUpload.hint")}
       </p>
     </div>
   );

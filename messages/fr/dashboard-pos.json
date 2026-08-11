@@ -1,0 +1,560 @@
+{
+  "client": {
+    "comingSoonBanner": {
+      "badge": "Coming Soon",
+      "title": "MesaLink POS",
+      "description": "Nous finalisons le POS, la facturation, l'impression et la version mobile."
+    },
+    "comingSoonPage": {
+      "badge": "Coming Soon",
+      "description": "Nous finalisons la nouvelle génération du POS pour garantir une expérience stable en salle, en caisse, en production, en facturation et à l'impression.",
+      "restaurantLabel": "Restaurant",
+      "developingTitle": "En développement",
+      "developingDescription": "Le POS n'est pas encore disponible pour les clients. Une fois prêt, il sera activé automatiquement dans cet espace.",
+      "features": {
+        "tables": "Gestion des tables",
+        "qrOrdering": "QR Ordering",
+        "cashRegister": "Caisse",
+        "invoicing": "Facturation Moloni",
+        "production": "Production",
+        "printers": "Imprimantes",
+        "splitBill": "Addition séparée",
+        "mobilePos": "POS mobile"
+      },
+      "availableSoonLabel": "Disponible bientôt",
+      "availableSoonDescription": "En attendant, continuez à utiliser Réservations, Clients, QR Ordering, Site web et Marketing."
+    },
+    "header": {
+      "eyebrow": "MESALINK POS",
+      "titleTables": "Tables",
+      "titleQuickSale": "Vente rapide",
+      "titleTable": "Table {number}",
+      "backToTables": "← Retour aux tables",
+      "printersButton": "Imprimantes",
+      "seatsCount": "{count} places",
+      "noTable": "Sans table",
+      "experimentalBanner": {
+        "title": "Mode expérimental actif",
+        "description": "Tests de tables, commandes et paiements. Pour une facturation légale, configurez Moloni.",
+        "cta": "Moloni"
+      },
+      "qrAttention": "QR Orders : {count, plural, one {# alerte en attente} other {# alertes en attente}}"
+    },
+    "tabs": {
+      "tables": "Tables",
+      "cash": "Caisse",
+      "service": "Service",
+      "kitchen": "QR Orders",
+      "production": "Production",
+      "history": "Historique",
+      "fiscal": "Facturation",
+      "documents": "Documents",
+      "stats": "Statistiques"
+    },
+    "tables": {
+      "allFilter": "Toutes",
+      "openFilter": "Ouvertes",
+      "freeFilter": "Libres",
+      "tablesCount": "{count} tables",
+      "tableLabel": "Table",
+      "freeLabel": "Libre"
+    },
+    "products": {
+      "emptyState": "Vous n'avez pas encore de produits",
+      "productsCount": "{count} produits"
+    },
+    "cart": {
+      "eyebrow": "Addition",
+      "openBadge": "Ouverte",
+      "guestOrderCount": "{guestCount} pers. · {orderCount, plural, one {# commande} other {# commandes}}",
+      "cancelTableButton": "Annuler la table",
+      "cancellingLabel": "Annulation...",
+      "currentAccountLabel": "Addition actuelle",
+      "emptyAccountTitle": "Aucun article en attente sur l'addition",
+      "emptyAccountDescription": "Les produits payés ne s'affichent plus ici.",
+      "emptyCartTitle": "Addition vide",
+      "emptyCartDescription": "Sélectionnez des produits pour créer une addition sur le POS.",
+      "editButton": "Modifier",
+      "editItemTitle": "Modifier l'article",
+      "removeItemTitle": "Supprimer l'article",
+      "saveButton": "Enregistrer",
+      "savingLabel": "...",
+      "cancelDraftButton": "Annuler",
+      "newProductsLabel": "Nouveaux produits",
+      "noteLabel": "Note : {notes}",
+      "sendOrderButton": "Envoyer la commande",
+      "editLink": "modifier",
+      "summary": {
+        "account": "Addition",
+        "discount": "Rem.",
+        "paid": "Payé",
+        "remaining": "Restant"
+      },
+      "totalToPayLabel": "Total à payer",
+      "chargeButton": "Encaisser",
+      "splitButton": "Séparer",
+      "discountButton": "Remise",
+      "transferButton": "Transférer"
+    },
+    "openTableModal": {
+      "eyebrow": "Ouvrir la table",
+      "title": "Table {number}",
+      "description": "Indiquez le nombre de personnes assises pour calculer le ticket moyen par personne.",
+      "peopleLabel": "Personnes",
+      "paxLabel": "pers.",
+      "confirmButton": "Ouvrir la table",
+      "confirmButtonLoading": "Ouverture..."
+    },
+    "splitItemsModal": {
+      "eyebrow": "Séparer l'addition",
+      "title": "Choisir les articles",
+      "description": "Sélectionnez les produits que ce client va payer.",
+      "availableLabel": "Disponible :",
+      "selectedLabel": "Sélectionné",
+      "confirmButton": "Encaisser la sélection"
+    },
+    "transferModal": {
+      "eyebrow": "Transférer",
+      "title": "Table de destination et articles",
+      "description": "Choisissez une table de destination et transférez tout ou seulement certains articles.",
+      "targetTableLabel": "Table de destination",
+      "tableLabel": "Table",
+      "quickTransferLabel": "Transfert rapide",
+      "quickTransferDescriptionWithTable": "Déplace toute l'addition vers la Table {number}.",
+      "quickTransferDescriptionNoTable": "Déplace toute l'addition vers la table choisie.",
+      "transferAllButton": "Tout transférer",
+      "itemsLabel": "Articles",
+      "selectedCount": "{selected}/{total} sélectionnés",
+      "noItemsLabel": "Il n'y a aucun article à transférer.",
+      "availableLabel": "Disponible : {quantity} × {price}",
+      "closeButton": "Fermer",
+      "transferSelectedButton": "Transférer la sélection",
+      "transferSelectedButtonLoading": "Transfert...",
+      "alerts": {
+        "chooseTargetTable": "Choisissez la table de destination.",
+        "selectAtLeastOneItem": "Sélectionnez au moins un article.",
+        "transferAllConfirm": "Transférer toute l'addition vers la Table {number} ?"
+      }
+    },
+    "discountModal": {
+      "eyebrow": "Remise",
+      "title": "Remise sur la table",
+      "valuePlaceholder": "0",
+      "reasonPlaceholder": "Motif",
+      "removeButton": "Supprimer la remise",
+      "saveButton": "Enregistrer la remise"
+    },
+    "lineEditor": {
+      "editNewProductEyebrow": "Modifier le nouveau produit",
+      "editNewProductDescription": "Avant l'envoi en cuisine/impression.",
+      "editLineEyebrow": "Modifier la ligne",
+      "editLineDescription": "Quantité, prix, remise et note.",
+      "quantityLabel": "Quantité",
+      "priceLabel": "Prix",
+      "discountPercentLabel": "Remise (%)",
+      "discountAmountLabel": "Remise (€)",
+      "notesLabel": "Texte facultatif",
+      "notesPlaceholder": "Sans salade, sans oignon...",
+      "subtotalLabel": "Sous-total",
+      "discountLabel": "Remise",
+      "totalLabel": "Total",
+      "removeButton": "Supprimer",
+      "saveButton": "✓ Enregistrer",
+      "saveButtonLoading": "Enregistrement..."
+    },
+    "partialPayment": {
+      "eyebrow": "Paiement partiel",
+      "description": "Encaisser uniquement les articles sélectionnés.",
+      "confirmButton": "Confirmer le paiement",
+      "confirmButtonLoading": "Encaissement..."
+    },
+    "paymentMethods": {
+      "card": { "label": "Carte", "description": "Carte ou terminal" },
+      "cash": { "label": "Espèces", "description": "Paiement en espèces" },
+      "bankTransfer": { "label": "Virement", "description": "Virement bancaire" }
+    },
+    "paymentModal": {
+      "eyebrow": "Encaisser",
+      "title": "Table {number}",
+      "description": "Choisissez le mode de paiement pour fermer la table.",
+      "totalLabel": "Total",
+      "paxLabel": "{count} pers.",
+      "perPersonLabel": "{amount} / personne",
+      "splitLabel": "Diviser l'addition",
+      "splitPerPaymentLabel": "{amount} par paiement",
+      "chargeWithInvoiceButton": "Encaisser et émettre une facture",
+      "confirmButtonLoading": "Fermeture...",
+      "confirmButtonWithInvoice": "Encaisser sans facture",
+      "confirmButtonDefault": "Fermer la table"
+    },
+    "invoiceModal": {
+      "title": "Émettre un document",
+      "description": "Choisissez le type de client et les données fiscales.",
+      "finalConsumerButton": "Consommateur final",
+      "vatCustomerButton": "Client avec numéro fiscal",
+      "vatPlaceholder": "Numéro fiscal",
+      "fetchVatButton": "Récupérer les données",
+      "namePlaceholder": "Nom",
+      "addressPlaceholder": "Adresse de facturation",
+      "emailPlaceholder": "Email",
+      "cancelButton": "Annuler",
+      "confirmButtonLoading": "Émission...",
+      "confirmButtonSimplified": "Émettre une facture simplifiée",
+      "confirmButtonFull": "Émettre une facture"
+    },
+    "creditNoteModal": {
+      "eyebrow": "Avoir",
+      "title": "Annuler le document",
+      "documentLabel": "Document : {number} · {amount}",
+      "noDocumentNumber": "Sans numéro",
+      "reasonLabel": "Motif",
+      "defaultReason": "Annulation du document",
+      "cancelButton": "Annuler",
+      "confirmButton": "Émettre l'avoir",
+      "confirmButtonLoading": "Émission..."
+    },
+    "cashRegister": {
+      "closedTitle": "Caisse fermée",
+      "closedDescription": "Ouvrez la caisse avant de commencer le service pour lier les paiements du POS à la clôture du jour.",
+      "openButton": "Ouvrir la caisse",
+      "cards": {
+        "openingAmount": "Fonds de caisse initial",
+        "cash": "Espèces",
+        "card": "Carte",
+        "transfer": "Virement",
+        "totalReceived": "Total encaissé",
+        "expectedCash": "Espèces attendues"
+      },
+      "eyebrow": "Caisse",
+      "openTitle": "Caisse ouverte",
+      "openSince": "Ouverte depuis {time}",
+      "cashInButton": "+ Entrée",
+      "cashOutButton": "- Sortie",
+      "closeButton": "Fermer la caisse",
+      "movementsTitle": "Mouvements de caisse",
+      "movementIn": "Entrée",
+      "movementOut": "Sortie",
+      "noReason": "Aucun motif",
+      "paymentsTitle": "Paiements",
+      "paymentsAssociated": "{count, plural, one {# paiement associé à cette caisse.} other {# paiements associés à cette caisse.}}",
+      "modal": {
+        "openEyebrow": "Ouvrir la caisse",
+        "closeEyebrow": "Fermer la caisse",
+        "openValueTitle": "Fonds de caisse initial",
+        "closeValueTitle": "Montant compté",
+        "openDescription": "Indiquez le fonds de caisse avec lequel vous allez démarrer le service.",
+        "closeDescription": "Indiquez l'argent compté physiquement dans la caisse.",
+        "amountLabel": "Fonds de caisse initial",
+        "amountLabelClosing": "Montant compté",
+        "expectedCashLabel": "Espèces attendues",
+        "differenceLabel": "Écart",
+        "openConfirm": "Ouvrir la caisse",
+        "closeConfirm": "Fermer la caisse",
+        "savingLabel": "Enregistrement..."
+      },
+      "movementModal": {
+        "eyebrow": "Mouvement de caisse",
+        "inTitle": "Entrée",
+        "outTitle": "Sortie",
+        "inDescription": "Enregistrer de l'argent entré dans la caisse.",
+        "outDescription": "Enregistrer de l'argent sorti de la caisse, comme des achats ou de la monnaie.",
+        "amountLabel": "Montant",
+        "reasonLabel": "Motif",
+        "inPlaceholder": "Ex. : Renfort de caisse",
+        "outPlaceholder": "Ex. : Achats supermarché",
+        "saveIn": "Enregistrer l'entrée",
+        "saveOut": "Enregistrer la sortie",
+        "savingLabel": "Enregistrement..."
+      }
+    },
+    "service": {
+      "eyebrow": "Service",
+      "title": "Aujourd'hui",
+      "totalProjectedLabel": "Total prévu",
+      "invoicedLabel": "Facturé",
+      "openLabel": "En cours",
+      "openTablesLabel": "Tables ouvertes",
+      "peopleLabel": "Personnes",
+      "ticketPerPersonLabel": "Ticket/personne",
+      "cashLabel": "Espèces",
+      "cardLabel": "Carte",
+      "transferLabel": "Virement"
+    },
+    "qrOrders": {
+      "eyebrow": "QR Orders",
+      "allResolvedTitle": "Tout est résolu",
+      "allResolvedDescription": "Les commandes QR, les appels au serveur et les demandes d'addition apparaissent ici.",
+      "centerTitle": "Centre des commandes QR",
+      "centerDescription": "Commandes, appels au serveur et demandes d'addition.",
+      "pendingBadge": "{count, plural, one {# en attente} other {# en attente}}",
+      "tableAlertsLabel": "Alertes de table",
+      "tableLabel": "Table {number}",
+      "calledWaiterLabel": "A appelé le serveur · {time}",
+      "askedBillLabel": "A demandé l'addition · {time}",
+      "resolveButton": "Marquer comme résolu",
+      "resolveButtonLoading": "Résolution...",
+      "ordersForApprovalLabel": "Commandes en attente d'approbation",
+      "productCount": "{count, plural, one {# produit} other {# produits}}",
+      "noteLabel": "Note : {notes}",
+      "rejectButton": "Refuser",
+      "acceptButton": "Accepter la commande",
+      "acceptButtonLoading": "Enregistrement..."
+    },
+    "production": {
+      "eyebrow": "Production",
+      "noCenterLabel": "Aucun centre",
+      "notDefinedLabel": "Non définie",
+      "title": "Tickets en attente",
+      "pendingBadge": "{count, plural, one {# en attente} other {# en attente}}",
+      "allFilter": "Toutes",
+      "noJobsLabel": "Aucun ticket en attente",
+      "printerLabel": "Imprimante :",
+      "methodLabel": "Méthode :",
+      "createdAtLabel": "Créé à {time}",
+      "printButton": "Imprimer",
+      "printedButton": "Imprimé",
+      "failedButton": "Échec",
+      "noteLabel": "Note : {notes}",
+      "printBlockedError": "Le navigateur a bloqué la fenêtre d'impression.",
+      "printUpdateError": "Erreur lors de la mise à jour de l'impression.",
+      "printTemplate": {
+        "printerLabel": "Imprimante :",
+        "sourceLabel": "Origine :",
+        "timeLabel": "Heure :",
+        "noteLabel": "Note :"
+      }
+    },
+    "history": {
+      "eyebrow": "Historique",
+      "title": "Paiements",
+      "subtitle": "{count, plural, one {Dernier # paiement clôturé sur le POS.} other {Derniers # paiements clôturés sur le POS.}}",
+      "totalLabel": "Total",
+      "cashLabel": "Espèces",
+      "cardLabel": "Carte",
+      "transferLabel": "Virement",
+      "loadingLabel": "Chargement de l'historique...",
+      "emptyTitle": "Aucun paiement pour l'instant",
+      "emptyDescription": "Quand vous fermerez des tables, les paiements apparaîtront ici.",
+      "quickSaleLabel": "Vente rapide",
+      "tableLabel": "Table {number}",
+      "fiscalDocumentLabel": "Document fiscal : {number}",
+      "noDocumentNumber": "Sans numéro",
+      "openPdfLabel": "Ouvrir le PDF",
+      "moreProductsLabel": "+ {count} produits",
+      "methods": {
+        "cash": "Espèces",
+        "card": "Carte",
+        "bankTransfer": "Virement"
+      }
+    },
+    "fiscal": {
+      "requiredView": {
+        "eyebrow": "Configuration obligatoire",
+        "title": "Configurez la facturation avant d'utiliser le POS",
+        "description": "Pour ouvrir des tables, encaisser ou clôturer des ventes, le restaurant doit connecter son compte Moloni et choisir les séries fiscales Facture, Facture Simplifiée et Avoir.",
+        "configureButton": "Configurer Moloni"
+      },
+      "serieSelect": {
+        "placeholderOption": "Sélectionner une série",
+        "notCommunicatedSuffix": " — non communiquée à l'administration fiscale"
+      },
+      "settingsView": {
+        "eyebrow": "Facturation",
+        "title": "Intégration Moloni",
+        "incompleteWarningTitle": "Configuration incomplète",
+        "incompleteWarningDescription": "Pour activer le POS, vous devez configurer la série de facture, de facture simplifiée et d'avoir.",
+        "loadingLabel": "Chargement...",
+        "setupEyebrow": "Configuration requise",
+        "setupTitle": "Connectez Moloni pour émettre des factures légales",
+        "setupDescription": "MesaLink utilise Moloni pour émettre des factures certifiées, des factures simplifiées, des avoirs, un QR Code fiscal et le SAF-T. Une fois configuré, vous pouvez émettre des documents directement depuis le POS.",
+        "steps": {
+          "step1": { "title": "1. Créer un compte Moloni", "text": "Créez ou accédez au compte Moloni du restaurant." },
+          "step2": { "title": "2. Créer les séries fiscales", "text": "Dans Moloni, créez les séries pour Facture, Facture Simplifiée et Avoir." },
+          "step3": { "title": "3. Communiquer les séries à l'administration fiscale", "text": "Les séries doivent être communiquées/actives avant d'émettre des documents réels." },
+          "step4": { "title": "4. Connecter à MesaLink", "text": "Une fois connecté, choisissez les séries sur cette page et enregistrez." }
+        },
+        "importantTitle": "Important",
+        "importantDescription": "Tant que Moloni n'est pas configuré, le POS peut fonctionner en mode expérimental, mais ne doit pas être utilisé pour la facturation légale.",
+        "openMoloniButton": "Ouvrir Moloni",
+        "createMoloniAccountButton": "Créer un compte Moloni",
+        "infoCards": {
+          "provider": "Fournisseur",
+          "company": "Entreprise",
+          "active": "Active",
+          "activeYes": "Oui",
+          "activeNo": "Non",
+          "invoiceSeries": "Série Facture",
+          "simplifiedSeries": "Série facture simplifiée",
+          "creditNoteSeries": "Série avoir",
+          "notConfigured": "Non configurée"
+        },
+        "seriesSectionEyebrow": "Configuration obligatoire",
+        "seriesSectionTitle": "Séries fiscales",
+        "seriesSectionDescription": "Pour activer le POS en mode réel, choisissez les séries Moloni utilisées pour Facture, Facture Simplifiée et Avoir.",
+        "serieLabels": {
+          "invoice": "Facture",
+          "simplifiedInvoice": "Facture Simplifiée",
+          "creditNote": "Avoir"
+        },
+        "recommendationEyebrow": "Recommandation MesaLink",
+        "recommendationTitle": "Moloni ON suffit pour commencer",
+        "recommendationDescription": "Nous recommandons le forfait Moloni ON pour une facturation intégrée à MesaLink. Il inclut l'API, le SAF-T, la communication des séries à l'administration fiscale, les clients, les articles et les documents fiscaux. Si vous avez besoin de plus de documents ou de fonctionnalités, vous pouvez passer à un forfait supérieur directement sur Moloni.",
+        "viewPlansButton": "Voir les forfaits Moloni",
+        "noSeriesTitle": "Vous n'avez pas encore de séries fiscales ?",
+        "noSeriesSteps": {
+          "step1": "1. Ouvrir Moloni",
+          "step2": "2. Aller dans Paramètres → Séries de documents",
+          "step3": "3. Créer/communiquer la série à l'administration fiscale",
+          "step4": "4. Revenir sur MesaLink et enregistrer les séries"
+        },
+        "saveButton": "Enregistrer les séries",
+        "saveButtonLoading": "Enregistrement..."
+      },
+      "documentsView": {
+        "eyebrow": "Documents",
+        "title": "Documents fiscaux",
+        "description": "Toute la facturation certifiée est gérée directement dans Moloni. Utilisez cette page uniquement comme guide rapide pour les factures, les avoirs et le SAF-T.",
+        "moloniCardEyebrow": "Moloni",
+        "moloniCardTitle": "Ouvrir les documents fiscaux",
+        "moloniCardDescription": "Consultez les factures, émettez des avoirs et exportez le SAF-T directement depuis le compte Moloni du restaurant.",
+        "openMoloniButton": "Ouvrir Moloni",
+        "helpCards": {
+          "creditNote": {
+            "title": "Émettre un avoir",
+            "steps": {
+              "step1": "Ouvrir Moloni",
+              "step2": "Aller dans Documents",
+              "step3": "Ouvrir Factures ou Avoirs",
+              "step4": "Choisir la facture à corriger",
+              "step5": "Créer un avoir",
+              "step6": "Émettre le document"
+            }
+          },
+          "saft": {
+            "title": "Exporter le SAF-T",
+            "steps": {
+              "step1": "Ouvrir Moloni",
+              "step2": "Aller dans Administration fiscale",
+              "step3": "Ouvrir Fichier SAF-T (PT)",
+              "step4": "Choisir la période",
+              "step5": "Exporter le fichier"
+            }
+          },
+          "invoices": {
+            "title": "Consulter les factures",
+            "steps": {
+              "step1": "Ouvrir Moloni",
+              "step2": "Aller dans Documents",
+              "step3": "Ouvrir Factures"
+            }
+          },
+          "creditNotesList": {
+            "title": "Consulter les avoirs",
+            "steps": {
+              "step1": "Ouvrir Moloni",
+              "step2": "Aller dans Documents",
+              "step3": "Ouvrir Avoirs"
+            }
+          }
+        },
+        "importantInfoTitle": "Information importante",
+        "importantInfoDescription": "Les factures émises ne doivent pas être supprimées. En cas d'erreur, un avoir doit être émis, suivi d'une nouvelle facture correcte."
+      }
+    },
+    "stats": {
+      "eyebrow": "Statistiques",
+      "title": "Rapport du jour",
+      "invoicedLabel": "Facturé",
+      "paymentsLabel": "Paiements",
+      "peopleLabel": "Personnes",
+      "avgTicketLabel": "Ticket moyen",
+      "perPersonLabel": "Par personne",
+      "paymentMethodsTitle": "Modes de paiement",
+      "cashLabel": "Espèces",
+      "cardLabel": "Carte",
+      "transferLabel": "Virement",
+      "topProductsTitle": "Produits les plus vendus",
+      "noProductsLabel": "Aucun produit vendu pour l'instant.",
+      "loadingLabel": "Chargement des statistiques...",
+      "emptyLabel": "Aucune donnée à afficher."
+    },
+    "comingSoonSection": {
+      "eyebrow": "Bientôt disponible",
+      "description": "Cet espace est déjà prêt pour la prochaine phase du POS."
+    },
+    "alerts": {
+      "openCashBeforeTable": "Vous devez ouvrir la caisse avant d'ouvrir des tables.",
+      "openCashBeforeQuickSale": "Vous devez ouvrir la caisse avant de démarrer une vente rapide.",
+      "sendOrderError": "Erreur lors de l'envoi de la commande.",
+      "removeItemConfirm": "Retirer {name} de l'addition ?",
+      "updateAccountError": "Erreur lors de la mise à jour de l'addition.",
+      "openTableError": "Erreur lors de l'ouverture de la table.",
+      "openTableUnexpectedResponse": "Table ouverte, mais une réponse inattendue a été reçue.",
+      "cancelTableConfirm": "Annuler la Table {number} ? La table redevient libre et ses commandes sont annulées.",
+      "cancelTableError": "Erreur lors de l'annulation de la table.",
+      "transferError": "Erreur lors du transfert.",
+      "sendCartBeforeCharge": "Envoyez d'abord les nouveaux produits avant d'encaisser.",
+      "unsavedAccountChanges": "Enregistrez ou annulez les modifications de l'addition avant d'encaisser.",
+      "partialPaymentError": "Erreur lors de la réception du paiement partiel.",
+      "updateItemError": "Erreur lors de la mise à jour de l'article.",
+      "applyDiscountError": "Erreur lors de l'application de la remise.",
+      "creditNoteError": "Erreur lors de l'émission de l'avoir.",
+      "creditNoteSuccess": "Avoir émis avec succès.",
+      "genericError": "Erreur.",
+      "vatRequired": "Indiquez d'abord le numéro fiscal.",
+      "fetchVatDataError": "Erreur lors de la récupération des données.",
+      "vatInvalidLength": "Le numéro fiscal doit comporter 9 chiffres.",
+      "customerNameRequired": "Indiquez le nom fiscal du client.",
+      "customerError": "Impossible de créer le client fiscal.",
+      "seriesNotCommunicated": "La série Moloni de ce restaurant n'a pas encore été communiquée à l'administration fiscale. Allez dans Moloni > Paramètres > Séries de documents et communiquez/activez la série fiscale.",
+      "issueInvoiceError": "Erreur lors de l'émission de la facture.",
+      "invoiceSuccess": "Facture émise avec succès.",
+      "closeTableError": "Erreur lors de la fermeture de la table.",
+      "openCashRegisterError": "Erreur lors de l'ouverture de la caisse.",
+      "saveCashMovementError": "Erreur lors de l'enregistrement du mouvement.",
+      "closeCashRegisterError": "Erreur lors de la fermeture de la caisse.",
+      "rejectQrOrderConfirm": "Refuser cette commande QR ?",
+      "resolveQrAlertError": "Erreur lors de la résolution de l'alerte QR.",
+      "saveSeriesError": "Erreur lors de l'enregistrement des séries.",
+      "seriesSaved": "Séries enregistrées."
+    }
+  },
+  "printBridge": {
+    "eyebrow": "MesaLink Print Bridge",
+    "title": "Impression automatique",
+    "downloadButton": "⬇ Télécharger pour Windows",
+    "installGuideButton": "Guide d'installation",
+    "description": "Connectez ce restaurant à un ordinateur Windows pour imprimer automatiquement les tickets sur des imprimantes USB, Bluetooth, Réseau ou PDF.",
+    "connect": {
+      "title": "Connecter un nouvel ordinateur",
+      "deviceNameDefault": "PC Principal",
+      "generateTokenButton": "Générer le jeton du Bridge",
+      "copyTokenHintPrefix": "Copiez ensuite le jeton dans l'application",
+      "copyTokenHintApp": "MesaLink-Print-Bridge."
+    },
+    "connectedComputers": {
+      "title": "Ordinateurs connectés",
+      "emptyState": "Aucun ordinateur connecté pour l'instant.",
+      "lastConnectionLabel": "Dernière connexion :",
+      "never": "Jamais",
+      "activeLabel": "Actif",
+      "inactiveLabel": "Inactif",
+      "tokenLabel": "Jeton",
+      "removeDeviceButton": "Supprimer l'appareil"
+    },
+    "mapPrinters": {
+      "title": "Associer les imprimantes",
+      "description": "Choisissez quelle imprimante Windows chaque imprimante MesaLink doit utiliser sur cet ordinateur.",
+      "emptyState": "Connectez d'abord un ordinateur pour pouvoir associer des imprimantes.",
+      "windowsPrintersFoundLabel": "Imprimantes Windows trouvées : {count}",
+      "noAssociationOption": "Aucune association",
+      "saveButton": "Enregistrer",
+      "testButton": "Tester"
+    },
+    "testPrint": {
+      "jobTitle": "Test d'impression",
+      "itemName": "Test MesaLink Print Bridge",
+      "itemNotes": "Si ce ticket s'est imprimé, tout est correctement configuré."
+    }
+  }
+}

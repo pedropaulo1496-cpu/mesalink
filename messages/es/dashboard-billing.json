@@ -1,0 +1,156 @@
+{
+  "main": {
+    "nav": {
+      "back": "← Volver al panel",
+      "badge": "MesaLink Facturación"
+    },
+    "hero": {
+      "kicker": "Growth. Visibility. Control.",
+      "title": "Elige el plan adecuado para hacer crecer el restaurante.",
+      "description": "Todos los planes incluyen Website, Reservas, QR Ordering, CRM, Reseñas y operación integrada. Growth añade Marketing para recuperar clientes y aumentar las visitas recurrentes."
+    },
+    "stats": {
+      "currentPlan": {
+        "label": "Plan actual"
+      },
+      "trial": {
+        "label": "Trial",
+        "daysLeft": "{days} días",
+        "ended": "Finalizado"
+      },
+      "commissions": {
+        "label": "Comisiones",
+        "value": "0€"
+      },
+      "yearlyPayment": {
+        "label": "Pago anual",
+        "value": "1 mes gratis"
+      }
+    },
+    "planStatus": {
+      "trialFull": "Prueba completa",
+      "noPlan": "Sin plan activo"
+    },
+    "accountState": {
+      "kicker": "Estado de la cuenta",
+      "trialText": "Estás probando todas las funcionalidades de MesaLink.",
+      "activeText": "Tu suscripción está activa.",
+      "noPlanText": "Elige un plan para seguir usando la plataforma."
+    },
+    "trialBox": {
+      "title": "Prueba completa activa",
+      "text": "Todavía tienes {days} día(s) para probar Website, QR Ordering, CRM, Reseñas y Marketing antes de elegir un plan."
+    },
+    "upgradeBox": {
+      "title": "Mejora disponible",
+      "text": "Activa Growth por solo +20€/mes y desbloquea Marketing automático, recuperación de clientes y campañas para días flojos. Mantiene la misma fecha de renovación y Stripe calcula la diferencia proporcional."
+    },
+    "badges": {
+      "currentPlan": "Plan actual",
+      "basePlan": "Plan base",
+      "recommended": "Más recomendado"
+    },
+    "planCard": {
+      "perMonth": "/mes",
+      "yearlyLabel": "Pago anual",
+      "yearlySuffix": "/año",
+      "yearlyNote": "· 1 mes gratis · ahorras {saving}",
+      "currentPlanCta": "Plan actual · Abrir panel →",
+      "ctaMonthly": "Mensual {price} →",
+      "ctaYearly": "Anual {price} →",
+      "essentials": {
+        "description": "Para restaurantes que quieren centralizar reservas, website, QR Ordering, CRM, reseñas y operación en un único sistema.",
+        "features": [
+          "Más reservas directas",
+          "Website premium incluido",
+          "QR Ordering incluido",
+          "CRM de clientes",
+          "Reseñas de Google",
+          "Mapa de mesas",
+          "Informes esenciales",
+          "Sin comisiones por reserva"
+        ]
+      },
+      "growth": {
+        "description": "Para restaurantes que quieren recuperar clientes, impulsar los días flojos y aumentar las visitas recurrentes con Marketing.",
+        "features": [
+          "Todo lo de Essentials",
+          "Marketing MesaLink incluido",
+          "Recuperar clientes inactivos",
+          "Campañas para días flojos",
+          "Clientes en riesgo",
+          "Cumpleaños automáticos",
+          "Fidelización VIP",
+          "Más visitas recurrentes"
+        ],
+        "upgrade": {
+          "kicker": "Mejora",
+          "price": "+20€/mes",
+          "note": "Mantiene tu fecha de renovación actual."
+        }
+      }
+    },
+    "platformSection": {
+      "kicker": "Restaurant Essentials",
+      "title": "Una plataforma viva para restaurantes.",
+      "text": "MesaLink seguirá lanzando nuevas herramientas para ayudar a los restaurantes a crecer, ganar visibilidad y simplificar la operación diaria.",
+      "features": {
+        "revenue": { "title": "Más ingresos", "text": "QR Ordering + Marketing" },
+        "visibility": { "title": "Más visibilidad", "text": "Website + Reseñas" },
+        "control": { "title": "Más control", "text": "CRM + Reservas" },
+        "commissions": { "title": "0€ de comisiones", "text": "Reservas directas" }
+      }
+    },
+    "taxBilling": {
+      "kicker": "Facturación fiscal",
+      "title": "Facturación fiscal gestionada fuera de MesaLink.",
+      "text": "La facturación fiscal se gestiona externamente mediante un software certificado de tu elección. Ese coste no lo cobra MesaLink.",
+      "note": "MesaLink mantiene reservas, clientes, QR Ordering, website, reseñas y marketing conectados dentro de la misma operación."
+    }
+  },
+  "success": {
+    "kicker": "Suscripción activa",
+    "title": "Plan {plan} activado.",
+    "subtitle": "Tu suscripción se confirmó correctamente. Ahora puedes seguir usando MesaLink sin interrupciones.",
+    "stats": {
+      "plan": "plan activo",
+      "cycle": "ciclo elegido",
+      "commissions": "comisiones"
+    },
+    "billingCycle": {
+      "yearly": "Pago anual",
+      "monthly": "Pago mensual"
+    },
+    "available": {
+      "title": "Ya disponible en tu cuenta",
+      "items": {
+        "reservations": "Reservas online sin comisiones",
+        "website": "Website profesional",
+        "qrOrdering": "QR Ordering",
+        "crm": "CRM de clientes",
+        "googleReviews": "Reseñas de Google",
+        "marketingGrowth": "Marketing Growth"
+      }
+    },
+    "nextSteps": {
+      "title": "Próximos pasos útiles",
+      "items": {
+        "reviewHours": "Revisar horarios y capacidad",
+        "confirmTables": "Confirmar salas y mesas",
+        "publishWebsite": "Publicar el website y QR Ordering",
+        "shareLink": "Compartir el enlace de reservas",
+        "trackResults": "Seguir resultados en el panel"
+      }
+    },
+    "billingNote": {
+      "title": "Nota sobre la facturación fiscal",
+      "text": "La facturación fiscal se gestiona externamente mediante un software certificado de tu elección. MesaLink mantiene reservas, clientes, QR Ordering, website, reseñas y marketing conectados dentro de la misma operación."
+    },
+    "cta": "Abrir panel →"
+  },
+  "upgradeButton": {
+    "loading": "Actualizando...",
+    "cta": "Actualizar a Growth →",
+    "error": "Error al actualizar."
+  }
+}

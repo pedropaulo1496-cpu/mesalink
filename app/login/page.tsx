@@ -1,10 +1,12 @@
 "use client";
 
 import Footer from "@/components/Footer";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { useTranslations } from "next-intl";
 import { isValidEmail } from "@/lib/validation";
 
 const inputClass =
@@ -12,6 +14,7 @@ const inputClass =
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("auth.login");
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
@@ -23,12 +26,12 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (!isValidEmail(emailAddress)) {
-      setError("Introduza um email válido.");
+      setError(t("errors.invalidEmail"));
       return;
     }
 
     if (!acceptedTerms) {
-      setError("Tem de aceitar os Termos e a Política de Privacidade.");
+      setError(t("errors.termsRequired"));
       return;
     }
 
@@ -43,14 +46,14 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Email ou password inválidos.");
+        setError(t("errors.invalidCredentials"));
         return;
       }
 
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setError("Erro ao entrar.");
+      setError(t("errors.generic"));
     } finally {
       setLoading(false);
     }
@@ -58,6 +61,10 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
+      <div className="fixed right-4 top-4 z-30">
+        <LanguageSwitcher />
+      </div>
+
       <section className="flex min-h-screen items-center justify-center px-5 py-10">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
@@ -69,26 +76,26 @@ export default function LoginPage() {
 
           <div className="rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)] sm:p-8">
             <Link href="/" className="text-sm font-semibold text-[#6B6258] hover:text-[#16120E]">
-              ← Voltar
+              {t("back")}
             </Link>
 
             <h1 className="mt-6 text-4xl font-semibold tracking-[-0.055em]">
-              Bem-vindo de volta
+              {t("title")}
             </h1>
 
             <p className="mb-8 mt-3 text-sm leading-6 text-[#6B6258]">
-              Entre na sua conta MesaLink.
+              {t("subtitle")}
             </p>
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                <input value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} type="email" placeholder="Email" className={inputClass} required />
-                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" className={inputClass} required />
+                <input value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} type="email" placeholder={t("emailPlaceholder")} className={inputClass} required />
+                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder={t("passwordPlaceholder")} className={inputClass} required />
               </div>
 
               <div className="mt-3 text-right">
                 <Link href="/forgot-password" className="text-sm font-semibold text-[#9B6F3B] hover:text-[#16120E]">
-                  Esqueceste-te da password?
+                  {t("forgotPassword")}
                 </Link>
               </div>
 
@@ -96,15 +103,15 @@ export default function LoginPage() {
                 <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-1 h-4 w-4 accent-[#16120E]" />
 
                 <label className="text-sm leading-relaxed text-[#6B6258]">
-                  Li e aceito os{" "}
+                  {t("terms.prefix")}{" "}
                   <a href="/terms" target="_blank" className="font-semibold text-[#9B6F3B] hover:text-[#16120E]">
-                    Termos e Condições
+                    {t("terms.termsLink")}
                   </a>{" "}
-                  e a{" "}
+                  {t("terms.and")}{" "}
                   <a href="/privacy" target="_blank" className="font-semibold text-[#9B6F3B] hover:text-[#16120E]">
-                    Política de Privacidade
+                    {t("terms.privacyLink")}
                   </a>
-                  .
+                  {t("terms.suffix")}
                 </label>
               </div>
 
@@ -119,21 +126,21 @@ export default function LoginPage() {
                 disabled={loading}
                 className="mt-6 flex h-14 w-full items-center justify-center rounded-full bg-[#16120E] text-base font-semibold text-white transition hover:bg-[#2A2118] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "A entrar..." : "Entrar"}
+                {loading ? t("submitLoading") : t("submit")}
               </button>
             </form>
 
             <div className="mt-8 border-t border-[#E8DCCB] pt-6 text-center">
-              <p className="text-sm text-[#6B6258]">Ainda não tem conta?</p>
+              <p className="text-sm text-[#6B6258]">{t("noAccount")}</p>
 
               <Link href="/register" className="mt-2 inline-block font-semibold text-[#9B6F3B] hover:text-[#16120E]">
-                Criar conta
+                {t("registerLink")}
               </Link>
             </div>
           </div>
 
           <p className="mt-6 text-center text-xs text-[#9B8F82]">
-            Reservas online para restaurantes.
+            {t("tagline")}
           </p>
         </div>
       </section>

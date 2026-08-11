@@ -1,0 +1,379 @@
+{
+  "upsell": {
+    "eyebrow": "MesaLink Growth",
+    "title": "Marketing is available on the Growth plan.",
+    "description": "Essentials covers reservations, website, QR Ordering, CRM and reviews. To win back customers, create campaigns and boost repeat visits, activate Growth.",
+    "features": {
+      "recovery": {
+        "title": "Customer recovery",
+        "text": "Identify inactive customers and bring them back."
+      },
+      "campaigns": {
+        "title": "Automatic campaigns",
+        "text": "Promote slow days, birthdays and special occasions."
+      },
+      "risk": {
+        "title": "Customers at risk",
+        "text": "See who might stop coming back and act before they do."
+      },
+      "roi": {
+        "title": "ROI Growth",
+        "text": "Track recovered revenue and campaign impact."
+      }
+    },
+    "footerNote": "Growth includes everything in Essentials + Marketing.",
+    "upgradeCta": "Upgrade to Growth →"
+  },
+  "main": {
+    "eyebrow": "MesaLink Growth",
+    "title": "Growth Engine",
+    "subtitle": "Recovered revenue, Google reviews, VIP customers, campaigns and automations in a single growth engine.",
+    "actions": {
+      "settings": "Settings",
+      "recommendations": "Recommendations",
+      "newCampaign": "Create campaign"
+    },
+    "badges": {
+      "active": "Active"
+    },
+    "hero": {
+      "eyebrow": "Growth Performance",
+      "subtitle": "Revenue attributed to MesaLink",
+      "metrics": {
+        "roi": "ROI Growth",
+        "conversions": "Conversions",
+        "googleReviews": "Google Reviews",
+        "avgRating": "Average rating"
+      },
+      "insights": {
+        "recovery": {
+          "label": "Recovery",
+          "sub": "{count} customers recovered"
+        },
+        "birthday": {
+          "label": "Birthdays",
+          "sub": "{count} birthdays this month"
+        },
+        "campaigns": {
+          "label": "Campaigns",
+          "sub": "{count} campaigns sent"
+        }
+      }
+    },
+    "revenue": {
+      "eyebrow": "Revenue",
+      "title": "Revenue generated",
+      "period": "Last 6 months"
+    },
+    "reviews": {
+      "eyebrow": "Reviews",
+      "title": "Reputation",
+      "stats": {
+        "received": "Reviews received",
+        "googleRate": "Google rate"
+      },
+      "recentLabel": "Recent reviews",
+      "empty": "No reviews received yet.",
+      "googleBadge": "Google",
+      "anonymousCustomer": "Anonymous customer"
+    },
+    "modules": {
+      "reviews": {
+        "title": "Reviews",
+        "label": "Google Reviews",
+        "sub": "{count} positive reviews"
+      },
+      "recovery": {
+        "title": "Recovery",
+        "label": "Recovered revenue",
+        "sub": "{count} eligible customers"
+      },
+      "vip": {
+        "title": "VIP",
+        "label": "Preferred members",
+        "sub": "{count} Gold/Platinum customers"
+      },
+      "risk": {
+        "title": "Risk",
+        "label": "Customers at risk",
+        "sub": "{amount}€ potential at risk"
+      },
+      "campaigns": {
+        "title": "Campaigns",
+        "label": "Campaigns sent",
+        "sub": "{count} conversions"
+      }
+    },
+    "leaderboard": {
+      "eyebrow": "Leaderboard",
+      "title": "Top Customers",
+      "subtitle": "The restaurant's most valuable customers.",
+      "estimatedRevenueLabel": "Estimated revenue",
+      "customerFallback": "Customer",
+      "visits": "{count} visits",
+      "valueLabel": "estimated value"
+    },
+    "vipClub": {
+      "eyebrow": "VIP Club",
+      "title": "Loyal customers",
+      "tiers": {
+        "platinum": "Platinum",
+        "gold": "Gold",
+        "silver": "Silver",
+        "bronze": "Bronze"
+      },
+      "minVisits": "{count}+ visits"
+    },
+    "opportunities": {
+      "eyebrow": "Opportunities",
+      "title": "Customers to recover",
+      "potential": {
+        "prefix": "Estimated potential of",
+        "suffix": "with customers who haven't visited in over 60 days."
+      },
+      "criticalWarning": "{count} customers show a high risk of churning.",
+      "daysAgo": "{count} days",
+      "noDate": "No date",
+      "noEmail": "No email",
+      "empty": "No customers eligible for recovery yet."
+    },
+    "timeline": {
+      "eyebrow": "Timeline",
+      "title": "Recent activity",
+      "empty": "No marketing actions yet.",
+      "types": {
+        "recovery": "Customer recovered",
+        "birthday": "Birthday sent",
+        "vipUpgrade": "VIP upgrade sent",
+        "campaign": "Campaign sent",
+        "review": "Review sent"
+      },
+      "status": {
+        "converted": "Converted",
+        "booked": "Booked",
+        "clicked": "Clicked",
+        "opened": "Opened",
+        "sent": "Sent"
+      }
+    },
+    "automations": {
+      "eyebrow": "Automations",
+      "title": "Automation engine",
+      "reviewRequest": {
+        "title": "Post-Visit Review",
+        "description": "Automatic review request when the reservation is marked as Finished.",
+        "note": "Important: for the customer to receive the email, the reservation needs to be marked as Finished in the Day Service."
+      },
+      "vipClub": {
+        "title": "VIP Club",
+        "description": "Satisfied customers can receive invitations, news and exclusive perks."
+      },
+      "campaigns": {
+        "title": "Campaigns",
+        "summary": "{sent} campaigns sent • {conversions} conversions • {revenue}€ generated"
+      }
+    }
+  },
+  "campaignsNew": {
+    "eyebrow": "Marketing Suite",
+    "title": "New campaign",
+    "description": "Send a campaign to VIP customers, inactive customers, or your whole base with marketing consent."
+  },
+  "recommendations": {
+    "eyebrow": "MesaLink Recommendations",
+    "title": "What to do today",
+    "subtitle": "Automatic recommendations based on VIP customers, churn risk, birthdays and inactivity.",
+    "backToGrowth": "Back to Growth",
+    "priority": {
+      "eyebrow": "Recommended priority",
+      "description": "MesaLink analyzes your customer base and suggests the business actions with the greatest immediate impact.",
+      "messages": {
+        "risky": "Recover at-risk customers before they disappear.",
+        "vip": "Activate your best customers with a VIP campaign.",
+        "birthday": "Send a birthday campaign this month.",
+        "none": "No critical recommendations yet."
+      }
+    },
+    "priorityBadge": "Priority",
+    "miniStats": {
+      "customers": "Customers",
+      "potential": "Potential"
+    },
+    "cards": {
+      "risky": {
+        "label": "Recovery",
+        "title": "Customers at risk",
+        "description": "Customers with high or medium risk of churning.",
+        "cta": "Create recovery campaign"
+      },
+      "vip": {
+        "label": "VIP Club",
+        "title": "Gold & Platinum",
+        "description": "Your highest-value customers who deserve an exclusive campaign.",
+        "cta": "Create VIP campaign"
+      },
+      "birthday": {
+        "label": "Birthdays",
+        "title": "Birthdays this month",
+        "description": "Customers with a birthday this month and marketing consent.",
+        "cta": "Create birthday campaign"
+      },
+      "inactive": {
+        "label": "Inactive",
+        "title": "Customers with no visits",
+        "description": "Customers who haven't visited in over 60 days.",
+        "cta": "Create reactivation campaign"
+      }
+    }
+  },
+  "settings": {
+    "eyebrow": "Growth Settings",
+    "title": "Growth Settings",
+    "subtitle": "Set the average ticket, Google Reviews and the automatic perks used by MesaLink Growth.",
+    "backToGrowth": "Back to Growth",
+    "sections": {
+      "revenue": {
+        "eyebrow": "Revenue & ROI",
+        "title": "Average ticket",
+        "description": "Used to estimate recovered revenue, Growth ROI and campaign impact.",
+        "fieldLabel": "Average ticket per person (€)"
+      },
+      "reviews": {
+        "eyebrow": "Google Reviews",
+        "title": "Online reputation",
+        "description": "Configure where satisfied customers are redirected after leaving a review.",
+        "urlLabel": "Google Reviews URL",
+        "thresholdLabel": "Minimum for Google",
+        "stars": "{count} stars"
+      },
+      "offers": {
+        "eyebrow": "Automatic offers",
+        "title": "Growth Incentives",
+        "description": "Offers used in the automatic birthday and recovery emails.",
+        "birthday": {
+          "label": "Birthday offer",
+          "placeholder": "E.g.: Free dessert during birthday month"
+        },
+        "recovery": {
+          "label": "Recovery offer",
+          "placeholder": "E.g.: 10% off on the next visit"
+        }
+      },
+      "vip": {
+        "eyebrow": "VIP Club",
+        "title": "Benefits by tier",
+        "description": "Set different benefits for each VIP tier. When a customer moves up a tier, they automatically receive the right benefit.",
+        "tiers": {
+          "bronze": "Bronze",
+          "silver": "Silver",
+          "gold": "Gold",
+          "platinum": "Platinum"
+        },
+        "placeholders": {
+          "bronze": "E.g.: Welcome drink",
+          "silver": "E.g.: Free dessert",
+          "gold": "E.g.: 10% off on the next visit",
+          "platinum": "E.g.: Special experience or private invitation"
+        }
+      }
+    },
+    "submit": "Save settings"
+  },
+  "birthdayCard": {
+    "title": "Birthdays",
+    "subtitle": "{count} customers have a birthday this month.",
+    "runNow": "Run now",
+    "sending": "Sending...",
+    "error": "Error running birthdays.",
+    "successMessage": "Campaign executed • {emailsSent} emails sent • {skipped} skipped"
+  },
+  "audiencePreview": {
+    "options": {
+      "all": "All marketing customers",
+      "allVip": "All VIP",
+      "bronze": "VIP Bronze",
+      "silver": "VIP Silver",
+      "gold": "VIP Gold",
+      "platinum": "VIP Platinum",
+      "tag": "By tag",
+      "inactive": "Inactive customers",
+      "birthdays": "Birthdays this month"
+    },
+    "tagPlaceholder": "E.g.: local, influencer, high value",
+    "recipientsCount": "{count} customers will receive this campaign."
+  },
+  "templates": {
+    "heading": "Quick campaigns",
+    "items": {
+      "missYou": {
+        "label": "🍷 We miss you",
+        "subject": "We miss you 🍽️",
+        "message": "It's been a while since your last visit.\n\nWe'd love to have you back.\n\nBook your table now and come see what's new."
+      },
+      "birthday": {
+        "label": "🎂 Happy birthday",
+        "subject": "Happy birthday 🎂",
+        "message": "The whole team wishes you a wonderful birthday.\n\nWe hope to welcome you soon to celebrate together."
+      },
+      "review": {
+        "label": "⭐ Share your feedback",
+        "subject": "Your feedback matters",
+        "message": "Thank you for your visit.\n\nYour feedback helps us keep improving the experience for our customers."
+      },
+      "menuNews": {
+        "label": "🔥 Menu news",
+        "subject": "We have news on the menu ✨",
+        "message": "We've just launched new suggestions and special dishes.\n\nBook your table now and come try them."
+      },
+      "event": {
+        "label": "🎉 Special event",
+        "subject": "Special event at the restaurant 🎉",
+        "message": "We have a special event coming up.\n\nSecure your table before it sells out."
+      }
+    }
+  },
+  "recoveryButton": {
+    "cta": "Recover customers",
+    "sending": "Sending...",
+    "error": "Error running recovery.",
+    "successMessage": "{count} emails sent."
+  },
+  "newCampaignForm": {
+    "segmentLabel": "Segment",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "E.g.: We have news for you",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Write the campaign message...",
+    "submit": "Send campaign",
+    "segmentTemplates": {
+      "vip": {
+        "subject": "Exclusive invitation for VIP customers",
+        "message": "We have a special experience reserved for our most important customers.\n\nBook your table and enjoy this exclusive benefit."
+      },
+      "loyal": {
+        "subject": "A special benefit for you",
+        "message": "We want to thank you for your loyalty with a special perk.\n\nBook your table and come enjoy this benefit."
+      },
+      "inactive": {
+        "subject": "We miss you",
+        "message": "It's been a while since your last visit and we'd love to have you back.\n\nBook your table and visit us again soon."
+      },
+      "birthdays": {
+        "subject": "Happy birthday 🎉",
+        "message": "We want to celebrate this special month with you.\n\nBook your table and come toast with us."
+      },
+      "tag": {
+        "subject": "A special suggestion for you",
+        "message": "We've prepared a special message for selected customers.\n\nBook your table and discover what's new."
+      }
+    }
+  },
+  "recoveryCard": {
+    "title": "Customer Recovery",
+    "subtitle": "{count} customers haven't visited in over 60 days.",
+    "runNow": "Run now",
+    "sending": "Sending...",
+    "error": "Error running recovery.",
+    "successMessage": "{emailsSent} emails sent • {created} campaigns created"
+  }
+}

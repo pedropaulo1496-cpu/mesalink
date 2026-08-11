@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function RecoveryAutomationCard({
   inactiveCustomers,
 }: {
   inactiveCustomers: number;
 }) {
+  const t = useTranslations("dashboardMarketing.recoveryCard");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
@@ -23,13 +25,13 @@ export default function RecoveryAutomationCard({
 
       if (!response.ok || !data.success) {
         setSuccess(false);
-        setMessage(data.error || "Erro ao executar recuperação.");
+        setMessage(data.error || t("error"));
         return;
       }
 
       setSuccess(true);
       setMessage(
-        `${data.emailsSent} emails enviados • ${data.created} campanhas criadas`
+        t("successMessage", { emailsSent: data.emailsSent, created: data.created })
       );
 
       setTimeout(() => {
@@ -37,7 +39,7 @@ export default function RecoveryAutomationCard({
       }, 1500);
     } catch {
       setSuccess(false);
-      setMessage("Erro ao executar recuperação.");
+      setMessage(t("error"));
     } finally {
       setLoading(false);
     }
@@ -47,10 +49,10 @@ export default function RecoveryAutomationCard({
     <div className="flex flex-col gap-4 rounded-3xl border border-[#E1D0B8] bg-[#FFF9F0] p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="font-semibold">Recuperação de Clientes</p>
+          <p className="font-semibold">{t("title")}</p>
 
           <p className="mt-1 text-sm text-[#6B6258]">
-            {inactiveCustomers} clientes não visitam há mais de 60 dias.
+            {t("subtitle", { count: inactiveCustomers })}
           </p>
         </div>
 
@@ -59,7 +61,7 @@ export default function RecoveryAutomationCard({
           disabled={loading}
           className="rounded-full bg-[#16120E] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118] disabled:opacity-50"
         >
-          {loading ? "A enviar..." : "Executar agora"}
+          {loading ? t("sending") : t("runNow")}
         </button>
       </div>
 

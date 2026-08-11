@@ -9,15 +9,19 @@ import {
   type PublicRestaurant,
 } from "./utils";
 
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
 function hasText(value: string | null | undefined) {
   return Boolean(value && value.trim().length > 0);
 }
 
 export function MenuSection({
   restaurant,
+  t,
 }: {
   restaurant: PublicRestaurant;
   primaryColor: string;
+  t: Translator;
 }) {
   const menus = getWebsiteMenus(restaurant);
 
@@ -59,7 +63,7 @@ export function MenuSection({
                     rel="noreferrer"
                     className="inline-flex items-center justify-center rounded-full bg-[#16120E] px-8 py-4 text-sm font-semibold text-white shadow-lg hover:bg-[#2A2118]"
                   >
-                    {menu.title || `Menu ${index + 1}`}
+                    {menu.title || t("menuSection.fallbackTitle", { index: index + 1 })}
                   </a>
                 ))}
               </div>
@@ -68,10 +72,10 @@ export function MenuSection({
             <div className="flex min-h-[320px] items-center justify-center bg-[#16120E] p-8 text-center text-white">
               <div>
                 <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-white/10 text-4xl">
-                  Menu
+                  {t("menuSection.iconLabel")}
                 </div>
                 <p className="mt-5 text-xs font-semibold uppercase tracking-[0.35em] text-white/50">
-                  {menus.length === 1 ? "Menu disponível" : `${menus.length} menus disponíveis`}
+                  {t("menuSection.available", { count: menus.length })}
                 </p>
               </div>
             </div>
@@ -85,10 +89,12 @@ export function MenuSection({
 export function ReservationAndHoursSection({
   restaurant,
   hours,
+  t,
 }: {
   restaurant: PublicRestaurant;
   hours: OpeningHour[];
   primaryColor: string;
+  t: Translator;
 }) {
   const hasIntro =
     hasText(restaurant.websiteAboutTitle) ||
@@ -133,7 +139,7 @@ export function ReservationAndHoursSection({
                   href={`tel:${restaurant.phone}`}
                   className="inline-flex items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-8 py-4 text-sm font-semibold text-[#16120E] hover:bg-[#FFF9F0]"
                 >
-                  Ligar
+                  {t("call")}
                 </a>
               )}
 
@@ -142,7 +148,7 @@ export function ReservationAndHoursSection({
                   href={`mailto:${restaurant.email}`}
                   className="inline-flex items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-8 py-4 text-sm font-semibold text-[#16120E] hover:bg-[#FFF9F0]"
                 >
-                  Email
+                  {t("contact.email")}
                 </a>
               )}
             </div>
@@ -155,7 +161,7 @@ export function ReservationAndHoursSection({
         >
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#9B6F3B]">
-              Horário
+              {t("hoursTitle")}
             </p>
           </div>
 
@@ -169,7 +175,7 @@ export function ReservationAndHoursSection({
                   {item.shortDay}
                 </span>
                 <span className="max-w-[220px] truncate text-right text-sm font-semibold text-[#6B6258]">
-                  {formatOpeningHour(item)}
+                  {formatOpeningHour(item, t)}
                 </span>
               </div>
             ))}
@@ -301,9 +307,11 @@ export function LocationSection({
 export function FinalCtaSection({
   restaurant,
   primaryColor,
+  t,
 }: {
   restaurant: PublicRestaurant;
   primaryColor: string;
+  t: Translator;
 }) {
   const reserveUrl = getReserveUrl(restaurant);
 
@@ -334,19 +342,19 @@ export function FinalCtaSection({
           className="mt-10 inline-flex rounded-full px-10 py-5 text-sm font-semibold text-white"
           style={{ backgroundColor: primaryColor }}
         >
-          Reservar
+          {t("reserveButton")}
         </a>
       </div>
     </section>
   );
 }
 
-export function PublicFooter() {
+export function PublicFooter({ t }: { t: Translator }) {
   return (
     <footer className="bg-[#F5EFE6] px-6 pb-24 text-[#16120E] md:pb-10">
       <div className="mx-auto flex max-w-7xl justify-center border-t border-[#E1D0B8] pt-8">
         <p className="text-xs font-semibold text-[#6B6258]">
-          Reservas online by <span className="text-[#16120E]">MesaLink</span>
+          {t("footerTagline")}
         </p>
       </div>
     </footer>
@@ -356,9 +364,11 @@ export function PublicFooter() {
 export function MobileStickyReserve({
   restaurant,
   primaryColor,
+  t,
 }: {
   restaurant: PublicRestaurant;
   primaryColor: string;
+  t: Translator;
 }) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#E1D0B8] bg-[#F5EFE6]/90 p-3 backdrop-blur-xl md:hidden">
@@ -367,7 +377,7 @@ export function MobileStickyReserve({
         className="flex h-14 items-center justify-center rounded-full text-sm font-semibold text-white"
         style={{ backgroundColor: primaryColor }}
       >
-        Reservar
+        {t("reserveButton")}
       </a>
     </div>
   );

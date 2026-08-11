@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function CampaignAudiencePreview({
   restaurantId,
@@ -13,6 +14,7 @@ export default function CampaignAudiencePreview({
   initialTag?: string;
   onSegmentChange?: (segment: string) => void;
 }) {
+  const t = useTranslations("dashboardMarketing.audiencePreview");
   const [segment, setSegment] = useState(initialSegment);
   const [tag, setTag] = useState(initialTag);
   const [count, setCount] = useState<number | null>(null);
@@ -66,15 +68,15 @@ export default function CampaignAudiencePreview({
       onChange={(event) => checkAudience(event.target.value)}
       className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold outline-none"
     >
-      <option value="ALL">Todos os clientes marketing</option>
-      <option value="VIP">Todos os VIP</option>
-      <option value="BRONZE">VIP Bronze</option>
-      <option value="SILVER">VIP Silver</option>
-      <option value="GOLD">VIP Gold</option>
-      <option value="PLATINUM">VIP Platinum</option>
-      <option value="TAG">Por tag</option>
-      <option value="INACTIVE">Clientes inativos</option>
-      <option value="BIRTHDAYS">Aniversários deste mês</option>
+      <option value="ALL">{t("options.all")}</option>
+      <option value="VIP">{t("options.allVip")}</option>
+      <option value="BRONZE">{t("options.bronze")}</option>
+      <option value="SILVER">{t("options.silver")}</option>
+      <option value="GOLD">{t("options.gold")}</option>
+      <option value="PLATINUM">{t("options.platinum")}</option>
+      <option value="TAG">{t("options.tag")}</option>
+      <option value="INACTIVE">{t("options.inactive")}</option>
+      <option value="BIRTHDAYS">{t("options.birthdays")}</option>
     </select>
 
     {segment === "TAG" && (
@@ -82,13 +84,13 @@ export default function CampaignAudiencePreview({
         name="tag"
         value={tag}
         onChange={(event) => checkTagAudience(event.target.value)}
-        placeholder="Ex: local, influencer, alto valor"
+        placeholder={t("tagPlaceholder")}
         className="mt-3 h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold outline-none"
       />
     )}
 
     <p className="mt-2 text-xs text-[#9B8F82]">
-      {count ?? 0} clientes vão receber esta campanha.
+      {t("recipientsCount", { count: count ?? 0 })}
     </p>
   </div>
 );

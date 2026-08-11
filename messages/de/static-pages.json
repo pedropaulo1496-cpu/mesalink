@@ -1,0 +1,175 @@
+{
+  "pricing": {
+    "hero": {
+      "badge": "Growth. Visibility. Control.",
+      "titleLine1": "Wählen Sie die richtige Plattform, um",
+      "titleLine2": "Ihr Restaurant wachsen zu lassen.",
+      "text": "Gewinnen Sie mehr Gäste, steigern Sie den Umsatz und vereinfachen Sie den Betrieb mit integrierten Reservierungen, Website, QR Ordering, CRM und Marketing.",
+      "stats": {
+        "trial": { "value": "7 Tage", "label": "vollständiger Test" },
+        "yearly": { "value": "1 Monat", "label": "gratis im Jahresplan" },
+        "commission": { "value": "0€", "label": "Provisionen" }
+      }
+    },
+    "plans": {
+      "essentials": {
+        "name": "Essentials",
+        "badge": "7 Tage gratis",
+        "description": "Für Restaurants, die Reservierungen, Website, QR Ordering, CRM, Bewertungen und Betrieb in einem einzigen System zentralisieren möchten.",
+        "features": [
+          "Mehr direkte Reservierungen",
+          "Premium-Website inklusive",
+          "QR Ordering inklusive",
+          "Kunden-CRM",
+          "Google Bewertungen",
+          "Tischplan",
+          "Wesentliche Berichte",
+          "Keine Provision pro Reservierung"
+        ]
+      },
+      "growth": {
+        "name": "Growth",
+        "badge": "Am meisten empfohlen",
+        "description": "Für Restaurants, die Gäste zurückgewinnen, schwache Tage beleben und wiederkehrende Besuche mit Marketing steigern möchten.",
+        "features": [
+          "Alles aus Essentials",
+          "MesaLink Marketing inklusive",
+          "Inaktive Kunden zurückgewinnen",
+          "Kampagnen für schwache Tage",
+          "Gefährdete Kunden",
+          "Automatische Geburtstage",
+          "VIP-Treueprogramm",
+          "Mehr wiederkehrende Besuche"
+        ]
+      },
+      "perMonth": "/Monat",
+      "yearlyLabel": "Jährliche Zahlung",
+      "yearlySuffix": "/Jahr",
+      "yearlyNote": "· 1 Monat gratis · sparen Sie {saving}",
+      "ctaMonthly": "Monatlich starten →",
+      "ctaYearly": "Jährlich starten →"
+    },
+    "comparison": {
+      "badge": "Warum MesaLink?",
+      "title": "Weniger getrennte Systeme. Mehr Wachstum.",
+      "text": "MesaLink vereint Auffindbarkeit, Reservierungen, QR Ordering, CRM, Marketing und Bewertungen, um Umsatz, Sichtbarkeit und Kontrolle zu steigern.",
+      "headers": {
+        "need": "Bedarf",
+        "traditional": "Traditionell",
+        "mesalink": "MesaLink"
+      },
+      "rows": {
+        "website": { "need": "Website + SEO", "traditional": "Separater Anbieter", "mesalink": "Inklusive" },
+        "reservations": { "need": "Reservierungen", "traditional": "Isoliertes System", "mesalink": "Inklusive" },
+        "qrOrdering": { "need": "QR Ordering", "traditional": "Separates Add-on", "mesalink": "Inklusive" },
+        "crm": { "need": "CRM", "traditional": "Tabellen oder externes Tool", "mesalink": "Inklusive" },
+        "marketing": { "need": "Marketing", "traditional": "Manuelle Kampagnen", "mesalink": "Growth" },
+        "reviews": { "need": "Bewertungen", "traditional": "Kein klarer Prozess", "mesalink": "Inklusive" },
+        "billing": { "need": "Steuerliche Rechnungsstellung", "traditional": "Externe zertifizierte Software", "mesalink": "Außerhalb von MesaLink verwaltet" }
+      }
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Kurze Fragen.",
+      "items": {
+        "trial": { "question": "Gibt es eine kostenlose Testphase?", "answer": "Ja. Sie können alle Funktionen 7 Tage lang testen, bevor Sie sich für einen Plan entscheiden." },
+        "yearlyDiscount": { "question": "Gibt es beim Jahresplan einen Rabatt?", "answer": "Ja. Bei jährlicher Zahlung erhalten Sie 1 Monat gratis: Essentials kostet 605€/Jahr und Growth 825€/Jahr, zzgl. MwSt." },
+        "growthDifference": { "question": "Was ist der Unterschied bei Growth?", "answer": "Growth fügt Marketing hinzu, um Gäste zurückzugewinnen, schwache Tage zu beleben und wiederkehrende Besuche zu steigern." },
+        "commissions": { "question": "Gibt es Provisionen pro Reservierung?", "answer": "Nein. MesaLink berechnet keine Provision pro Reservierung." },
+        "billing": { "question": "Und die steuerliche Rechnungsstellung?", "answer": "Die steuerliche Rechnungsstellung wird extern von einer zertifizierten Software Ihrer Wahl übernommen. Diese Kosten werden nicht von MesaLink berechnet." },
+        "cancel": { "question": "Kann ich kündigen?", "answer": "Ja. Sie können jederzeit kündigen." }
+      }
+    },
+    "finalCta": {
+      "eyebrow": "Starten Sie noch heute",
+      "title": "Testen Sie alles 7 Tage lang.",
+      "text": "Probieren Sie alle Funktionen aus, bevor Sie sich für einen Plan entscheiden. Bei jährlicher Zahlung erhalten Sie 1 Monat gratis.",
+      "cta": "Kostenlosen Test starten →"
+    }
+  },
+  "contact": {
+    "badge": "Kontakt",
+    "title": "Verbinden wir Ihr Restaurant mit der Zukunft.",
+    "text": "Haben Sie Fragen zu MesaLink, zur Implementierung, zu den Preisen, oder möchten Sie sehen, wie die Plattform für Ihr Restaurant funktionieren kann? Schreiben Sie uns.",
+    "emailCard": {
+      "label": "Email",
+      "reply": "Wir antworten so schnell wie möglich."
+    },
+    "infoCard": {
+      "title": "Das Betriebssystem für Restaurants",
+      "text": "Professionelle Website, Online-Reservierungen, Tischverwaltung, Kundenverwaltung und zukünftige Tools wie KI, Marketing und QR Ordering."
+    },
+    "form": {
+      "namePlaceholder": "Name",
+      "emailPlaceholder": "Email",
+      "restaurantPlaceholder": "Restaurant",
+      "messagePlaceholder": "Nachricht",
+      "send": "Nachricht senden",
+      "note": "Das Formular wird im nächsten Schritt mit Email verbunden."
+    }
+  },
+  "terms": {
+    "eyebrow": "Rechtliches",
+    "title": "Allgemeine Geschäftsbedingungen",
+    "lastUpdated": "Zuletzt aktualisiert: {year}",
+    "backLink": "← Zurück",
+    "sections": {
+      "service": {
+        "title": "1. Dienstleistung",
+        "text": "MesaLink ist eine Online-Plattform für die Verwaltung von Restaurantreservierungen, einschließlich einer öffentlichen Reservierungsseite, eines Kalenders, der Kundenverwaltung, QR-Code und Betriebswerkzeugen."
+      },
+      "usage": {
+        "title": "2. Nutzung",
+        "text": "Der Nutzer verpflichtet sich, wahrheitsgemäße Angaben zu machen und die Plattform ausschließlich für rechtmäßige, mit der Führung seines Restaurants zusammenhängende Zwecke zu nutzen."
+      },
+      "payments": {
+        "title": "3. Zahlungen",
+        "text": "Kostenpflichtige Pläne werden je nach Auswahl monatlich oder jährlich abgerechnet. Die angezeigten Preise verstehen sich, sofern nicht anders angegeben, zzgl. MwSt."
+      },
+      "cancellation": {
+        "title": "4. Kündigung",
+        "text": "Der Kunde kann sein Abonnement kündigen. Der Zugang zum Dienst kann bis zum Ende des bereits bezahlten Zeitraums bestehen bleiben."
+      },
+      "liability": {
+        "title": "5. Haftung",
+        "text": "MesaLink haftet nicht für vom Restaurant fehlerhaft eingegebene Informationen, externe Internetausfälle, Dienste Dritter oder eine missbräuchliche Nutzung der Plattform."
+      },
+      "contact": {
+        "title": "6. Kontakt",
+        "text": "Bei Fragen zu diesen Bedingungen wenden Sie sich bitte an:"
+      }
+    }
+  },
+  "privacy": {
+    "eyebrow": "Rechtliches",
+    "title": "Datenschutzerklärung",
+    "lastUpdated": "Zuletzt aktualisiert: {year}",
+    "backLink": "← Zurück",
+    "sections": {
+      "dataCollected": {
+        "title": "1. Erhobene Daten",
+        "text": "Wir können Daten wie Name, E-Mail, Telefonnummer, Restaurantinformationen, erstellte Reservierungen, Öffnungszeiten, Kunden sowie zur Nutzung der Plattform erforderliche Daten erheben."
+      },
+      "purpose": {
+        "title": "2. Zweck",
+        "text": "Die Daten werden verwendet, um den MesaLink-Dienst bereitzustellen, Reservierungen zu verarbeiten, Konten zu verwalten, mit Nutzern zu kommunizieren und die Plattform zu verbessern."
+      },
+      "customerData": {
+        "title": "3. Daten der Restaurantkunden",
+        "text": "Die Daten der Endkunden werden ausschließlich zur Verwaltung von Reservierungen und damit verbundener Kommunikation verwendet."
+      },
+      "dataSharing": {
+        "title": "4. Weitergabe von Daten",
+        "text": "Wir verkaufen keine personenbezogenen Daten. Wir können Drittanbieterdienste nutzen, die für Hosting, Zahlungen, Authentifizierung, E-Mail oder technischen Support erforderlich sind."
+      },
+      "rights": {
+        "title": "5. Rechte",
+        "text": "Sie können Zugang zu, Berichtigung oder Löschung Ihrer Daten per E-Mail beantragen:"
+      },
+      "security": {
+        "title": "6. Sicherheit",
+        "text": "Wir wenden technische und organisatorische Maßnahmen an, um die auf der Plattform verarbeiteten Daten zu schützen."
+      }
+    }
+  }
+}

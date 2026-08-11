@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,29 +16,101 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MesaLink",
-  description: "Reservas online para restaurantes",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://mesalink.pt"),
+  title: {
+    default: "MesaLink — Software de Gestão para Restaurantes",
+    template: "%s | MesaLink",
+  },
+  description:
+    "Software de gestão para restaurantes com reservas online, POS, QR Ordering, mapa de mesas, website, CRM, marketing e reviews numa única plataforma.",
+  applicationName: "MesaLink",
+  authors: [{ name: "MesaLink", url: "https://mesalink.pt" }],
+  creator: "MesaLink",
+  publisher: "MesaLink",
+  category: "Software para restaurantes",
+  openGraph: {
+    type: "website",
+    locale: "pt_PT",
+    siteName: "MesaLink",
+    title: "MesaLink — Software de Gestão para Restaurantes",
+    description:
+      "Reservas, POS, QR Ordering, website, CRM e marketing ligados para gerir e fazer crescer restaurantes.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "MesaLink — software para restaurantes" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MesaLink — Software de Gestão para Restaurantes",
+    description:
+      "Reservas, POS, QR Ordering, website, CRM e marketing para restaurantes.",
+    images: ["/opengraph-image"],
+  },
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "MesaLink",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  themeColor: "#C8A56A",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://mesalink.pt/#organization",
+    name: "MesaLink",
+    url: "https://mesalink.pt",
+    logo: "https://mesalink.pt/icons/icon-512.png",
+    description:
+      "Plataforma de gestão e crescimento criada para restaurantes.",
+  };
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://mesalink.pt/#website",
+    url: "https://mesalink.pt",
+    name: "MesaLink",
+    alternateName: "MesaLink Restaurant OS",
+    publisher: { "@id": "https://mesalink.pt/#organization" },
+    inLanguage: "pt-PT",
+  };
+
   return (
     <html
-      lang="pt"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full overflow-x-hidden antialiased`}
     >
       <body className="min-h-full w-full overflow-x-hidden bg-[#070504]">
-        {children}
-        <Analytics />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([organizationSchema, websiteSchema]).replace(/</g, "\\u003c"),
+          }}
+        />
+        <NextIntlClientProvider>
+          {children}
+          <Analytics />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -6,25 +6,39 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { sendReviewEmail } from "@/lib/send-review-email";
 import { Resend } from "resend";
+import { cookies } from "next/headers";
+import { getLocale, getTranslations } from "next-intl/server";
+import { isLocale, defaultLocale } from "@/i18n/locales";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const dashboardDateLocales: Record<string, string> = {
+  pt: "pt-PT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  es: "es-ES",
+};
+
+type TFunc = (key: string, values?: Record<string, string | number>) => string;
 
 function isLunch(date: Date) {
   return date.getHours() < 17;
 }
 
-function getStatusLabel(status: string) {
-  const labels: Record<string, string> = {
-    PENDING: "Pendente",
-    CONFIRMED: "Confirmada",
-    SEATED: "Sentado",
-    FINISHED: "Finalizada",
-    NO_SHOW: "No-show",
-    CANCELLED: "Cancelada",
-    REJECTED: "Recusada",
-  };
+function getStatusLabel(status: string, t: TFunc) {
+  const keys = [
+    "PENDING",
+    "CONFIRMED",
+    "SEATED",
+    "FINISHED",
+    "NO_SHOW",
+    "CANCELLED",
+    "REJECTED",
+  ];
 
-  return labels[status] ?? status;
+  return keys.includes(status) ? t(`status.${status}`) : status;
 }
 
 function getStatusClass(status: string) {
@@ -41,14 +55,12 @@ function getStatusClass(status: string) {
   return classes[status] ?? "bg-[#F3EEE6] text-[#6B6258]";
 }
 
-function getApprovalReasonLabel(reason: string | null) {
-  const labels: Record<string, string> = {
-    LARGE_GROUP: "Grupo grande",
-    TABLE_MERGE: "Junção de mesas",
-    CAPACITY_LIMIT: "Limite de capacidade",
-  };
+function getApprovalReasonLabel(reason: string | null, t: TFunc) {
+  const keys = ["LARGE_GROUP", "TABLE_MERGE", "CAPACITY_LIMIT"];
 
-  return reason ? labels[reason] ?? reason : null;
+  if (!reason) return null;
+
+  return keys.includes(reason) ? t(`approvalReason.${reason}`) : reason;
 }
 
 async function updateReservationStatus(formData: FormData) {
@@ -130,10 +142,18 @@ if (status === "FINISHED" && reservation.customerId) {
 
   const reserveUrl = `${baseUrl}/reserve/${reservation.restaurant.slug}`;
 
+  const cookieStore = await cookies();
+  const rawLocale = cookieStore.get("NEXT_LOCALE")?.value;
+  const emailLocale = isLocale(rawLocale) ? rawLocale : defaultLocale;
+  const emailT = await getTranslations({
+    locale: emailLocale,
+    namespace: "dashboardOverview.day.vipEmail",
+  });
+
   await resend.emails.send({
     from: "MesaLink <noreply@mesalink.pt>",
     to: currentCustomer.email,
-    subject: `${currentCustomer.name}, atingiu o nível ${vipTier}`,
+    subject: emailT("subject", { customerName: currentCustomer.name, tier: vipTier }),
     html: `
       <div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px;">
         <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #E1D0B8;border-radius:28px;padding:32px;">
@@ -142,11 +162,11 @@ if (status === "FINISHED" && reservation.customerId) {
           </p>
 
           <h1 style="font-size:30px;line-height:1.1;margin:16px 0;color:#16120E;">
-            Parabéns, ${currentCustomer.name}.
+            ${emailT("heading", { customerName: currentCustomer.name })}
           </h1>
 
           <p style="font-size:15px;line-height:1.8;color:#6B6258;margin:0;">
-            Acabou de atingir o nível <strong>${vipTier}</strong> no nosso Clube VIP.
+            ${emailT("text", { tier: vipTier })}
           </p>
 
           ${
@@ -154,7 +174,7 @@ if (status === "FINISHED" && reservation.customerId) {
               ? `
                 <div style="margin-top:20px;padding:18px;border-radius:18px;background:#FFF9F0;border:1px solid #E1D0B8;">
                   <p style="margin:0;font-size:13px;font-weight:700;color:#9B6F3B;text-transform:uppercase;letter-spacing:1.5px;">
-                    Benefício VIP
+                    ${emailT("benefitLabel")}
                   </p>
 
                   <p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:#16120E;">
@@ -169,11 +189,11 @@ if (status === "FINISHED" && reservation.customerId) {
             href="${reserveUrl}"
             style="display:inline-block;margin-top:24px;background:#16120E;color:white;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;font-size:14px;"
           >
-            Reservar mesa
+            ${emailT("cta")}
           </a>
 
           <p style="margin-top:28px;font-size:12px;line-height:1.5;color:#8A7C6D;">
-            Recebeu este email porque aceitou receber comunicações deste restaurante.
+            ${emailT("footerNote")}
           </p>
         </div>
       </div>
@@ -220,6 +240,10 @@ export default async function DayPage({
   const { id } = await params;
   const { day } = await searchParams;
 
+  const t = await getTranslations("dashboardOverview.day");
+  const locale = await getLocale();
+  const intlLocale = dashboardDateLocales[locale] ?? "pt-PT";
+
   const selectedDay =
     day ??
     `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(
@@ -241,7 +265,7 @@ export default async function DayPage({
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
-        Restaurante não encontrado
+        {t("notFound")}
       </main>
     );
   }
@@ -294,7 +318,7 @@ export default async function DayPage({
 
   const estimatedRevenue = totalGuests * 35;
 
-  const formattedDate = new Date(selectedDay).toLocaleDateString("pt-PT", {
+  const formattedDate = new Date(selectedDay).toLocaleDateString(intlLocale, {
     weekday: "long",
     day: "2-digit",
     month: "long",
@@ -305,14 +329,14 @@ export default async function DayPage({
   }: {
     reservation: (typeof reservations)[number];
   }) {
-    const reasonLabel = getApprovalReasonLabel(reservation.approvalReason);
+    const reasonLabel = getApprovalReasonLabel(reservation.approvalReason, t);
     const status = String(reservation.status);
 
     return (
       <div className="grid gap-3 border-b border-[#E8DCCB] px-4 py-3 last:border-b-0 lg:grid-cols-[72px_1fr_auto] lg:items-center">
         <div>
           <p className="text-lg font-semibold">
-            {new Date(reservation.date).toLocaleTimeString("pt-PT", {
+            {new Date(reservation.date).toLocaleTimeString(intlLocale, {
               hour: "2-digit",
               minute: "2-digit",
             })}
@@ -328,7 +352,7 @@ export default async function DayPage({
                 status,
               )}`}
             >
-              {getStatusLabel(status)}
+              {getStatusLabel(status, t)}
             </span>
 
             {reasonLabel && (
@@ -339,32 +363,32 @@ export default async function DayPage({
           </div>
 
           <p className="mt-1 truncate text-xs text-[#6B6258]">
-  {reservation.guests} pessoas
+  {t("row.guests", { count: reservation.guests })}
   {reservation.table
-    ? ` · Mesa ${reservation.table.number}`
-    : " · Sem mesa"}
-  {reservation.source === "PUBLIC" ? " · Online" : " · Manual"}
+    ? ` · ${t("row.table", { number: reservation.table.number })}`
+    : ` · ${t("row.noTable")}`}
+  {reservation.source === "PUBLIC" ? ` · ${t("row.online")}` : ` · ${t("row.manual")}`}
   {reservation.notes ? ` · ${reservation.notes}` : ""}
 </p>
 
 <details className="group mt-2">
   <summary className="cursor-pointer list-none text-xs font-semibold text-[#9B6F3B] transition hover:text-[#16120E]">
-    <span className="group-open:hidden">Ver contacto</span>
-    <span className="hidden group-open:inline">Ocultar contacto</span>
+    <span className="group-open:hidden">{t("row.viewContact")}</span>
+    <span className="hidden group-open:inline">{t("row.hideContact")}</span>
   </summary>
 
   <div className="mt-2 grid gap-2 rounded-2xl border border-[#E8DCCB] bg-white px-3 py-3 text-xs text-[#6B6258] sm:grid-cols-2">
     <div>
-      <p className="font-semibold text-[#16120E]">Telemóvel</p>
+      <p className="font-semibold text-[#16120E]">{t("row.mobile")}</p>
       <p className="mt-1">
-        {reservation.phone || "Sem telemóvel"}
+        {reservation.phone || t("row.mobileEmpty")}
       </p>
     </div>
 
     <div>
-      <p className="font-semibold text-[#16120E]">Email</p>
+      <p className="font-semibold text-[#16120E]">{t("row.email")}</p>
       <p className="mt-1 break-all">
-        {reservation.email || "Sem email"}
+        {reservation.email || t("row.emailEmpty")}
       </p>
     </div>
   </div>
@@ -379,7 +403,7 @@ export default async function DayPage({
                 reservationId={reservation.id}
                 day={selectedDay}
                 status="CONFIRMED"
-                label="Aprovar"
+                label={t("actions.approve")}
                 variant="primary"
               />
               <StatusButton
@@ -387,7 +411,7 @@ export default async function DayPage({
                 reservationId={reservation.id}
                 day={selectedDay}
                 status="REJECTED"
-                label="Recusar"
+                label={t("actions.reject")}
                 variant="danger"
               />
             </>
@@ -400,7 +424,7 @@ export default async function DayPage({
                 reservationId={reservation.id}
                 day={selectedDay}
                 status="SEATED"
-                label="Sentar"
+                label={t("actions.seat")}
                 variant="primary"
               />
               <StatusButton
@@ -408,7 +432,7 @@ export default async function DayPage({
                 reservationId={reservation.id}
                 day={selectedDay}
                 status="NO_SHOW"
-                label="No-show"
+                label={t("actions.noShow")}
                 variant="outline"
               />
             </>
@@ -421,13 +445,13 @@ export default async function DayPage({
       reservationId={reservation.id}
       day={selectedDay}
       status="FINISHED"
-      label="Finalizar"
+      label={t("actions.finish")}
       variant="primary"
     />
 
     {reservation.email && (
       <p className="max-w-[220px] text-right text-[11px] leading-4 text-[#7A6F62]">
-        Ao finalizar, o cliente recebe automaticamente um pedido de avaliação.
+        {t("row.finishNote")}
       </p>
     )}
   </div>
@@ -443,14 +467,14 @@ export default async function DayPage({
         <RestaurantSidebar
   id={id}
   restaurantName={restaurant.name}
-  active="Serviço do dia"
+  active="day"
 />
 
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-7 lg:pt-7">
           <header className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-                Serviço do dia
+                {t("eyebrow")}
               </p>
 
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
@@ -468,15 +492,15 @@ export default async function DayPage({
           <section className="mt-6 rounded-[32px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
             <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
               <div className="grid gap-4 sm:grid-cols-4">
-                <CompactMetric label="Covers" value={totalGuests} sub={`${totalCapacity || 0} lugares`} />
-                <CompactMetric label="Sentados" value={seatedReservations.length} sub="em sala" />
-                <CompactMetric label="Pendentes" value={pendingReservations.length} sub="aprovação" />
-                <CompactMetric label="Receita" value={`${estimatedRevenue}€`} sub="estimada" />
+                <CompactMetric label={t("metrics.covers")} value={totalGuests} sub={t("metrics.coversSub", { capacity: totalCapacity || 0 })} />
+                <CompactMetric label={t("metrics.seated")} value={seatedReservations.length} sub={t("metrics.seatedSub")} />
+                <CompactMetric label={t("metrics.pending")} value={pendingReservations.length} sub={t("metrics.pendingSub")} />
+                <CompactMetric label={t("metrics.revenue")} value={`${estimatedRevenue}€`} sub={t("metrics.revenueSub")} />
               </div>
 
               <div className="min-w-[220px]">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#6B6258]">Ocupação</span>
+                  <span className="text-[#6B6258]">{t("occupancy")}</span>
                   <span className="font-semibold">{occupancyRate}%</span>
                 </div>
 
@@ -494,15 +518,14 @@ export default async function DayPage({
             <section className="mt-6 rounded-[28px] border border-[#D8C5A5] bg-[#FFF9F0] p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <SectionLabel>Ação necessária</SectionLabel>
+                  <SectionLabel>{t("actionNeeded")}</SectionLabel>
                   <h2 className="mt-2 text-2xl font-semibold tracking-[-0.055em]">
-                    Reservas pendentes
+                    {t("pendingReservations")}
                   </h2>
                 </div>
 
                 <span className="rounded-full bg-[#16120E] px-4 py-2 text-sm font-semibold text-white">
-                  {pendingReservations.length} pendente
-                  {pendingReservations.length === 1 ? "" : "s"}
+                  {t("pendingCount", { count: pendingReservations.length })}
                 </span>
               </div>
 
@@ -516,28 +539,30 @@ export default async function DayPage({
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <ServiceSection
-              title="Almoço"
-              label={`${lunchReservations.length} reservas`}
+              serviceLabel={t("service")}
+              title={t("lunch")}
+              label={t("reservationsCount", { count: lunchReservations.length })}
             >
               {lunchReservations.length > 0 ? (
                 lunchReservations.map((reservation) => (
                   <ReservationRow key={reservation.id} reservation={reservation} />
                 ))
               ) : (
-                <EmptyState text="Sem reservas ao almoço." />
+                <EmptyState text={t("emptyLunch")} />
               )}
             </ServiceSection>
 
             <ServiceSection
-              title="Jantar"
-              label={`${dinnerReservations.length} reservas`}
+              serviceLabel={t("service")}
+              title={t("dinner")}
+              label={t("reservationsCount", { count: dinnerReservations.length })}
             >
               {dinnerReservations.length > 0 ? (
                 dinnerReservations.map((reservation) => (
                   <ReservationRow key={reservation.id} reservation={reservation} />
                 ))
               ) : (
-                <EmptyState text="Sem reservas ao jantar." />
+                <EmptyState text={t("emptyDinner")} />
               )}
             </ServiceSection>
           </div>
@@ -603,10 +628,12 @@ function CompactMetric({
 }
 
 function ServiceSection({
+  serviceLabel,
   title,
   label,
   children,
 }: {
+  serviceLabel: string;
   title: string;
   label: string;
   children: ReactNode;
@@ -615,7 +642,7 @@ function ServiceSection({
     <section className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
       <div className="mb-4 flex items-center justify-between gap-4">
         <div>
-          <SectionLabel>Serviço</SectionLabel>
+          <SectionLabel>{serviceLabel}</SectionLabel>
           <h2 className="mt-2 text-2xl font-semibold tracking-[-0.055em]">
             {title}
           </h2>

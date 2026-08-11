@@ -1,0 +1,358 @@
+{
+  "general": {
+    "notFound": "Restaurant nicht gefunden",
+    "header": {
+      "eyebrow": "MesaLink Control",
+      "title": "Einstellungen",
+      "badge": "Betriebsführung"
+    },
+    "reservations": {
+      "eyebrow": "Reservierungen",
+      "title": "Hauptregeln",
+      "description": "Legen Sie fest, ob das Restaurant nach Tischen oder nach Kapazität arbeitet und wann eine Reservierung ausstehend bleiben soll.",
+      "modeLabel": "Reservierungsmodus",
+      "modeTables": "Nach Tischen",
+      "modeCapacity": "Nach Kapazität",
+      "totalCapacityLabel": "Gesamtkapazität",
+      "totalCapacityPlaceholder": "Z. B.: 60",
+      "totalCapacityHintAdvanced": "Wird nur verwendet, wenn der Modus „Nach Kapazität“ ist.",
+      "totalCapacityHintBasic": "Maximale Personenzahl, die pro Zeitfenster akzeptiert werden kann.",
+      "manualApprovalLabel": "Manuelle Genehmigung ab",
+      "manualApprovalPlaceholder": "Z. B.: 8",
+      "manualApprovalHint": "Reservierungen mit dieser Personenzahl oder mehr bleiben ausstehend.",
+      "tableMergeTitle": "Genehmigung beim Zusammenlegen von Tischen",
+      "tableMergeText": "Anfragen, die das Zusammenlegen von Tischen erfordern, bleiben ausstehend.",
+      "proBadge": "Pro-Funktion",
+      "proTitle": "Tischverwaltung mit Pro verfügbar",
+      "proFeatures": {
+        "map": "Saalplan",
+        "byTable": "Reservierungen nach Tisch",
+        "merge": "Tische zusammenlegen",
+        "unlimited": "Unbegrenzte Reservierungen"
+      },
+      "upgradeButton": "Auf Pro upgraden",
+      "onlineTitle": "Online-Reservierungen akzeptieren",
+      "onlineText": "Wenn deaktiviert, teilt die öffentliche Seite den Gästen mit, dass das Restaurant keine Reservierungen annimmt."
+    },
+    "hours": {
+      "eyebrow": "Öffnungszeiten",
+      "title": "Wöchentliche Öffnungszeiten",
+      "lunch": "Mittagessen",
+      "dinner": "Abendessen",
+      "days": {
+        "monday": "Montag",
+        "tuesday": "Dienstag",
+        "wednesday": "Mittwoch",
+        "thursday": "Donnerstag",
+        "friday": "Freitag",
+        "saturday": "Samstag",
+        "sunday": "Sonntag"
+      }
+    },
+    "reviews": {
+      "eyebrow": "Marketing & Bewertungen",
+      "title": "Google-Rezensionen",
+      "description": "Legen Sie den Link fest, über den zufriedene Gäste ihre Erfahrung auf Google teilen können.",
+      "urlLabel": "Google-Rezensionen-URL",
+      "urlHint": "Diese Schaltfläche wird dem Gast erst angezeigt, wenn dieser Link ausgefüllt ist.",
+      "thresholdLabel": "Mindestbewertung für Google-Vorschlag",
+      "threshold5": "5 Sterne",
+      "threshold4": "4 Sterne oder mehr",
+      "threshold3": "3 Sterne oder mehr"
+    },
+    "saveButton": "Änderungen speichern",
+    "printers": {
+      "eyebrow": "Drucker",
+      "title": "Restaurant-Drucker",
+      "namePlaceholder": "Z. B.: Epson Küche",
+      "typeKitchen": "Küche",
+      "typeBar": "Bar",
+      "typeRoom": "Saal",
+      "typeCashier": "Kasse",
+      "typeOther": "Sonstiges",
+      "methodBrowser": "Browser / Tablet",
+      "methodBluetooth": "Bluetooth",
+      "methodBridge": "Print Bridge",
+      "methodNetwork": "Netzwerk/IP",
+      "ipPlaceholder": "IP optional",
+      "portPlaceholder": "Port",
+      "methodHint": "Browser/Tablet öffnet den normalen Druckdialog des Geräts. Bluetooth eignet sich für Tablets/Android mit gekoppeltem Drucker oder einer Druck-App/Bridge. Netzwerk/IP nutzt die Adresse des Druckers.",
+      "createButton": "Drucker erstellen",
+      "emptyState": "Sie haben noch keine Drucker.",
+      "statusActive": "Aktiv",
+      "statusInactive": "Inaktiv",
+      "editIpPlaceholder": "IP",
+      "editPortPlaceholder": "Port",
+      "editMethodHint": "Koppeln Sie den Drucker für Bluetooth auf dem Tablet/Android und nutzen Sie den Druckdialog des Geräts oder eine kompatible App/Bridge. IP/Port wird nur bei Netzwerk/IP benötigt.",
+      "activeLabel": "Aktiv",
+      "saveButton": "Drucker speichern",
+      "confirmDeleteLabel": "Ich bestätige, dass ich diesen Drucker löschen möchte",
+      "deleteButton": "Löschen"
+    },
+    "productionCenters": {
+      "eyebrow": "Produktion",
+      "title": "Produktionszentren",
+      "description": "Erstellen Sie Zonen wie Küche, Bar, Saal 1 oder Küche 2. Ordnen Sie anschließend jedes Produkt einer dieser Zonen zu.",
+      "namePlaceholder": "Z. B.: Küche, Bar, Saal 1",
+      "noPrinterOption": "Kein Drucker",
+      "positionPlaceholder": "Reihenfolge",
+      "createButton": "Produktionszentrum erstellen",
+      "emptyState": "Sie haben noch keine Produktionszentren.",
+      "printerLabel": "Drucker",
+      "printerNotSet": "Nicht festgelegt",
+      "orderLabel": "Reihenfolge",
+      "statusActive": "Aktiv",
+      "statusInactive": "Inaktiv",
+      "activeLabel": "Aktiv",
+      "saveButton": "Produktionszentrum speichern",
+      "deleteToggleLabel": "Produktionszentrum löschen",
+      "deleteWarning": "Zugehörige Produkte bleiben ohne Produktionszentrum zurück.",
+      "confirmDeleteLabel": "Ich bestätige, dass ich löschen möchte",
+      "deleteButton": "Löschen"
+    },
+    "printersComingSoon": {
+      "eyebrow": "Drucker",
+      "title": "Drucker demnächst verfügbar",
+      "description": "Die Konfiguration von Druckern und Produktionszentren befindet sich noch in der Entwicklung. Wir stellen diesen Bereich zur Verfügung, sobald das Drucken für den echten Restaurantbetrieb bereit ist.",
+      "badge": "Bald verfügbar",
+      "features": {
+        "kitchen": { "title": "Küche", "text": "Bons werden an den Küchendrucker gesendet." },
+        "bar": { "title": "Bar", "text": "Getränke und Bestellungen nach Produktionszentrum getrennt." },
+        "room": { "title": "Saal", "text": "Drucken für Saal, Theke oder Kasse." },
+        "bluetooth": { "title": "Bluetooth", "text": "Vorbereitet für Tablet/App-Bluetooth-Bridge." },
+        "network": { "title": "Netzwerk/IP", "text": "Drucker über IP-Adresse und Port." },
+        "bridge": { "title": "Print Bridge", "text": "Lokaler Dienst für automatisches Drucken." }
+      },
+      "noteTitle": "Wichtiger Hinweis",
+      "noteText": "Solange diese Funktion nicht fertiggestellt ist, sollte das Drucken nach Produktionszentrum, Bluetooth und Bridge nicht als bereit für den täglichen Betrieb angesehen werden."
+    }
+  },
+  "applyMondayButton": {
+    "button": "Montag auf alle anwenden",
+    "confirmAlert": "Öffnungszeiten von Montag auf alle Tage angewendet."
+  },
+  "fiscal": {
+    "eyebrow": "Steuerwesen",
+    "title": "Moloni-Rechnungsstellung",
+    "subtitle": "Verbinden Sie das Moloni-Konto von {restaurantName}. Rechnungen werden über die eigene Steuerinstanz des Restaurants ausgestellt.",
+    "status": {
+      "eyebrow": "Status der Integration",
+      "titleConnected": "Moloni verbunden",
+      "titleDisconnected": "Moloni nicht verbunden",
+      "descConnected": "Das Moloni-Konto dieses Restaurants ist verbunden. Wählen Sie die Steuerserie für die Ausstellung von Dokumenten.",
+      "descDisconnected": "Das Restaurant muss sein eigenes Moloni-Konto autorisieren, damit Rechnungen mit korrekter Steuernummer (NIF), Adresse, ATCUD und steuerlichem QR-Code ausgestellt werden.",
+      "badgeConnected": "Verbunden",
+      "badgePending": "Ausstehend"
+    },
+    "info": {
+      "providerLabel": "Anbieter",
+      "companyIdLabel": "Company ID",
+      "companyIdEmpty": "Noch nicht verbunden",
+      "currentSerieLabel": "Aktuelle Serie",
+      "currentSerieEmpty": "Nicht konfiguriert"
+    },
+    "series": {
+      "title": "Moloni-Serien",
+      "loading": "Serien werden geladen...",
+      "empty": "Keine Serien gefunden. Prüfen Sie in Moloni, ob eine aktive Serie existiert.",
+      "choose": "Wählen Sie die Serie, die für die Ausstellung von Rechnungen am POS verwendet wird.",
+      "invoiceLabel": "Rechnung",
+      "simplifiedLabel": "Vereinfachte Rechnung",
+      "creditNoteLabel": "Gutschrift",
+      "selectPlaceholder": "Serie auswählen",
+      "notReportedSuffix": " — nicht bei der AT gemeldet",
+      "notReadyTitle": "Serie noch nicht bei der AT gemeldet",
+      "notReadyText": "Diese Serie existiert in Moloni, hat aber noch keine AT/ATCUD-Codes. Das Restaurant muss in Moloni > Einstellungen > Dokumentserien die Steuerserie melden/aktivieren, bevor Rechnungen ausgestellt werden können.",
+      "saveButtonSaving": "Wird gespeichert...",
+      "saveButtonNotReady": "Serie nicht bei der AT gemeldet",
+      "saveButtonDefault": "Serien speichern"
+    },
+    "connectButton": "Moloni verbinden",
+    "updateButton": "Moloni-Verbindung aktualisieren",
+    "documents": {
+      "title": "Letzte Dokumente",
+      "emptyTitle": "Es gibt noch keine Dokumente.",
+      "emptyText": "Sobald das POS Rechnungen oder Gutschriften ausstellt, erscheinen sie hier.",
+      "colNumber": "Nummer",
+      "colType": "Typ",
+      "colStatus": "Status",
+      "colValue": "Betrag"
+    },
+    "alerts": {
+      "saveError": "Fehler beim Speichern der Serien.",
+      "genericError": "Fehler.",
+      "saved": "Serien gespeichert."
+    }
+  },
+  "website": {
+    "header": {
+      "eyebrow": "Website",
+      "title": "Website Studio",
+      "statusOnline": "Online",
+      "statusOffline": "Offline",
+      "savedBadge": "Gespeichert",
+      "subtitle": "Erstellen Sie in wenigen Minuten eine professionelle Website für Ihr Restaurant.",
+      "improveTextButton": "Texte verbessern",
+      "viewSiteButton": "Website ansehen",
+      "saveButton": "Änderungen speichern"
+    },
+    "publish": {
+      "title": "Veröffentlichung",
+      "description": "Steuern Sie, ob die Website online ist und wie ihre öffentliche Adresse lautet.",
+      "enableLabel": "Öffentliche Website aktivieren",
+      "enableDescriptionBefore": "Wenn aktiviert, ist das Restaurant erreichbar unter",
+      "linkLabel": "Öffentlicher Link",
+      "templateLabel": "Vorlage",
+      "templateOptions": {
+        "premium": "Premium Restaurant",
+        "luxury": "Luxury Dining",
+        "minimal": "Minimal Clean",
+        "social": "Instagram First"
+      }
+    },
+    "aiBuilder": {
+      "title": "KI-Website-Builder",
+      "description": "Funktion in Entwicklung.",
+      "cardTitle": "KI-Website-Builder",
+      "cardText": "Automatische Inhaltserstellung für Websites.",
+      "comingSoonBadge": "Bald verfügbar"
+    },
+    "firstImpression": {
+      "title": "Erster Eindruck",
+      "description": "Was der Gast in den ersten 3 Sekunden sieht.",
+      "headlineLabel": "Headline",
+      "cuisineLabel": "Küchenart",
+      "cuisinePlaceholder": "Portugiesisch, Japanisch, Brunch...",
+      "descriptionLabel": "Kurzbeschreibung",
+      "descriptionPlaceholder": "Ein einladender Ort, um gut zu essen, noch etwas zu bleiben und wiederzukommen."
+    },
+    "story": {
+      "title": "Geschichte",
+      "description": "Hier beginnt die Seele des Restaurants.",
+      "aboutTitleLabel": "Titel des Über-uns-Abschnitts",
+      "aboutTitlePlaceholder": "Unser Zuhause",
+      "aboutTextLabel": "Text über das Restaurant",
+      "aboutTextPlaceholder": "Erzählen Sie die Geschichte, das Konzept und die Atmosphäre.",
+      "featureTitleLabel": "Highlight",
+      "featureTitlePlaceholder": "Ein Erlebnis am Tisch",
+      "featureTextLabel": "Highlight-Text",
+      "featureTextPlaceholder": "Ein Erlebnis, das Menschen zusammenbringt."
+    },
+    "texts": {
+      "title": "Website-Texte",
+      "description": "Passen Sie die Haupttexte der Website an.",
+      "sectionTitleLabel": "Titel des Hauptabschnitts",
+      "sectionTitlePlaceholder": "Über uns",
+      "sectionTextLabel": "Text des Hauptabschnitts",
+      "sectionTextPlaceholder": "Freier Text über den Ort.",
+      "galleryTitleLabel": "Galerietitel",
+      "galleryTitlePlaceholder": "Galerie",
+      "galleryDescriptionLabel": "Galeriebeschreibung",
+      "galleryDescriptionPlaceholder": "Kurze Beschreibung der Galerie.",
+      "locationTitleLabel": "Titel des Standorts",
+      "locationTitlePlaceholder": "Wo Sie uns finden",
+      "locationDescriptionLabel": "Text zum Standort",
+      "locationDescriptionPlaceholder": "Adresse, Gegend oder nützlicher Hinweis.",
+      "finalCtaTitleLabel": "Abschließender Titel",
+      "finalCtaTitlePlaceholder": "Reservieren Sie bei {name}",
+      "finalCtaTextLabel": "Abschließender Text",
+      "finalCtaTextPlaceholder": "Abschließender Aufruf zum Reservieren, Besuchen oder Kontaktieren."
+    },
+    "images": {
+      "title": "Bilder",
+      "description": "Die besten Fotos Ihres Lokals.",
+      "logoLabel": "Logo",
+      "heroLabel": "Hauptfoto",
+      "photoNameLabel": "Name von Foto {number}",
+      "photoPlaceholderFirst": "Ambiente",
+      "photoPlaceholderOther": "Foto {number}"
+    },
+    "menus": {
+      "title": "Menüs",
+      "description": "Fügen Sie ein oder mehrere PDF-Menüs mit beliebigem Namen hinzu.",
+      "sectionTitleLabel": "Abschnittstitel",
+      "sectionTitlePlaceholder": "Menü",
+      "sectionDescriptionLabel": "Abschnittsbeschreibung",
+      "sectionDescriptionPlaceholder": "Sehen Sie sich unsere Menüs an.",
+      "itemLabel": "Menü {index}",
+      "removeButton": "Entfernen",
+      "nameLabel": "Name des Menüs",
+      "namePlaceholder": "Z. B.: Speisekarte, Cocktails, Weine, Brunch...",
+      "pdfLabel": "Menü-PDF",
+      "emptyState": "Sie haben noch kein Menü hinzugefügt.",
+      "addButton": "+ Menü hinzufügen"
+    },
+    "style": {
+      "title": "Stil",
+      "description": "Passen Sie die visuelle Identität der Website an.",
+      "instagramLabel": "Instagram",
+      "instagramPlaceholder": "@restaurant",
+      "primaryColorLabel": "Hauptfarbe"
+    },
+    "contacts": {
+      "title": "Kontakte",
+      "description": "Bearbeiten Sie die auf der öffentlichen Website angezeigten Kontaktdaten.",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "info@restaurant.de",
+      "phoneLabel": "Telefon",
+      "phonePlaceholder": "+49 151 23456789",
+      "addressLabel": "Adresse",
+      "addressPlaceholder": "Straße, Hausnummer, Stadt"
+    },
+    "seo": {
+      "title": "SEO und Domain",
+      "description": "Verbessern Sie Ihre Präsenz bei Google und bereiten Sie die Website auf Wachstum vor.",
+      "titleLabel": "SEO-Titel",
+      "titlePlaceholder": "{name} | Online-Reservierungen",
+      "descriptionLabel": "SEO-Beschreibung",
+      "descriptionPlaceholder": "Beschreibung für Google und Freigaben.",
+      "domainLabel": "Eigene Domain",
+      "domainCardTitle": "Eigene Domain",
+      "domainCardText": "Bald können Sie anstelle einer MesaLink-Subdomain eine eigene Domain verwenden.",
+      "comingSoonBadge": "Bald verfügbar"
+    },
+    "quality": {
+      "eyebrow": "Qualität",
+      "on": "AN",
+      "off": "AUS",
+      "galleryLabel": "Galerie:",
+      "menuLabel": "Menü:",
+      "menuYes": "Ja",
+      "menuNo": "Nein"
+    },
+    "publicCard": {
+      "eyebrow": "Öffentliche Website",
+      "viewButton": "Website ansehen",
+      "saveButton": "Änderungen speichern"
+    },
+    "checklist": {
+      "eyebrow": "Checkliste",
+      "websiteActive": "Website aktiv",
+      "headlineFilled": "Headline ausgefüllt",
+      "mainPhoto": "Hauptfoto",
+      "menuUploaded": "Menü hochgeladen",
+      "contactVisible": "Kontakt sichtbar"
+    },
+    "previewCard": {
+      "eyebrow": "Schnellvorschau"
+    },
+    "preview": {
+      "reserveBadge": "Reservieren",
+      "cuisineFallback": "Restaurant",
+      "descriptionFallback": "Reservieren Sie Ihren Tisch online in wenigen Sekunden.",
+      "templateLabel": "Vorlage",
+      "menusLabel": "Menüs",
+      "photosLabel": "Fotos",
+      "photoLabel": "Foto",
+      "photoNumberFallback": "Foto {index}",
+      "menuSectionLabel": "Menü",
+      "menuTitleFallback": "Menüs",
+      "menuLoadedCount": "{count} Menü(s) hochgeladen.",
+      "menuNotLoaded": "Fügen Sie ein oder mehrere PDF-Menüs hinzu."
+    },
+    "aiErrors": {
+      "generateFailed": "Fehler beim Generieren von Inhalten mit KI",
+      "generateFailedAlert": "Fehler beim Generieren von Inhalten mit KI. Überprüfen Sie Ihren OPENAI_API_KEY und versuchen Sie es erneut."
+    }
+  }
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 type Props = {
   onSelect: (subject: string, message: string) => void;
 };
@@ -7,50 +9,40 @@ type Props = {
 export default function CampaignTemplates({
   onSelect,
 }: Props) {
+  const t = useTranslations("dashboardMarketing.templates");
+
   const templates = [
     {
-      label: "🍷 Sentimos a sua falta",
-      subject: "Sentimos a sua falta 🍽️",
-      message: `Já passou algum tempo desde a sua última visita.
-
-Gostávamos muito de o voltar a receber.
-
-Reserve já a sua mesa e venha descobrir as novidades.`,
+      label: t("items.missYou.label"),
+      subject: t("items.missYou.subject"),
+      message: t("items.missYou.message"),
     },
     {
-      label: "🎂 Feliz aniversário",
-      subject: "Feliz aniversário 🎂",
-      message: `Toda a equipa deseja-lhe um excelente aniversário.
-
-Esperamos recebê-lo em breve para celebrar connosco.`,
+      label: t("items.birthday.label"),
+      subject: t("items.birthday.subject"),
+      message: t("items.birthday.message"),
     },
     {
-      label: "⭐ Deixe a sua opinião",
-      subject: "A sua opinião é importante",
-      message: `Obrigado pela sua visita.
-
-A sua opinião ajuda-nos a melhorar continuamente a experiência dos nossos clientes.`,
+      label: t("items.review.label"),
+      subject: t("items.review.subject"),
+      message: t("items.review.message"),
     },
     {
-      label: "🔥 Novidades do menu",
-      subject: "Temos novidades no menu ✨",
-      message: `Acabámos de lançar novas sugestões e pratos especiais.
-
-Reserve já a sua mesa e venha experimentar.`,
+      label: t("items.menuNews.label"),
+      subject: t("items.menuNews.subject"),
+      message: t("items.menuNews.message"),
     },
     {
-      label: "🎉 Evento especial",
-      subject: "Evento especial no restaurante 🎉",
-      message: `Temos um evento especial a chegar.
-
-Garanta já a sua mesa antes que esgote.`,
+      label: t("items.event.label"),
+      subject: t("items.event.subject"),
+      message: t("items.event.message"),
     },
   ];
 
   return (
     <div>
       <p className="mb-3 text-sm font-semibold text-[#6B6258]">
-        Campanhas rápidas
+        {t("heading")}
       </p>
 
       <div className="flex flex-wrap gap-2">

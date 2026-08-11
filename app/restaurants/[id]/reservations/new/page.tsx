@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import BottomNav from "@/components/BottomNav";
 import PhoneField from "@/components/PhoneField";
+import { getTranslations } from "next-intl/server";
 
 async function createReservation(formData: FormData) {
   "use server";
@@ -193,6 +194,8 @@ export default async function NewReservationPage({
 
   const query = searchParams ? await searchParams : {};
 
+  const t = await getTranslations("dashboardCrm.reservations.new");
+
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
@@ -205,7 +208,7 @@ export default async function NewReservationPage({
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#F5EFE6] p-10 text-[#16120E]">
-        Restaurante não encontrado
+        {t("notFound")}
       </main>
     );
   }
@@ -219,33 +222,32 @@ export default async function NewReservationPage({
           href={`/restaurants/${id}/reservations`}
           className="text-sm font-semibold text-[#9B6F3B] hover:text-[#16120E]"
         >
-          ← Voltar às reservas
+          ← {t("back")}
         </Link>
 
         <div className="mt-7 grid gap-6 lg:grid-cols-[0.82fr_1.18fr]">
           <aside className="rounded-[32px] border border-[#E1D0B8] bg-white p-7 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
-            <SectionLabel>Nova reserva</SectionLabel>
+            <SectionLabel>{t("eyebrow")}</SectionLabel>
 
             <h1 className="mt-4 text-5xl font-semibold leading-[0.9] tracking-[-0.065em]">
-              Criar reserva manual.
+              {t("title")}
             </h1>
 
             <p className="mt-5 text-sm leading-6 text-[#6B6258]">
-              Adicione uma reserva ao calendário de{" "}
+              {t("description.prefix")}{" "}
               <span className="font-semibold text-[#16120E]">
                 {restaurant.name}
               </span>
-              . O email e a data de nascimento são opcionais, mas ajudam no CRM
-              e nas campanhas.
+              {t("description.suffix")}
             </p>
 
             <div className="mt-8 grid gap-3">
-              <MiniCard label="Estado" value="Confirmada automaticamente" />
+              <MiniCard label={t("miniCards.status.label")} value={t("miniCards.status.value")} />
               <MiniCard
-                label="Mesa"
-                value={usesTables ? "Atribuição automática" : "Sem mesa atribuída"}
+                label={t("miniCards.table.label")}
+                value={usesTables ? t("miniCards.table.auto") : t("miniCards.table.none")}
               />
-              <MiniCard label="CRM" value="Cliente atualizado automaticamente" />
+              <MiniCard label={t("miniCards.crm.label")} value={t("miniCards.crm.value")} />
             </div>
           </aside>
 
@@ -260,76 +262,76 @@ export default async function NewReservationPage({
 
               {query.error === "no-table" && (
                 <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-4 text-sm font-semibold text-[#A14E36]">
-                  Não existe nenhuma mesa disponível para esse número de pessoas nesse horário.
+                  {t("errors.noTable")}
                 </div>
               )}
 
               {query.error === "conflict" && (
                 <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-4 text-sm font-semibold text-[#A14E36]">
-                  Já existe uma reserva próxima nesse horário.
+                  {t("errors.conflict")}
                 </div>
               )}
 
               {query.error === "email" && (
                 <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] p-4 text-sm font-semibold text-[#A14E36]">
-                  Introduza um email válido ou deixe o campo em branco.
+                  {t("errors.email")}
                 </div>
               )}
 
-              <FormSection title="Cliente">
+              <FormSection title={t("sections.customer")}>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Nome do cliente">
+                  <Field label={t("fields.customerName.label")}>
                     <input
                       name="customerName"
-                      placeholder="Ex: João Silva"
+                      placeholder={t("fields.customerName.placeholder")}
                       className="input-premium"
                       required
                     />
                   </Field>
 
-                  <Field label="Telefone">
-                    <PhoneField name="phone" required placeholder="Ex: 912345678" />
+                  <Field label={t("fields.phone.label")}>
+                    <PhoneField name="phone" required placeholder={t("fields.phone.placeholder")} />
                   </Field>
 
-                  <Field label="Email recomendado">
+                  <Field label={t("fields.email.label")}>
                     <input
                       name="email"
                       type="email"
-                      placeholder="Ex: cliente@email.com"
+                      placeholder={t("fields.email.placeholder")}
                       className="input-premium"
                     />
                     <p className="mt-2 text-xs font-medium leading-5 text-[#8A7A68]">
-                      Recomendado para confirmações, campanhas e histórico do cliente.
+                      {t("fields.email.helper")}
                     </p>
                   </Field>
 
-                  <Field label="Data de nascimento recomendada">
+                  <Field label={t("fields.birthDate.label")}>
                     <input
                       name="birthDate"
                       type="date"
                       className="input-premium"
                     />
                     <p className="mt-2 text-xs font-medium leading-5 text-[#8A7A68]">
-                      Recomendado para campanhas de aniversário e fidelização.
+                      {t("fields.birthDate.helper")}
                     </p>
                   </Field>
                 </div>
               </FormSection>
 
-              <FormSection title="Reserva">
+              <FormSection title={t("sections.reservation")}>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Número de pessoas">
+                  <Field label={t("fields.guests.label")}>
                     <input
                       name="guests"
                       type="number"
                       min="1"
-                      placeholder="Ex: 4"
+                      placeholder={t("fields.guests.placeholder")}
                       className="input-premium"
                       required
                     />
                   </Field>
 
-                  <Field label="Data">
+                  <Field label={t("fields.date.label")}>
                     <input
                       name="date"
                       type="date"
@@ -340,7 +342,7 @@ export default async function NewReservationPage({
                 </div>
               </FormSection>
 
-              <FormSection title="Hora">
+              <FormSection title={t("sections.time")}>
                 <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
                   {times.map((time) => (
                     <label key={time} className="group cursor-pointer">
@@ -360,37 +362,37 @@ export default async function NewReservationPage({
                 </div>
               </FormSection>
 
-              <FormSection title="Observações">
+              <FormSection title={t("sections.notes")}>
                 <textarea
                   name="notes"
                   rows={5}
-                  placeholder="Ex: 1 vegetariano, aniversário, mesa calma, cadeira de bebé..."
+                  placeholder={t("fields.notes.placeholder")}
                   className="min-h-[130px] w-full resize-none rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-4 text-[#16120E] outline-none transition placeholder:text-[#9B8B7A] focus:border-[#C8A56A] focus:bg-white"
                 />
               </FormSection>
 
               {usesTables ? (
                 <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 text-sm leading-6 text-[#6B6258]">
-                  A mesa será atribuída automaticamente com base no número de
-                  pessoas e disponibilidade.
+                  {t("tableInfo.auto")}
                 </div>
               ) : (
                 <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 text-sm leading-6 text-[#6B6258]">
-                  Este restaurante está em modo <strong>capacidade</strong>. A
-                  reserva será criada sem mesa atribuída.
+                  {t("tableInfo.capacityMode.prefix")}{" "}
+                  <strong>{t("tableInfo.capacityMode.bold")}</strong>
+                  {t("tableInfo.capacityMode.suffix")}
                 </div>
               )}
 
               <div className="flex flex-col gap-3 border-t border-[#E1D0B8] pt-6 md:flex-row">
                 <button className="h-14 flex-1 rounded-full bg-[#16120E] px-6 font-semibold text-white transition hover:bg-[#2A2118]">
-                  Criar reserva
+                  {t("submit")}
                 </button>
 
                 <Link
                   href={`/restaurants/${id}/reservations`}
                   className="flex h-14 flex-1 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-6 font-semibold text-[#16120E] transition hover:bg-white"
                 >
-                  Cancelar
+                  {t("cancel")}
                 </Link>
               </div>
             </form>

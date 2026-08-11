@@ -1,0 +1,39 @@
+{
+  "sections": {
+    "operation": "运营",
+    "growth": "增长"
+  },
+  "items": {
+    "dashboard": "仪表盘",
+    "menu": "菜单与产品",
+    "qrOrdering": "QR Ordering",
+    "serviceDay": "当日服务",
+    "reservations": "预订",
+    "tables": "大厅与餐桌",
+    "customers": "客户",
+    "marketing": "营销",
+    "website": "网站",
+    "aiVisibility": "AI 可见度",
+    "billing": "账单",
+    "settings": "设置"
+  },
+  "account": "账户",
+  "comingSoon": "即将推出",
+  "tagline": "Growth Platform for Restaurants",
+  "growthSuite": "Growth Suite",
+  "bottomNav": {
+    "dash": "主页",
+    "today": "今日",
+    "calendar": "日历",
+    "orders": "QR",
+    "more": "更多",
+    "moreSheet": {
+      "title": "更多选项",
+      "tables": "大厅",
+      "marketing": "营销",
+      "aiVisibility": "AI 可见度",
+      "settings": "设置",
+      "language": "语言"
+    }
+  }
+}

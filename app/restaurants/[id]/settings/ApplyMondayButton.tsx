@@ -1,6 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 export default function ApplyMondayButton() {
+  const t = useTranslations("dashboardSettings.applyMondayButton");
+
   function applyMondayToAll() {
     const mondayOpen =
       (
@@ -48,7 +52,7 @@ export default function ApplyMondayButton() {
       if (dinnerInput) dinnerInput.value = mondayDinner;
     });
 
-    alert("Horário de segunda aplicado a todos os dias.");
+    alert(t("confirmAlert"));
   }
 
   return (
@@ -57,7 +61,7 @@ export default function ApplyMondayButton() {
       onClick={applyMondayToAll}
       className="whitespace-nowrap rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-2 text-xs font-semibold text-[#9B6F3B] transition hover:border-[#C8A56A] hover:bg-white hover:text-[#16120E]"
     >
-      Aplicar Segunda a todos
+      {t("button")}
     </button>
   );
 }

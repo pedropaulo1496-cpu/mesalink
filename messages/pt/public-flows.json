@@ -1,0 +1,228 @@
+{
+  "reserve": {
+    "badge": "Reserva online",
+    "subtitle": "Escolha o dia, hora e número de pessoas. A reserva fica registada em segundos.",
+    "chips": {
+      "quickConfirmation": "Confirmação rápida",
+      "onlineBooking": "Reserva online"
+    },
+    "unavailable": {
+      "title": "Reservas indisponíveis",
+      "text": "Este restaurante não está a aceitar reservas online neste momento."
+    },
+    "errors": {
+      "conflict": {
+        "title": "Horário indisponível",
+        "text": "Essa mesa já tem uma reserva nesse período. Escolha outro horário."
+      },
+      "past": {
+        "title": "Data inválida",
+        "text": "Não é possível fazer reservas para datas ou horas no passado."
+      },
+      "capacity": {
+        "title": "Sem capacidade",
+        "text": "O restaurante não tem capacidade disponível para esse horário."
+      },
+      "email": {
+        "title": "Email inválido",
+        "text": "Introduza um email válido para continuar."
+      }
+    },
+    "steps": {
+      "when": "Quando?",
+      "time": "A que horas?",
+      "guests": "Quantas pessoas?",
+      "details": "Dados da reserva"
+    },
+    "closedDay": "O restaurante está fechado neste dia.",
+    "otherNumber": "Outro número",
+    "guestsPlaceholder": "Número de pessoas",
+    "noTables": {
+      "title": "Sem mesas disponíveis",
+      "text": "Não há mesas disponíveis para {guests, plural, one {# pessoa} other {# pessoas}} neste horário."
+    },
+    "pendingApproval": {
+      "title": "Pedido sujeito a aprovação",
+      "text": "Para {guests, plural, one {# pessoa} other {# pessoas}}, o restaurante poderá juntar mesas. O pedido ficará pendente de confirmação."
+    },
+    "capacityMode": {
+      "title": "Reserva por capacidade",
+      "text": "O restaurante gere as mesas internamente. Basta escolher dia, hora e número de pessoas."
+    },
+    "fields": {
+      "name": "Nome",
+      "namePlaceholder": "Nome completo",
+      "phone": "Telemóvel",
+      "phonePlaceholder": "Telemóvel",
+      "email": "Email",
+      "emailPlaceholder": "Email",
+      "birthDate": "Data de nascimento",
+      "required": "Obrigatório",
+      "optional": "Opcional"
+    },
+    "birthDateNote": "A data de nascimento é opcional e pode ser usada pelo restaurante para campanhas de aniversário e benefícios personalizados.",
+    "submitProcessing": "A processar...",
+    "submitRequest": "Enviar pedido",
+    "submitConfirm": "Confirmar reserva",
+    "consent": "Ao reservar, aceita ser contactado sobre esta reserva.",
+    "poweredBy": "Powered by MesaLink",
+    "email": {
+      "subjectPending": "Pedido de reserva recebido - {restaurantName}",
+      "subjectConfirmed": "Reserva confirmada - {restaurantName}",
+      "headingPending": "Pedido de reserva recebido",
+      "headingConfirmed": "Reserva confirmada",
+      "greeting": "Olá {customerName},",
+      "bodyPending": "Recebemos o seu pedido de reserva. O restaurante irá confirmar ou recusar em breve.",
+      "bodyConfirmed": "A sua reserva foi confirmada com sucesso.",
+      "labelRestaurant": "Restaurante:",
+      "labelDate": "Data:",
+      "labelTime": "Hora:",
+      "labelGuests": "Pessoas:",
+      "labelStatus": "Estado:",
+      "statusPending": "Pendente de aprovação",
+      "statusConfirmed": "Confirmada",
+      "footerNote": "Este email foi enviado automaticamente pelo MesaLink."
+    }
+  },
+  "reserveSuccess": {
+    "titleAlready": "Reserva já efetuada",
+    "titlePending": "Pedido recebido",
+    "titleConfirmed": "Reserva confirmada",
+    "textAlready": "Esta reserva já se encontrava registada — não é preciso voltar a submeter.",
+    "textPending": "O restaurante recebeu o seu pedido e irá responder em breve.",
+    "textConfirmed": "A sua reserva foi registada com sucesso.",
+    "labels": {
+      "name": "Nome",
+      "guests": "Pessoas",
+      "date": "Data",
+      "time": "Hora",
+      "status": "Estado"
+    },
+    "statusPending": "Pendente de aprovação",
+    "statusConfirmed": "Confirmada",
+    "cta": "Conhecer o MesaLink",
+    "poweredBy": "Powered by MesaLink"
+  },
+  "review": {
+    "title": "Como foi a sua experiência?",
+    "subtitle": "A sua opinião ajuda {restaurantName} a melhorar a experiência de cada cliente.",
+    "thankYouPositiveTitle": "Obrigado pela avaliação!",
+    "thankYouPositiveText": "Ficamos muito felizes por ter gostado da experiência.",
+    "shareOnGoogle": "Partilhar no Google",
+    "positiveNoGoogleText": "A sua opinião ajuda-nos a melhorar continuamente a experiência dos nossos clientes.",
+    "thankYouNegativeTitle": "Obrigado pelo feedback.",
+    "thankYouNegativeText": "A equipa de {restaurantName} irá analisar a sua mensagem para melhorar a experiência.",
+    "vip": {
+      "badge": "Membro Preferencial",
+      "title": "Gostaria de receber convites, novidades e vantagens exclusivas?",
+      "text": "Receba convites, novidades e ofertas especiais de {restaurantName}.",
+      "checkbox": "Quero receber novidades, eventos e ofertas exclusivas.",
+      "birthDateLabel": "Data de nascimento opcional",
+      "confirmButton": "Confirmar preferência",
+      "confirming": "A confirmar...",
+      "confirmedTitle": "Preferência confirmada.",
+      "confirmedText": "Obrigado por querer receber novidades de {restaurantName}."
+    },
+    "ratingCommentPlaceholder": "Lamentamos que a experiência não tenha sido perfeita. Conte-nos o que podemos melhorar.",
+    "positiveHint": "Obrigado pela avaliação. Pode continuar para partilhar a sua experiência publicamente.",
+    "submitting": "A enviar...",
+    "continue": "Continuar",
+    "sendFeedback": "Enviar feedback",
+    "footerThanks": "Obrigado por ajudar {restaurantName} a melhorar cada visita."
+  },
+  "publicSite": {
+    "nav": {
+      "about": "Sobre",
+      "menu": "Menu",
+      "hours": "Horário",
+      "location": "Localização"
+    },
+    "reserveButton": "Reservar",
+    "viewMenu": "Ver menu",
+    "contact": {
+      "address": "Morada",
+      "phone": "Telefone",
+      "email": "Email"
+    },
+    "call": "Ligar",
+    "hoursTitle": "Horário",
+    "weekdays": {
+      "monday": "Segunda-feira",
+      "tuesday": "Terça-feira",
+      "wednesday": "Quarta-feira",
+      "thursday": "Quinta-feira",
+      "friday": "Sexta-feira",
+      "saturday": "Sábado",
+      "sunday": "Domingo"
+    },
+    "weekdaysShort": {
+      "monday": "Seg",
+      "tuesday": "Ter",
+      "wednesday": "Qua",
+      "thursday": "Qui",
+      "friday": "Sex",
+      "saturday": "Sáb",
+      "sunday": "Dom"
+    },
+    "hoursOpen": "Aberto",
+    "hoursClosed": "Fechado",
+    "menuSection": {
+      "fallbackTitle": "Menu {index}",
+      "iconLabel": "Menu",
+      "available": "{count, plural, one {# menu disponível} other {# menus disponíveis}}"
+    },
+    "heroBadgeOnline": "Online",
+    "heroBadgeText": "Reserva em segundos",
+    "footerTagline": "Reservas online by MesaLink"
+  },
+  "qrOrdering": {
+    "unavailableTitle": "QR Ordering indisponível",
+    "unavailableText": "Este restaurante desativou temporariamente os pedidos por QR Code.",
+    "table": "Mesa {number}",
+    "waiterCalledBadge": "Empregado chamado",
+    "billRequestedBadge": "Conta pedida",
+    "orderStatus": {
+      "title": "Pedido da mesa",
+      "subtitle": "Estado atual",
+      "refresh": "Atualizar",
+      "refreshing": "...",
+      "empty": "Ainda não há pedidos nesta mesa.",
+      "activeOrders": "Pedidos ativos",
+      "history": "Histórico"
+    },
+    "actions": {
+      "callWaiter": "Chamar empregado",
+      "callingWaiter": "A chamar...",
+      "requestBill": "Pedir conta",
+      "requestingBill": "A pedir...",
+      "hint": "Pode chamar o empregado antes de fazer pedido. A conta fica disponível depois de abrir a mesa."
+    },
+    "product": {
+      "count": "{count, plural, one {# produto} other {# produtos}}",
+      "vat": "IVA {rate}%",
+      "featured": "Destaque",
+      "add": "Adicionar"
+    },
+    "cart": {
+      "empty": "Carrinho vazio",
+      "summary": "{count, plural, one {# item} other {# items}} · {total}€",
+      "send": "Enviar pedido",
+      "sending": "A enviar..."
+    },
+    "statusLabels": {
+      "pending": "Recebido",
+      "preparing": "A preparar",
+      "ready": "Pronto",
+      "delivered": "Entregue",
+      "cancelled": "Cancelado"
+    },
+    "messages": {
+      "orderSuccess": "Pedido enviado com sucesso.",
+      "orderError": "Não foi possível enviar o pedido. Tente novamente.",
+      "waiterCalled": "Empregado chamado.",
+      "waiterError": "Não foi possível chamar o empregado.",
+      "billRequested": "Conta pedida.",
+      "billError": "Não foi possível pedir a conta."
+    }
+  }
+}

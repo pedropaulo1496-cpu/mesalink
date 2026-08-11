@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { WebsiteTemplate } from "./templates";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {
   getDisplayCuisine,
   getDisplayDescription,
@@ -11,6 +12,8 @@ import {
   type OpeningHour,
   type PublicRestaurant,
 } from "./utils";
+
+type Translator = (key: string) => string;
 
 type Theme = {
   page: string;
@@ -59,11 +62,13 @@ function Header({
   reserveUrl,
   light = false,
   primaryColor,
+  t,
 }: {
   restaurant: PublicRestaurant;
   reserveUrl: string;
   light?: boolean;
   primaryColor: string;
+  t: Translator;
 }) {
   const instagramUrl = normalizeInstagramUrl(restaurant.websiteInstagram);
 
@@ -78,13 +83,26 @@ function Header({
       <Brand restaurant={restaurant} light={light} />
 
       <nav className={navClass}>
-        <a href="#sobre" className={navHover}>Sobre</a>
-        <a href="#menu" className={navHover}>Menu</a>
-        <a href="#horario" className={navHover}>Horário</a>
-        <a href="#localizacao" className={navHover}>Localização</a>
+        <a href="#sobre" className={navHover}>{t("nav.about")}</a>
+        <a href="#menu" className={navHover}>{t("nav.menu")}</a>
+        <a href="#horario" className={navHover}>{t("nav.hours")}</a>
+        <a href="#localizacao" className={navHover}>{t("nav.location")}</a>
       </nav>
 
       <div className="flex items-center gap-2">
+        <LanguageSwitcher
+          className={
+            light
+              ? "border-[#C8A56A]/30 bg-white/[0.06] text-[#F5EFE6] hover:bg-white/[0.1]"
+              : undefined
+          }
+          contentClassName={
+            light
+              ? "border-[#C8A56A]/30 bg-[#241B13] text-[#F5EFE6]"
+              : undefined
+          }
+        />
+
         {instagramUrl && (
           <a
             href={instagramUrl}
@@ -109,14 +127,22 @@ function Header({
           }
           style={!light ? { backgroundColor: primaryColor } : undefined}
         >
-          Reservar
+          {t("reserveButton")}
         </a>
       </div>
     </header>
   );
 }
 
-function ContactBar({ restaurant, light = false }: { restaurant: PublicRestaurant; light?: boolean }) {
+function ContactBar({
+  restaurant,
+  light = false,
+  t,
+}: {
+  restaurant: PublicRestaurant;
+  light?: boolean;
+  t: Translator;
+}) {
   const hasContacts = restaurant.address || restaurant.phone || restaurant.email;
 
   if (!hasContacts) return null;
@@ -132,7 +158,7 @@ function ContactBar({ restaurant, light = false }: { restaurant: PublicRestauran
       {restaurant.address && (
         <div>
           <p className={light ? "text-xs font-semibold uppercase tracking-[0.25em] text-[#C8A56A]" : "text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]"}>
-            Morada
+            {t("contact.address")}
           </p>
           <p className="mt-2 font-semibold">{restaurant.address}</p>
         </div>
@@ -141,7 +167,7 @@ function ContactBar({ restaurant, light = false }: { restaurant: PublicRestauran
       {restaurant.phone && (
         <div>
           <p className={light ? "text-xs font-semibold uppercase tracking-[0.25em] text-[#C8A56A]" : "text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]"}>
-            Telefone
+            {t("contact.phone")}
           </p>
           <a href={`tel:${restaurant.phone}`} className="mt-2 block font-semibold hover:opacity-70">
             {restaurant.phone}
@@ -152,7 +178,7 @@ function ContactBar({ restaurant, light = false }: { restaurant: PublicRestauran
       {restaurant.email && (
         <div>
           <p className={light ? "text-xs font-semibold uppercase tracking-[0.25em] text-[#C8A56A]" : "text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]"}>
-            Email
+            {t("contact.email")}
           </p>
           <a href={`mailto:${restaurant.email}`} className="mt-2 block break-words font-semibold hover:opacity-70">
             {restaurant.email}
@@ -168,11 +194,13 @@ function HeroButtons({
   reserveUrl,
   primaryColor,
   light = false,
+  t,
 }: {
   restaurant: PublicRestaurant;
   reserveUrl: string;
   primaryColor: string;
   light?: boolean;
+  t: Translator;
 }) {
   const instagramUrl = normalizeInstagramUrl(restaurant.websiteInstagram);
 
@@ -183,7 +211,7 @@ function HeroButtons({
         className="inline-flex items-center justify-center rounded-full px-8 py-4 text-sm font-semibold text-white shadow-[0_18px_55px_rgba(80,55,30,0.18)]"
         style={{ backgroundColor: primaryColor }}
       >
-        Reservar
+        {t("reserveButton")}
       </a>
 
       {restaurant.websiteMenuPdf && (
@@ -197,7 +225,7 @@ function HeroButtons({
               : "inline-flex items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-8 py-4 text-sm font-semibold text-[#16120E] hover:bg-[#FFF9F0]"
           }
         >
-          Ver menu
+          {t("viewMenu")}
         </a>
       )}
 
@@ -223,12 +251,14 @@ export function WebsiteHero({
   restaurant,
   primaryColor,
   template,
+  t,
 }: {
   restaurant: PublicRestaurant;
   hours: OpeningHour[];
   primaryColor: string;
   theme: Theme;
   template: WebsiteTemplate;
+  t: Translator;
 }) {
   const reserveUrl = getReserveUrl(restaurant);
   const hasImage = hasValidHeroImage(restaurant);
@@ -252,7 +282,7 @@ export function WebsiteHero({
         <div className="absolute inset-0 bg-gradient-to-b from-[#16120E]/92 via-[#16120E]/72 to-[#16120E]" />
 
         <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-6">
-          <Header restaurant={restaurant} reserveUrl={reserveUrl} light primaryColor="#C8A56A" />
+          <Header restaurant={restaurant} reserveUrl={reserveUrl} light primaryColor="#C8A56A" t={t} />
 
           <div className="flex flex-1 items-center justify-center text-center">
             <div className="max-w-3xl py-20">
@@ -273,12 +303,12 @@ export function WebsiteHero({
               )}
 
               <div className="flex justify-center">
-                <HeroButtons restaurant={restaurant} reserveUrl={reserveUrl} primaryColor="#C8A56A" light />
+                <HeroButtons restaurant={restaurant} reserveUrl={reserveUrl} primaryColor="#C8A56A" light t={t} />
               </div>
             </div>
           </div>
 
-          <ContactBar restaurant={restaurant} light />
+          <ContactBar restaurant={restaurant} light t={t} />
         </div>
       </section>
     );
@@ -289,7 +319,7 @@ export function WebsiteHero({
       <section className="bg-white px-6 py-8 text-zinc-950">
         <div className="mx-auto max-w-7xl">
           <header className="border-b border-zinc-200 pb-5">
-            <Header restaurant={restaurant} reserveUrl={reserveUrl} light={false} primaryColor={primaryColor} />
+            <Header restaurant={restaurant} reserveUrl={reserveUrl} light={false} primaryColor={primaryColor} t={t} />
           </header>
 
           <div className="grid min-h-[75vh] gap-10 py-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
@@ -310,7 +340,7 @@ export function WebsiteHero({
                 </p>
               )}
 
-              <HeroButtons restaurant={restaurant} reserveUrl={reserveUrl} primaryColor={primaryColor} />
+              <HeroButtons restaurant={restaurant} reserveUrl={reserveUrl} primaryColor={primaryColor} t={t} />
             </div>
 
             <div className="relative min-h-[520px] overflow-hidden rounded-[2.5rem] bg-zinc-100">
@@ -338,7 +368,7 @@ export function WebsiteHero({
       <section className="relative min-h-screen overflow-hidden bg-[#F5EFE6] text-[#16120E]">
         <div className="relative mx-auto grid min-h-screen max-w-7xl gap-8 px-6 py-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
           <div className="relative z-10 flex min-h-[70vh] flex-col justify-between">
-            <Header restaurant={restaurant} reserveUrl={reserveUrl} primaryColor="#A14E36" />
+            <Header restaurant={restaurant} reserveUrl={reserveUrl} primaryColor="#A14E36" t={t} />
 
             <div className="py-12">
               {getDisplayCuisine(restaurant) && (
@@ -357,7 +387,7 @@ export function WebsiteHero({
                 </p>
               )}
 
-              <HeroButtons restaurant={restaurant} reserveUrl={reserveUrl} primaryColor="#A14E36" />
+              <HeroButtons restaurant={restaurant} reserveUrl={reserveUrl} primaryColor="#A14E36" t={t} />
             </div>
           </div>
 
@@ -376,8 +406,8 @@ export function WebsiteHero({
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#16120E]/65 via-transparent to-transparent" />
             <div className="absolute bottom-6 left-6 right-6 rounded-[2rem] border border-white/25 bg-white/85 p-5 backdrop-blur-xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#A14E36]">Online</p>
-              <p className="mt-2 text-2xl font-semibold text-[#16120E]">Reserva em segundos</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#A14E36]">{t("heroBadgeOnline")}</p>
+              <p className="mt-2 text-2xl font-semibold text-[#16120E]">{t("heroBadgeText")}</p>
             </div>
           </div>
         </div>
@@ -388,7 +418,7 @@ export function WebsiteHero({
   return (
     <section className="relative min-h-screen overflow-hidden bg-[#F5EFE6] text-[#16120E]">
       <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-6">
-        <Header restaurant={restaurant} reserveUrl={reserveUrl} primaryColor={primaryColor} />
+        <Header restaurant={restaurant} reserveUrl={reserveUrl} primaryColor={primaryColor} t={t} />
 
         <div className="grid flex-1 gap-10 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div className="max-w-4xl">
@@ -408,7 +438,7 @@ export function WebsiteHero({
               </p>
             )}
 
-            <HeroButtons restaurant={restaurant} reserveUrl={reserveUrl} primaryColor={primaryColor} />
+            <HeroButtons restaurant={restaurant} reserveUrl={reserveUrl} primaryColor={primaryColor} t={t} />
           </div>
 
           <div className="relative min-h-[560px] overflow-hidden rounded-[3rem] border border-[#E1D0B8] bg-white shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
@@ -427,7 +457,7 @@ export function WebsiteHero({
           </div>
         </div>
 
-        <ContactBar restaurant={restaurant} />
+        <ContactBar restaurant={restaurant} t={t} />
       </div>
     </section>
   );

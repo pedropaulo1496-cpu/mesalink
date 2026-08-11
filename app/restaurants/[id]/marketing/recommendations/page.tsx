@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export default async function MarketingRecommendationsPage({
   params,
@@ -10,6 +11,8 @@ export default async function MarketingRecommendationsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  const t = await getTranslations("dashboardMarketing.recommendations");
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
@@ -85,23 +88,22 @@ export default async function MarketingRecommendationsPage({
         <RestaurantSidebar
           id={id}
           restaurantName={restaurant.name}
-          active="Marketing"
+          active="marketing"
         />
 
         <section className="px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.32em] text-[#9B6F3B]">
-                MesaLink Recommendations
+                {t("eyebrow")}
               </p>
 
               <h1 className="mt-3 text-5xl font-semibold tracking-[-0.065em]">
-                O que fazer hoje
+                {t("title")}
               </h1>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">
-                Recomendações automáticas com base em clientes VIP, risco de
-                abandono, aniversários e inatividade.
+                {t("subtitle")}
               </p>
             </div>
 
@@ -109,77 +111,88 @@ export default async function MarketingRecommendationsPage({
               href={`/restaurants/${id}/marketing`}
               className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
             >
-              Voltar ao Growth
+              {t("backToGrowth")}
             </Link>
           </header>
 
           <section className="mt-8 rounded-[44px] border border-[#2C2117] bg-[#17120D] p-7 text-white shadow-[0_35px_100px_rgba(44,31,18,0.28)] lg:p-10">
             <p className="text-xs font-black uppercase tracking-[0.34em] text-[#D7B267]">
-              Prioridade recomendada
+              {t("priority.eyebrow")}
             </p>
 
             <h2 className="mt-5 max-w-3xl text-5xl font-semibold tracking-[-0.075em]">
               {riskyCustomers.length > 0
-                ? "Recupere clientes em risco antes que desapareçam."
+                ? t("priority.messages.risky")
                 : vipCustomers.length > 0
-                  ? "Ative os seus melhores clientes com uma campanha VIP."
+                  ? t("priority.messages.vip")
                   : birthdayCustomers.length > 0
-                    ? "Envie uma campanha de aniversário este mês."
-                    : "Ainda não há recomendações críticas."}
+                    ? t("priority.messages.birthday")
+                    : t("priority.messages.none")}
             </h2>
 
             <p className="mt-4 max-w-2xl text-sm leading-6 text-[#EADBC5]">
-              O MesaLink analisa a base de clientes e sugere ações comerciais
-              com maior impacto imediato.
+              {t("priority.description")}
             </p>
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-2">
             <RecommendationCard
-              label="Recuperação"
-              title="Clientes em risco"
-              description="Clientes com risco elevado ou médio de abandono."
+              label={t("cards.risky.label")}
+              title={t("cards.risky.title")}
+              description={t("cards.risky.description")}
               count={riskyCustomers.length}
               potential={riskyPotential}
               href={`/restaurants/${id}/marketing/campaigns/new?segment=INACTIVE`}
-              cta="Criar campanha de recuperação"
+              cta={t("cards.risky.cta")}
               priority={riskyCustomers.length > 0}
+              priorityLabel={t("priorityBadge")}
+              customersLabel={t("miniStats.customers")}
+              potentialLabel={t("miniStats.potential")}
             />
 
             <RecommendationCard
-              label="VIP Club"
-              title="Gold & Platinum"
-              description="Clientes de maior valor que merecem uma campanha exclusiva."
+              label={t("cards.vip.label")}
+              title={t("cards.vip.title")}
+              description={t("cards.vip.description")}
               count={vipCustomers.length}
               potential={vipPotential}
               href={`/restaurants/${id}/marketing/campaigns/new?segment=VIP`}
-              cta="Criar campanha VIP"
+              cta={t("cards.vip.cta")}
               priority={riskyCustomers.length === 0 && vipCustomers.length > 0}
+              priorityLabel={t("priorityBadge")}
+              customersLabel={t("miniStats.customers")}
+              potentialLabel={t("miniStats.potential")}
             />
 
             <RecommendationCard
-              label="Aniversários"
-              title="Aniversários do mês"
-              description="Clientes com aniversário este mês e autorização de marketing."
+              label={t("cards.birthday.label")}
+              title={t("cards.birthday.title")}
+              description={t("cards.birthday.description")}
               count={birthdayCustomers.length}
               potential={birthdayPotential}
               href={`/restaurants/${id}/marketing/campaigns/new?segment=BIRTHDAYS`}
-              cta="Criar campanha aniversário"
+              cta={t("cards.birthday.cta")}
               priority={
                 riskyCustomers.length === 0 &&
                 vipCustomers.length === 0 &&
                 birthdayCustomers.length > 0
               }
+              priorityLabel={t("priorityBadge")}
+              customersLabel={t("miniStats.customers")}
+              potentialLabel={t("miniStats.potential")}
             />
 
             <RecommendationCard
-              label="Inativos"
-              title="Clientes sem visita"
-              description="Clientes sem visita há mais de 60 dias."
+              label={t("cards.inactive.label")}
+              title={t("cards.inactive.title")}
+              description={t("cards.inactive.description")}
               count={inactiveCustomers.length}
               potential={inactivePotential}
               href={`/restaurants/${id}/marketing/campaigns/new?segment=INACTIVE`}
-              cta="Criar campanha de reativação"
+              cta={t("cards.inactive.cta")}
+              priorityLabel={t("priorityBadge")}
+              customersLabel={t("miniStats.customers")}
+              potentialLabel={t("miniStats.potential")}
             />
           </section>
         </section>
@@ -199,6 +212,9 @@ function RecommendationCard({
   href,
   cta,
   priority,
+  priorityLabel,
+  customersLabel,
+  potentialLabel,
 }: {
   label: string;
   title: string;
@@ -208,6 +224,9 @@ function RecommendationCard({
   href: string;
   cta: string;
   priority?: boolean;
+  priorityLabel: string;
+  customersLabel: string;
+  potentialLabel: string;
 }) {
   return (
     <div
@@ -246,15 +265,15 @@ function RecommendationCard({
 
         {priority && (
           <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#F4E7D2]">
-            Prioridade
+            {priorityLabel}
           </span>
         )}
       </div>
 
       <div className="mt-7 grid grid-cols-2 gap-3">
-        <MiniStat label="Clientes" value={count} priority={priority} />
+        <MiniStat label={customersLabel} value={count} priority={priority} />
         <MiniStat
-          label="Potencial"
+          label={potentialLabel}
           value={`${potential.toFixed(0)}€`}
           priority={priority}
         />

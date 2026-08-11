@@ -2,9 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/validation";
 import { notFound, redirect } from "next/navigation";
 import { Resend } from "resend";
+import { getLocale, getTranslations } from "next-intl/server";
 import ReserveForm from "./ReserveForm";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const emailDateLocales: Record<string, string> = {
+  pt: "pt-PT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  zh: "zh-CN",
+  es: "es-ES",
+};
 
 async function createPublicReservation(formData: FormData) {
   "use server";
@@ -288,45 +298,54 @@ async function createPublicReservation(formData: FormData) {
 
     if (shouldSendEmail) {
       try {
+        const locale = await getLocale();
+        const emailT = await getTranslations("publicFlows.reserve.email");
+        const intlLocale = emailDateLocales[locale] ?? "pt-PT";
+
+        const isPending = status === "PENDING";
+
+        const subject = isPending
+          ? emailT("subjectPending", { restaurantName: restaurant.name })
+          : emailT("subjectConfirmed", { restaurantName: restaurant.name });
+
+        const heading = isPending
+          ? emailT("headingPending")
+          : emailT("headingConfirmed");
+
+        const bodyText = isPending
+          ? emailT("bodyPending")
+          : emailT("bodyConfirmed");
+
+        const statusText = isPending
+          ? emailT("statusPending")
+          : emailT("statusConfirmed");
+
         await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
           to: email,
-          subject:
-            status === "PENDING"
-              ? `Pedido de reserva recebido - ${restaurant.name}`
-              : `Reserva confirmada - ${restaurant.name}`,
+          subject,
           html: `
             <div style="margin:0;background:#F5EFE6;padding:32px;font-family:Arial,sans-serif;color:#16120E;line-height:1.5;">
               <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #E1D0B8;border-radius:24px;padding:28px;">
                 <p style="margin:0 0 14px;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#9B6F3B;">MesaLink</p>
                 <h1 style="margin:0;font-size:28px;line-height:1.1;color:#16120E;">
-                  ${
-                    status === "PENDING"
-                      ? "Pedido de reserva recebido"
-                      : "Reserva confirmada"
-                  }
+                  ${heading}
                 </h1>
-                <p style="margin:18px 0 0;color:#6B6258;">Olá ${customerName},</p>
+                <p style="margin:18px 0 0;color:#6B6258;">${emailT("greeting", { customerName })}</p>
                 <p style="margin:10px 0 0;color:#6B6258;">
-                  ${
-                    status === "PENDING"
-                      ? "Recebemos o seu pedido de reserva. O restaurante irá confirmar ou recusar em breve."
-                      : "A sua reserva foi confirmada com sucesso."
-                  }
+                  ${bodyText}
                 </p>
                 <div style="margin:24px 0;padding:18px;border:1px solid #E1D0B8;border-radius:18px;background:#FFF9F0;">
-                  <p><strong>Restaurante:</strong> ${restaurant.name}</p>
-                  <p><strong>Data:</strong> ${date.toLocaleDateString("pt-PT")}</p>
-                  <p><strong>Hora:</strong> ${date.toLocaleTimeString("pt-PT", {
+                  <p><strong>${emailT("labelRestaurant")}</strong> ${restaurant.name}</p>
+                  <p><strong>${emailT("labelDate")}</strong> ${date.toLocaleDateString(intlLocale)}</p>
+                  <p><strong>${emailT("labelTime")}</strong> ${date.toLocaleTimeString(intlLocale, {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}</p>
-                  <p><strong>Pessoas:</strong> ${guests}</p>
-                  <p><strong>Estado:</strong> ${
-                    status === "PENDING" ? "Pendente de aprovação" : "Confirmada"
-                  }</p>
+                  <p><strong>${emailT("labelGuests")}</strong> ${guests}</p>
+                  <p><strong>${emailT("labelStatus")}</strong> ${statusText}</p>
                 </div>
-                <p style="font-size:12px;color:#9B8F82;">Este email foi enviado automaticamente pelo MesaLink.</p>
+                <p style="font-size:12px;color:#9B8F82;">${emailT("footerNote")}</p>
               </div>
             </div>
           `,

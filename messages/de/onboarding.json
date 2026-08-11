@@ -1,0 +1,29 @@
+{
+  "badge": "7 Tage kostenlos testen",
+  "aside": {
+    "label": "Onboarding",
+    "title": "Richten Sie Ihr Restaurant ein.",
+    "description": "Erstellen Sie Ihr Dashboard, um Reservierungen entgegenzunehmen, Kunden zu verwalten, Ihre Website zu veröffentlichen und mit CRM, Marketing und QR Ordering für Wachstum zu sorgen.",
+    "steps": {
+      "step1": "Restaurant erstellen",
+      "step2": "Öffnungszeiten und Tische einrichten",
+      "step3": "Reservierungen, Website und QR aktivieren"
+    },
+    "trial": {
+      "title": "Vollständige Testversion inklusive",
+      "text": "Testen Sie MesaLink 7 Tage lang unverbindlich."
+    }
+  },
+  "form": {
+    "label": "Restaurantdaten",
+    "title": "Restaurant erstellen",
+    "description": "Diese Angaben erscheinen im Dashboard, auf Ihrer Website und auf der öffentlichen Reservierungsseite. Sie können später alles ändern.",
+    "errorEmail": "Geben Sie eine gültige E-Mail-Adresse ein oder lassen Sie das Feld leer.",
+    "namePlaceholder": "Name des Restaurants",
+    "emailPlaceholder": "E-Mail des Restaurants",
+    "phonePlaceholder": "Telefon",
+    "addressPlaceholder": "Adresse",
+    "submit": "Restaurant erstellen →",
+    "footnote": "MesaLink verbindet Reservierungen, Website, QR Ordering, Kunden, Marketing und Betrieb."
+  }
+}

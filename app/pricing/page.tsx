@@ -1,175 +1,161 @@
+import type { Metadata } from "next";
 import Footer from "@/components/Footer";
+import SiteHeader from "@/components/SiteHeader";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
-const plans = [
-  {
-    name: "Essentials",
-    badge: "7 dias grátis",
+const planMeta = {
+  essentials: {
     price: "55€",
     yearlyPrice: "605€",
     saving: "55€",
-    description:
-      "Para restaurantes que querem centralizar reservas, website, QR Ordering, CRM, reviews e operação num único sistema.",
-    features: [
-      "Mais reservas diretas",
-      "Website premium incluído",
-      "QR Ordering incluído",
-      "CRM de clientes",
-      "Google Reviews",
-      "Mapa de mesas",
-      "Relatórios essenciais",
-      "Sem comissões por reserva",
-    ],
     href: "/register",
     highlighted: false,
   },
-  {
-    name: "Growth",
-    badge: "Mais recomendado",
+  growth: {
     price: "75€",
     yearlyPrice: "825€",
     saving: "75€",
-    description:
-      "Para restaurantes que querem recuperar clientes, promover dias fracos e aumentar visitas recorrentes com Marketing.",
-    features: [
-      "Tudo do Essentials",
-      "Marketing MesaLink incluído",
-      "Recuperar clientes inativos",
-      "Campanhas para dias fracos",
-      "Clientes em risco",
-      "Aniversários automáticos",
-      "Fidelização VIP",
-      "Mais visitas recorrentes",
-    ],
     href: "/register",
     highlighted: true,
   },
-];
+} as const;
 
-const comparison = [
-  ["Website + SEO", "Fornecedor separado", "Incluído"],
-  ["Reservas", "Sistema isolado", "Incluído"],
-  ["QR Ordering", "Add-on separado", "Incluído"],
-  ["CRM", "Folhas ou ferramenta externa", "Incluído"],
-  ["Marketing", "Campanhas manuais", "Growth"],
-  ["Reviews", "Sem processo claro", "Incluído"],
-];
+const planIds = ["essentials", "growth"] as const;
 
-const faqs = [
-  {
-    question: "Existe período grátis?",
-    answer:
-      "Sim. Pode experimentar todas as funcionalidades durante 7 dias antes de escolher o plano.",
-  },
-  {
-    question: "O pagamento anual tem desconto?",
-    answer:
-      "Sim. No pagamento anual recebe 1 mês grátis: Essentials fica 605€/ano e Growth fica 825€/ano, sem IVA.",
-  },
-  {
-    question: "Qual é a diferença do Growth?",
-    answer:
-      "O Growth adiciona Marketing para recuperar clientes, promover dias fracos e aumentar visitas recorrentes.",
-  },
-  {
-    question: "Há comissões por reserva?",
-    answer: "Não. A MesaLink não cobra comissão por reserva.",
-  },
-  {
-    question: "Posso cancelar?",
-    answer: "Sim. Pode cancelar quando quiser.",
-  },
-];
+export const metadata: Metadata = {
+  title: "Preços do Software para Restaurantes",
+  description: "Planos MesaLink para restaurantes: reservas, website, QR Ordering, CRM, reviews, marketing e operação. Teste grátis durante 7 dias.",
+  alternates: { canonical: "https://mesalink.pt/pricing" },
+};
 
-export default function PricingPage() {
+const comparisonRowIds = [
+  "website",
+  "reservations",
+  "qrOrdering",
+  "crm",
+  "marketing",
+  "reviews",
+] as const;
+
+const faqIds = [
+  "trial",
+  "yearlyDiscount",
+  "growthDifference",
+  "commissions",
+  "cancel",
+] as const;
+
+export default async function PricingPage() {
+  const t = await getTranslations("staticPages.pricing");
+
+  const plans = planIds.map((id) => {
+    const meta = planMeta[id];
+    return {
+      id,
+      name: t(`plans.${id}.name`),
+      badge: t(`plans.${id}.badge`),
+      description: t(`plans.${id}.description`),
+      features: t.raw(`plans.${id}.features`) as string[],
+      yearlyNote: t("plans.yearlyNote", { saving: meta.saving }),
+      ...meta,
+    };
+  });
+
+  const planLabels = {
+    perMonth: t("plans.perMonth"),
+    yearlyLabel: t("plans.yearlyLabel"),
+    yearlySuffix: t("plans.yearlySuffix"),
+    ctaMonthly: t("plans.ctaMonthly"),
+    ctaYearly: t("plans.ctaYearly"),
+  };
+
+  const comparison = comparisonRowIds.map((id) => ({
+    id,
+    need: t(`comparison.rows.${id}.need`),
+    traditional: t(`comparison.rows.${id}.traditional`),
+    mesalink: t(`comparison.rows.${id}.mesalink`),
+  }));
+
+  const faqs = faqIds.map((id) => ({
+    id,
+    question: t(`faq.items.${id}.question`),
+    answer: t(`faq.items.${id}.answer`),
+  }));
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#F4ECDF] text-[#17130F]">
-      <header className="border-b border-[#DECDB4] bg-[#F4ECDF]/86 px-5 py-5 backdrop-blur-xl lg:px-8">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between">
-          <Link href="/" className="text-2xl font-semibold tracking-[-0.045em]">
-            <span className="text-[#C8A56A]">Mesa</span>
-            <span className="text-[#17130F]">Link</span>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="rounded-full border border-[#D8C5A5] bg-[#FFF9F0] px-5 py-2.5 text-sm font-semibold text-[#5C5348] transition hover:bg-white hover:text-[#17130F]"
-            >
-              Entrar
-            </Link>
-
-            <Link
-              href="/register"
-              className="hidden rounded-full bg-[#17130F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118] sm:inline-flex"
-            >
-              Começar
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <section className="px-5 py-16 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-4xl text-center">
-            <Badge>Growth. Visibility. Control.</Badge>
+            <Badge>{t("hero.badge")}</Badge>
 
             <h1 className="mt-6 text-[46px] font-semibold leading-[0.9] tracking-[-0.075em] sm:text-6xl lg:text-7xl">
-              Escolha a plataforma certa para
+              {t("hero.titleLine1")}
               <span className="block text-[#C8A56A]">
-                fazer crescer o restaurante.
+                {t("hero.titleLine2")}
               </span>
             </h1>
 
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#5C5348]">
-              Atraia mais clientes, aumente a receita e simplifique a operação
-              com reservas, website, QR Ordering, CRM e Marketing integrados.
+              {t("hero.text")}
             </p>
 
             <div className="mx-auto mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
-              <HeroStat value="7 dias" label="trial completo" />
-              <HeroStat value="1 mês" label="grátis no anual" />
-              <HeroStat value="0€" label="comissões" />
+              <HeroStat
+                value={t("hero.stats.trial.value")}
+                label={t("hero.stats.trial.label")}
+              />
+              <HeroStat
+                value={t("hero.stats.yearly.value")}
+                label={t("hero.stats.yearly.label")}
+              />
+              <HeroStat
+                value={t("hero.stats.commission.value")}
+                label={t("hero.stats.commission.label")}
+              />
             </div>
           </div>
 
           <section className="mt-12 grid gap-5 lg:grid-cols-2">
             {plans.map((plan) => (
-              <PlanCard key={plan.name} plan={plan} />
+              <PlanCard key={plan.id} plan={plan} labels={planLabels} />
             ))}
           </section>
 
           <section className="mt-12 overflow-hidden rounded-[38px] border border-[#D8C5A5] bg-[#FFF9F0] shadow-[0_30px_110px_rgba(80,55,30,0.10)]">
             <div className="p-6 sm:p-8">
-              <Badge>Porque MesaLink?</Badge>
+              <Badge>{t("comparison.badge")}</Badge>
 
               <h2 className="mt-5 text-3xl font-semibold tracking-[-0.055em] sm:text-5xl">
-                Menos sistemas separados. Mais crescimento.
+                {t("comparison.title")}
               </h2>
 
               <p className="mt-4 max-w-2xl text-[#6B6258]">
-                A MesaLink junta descoberta, reservas, QR Ordering, CRM,
-                Marketing e reviews para aumentar receita, visibilidade e
-                controlo.
+                {t("comparison.text")}
               </p>
             </div>
 
             <div className="overflow-x-auto">
               <div className="min-w-[620px]">
                 <div className="grid grid-cols-3 border-y border-[#E5D6C1] bg-white/50 p-4 text-xs font-black uppercase tracking-[0.16em] text-[#9B6F3B] sm:text-sm">
-                  <div>Necessidade</div>
-                  <div>Tradicional</div>
-                  <div>MesaLink</div>
+                  <div>{t("comparison.headers.need")}</div>
+                  <div>{t("comparison.headers.traditional")}</div>
+                  <div>{t("comparison.headers.mesalink")}</div>
                 </div>
 
-                {comparison.map(([need, traditional, mesalink]) => (
+                {comparison.map((row) => (
                   <div
-                    key={need}
+                    key={row.id}
                     className="grid grid-cols-3 border-b border-[#E5D6C1] p-4 text-sm last:border-b-0 sm:p-5 sm:text-base"
                   >
-                    <div className="font-semibold text-[#17130F]">{need}</div>
-                    <div className="text-[#6B6258]">{traditional}</div>
-                    <div className="font-semibold text-[#9B6F3B]">{mesalink}</div>
+                    <div className="font-semibold text-[#17130F]">{row.need}</div>
+                    <div className="text-[#6B6258]">{row.traditional}</div>
+                    <div className="font-semibold text-[#9B6F3B]">
+                      {row.mesalink}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -177,38 +163,37 @@ export default function PricingPage() {
           </section>
 
           <section className="mt-12 rounded-[38px] border border-[#D8C5A5] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)] sm:p-8">
-            <Badge>FAQ</Badge>
+            <Badge>{t("faq.badge")}</Badge>
 
             <h2 className="mt-5 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">
-              Perguntas rápidas.
+              {t("faq.title")}
             </h2>
 
             <div className="mt-8 grid gap-3 md:grid-cols-2">
               {faqs.map((faq) => (
-                <FAQ key={faq.question} question={faq.question} answer={faq.answer} />
+                <FAQ key={faq.id} question={faq.question} answer={faq.answer} />
               ))}
             </div>
           </section>
 
           <section className="mt-12 overflow-hidden rounded-[40px] bg-[#17130F] p-7 text-white shadow-[0_35px_120px_rgba(34,26,19,0.22)] sm:p-9">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D8C5A5]">
-              Comece hoje
+              {t("finalCta.eyebrow")}
             </p>
 
             <h2 className="mt-4 text-[40px] font-semibold leading-[0.92] tracking-[-0.065em] sm:text-5xl">
-              Teste tudo durante 7 dias.
+              {t("finalCta.title")}
             </h2>
 
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/68">
-              Experimente todas as funcionalidades antes de escolher plano. No
-              pagamento anual, recebe 1 mês grátis.
+              {t("finalCta.text")}
             </p>
 
             <Link
               href="/register"
               className="mt-7 inline-flex h-14 items-center justify-center rounded-full bg-[#D8C5A5] px-8 text-base font-semibold text-[#17130F] transition hover:bg-[#E8D6B8]"
             >
-              Começar teste gratuito →
+              {t("finalCta.cta")}
             </Link>
           </section>
         </div>
@@ -221,22 +206,34 @@ export default function PricingPage() {
 
 function PlanCard({
   plan,
+  labels,
 }: {
   plan: {
+    id: string;
     name: string;
     badge: string;
+    description: string;
+    features: string[];
     price: string;
     yearlyPrice: string;
     saving: string;
-    description: string;
-    features: string[];
+    yearlyNote: string;
     href: string;
     highlighted: boolean;
   };
+  labels: {
+    perMonth: string;
+    yearlyLabel: string;
+    yearlySuffix: string;
+    ctaMonthly: string;
+    ctaYearly: string;
+  };
 }) {
+  const yearlyNote = plan.yearlyNote.replace(/^[·\s]+/, "");
+
   return (
     <div
-      data-plan-card={plan.name.toLowerCase()}
+      data-plan-card={plan.id}
       className={`relative flex min-h-0 flex-col overflow-hidden rounded-[30px] border p-5 shadow-[0_24px_80px_rgba(80,55,30,0.08)] sm:min-h-[650px] sm:rounded-[38px] sm:p-8 ${
         plan.highlighted
           ? "border-[#2C2117] bg-[#17130F] text-white"
@@ -291,7 +288,7 @@ function PlanCard({
               plan.highlighted ? "text-white/62" : "text-[#6B6258]"
             }`}
           >
-            /mês
+            {labels.perMonth}
           </span>
         </div>
 
@@ -309,18 +306,21 @@ function PlanCard({
                 : "font-semibold text-[#9B6F3B]"
             }
           >
-            Pagamento anual
+            {labels.yearlyLabel}
           </p>
 
           <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs leading-5">
             <span
               className={
-                plan.highlighted ? "font-black text-white" : "font-black text-[#16120E]"
+                plan.highlighted
+                  ? "font-black text-white"
+                  : "font-black text-[#16120E]"
               }
             >
-              {plan.yearlyPrice}/ano
+              {plan.yearlyPrice}
+              {labels.yearlySuffix}
             </span>
-            <span>1 mês grátis · poupa {plan.saving}</span>
+            <span>{yearlyNote}</span>
           </div>
         </div>
 
@@ -332,7 +332,9 @@ function PlanCard({
                 plan.highlighted ? "text-white/84" : "text-[#4F463B]"
               }`}
             >
-              <span className={plan.highlighted ? "text-[#D8C5A5]" : "text-[#9B6F3B]"}>
+              <span
+                className={plan.highlighted ? "text-[#D8C5A5]" : "text-[#9B6F3B]"}
+              >
                 ✓
               </span>
               <span>{feature}</span>
@@ -349,18 +351,18 @@ function PlanCard({
                 : "bg-[#17130F] text-white hover:bg-[#2A2118]"
             }`}
           >
-            Começar mensal →
+            {labels.ctaMonthly}
           </Link>
 
           <Link
-            href={`${plan.href}?billing=yearly&plan=${plan.name.toLowerCase()}`}
+            href={`${plan.href}?billing=yearly&plan=${plan.id}`}
             className={`flex min-h-14 w-full items-center justify-center rounded-full border px-5 py-3 text-center text-sm font-semibold leading-tight transition ${
               plan.highlighted
                 ? "border-[#D8C5A5]/45 bg-white/[0.06] text-[#D8C5A5] hover:bg-white/[0.10]"
                 : "border-[#D8C5A5] bg-[#FFF9F0] text-[#9B6F3B] hover:bg-white"
             }`}
           >
-            Começar anual →
+            {labels.ctaYearly}
           </Link>
         </div>
       </div>
@@ -379,7 +381,9 @@ function Badge({ children }: { children: React.ReactNode }) {
 function HeroStat({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-2xl border border-[#D8C5A5] bg-[#FFF9F0] p-4 text-center">
-      <p className="text-2xl font-semibold tracking-[-0.055em] text-[#17130F]">{value}</p>
+      <p className="text-2xl font-semibold tracking-[-0.055em] text-[#17130F]">
+        {value}
+      </p>
       <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#9B6F3B]">
         {label}
       </p>

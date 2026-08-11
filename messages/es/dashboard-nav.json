@@ -1,0 +1,39 @@
+{
+  "sections": {
+    "operation": "Operación",
+    "growth": "Crecimiento"
+  },
+  "items": {
+    "dashboard": "Panel",
+    "menu": "Menú y Productos",
+    "qrOrdering": "QR Ordering",
+    "serviceDay": "Servicio del día",
+    "reservations": "Reservas",
+    "tables": "Sala y Mesas",
+    "customers": "Clientes",
+    "marketing": "Marketing",
+    "website": "Sitio web",
+    "aiVisibility": "Visibilidad IA",
+    "billing": "Facturación",
+    "settings": "Ajustes"
+  },
+  "account": "Cuenta",
+  "comingSoon": "Próximamente",
+  "tagline": "Growth Platform for Restaurants",
+  "growthSuite": "Growth Suite",
+  "bottomNav": {
+    "dash": "Panel",
+    "today": "Hoy",
+    "calendar": "Cal.",
+    "orders": "QR",
+    "more": "Más",
+    "moreSheet": {
+      "title": "Más opciones",
+      "tables": "Sala",
+      "marketing": "Mkt.",
+      "aiVisibility": "Visibilidad IA",
+      "settings": "Ajustes",
+      "language": "Idioma"
+    }
+  }
+}

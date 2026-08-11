@@ -1,0 +1,156 @@
+{
+  "main": {
+    "nav": {
+      "back": "← Retour au tableau de bord",
+      "badge": "MesaLink Facturation"
+    },
+    "hero": {
+      "kicker": "Growth. Visibility. Control.",
+      "title": "Choisissez le bon plan pour faire grandir le restaurant.",
+      "description": "Tous les plans incluent Site web, Réservations, QR Ordering, CRM, Avis et une gestion intégrée. Growth ajoute le Marketing pour récupérer des clients et augmenter les visites récurrentes."
+    },
+    "stats": {
+      "currentPlan": {
+        "label": "Plan actuel"
+      },
+      "trial": {
+        "label": "Trial",
+        "daysLeft": "{days} jours",
+        "ended": "Terminé"
+      },
+      "commissions": {
+        "label": "Commissions",
+        "value": "0€"
+      },
+      "yearlyPayment": {
+        "label": "Paiement annuel",
+        "value": "1 mois offert"
+      }
+    },
+    "planStatus": {
+      "trialFull": "Essai complet",
+      "noPlan": "Aucun plan actif"
+    },
+    "accountState": {
+      "kicker": "État du compte",
+      "trialText": "Vous testez actuellement toutes les fonctionnalités de MesaLink.",
+      "activeText": "Votre abonnement est actif.",
+      "noPlanText": "Choisissez un plan pour continuer à utiliser la plateforme."
+    },
+    "trialBox": {
+      "title": "Essai complet actif",
+      "text": "Il vous reste {days} jour(s) pour essayer Site web, QR Ordering, CRM, Avis et Marketing avant de choisir un plan."
+    },
+    "upgradeBox": {
+      "title": "Mise à niveau disponible",
+      "text": "Activez Growth pour seulement +20€/mois et débloquez le Marketing automatique, la récupération de clients inactifs et des campagnes pour les jours creux. La date de renouvellement reste la même et Stripe calcule automatiquement la différence au prorata."
+    },
+    "badges": {
+      "currentPlan": "Plan actuel",
+      "basePlan": "Plan de base",
+      "recommended": "Le plus recommandé"
+    },
+    "planCard": {
+      "perMonth": "/mois",
+      "yearlyLabel": "Paiement annuel",
+      "yearlySuffix": "/an",
+      "yearlyNote": "· 1 mois offert · économisez {saving}",
+      "currentPlanCta": "Plan actuel · Ouvrir le tableau de bord →",
+      "ctaMonthly": "Mensuel {price} →",
+      "ctaYearly": "Annuel {price} →",
+      "essentials": {
+        "description": "Pour les restaurants qui veulent centraliser réservations, site web, QR Ordering, CRM, avis clients et gestion dans un seul système.",
+        "features": [
+          "Plus de réservations directes",
+          "Site web premium inclus",
+          "QR Ordering inclus",
+          "CRM clients",
+          "Avis Google",
+          "Plan de salle",
+          "Rapports essentiels",
+          "Sans commission par réservation"
+        ]
+      },
+      "growth": {
+        "description": "Pour les restaurants qui veulent récupérer des clients, dynamiser les jours creux et augmenter les visites récurrentes grâce au Marketing.",
+        "features": [
+          "Tout Essentials",
+          "Marketing MesaLink inclus",
+          "Récupérer les clients inactifs",
+          "Campagnes pour les jours creux",
+          "Clients à risque",
+          "Anniversaires automatiques",
+          "Fidélisation VIP",
+          "Plus de visites récurrentes"
+        ],
+        "upgrade": {
+          "kicker": "Mise à niveau",
+          "price": "+20€/mois",
+          "note": "Conserve votre date de renouvellement actuelle."
+        }
+      }
+    },
+    "platformSection": {
+      "kicker": "Restaurant Essentials",
+      "title": "Une plateforme vivante pour les restaurants.",
+      "text": "MesaLink continuera de lancer de nouveaux outils pour aider les restaurants à se développer, gagner en visibilité et simplifier la gestion quotidienne.",
+      "features": {
+        "revenue": { "title": "Plus de chiffre d'affaires", "text": "QR Ordering + Marketing" },
+        "visibility": { "title": "Plus de visibilité", "text": "Site web + Avis" },
+        "control": { "title": "Plus de contrôle", "text": "CRM + Réservations" },
+        "commissions": { "title": "0€ de commissions", "text": "Réservations directes" }
+      }
+    },
+    "taxBilling": {
+      "kicker": "Facturation fiscale",
+      "title": "Facturation fiscale gérée en dehors de MesaLink.",
+      "text": "La facturation fiscale est gérée en externe par un logiciel certifié de votre choix. Ce coût n'est pas facturé par MesaLink.",
+      "note": "MesaLink garde les réservations, les clients, le QR Ordering, le site web, les avis et le marketing connectés au sein d'une même opération."
+    }
+  },
+  "success": {
+    "kicker": "Abonnement actif",
+    "title": "Plan {plan} activé.",
+    "subtitle": "Votre abonnement a été confirmé avec succès. Vous pouvez désormais continuer à utiliser MesaLink sans interruption.",
+    "stats": {
+      "plan": "plan actif",
+      "cycle": "cycle choisi",
+      "commissions": "commissions"
+    },
+    "billingCycle": {
+      "yearly": "Paiement annuel",
+      "monthly": "Paiement mensuel"
+    },
+    "available": {
+      "title": "Déjà disponible dans votre compte",
+      "items": {
+        "reservations": "Réservations en ligne sans commission",
+        "website": "Site web professionnel",
+        "qrOrdering": "QR Ordering",
+        "crm": "CRM clients",
+        "googleReviews": "Avis Google",
+        "marketingGrowth": "Marketing Growth"
+      }
+    },
+    "nextSteps": {
+      "title": "Prochaines étapes utiles",
+      "items": {
+        "reviewHours": "Vérifier les horaires et la capacité",
+        "confirmTables": "Confirmer les salles et les tables",
+        "publishWebsite": "Publier le site web et le QR Ordering",
+        "shareLink": "Partager le lien de réservation",
+        "trackResults": "Suivre les résultats dans le tableau de bord"
+      }
+    },
+    "billingNote": {
+      "title": "Remarque sur la facturation fiscale",
+      "text": "La facturation fiscale est gérée en externe par un logiciel certifié de votre choix. MesaLink garde les réservations, les clients, le QR Ordering, le site web, les avis et le marketing connectés au sein d'une même opération."
+    },
+    "cta": "Ouvrir le tableau de bord →"
+  },
+  "upgradeButton": {
+    "loading": "Mise à niveau...",
+    "cta": "Passer à Growth →",
+    "error": "Erreur lors de la mise à niveau."
+  }
+}

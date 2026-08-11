@@ -1,0 +1,290 @@
+{
+  "reservations": {
+    "list": {
+      "notFound": "Restaurante no encontrado.",
+      "header": {
+        "eyebrow": "Reservas",
+        "today": "Hoy",
+        "newReservation": "Nueva reserva"
+      },
+      "approvals": {
+        "eyebrow": "Aprobaciones",
+        "heading": "Reservas que necesitan una decisión",
+        "pendingCount": "{count, plural, one {# pendiente} other {# pendientes}}",
+        "guests": "{count, plural, one {# persona} other {# personas}}"
+      },
+      "legend": {
+        "low": "Ocupación baja",
+        "medium": "Media",
+        "high": "Alta"
+      },
+      "weekdays": {
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mié",
+        "thu": "Jue",
+        "fri": "Vie",
+        "sat": "Sáb",
+        "sun": "Dom"
+      },
+      "calendar": {
+        "lunch": "Almuerzo",
+        "dinner": "Cena"
+      },
+      "approvalReasons": {
+        "LARGE_GROUP": "Grupo grande",
+        "TABLE_MERGE": "Unión de mesas",
+        "CAPACITY_LIMIT": "Límite de capacidad"
+      }
+    },
+    "new": {
+      "notFound": "Restaurante no encontrado",
+      "back": "Volver a las reservas",
+      "eyebrow": "Nueva reserva",
+      "title": "Crear reserva manual.",
+      "description": {
+        "prefix": "Añade una reserva al calendario de",
+        "suffix": ". El email y la fecha de nacimiento son opcionales, pero ayudan con el CRM y las campañas."
+      },
+      "miniCards": {
+        "status": {
+          "label": "Estado",
+          "value": "Confirmada automáticamente"
+        },
+        "table": {
+          "label": "Mesa",
+          "auto": "Asignación automática",
+          "none": "Sin mesa asignada"
+        },
+        "crm": {
+          "label": "CRM",
+          "value": "Cliente actualizado automáticamente"
+        }
+      },
+      "errors": {
+        "noTable": "No hay ninguna mesa disponible para ese número de personas a esa hora.",
+        "conflict": "Ya existe una reserva cercana a esa hora.",
+        "email": "Introduce un email válido o deja el campo en blanco."
+      },
+      "sections": {
+        "customer": "Cliente",
+        "reservation": "Reserva",
+        "time": "Hora",
+        "notes": "Observaciones"
+      },
+      "fields": {
+        "customerName": {
+          "label": "Nombre del cliente",
+          "placeholder": "Ej.: Juan Pérez"
+        },
+        "phone": {
+          "label": "Teléfono",
+          "placeholder": "Ej.: 912345678"
+        },
+        "email": {
+          "label": "Email recomendado",
+          "placeholder": "Ej.: cliente@email.com",
+          "helper": "Recomendado para confirmaciones, campañas e historial del cliente."
+        },
+        "birthDate": {
+          "label": "Fecha de nacimiento recomendada",
+          "helper": "Recomendado para campañas de cumpleaños y fidelización."
+        },
+        "guests": {
+          "label": "Número de personas",
+          "placeholder": "Ej.: 4"
+        },
+        "date": {
+          "label": "Fecha"
+        },
+        "notes": {
+          "placeholder": "Ej.: 1 vegetariano, cumpleaños, mesa tranquila, trona..."
+        }
+      },
+      "tableInfo": {
+        "auto": "La mesa se asignará automáticamente según el número de personas y la disponibilidad.",
+        "capacityMode": {
+          "prefix": "Este restaurante está en modo",
+          "bold": "capacidad",
+          "suffix": ". La reserva se creará sin mesa asignada."
+        }
+      },
+      "submit": "Crear reserva",
+      "cancel": "Cancelar"
+    },
+    "upcoming": {
+      "notFound": "Restaurante no encontrado.",
+      "eyebrow": "Reservas",
+      "title": "Próximas reservas",
+      "summary": "{count, plural, one {# reserva} other {# reservas}} · {guests} personas en total",
+      "viewCalendar": "Ver calendario",
+      "empty": "Todavía no hay próximas reservas.",
+      "today": "Hoy",
+      "tomorrow": "Mañana",
+      "statusLabels": {
+        "PENDING": "Pendiente",
+        "CONFIRMED": "Confirmada",
+        "SEATED": "Sentado",
+        "FINISHED": "Finalizada",
+        "NO_SHOW": "No-show",
+        "CANCELLED": "Cancelada",
+        "REJECTED": "Rechazada"
+      },
+      "row": {
+        "table": "Mesa {number}",
+        "noTable": "Sin mesa",
+        "guests": "{count} pax",
+        "phoneLabel": "Móvil",
+        "noPhone": "Sin móvil",
+        "emailLabel": "Email",
+        "noEmail": "Sin email"
+      }
+    }
+  },
+  "customers": {
+    "list": {
+      "notFound": "Restaurante no encontrado.",
+      "eyebrow": "Clientes",
+      "title": "CRM",
+      "subtitleSuffix": "clientes, campañas, VIPs y riesgo de abandono.",
+      "newCustomerLink": "Nuevo cliente",
+      "importCsvLink": "Importar CSV",
+      "importResult": "Importación completada: {created} creados · {updated} actualizados · {skipped} omitidos.",
+      "errors": {
+        "missing": "Rellena al menos el nombre y el email o el teléfono.",
+        "email": "Introduce un email válido o deja el campo en blanco."
+      },
+      "metrics": {
+        "customers": "Clientes",
+        "vips": "VIPs",
+        "atRisk": "En riesgo",
+        "covers": "Covers",
+        "value": "Valor"
+      },
+      "newCustomerForm": {
+        "title": "Nuevo cliente",
+        "subtitle": "Añadir manualmente al CRM.",
+        "fields": {
+          "name": "Nombre",
+          "phone": "Teléfono",
+          "email": "Email",
+          "birthDate": "Nacimiento",
+          "tags": "Tags: VIP, cumpleaños, empresa",
+          "notes": "Notas"
+        },
+        "submit": "Crear cliente"
+      },
+      "importForm": {
+        "title": "Importar clientes",
+        "subtitle": "Importa clientes por CSV. Compatible con Excel.",
+        "formatHelp": {
+          "prefix": "Este es el formato que debe tener el CSV. Las etiquetas usan",
+          "suffix": "."
+        },
+        "downloadSample": "Descargar ejemplo",
+        "submit": "Importar clientes"
+      },
+      "table": {
+        "title": "Base de clientes",
+        "subtitle": "{count, plural, one {# cliente registrado} other {# clientes registrados}}",
+        "noEmail": "Sin email",
+        "noPhone": "Sin teléfono",
+        "columns": {
+          "tags": "Tags",
+          "visits": "Visitas",
+          "value": "Valor",
+          "lastVisit": "Última",
+          "risk": "Riesgo"
+        },
+        "view": "Ver",
+        "empty": {
+          "title": "Todavía no hay clientes.",
+          "subtitle": "Crea clientes manualmente, importa un CSV o recibe reservas."
+        }
+      },
+      "sort": {
+        "recent": "Recientes",
+        "name": "Nombre",
+        "visits": "Visitas",
+        "value": "Valor",
+        "birthday": "Cumpleaños",
+        "risk": "Riesgo"
+      }
+    },
+    "detail": {
+      "back": "Volver a los clientes",
+      "riskBadge": {
+        "high": "Riesgo alto",
+        "medium": "Riesgo medio"
+      },
+      "noEmail": "Sin email",
+      "noPhone": "Sin teléfono",
+      "createCampaign": "Crear campaña",
+      "metrics": {
+        "value": "Valor",
+        "visits": "Visitas",
+        "covers": "Covers",
+        "noShows": "No-shows",
+        "riskScore": "Risk Score"
+      },
+      "profile": {
+        "eyebrow": "Perfil",
+        "heading": "Datos del cliente",
+        "fields": {
+          "email": "Email",
+          "phone": "Teléfono",
+          "lastVisit": "Última visita",
+          "vipTier": "VIP Tier",
+          "marketing": "Marketing"
+        },
+        "defaultTier": "Cliente",
+        "marketingYes": "Autorizado",
+        "marketingNo": "No autorizado"
+      },
+      "history": {
+        "eyebrow": "Historial",
+        "heading": "Reservas",
+        "guests": "{count, plural, one {# persona} other {# personas}}",
+        "table": "Mesa {number}",
+        "noTable": "Sin mesa",
+        "empty": "Este cliente todavía no tiene reservas.",
+        "statusLabels": {
+          "PENDING": "Pendiente",
+          "CONFIRMED": "Confirmada",
+          "SEATED": "Sentado",
+          "FINISHED": "Finalizada",
+          "NO_SHOW": "No-show",
+          "CANCELLED": "Cancelada",
+          "REJECTED": "Rechazada"
+        }
+      },
+      "notes": {
+        "eyebrow": "Notas internas",
+        "heading": "Conocimiento del equipo",
+        "description": "Información privada sobre las preferencias e historial de este cliente.",
+        "placeholder": "Ej.: Prefiere mesa junto a la ventana...",
+        "submit": "Guardar notas"
+      },
+      "tags": {
+        "eyebrow": "Tags",
+        "heading": "Segmentación",
+        "description": "Usa etiquetas para identificar clientes locales, turistas, empresas, influencers o clientes de alto valor.",
+        "empty": "Este cliente todavía no tiene etiquetas.",
+        "inputPlaceholder": "Ej.: local, alto valor, influencer",
+        "submit": "Guardar etiquetas"
+      },
+      "growth": {
+        "eyebrow": "Growth",
+        "heading": "Actividad de marketing",
+        "empty": "Este cliente todavía no tiene acciones de marketing."
+      },
+      "marketingTypes": {
+        "VIP_UPGRADE": "Mejora VIP",
+        "INACTIVE_RECOVERY": "Recuperación",
+        "BIRTHDAY": "Cumpleaños",
+        "MANUAL_CAMPAIGN": "Campaña",
+        "REVIEW_REQUEST": "Reseña"
+      }
+    }
+  }
+}

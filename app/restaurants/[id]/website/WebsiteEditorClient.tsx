@@ -4,7 +4,10 @@ import Link from "next/link";
 import { FileUploadField } from "@/components/FileUploadField";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+
+type Translator = ReturnType<typeof useTranslations>;
 
 type WebsiteMenuItem = {
   id?: string;
@@ -65,6 +68,7 @@ export function WebsiteEditorClient({
   restaurant: RestaurantWebsiteData;
   saved: boolean;
 }) {
+  const t = useTranslations("dashboardSettings.website");
   const [enabled, setEnabled] = useState(restaurant.websiteEnabled);
   const [template, setTemplate] = useState(
     restaurant.websiteTemplate || "PREMIUM",
@@ -254,7 +258,7 @@ export function WebsiteEditorClient({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "Erro ao gerar conteúdo com IA");
+        throw new Error(data?.error || t("aiErrors.generateFailed"));
       }
 
       setHeadline(data.headline || "");
@@ -273,7 +277,7 @@ export function WebsiteEditorClient({
       setSeoDescription(data.seoDescription || "");
     } catch (error) {
       console.error(error);
-      alert("Erro ao gerar conteúdo com IA. Confirma a OPENAI_API_KEY e tenta novamente.");
+      alert(t("aiErrors.generateFailedAlert"));
     } finally {
       setIsGeneratingAi(false);
     }
@@ -333,7 +337,7 @@ export function WebsiteEditorClient({
        <RestaurantSidebar
   id={restaurant.id}
   restaurantName={restaurant.name}
-  active="Website"
+  active="website"
 />
 
         <div className="min-w-0 px-4 py-5 sm:px-6 lg:px-8">
@@ -343,11 +347,11 @@ export function WebsiteEditorClient({
               <div className="flex flex-wrap items-center gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-                    Website
+                    {t("header.eyebrow")}
                   </p>
 
                   <h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em]">
-                    Website Studio
+                    {t("header.title")}
                   </h1>
                 </div>
 
@@ -358,18 +362,18 @@ export function WebsiteEditorClient({
                       : "rounded-full border border-[#E7B7A8] bg-[#FFF0EA] px-3 py-1 text-xs font-semibold text-[#A14E36]"
                   }
                 >
-                  {enabled ? "Online" : "Offline"}
+                  {enabled ? t("header.statusOnline") : t("header.statusOffline")}
                 </span>
 
                 {saved && (
                   <span className="rounded-full border border-[#E1D0B8] bg-white px-3 py-1 text-xs font-semibold text-[#9B6F3B]">
-                    Guardado
+                    {t("header.savedBadge")}
                   </span>
                 )}
               </div>
 
               <p className="mt-3 text-sm text-[#6B6258]">
-                Cria um website profissional para o teu restaurante em poucos minutos.
+                {t("header.subtitle")}
               </p>
             </div>
 
@@ -379,7 +383,7 @@ export function WebsiteEditorClient({
                 onClick={improveText}
                 className="inline-flex h-11 items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-5 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
               >
-                Melhorar textos
+                {t("header.improveTextButton")}
               </button>
 
               <a
@@ -388,7 +392,7 @@ export function WebsiteEditorClient({
                 rel="noreferrer"
                 className="inline-flex h-11 items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-5 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
               >
-                Ver site
+                {t("header.viewSiteButton")}
               </a>
 
               <button
@@ -396,7 +400,7 @@ export function WebsiteEditorClient({
                 type="submit"
                 className="inline-flex h-11 items-center justify-center rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
               >
-                Guardar alterações
+                {t("header.saveButton")}
               </button>
             </div>
           </div>
@@ -411,8 +415,8 @@ export function WebsiteEditorClient({
           <section className="space-y-6">
             <EditorBlock
               number="01"
-              title="Publicação"
-              description="Controla se o site está online e qual é o endereço público."
+              title={t("publish.title")}
+              description={t("publish.description")}
             >
               <label className="flex cursor-pointer items-start gap-4 rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-5">
                 <input
@@ -424,10 +428,10 @@ export function WebsiteEditorClient({
                 />
 
                 <div>
-                  <p className="font-semibold">Ativar website público</p>
+                  <p className="font-semibold">{t("publish.enableLabel")}</p>
 
                   <p className="mt-1 text-sm leading-6 text-[#6B6258]">
-                    Quando ativo, o restaurante fica disponível em{" "}
+                    {t("publish.enableDescriptionBefore")}{" "}
                     <span className="font-semibold text-[#16120E]">
                       {fullPublicUrl}
                     </span>
@@ -436,7 +440,7 @@ export function WebsiteEditorClient({
                 </div>
               </label>
 
-              <Field label="Link público">
+              <Field label={t("publish.linkLabel")}>
                 <div className="grid gap-3 md:grid-cols-[1fr_150px]">
                   <input
                     name="slug"
@@ -452,38 +456,38 @@ export function WebsiteEditorClient({
                 </div>
               </Field>
 
-              <Field label="Template">
+              <Field label={t("publish.templateLabel")}>
                 <select
                   name="websiteTemplate"
                   value={template}
                   onChange={(event) => setTemplate(event.target.value)}
                   className="input-premium h-12"
                 >
-                  <option value="PREMIUM">Premium Restaurant</option>
-                  <option value="LUXURY">Luxury Dining</option>
-                  <option value="MINIMAL">Minimal Clean</option>
-                  <option value="SOCIAL">Instagram First</option>
+                  <option value="PREMIUM">{t("publish.templateOptions.premium")}</option>
+                  <option value="LUXURY">{t("publish.templateOptions.luxury")}</option>
+                  <option value="MINIMAL">{t("publish.templateOptions.minimal")}</option>
+                  <option value="SOCIAL">{t("publish.templateOptions.social")}</option>
                 </select>
               </Field>
             </EditorBlock>
 
             <EditorBlock
               number="02"
-              title="IA Website Builder"
-              description="Funcionalidade em desenvolvimento."
+              title={t("aiBuilder.title")}
+              description={t("aiBuilder.description")}
             >
               <div className="rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-6">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold">IA Website Builder</h3>
+                    <h3 className="text-lg font-semibold">{t("aiBuilder.cardTitle")}</h3>
 
                     <p className="mt-2 text-sm text-[#6B6258]">
-                      Criação automática de conteúdo para websites.
+                      {t("aiBuilder.cardText")}
                     </p>
                   </div>
 
                   <span className="rounded-full border border-[#E1D0B8] bg-[#EFE5D6] px-3 py-1 text-xs font-semibold text-[#9B6F3B]">
-                    Coming Soon
+                    {t("aiBuilder.comingSoonBadge")}
                   </span>
                 </div>
               </div>
@@ -491,11 +495,11 @@ export function WebsiteEditorClient({
 
             <EditorBlock
               number="03"
-              title="Primeira impressão"
-              description="O que o cliente vê nos primeiros 3 segundos."
+              title={t("firstImpression.title")}
+              description={t("firstImpression.description")}
             >
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Headline">
+                <Field label={t("firstImpression.headlineLabel")}>
                   <input
                     name="websiteHeadline"
                     value={headline}
@@ -505,68 +509,68 @@ export function WebsiteEditorClient({
                   />
                 </Field>
 
-                <Field label="Tipo de cozinha">
+                <Field label={t("firstImpression.cuisineLabel")}>
                   <input
                     name="websiteCuisine"
                     value={cuisine}
                     onChange={(event) => setCuisine(event.target.value)}
-                    placeholder="Portuguesa, Japonesa, Brunch..."
+                    placeholder={t("firstImpression.cuisinePlaceholder")}
                     className="input-premium h-12"
                   />
                 </Field>
               </div>
 
-              <Field label="Descrição curta">
+              <Field label={t("firstImpression.descriptionLabel")}>
                 <textarea
                   name="websiteDescription"
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
                   rows={4}
-                  placeholder="Um espaço acolhedor para comer bem, ficar mais um pouco e voltar."
+                  placeholder={t("firstImpression.descriptionPlaceholder")}
                   className="input-premium min-h-32 py-3"
                 />
               </Field>
             </EditorBlock>
 
-            <EditorBlock number="04" title="História" description="Aqui começa a alma do restaurante.">
-              <Field label="Título da secção sobre">
+            <EditorBlock number="04" title={t("story.title")} description={t("story.description")}>
+              <Field label={t("story.aboutTitleLabel")}>
                 <input
                   name="websiteAboutTitle"
                   value={aboutTitle}
                   onChange={(event) => setAboutTitle(event.target.value)}
-                  placeholder="A nossa casa"
+                  placeholder={t("story.aboutTitlePlaceholder")}
                   className="input-premium h-12"
                 />
               </Field>
 
-              <Field label="Texto sobre o restaurante">
+              <Field label={t("story.aboutTextLabel")}>
                 <textarea
                   name="websiteAboutText"
                   value={aboutText}
                   onChange={(event) => setAboutText(event.target.value)}
                   rows={5}
-                  placeholder="Conta a história, o conceito e o ambiente."
+                  placeholder={t("story.aboutTextPlaceholder")}
                   className="input-premium min-h-36 py-3"
                 />
               </Field>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Destaque">
+                <Field label={t("story.featureTitleLabel")}>
                   <input
                     name="websiteFeatureTitle"
                     value={featureTitle}
                     onChange={(event) => setFeatureTitle(event.target.value)}
-                    placeholder="Uma experiência à mesa"
+                    placeholder={t("story.featureTitlePlaceholder")}
                     className="input-premium h-12"
                   />
                 </Field>
 
-                <Field label="Texto do destaque">
+                <Field label={t("story.featureTextLabel")}>
                   <input
                     name="websiteFeatureText"
                     value={featureText}
                     onChange={(event) => setFeatureText(event.target.value)}
-                    placeholder="Uma experiência pensada para reunir pessoas."
+                    placeholder={t("story.featureTextPlaceholder")}
                     className="input-premium h-12"
                   />
                 </Field>
@@ -575,62 +579,62 @@ export function WebsiteEditorClient({
 
             <EditorBlock
               number="05"
-              title="Textos do website"
-              description="Personaliza os textos principais do site."
+              title={t("texts.title")}
+              description={t("texts.description")}
             >
               <div className="grid gap-4 md:grid-cols-2">
-                <TextInput label="Título da secção principal" name="websiteSectionTitle" value={sectionTitle} onChange={setSectionTitle} placeholder="Sobre nós" />
-                <TextInput label="Texto da secção principal" name="websiteSectionText" value={sectionText} onChange={setSectionText} placeholder="Texto livre sobre o espaço." />
-                <TextInput label="Título da galeria" name="websiteGalleryTitle" value={galleryTitle} onChange={setGalleryTitle} placeholder="Galeria" />
-                <TextInput label="Descrição da galeria" name="websiteGalleryDescription" value={galleryDescription} onChange={setGalleryDescription} placeholder="Descrição curta da galeria." />
-                <TextInput label="Título da localização" name="websiteLocationTitle" value={locationTitle} onChange={setLocationTitle} placeholder="Onde estamos" />
-                <TextInput label="Texto da localização" name="websiteLocationDescription" value={locationDescription} onChange={setLocationDescription} placeholder="Morada, zona ou indicação útil." />
-                <TextInput label="Título final" name="websiteFinalCtaTitle" value={finalCtaTitle} onChange={setFinalCtaTitle} placeholder={`Reserva em ${restaurant.name}`} />
-                <TextInput label="Texto final" name="websiteFinalCtaText" value={finalCtaText} onChange={setFinalCtaText} placeholder="Chamada final para reservar, visitar ou contactar." />
+                <TextInput label={t("texts.sectionTitleLabel")} name="websiteSectionTitle" value={sectionTitle} onChange={setSectionTitle} placeholder={t("texts.sectionTitlePlaceholder")} />
+                <TextInput label={t("texts.sectionTextLabel")} name="websiteSectionText" value={sectionText} onChange={setSectionText} placeholder={t("texts.sectionTextPlaceholder")} />
+                <TextInput label={t("texts.galleryTitleLabel")} name="websiteGalleryTitle" value={galleryTitle} onChange={setGalleryTitle} placeholder={t("texts.galleryTitlePlaceholder")} />
+                <TextInput label={t("texts.galleryDescriptionLabel")} name="websiteGalleryDescription" value={galleryDescription} onChange={setGalleryDescription} placeholder={t("texts.galleryDescriptionPlaceholder")} />
+                <TextInput label={t("texts.locationTitleLabel")} name="websiteLocationTitle" value={locationTitle} onChange={setLocationTitle} placeholder={t("texts.locationTitlePlaceholder")} />
+                <TextInput label={t("texts.locationDescriptionLabel")} name="websiteLocationDescription" value={locationDescription} onChange={setLocationDescription} placeholder={t("texts.locationDescriptionPlaceholder")} />
+                <TextInput label={t("texts.finalCtaTitleLabel")} name="websiteFinalCtaTitle" value={finalCtaTitle} onChange={setFinalCtaTitle} placeholder={t("texts.finalCtaTitlePlaceholder", { name: restaurant.name })} />
+                <TextInput label={t("texts.finalCtaTextLabel")} name="websiteFinalCtaText" value={finalCtaText} onChange={setFinalCtaText} placeholder={t("texts.finalCtaTextPlaceholder")} />
               </div>
             </EditorBlock>
 
-            <EditorBlock number="06" title="Imagens" description="As melhores fotografias do teu espaço.">
-              <Field label="Logo">
+            <EditorBlock number="06" title={t("images.title")} description={t("images.description")}>
+              <Field label={t("images.logoLabel")}>
                 <ImageUploadField value={logoImage} onChange={setLogoImage} compact />
                 <input type="hidden" name="websiteLogoImage" value={logoImage} />
               </Field>
 
-              <Field label="Foto principal">
+              <Field label={t("images.heroLabel")}>
                 <ImageUploadField value={heroImage} onChange={setHeroImage} />
                 <input type="hidden" name="websiteHeroImage" value={heroImage} />
               </Field>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <GalleryUploadField number="1" value={gallery1} onChange={setGallery1} title={galleryTitle1} onTitleChange={setGalleryTitle1} />
-                <GalleryUploadField number="2" value={gallery2} onChange={setGallery2} title={galleryTitle2} onTitleChange={setGalleryTitle2} />
-                <GalleryUploadField number="3" value={gallery3} onChange={setGallery3} title={galleryTitle3} onTitleChange={setGalleryTitle3} />
-                <GalleryUploadField number="4" value={gallery4} onChange={setGallery4} title={galleryTitle4} onTitleChange={setGalleryTitle4} />
+                <GalleryUploadField number="1" value={gallery1} onChange={setGallery1} title={galleryTitle1} onTitleChange={setGalleryTitle1} t={t} />
+                <GalleryUploadField number="2" value={gallery2} onChange={setGallery2} title={galleryTitle2} onTitleChange={setGalleryTitle2} t={t} />
+                <GalleryUploadField number="3" value={gallery3} onChange={setGallery3} title={galleryTitle3} onTitleChange={setGalleryTitle3} t={t} />
+                <GalleryUploadField number="4" value={gallery4} onChange={setGallery4} title={galleryTitle4} onTitleChange={setGalleryTitle4} t={t} />
               </div>
             </EditorBlock>
 
             <EditorBlock
               number="07"
-              title="Menus"
-              description="Adiciona um ou vários menus em PDF, com o nome que quiseres."
+              title={t("menus.title")}
+              description={t("menus.description")}
             >
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Título da secção">
+                <Field label={t("menus.sectionTitleLabel")}>
                   <input
                     name="websiteMenuTitle"
                     value={menuTitle}
                     onChange={(event) => setMenuTitle(event.target.value)}
-                    placeholder="Menu"
+                    placeholder={t("menus.sectionTitlePlaceholder")}
                     className="input-premium h-12"
                   />
                 </Field>
 
-                <Field label="Descrição da secção">
+                <Field label={t("menus.sectionDescriptionLabel")}>
                   <input
                     name="websiteMenuDescription"
                     value={menuDescription}
                     onChange={(event) => setMenuDescription(event.target.value)}
-                    placeholder="Consulta os nossos menus."
+                    placeholder={t("menus.sectionDescriptionPlaceholder")}
                     className="input-premium h-12"
                   />
                 </Field>
@@ -639,7 +643,7 @@ export function WebsiteEditorClient({
               <div className="space-y-4">
                 {menuItems.length === 0 && (
                   <div className="rounded-[28px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-6 text-sm text-[#6B6258]">
-                    Ainda não adicionaste nenhum menu.
+                    {t("menus.emptyState")}
                   </div>
                 )}
 
@@ -650,7 +654,7 @@ export function WebsiteEditorClient({
                   >
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <p className="text-sm font-semibold text-[#16120E]">
-                        Menu {index + 1}
+                        {t("menus.itemLabel", { index: index + 1 })}
                       </p>
 
                       <button
@@ -658,26 +662,26 @@ export function WebsiteEditorClient({
                         onClick={() => removeMenuItem(index)}
                         className="rounded-full border border-[#E7B7A8] bg-[#FFF0EA] px-3 py-1 text-xs font-semibold text-[#A14E36] hover:bg-[#FFE7DE]"
                       >
-                        Remover
+                        {t("menus.removeButton")}
                       </button>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
-                      <Field label="Nome do menu">
+                      <Field label={t("menus.nameLabel")}>
                         <input
                           name="websiteMenuItemTitle[]"
                           value={item.title}
                           onChange={(event) =>
                             updateMenuItem(index, "title", event.target.value)
                           }
-                          placeholder="Ex: Carta, Cocktails, Vinhos, Brunch..."
+                          placeholder={t("menus.namePlaceholder")}
                           className="input-premium h-12"
                         />
                       </Field>
 
                       <input type="hidden" name="websiteMenuItemPdf[]" value={item.pdf} />
 
-                      <Field label="PDF do menu">
+                      <Field label={t("menus.pdfLabel")}>
                         <FileUploadField
                           value={item.pdf}
                           onChange={(url) => updateMenuItem(index, "pdf", url)}
@@ -692,24 +696,24 @@ export function WebsiteEditorClient({
                   onClick={addMenuItem}
                   className="inline-flex h-12 items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-5 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
                 >
-                  + Adicionar menu
+                  {t("menus.addButton")}
                 </button>
               </div>
             </EditorBlock>
 
-            <EditorBlock number="08" title="Estilo" description="Ajusta a identidade visual do site.">
+            <EditorBlock number="08" title={t("style.title")} description={t("style.description")}>
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Instagram">
+                <Field label={t("style.instagramLabel")}>
                   <input
                     name="websiteInstagram"
                     value={instagram}
                     onChange={(event) => setInstagram(event.target.value)}
-                    placeholder="@restaurante"
+                    placeholder={t("style.instagramPlaceholder")}
                     className="input-premium h-12"
                   />
                 </Field>
 
-                <Field label="Cor principal">
+                <Field label={t("style.primaryColorLabel")}>
                   <input
                     type="color"
                     name="websitePrimaryColor"
@@ -721,54 +725,54 @@ export function WebsiteEditorClient({
               </div>
             </EditorBlock>
 
-            <EditorBlock number="09" title="Contactos" description="Edita os contactos que aparecem no website público.">
+            <EditorBlock number="09" title={t("contacts.title")} description={t("contacts.description")}>
               <div className="grid gap-4 md:grid-cols-2">
-                <TextInput label="Email" name="email" value={email} onChange={setEmail} placeholder="info@restaurante.pt" />
-                <TextInput label="Telefone" name="phone" value={phone} onChange={setPhone} placeholder="+351 912 345 678" />
+                <TextInput label={t("contacts.emailLabel")} name="email" value={email} onChange={setEmail} placeholder={t("contacts.emailPlaceholder")} />
+                <TextInput label={t("contacts.phoneLabel")} name="phone" value={phone} onChange={setPhone} placeholder={t("contacts.phonePlaceholder")} />
               </div>
 
-              <TextInput label="Morada" name="address" value={address} onChange={setAddress} placeholder="Rua, número, cidade" />
+              <TextInput label={t("contacts.addressLabel")} name="address" value={address} onChange={setAddress} placeholder={t("contacts.addressPlaceholder")} />
             </EditorBlock>
 
             <EditorBlock
               number="10"
-              title="SEO e domínio"
-              description="Melhora a presença no Google e prepara o website para crescer."
+              title={t("seo.title")}
+              description={t("seo.description")}
             >
               <TextInput
-                label="Título SEO"
+                label={t("seo.titleLabel")}
                 name="websiteSeoTitle"
                 value={seoTitle}
                 onChange={setSeoTitle}
-                placeholder={`${restaurant.name} | Reservas online`}
+                placeholder={t("seo.titlePlaceholder", { name: restaurant.name })}
               />
 
-              <Field label="Descrição SEO">
+              <Field label={t("seo.descriptionLabel")}>
                 <textarea
                   name="websiteSeoDescription"
                   value={seoDescription}
                   onChange={(event) => setSeoDescription(event.target.value)}
                   rows={3}
-                  placeholder="Descrição para Google e partilhas."
+                  placeholder={t("seo.descriptionPlaceholder")}
                   className="input-premium min-h-24 py-3"
                 />
               </Field>
 
-              <Field label="Domínio próprio">
+              <Field label={t("seo.domainLabel")}>
                 <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="font-semibold text-[#16120E]">
-                        Domínio próprio
+                        {t("seo.domainCardTitle")}
                       </p>
 
                       <p className="mt-1 text-sm leading-6 text-[#6B6258]">
-                        Em breve poderás utilizar um domínio próprio em vez de um subdomínio MesaLink.
+                        {t("seo.domainCardText")}
                       </p>
                     </div>
 
                     <span className="rounded-full border border-[#E1D0B8] bg-[#EFE5D6] px-3 py-1 text-xs font-semibold text-[#9B6F3B]">
-                      Coming Soon
+                      {t("seo.comingSoonBadge")}
                     </span>
                   </div>
                 </div>
@@ -784,11 +788,12 @@ export function WebsiteEditorClient({
               enabled={enabled}
               galleryCount={galleryCount}
               hasMenu={menuCount > 0}
+              t={t}
             />
 
             <div className="rounded-[2rem] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.06)]">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
-                Website público
+                {t("publicCard.eyebrow")}
               </p>
 
               <p className="mt-3 break-all text-lg font-semibold tracking-[-0.03em]">
@@ -802,30 +807,30 @@ export function WebsiteEditorClient({
                   rel="noreferrer"
                   className="inline-flex h-11 items-center justify-center rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:bg-[#2A2118]"
                 >
-                  Ver website
+                  {t("publicCard.viewButton")}
                 </a>
 
                 <button
                   type="submit"
                   className="h-11 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] text-sm font-semibold text-[#16120E] transition hover:bg-white"
                 >
-                  Guardar alterações
+                  {t("publicCard.saveButton")}
                 </button>
               </div>
             </div>
 
             <div className="rounded-[2rem] border border-[#E1D0B8] bg-[#FFF9F0] p-5 shadow-[0_14px_44px_rgba(80,55,30,0.035)]">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
-                Checklist
+                {t("checklist.eyebrow")}
               </p>
 
               <div className="mt-4 space-y-3 text-sm text-[#6B6258]">
-                <ChecklistItem done={enabled}>Website ativo</ChecklistItem>
-                <ChecklistItem done={Boolean(headline)}>Headline preenchida</ChecklistItem>
-                <ChecklistItem done={Boolean(heroImage)}>Foto principal</ChecklistItem>
-                <ChecklistItem done={menuCount > 0}>Menu carregado</ChecklistItem>
+                <ChecklistItem done={enabled}>{t("checklist.websiteActive")}</ChecklistItem>
+                <ChecklistItem done={Boolean(headline)}>{t("checklist.headlineFilled")}</ChecklistItem>
+                <ChecklistItem done={Boolean(heroImage)}>{t("checklist.mainPhoto")}</ChecklistItem>
+                <ChecklistItem done={menuCount > 0}>{t("checklist.menuUploaded")}</ChecklistItem>
                 <ChecklistItem done={Boolean(phone || email)}>
-                  Contacto visível
+                  {t("checklist.contactVisible")}
                 </ChecklistItem>
               </div>
             </div>
@@ -833,7 +838,7 @@ export function WebsiteEditorClient({
             <div className="overflow-hidden rounded-[2rem] border border-[#E1D0B8] bg-white shadow-[0_18px_55px_rgba(80,55,30,0.06)]">
               <div className="border-b border-[#E8DCCB] bg-[#FFF9F0] px-5 py-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
-                  Preview rápido
+                  {t("previewCard.eyebrow")}
                 </p>
               </div>
 
@@ -852,6 +857,7 @@ export function WebsiteEditorClient({
                 menuTitle={menuTitle}
                 menuItems={menuItems}
                 compact
+                t={t}
               />
             </div>
           </aside>
@@ -903,6 +909,7 @@ function LivePreview({
   menuTitle,
   menuItems,
   compact = false,
+  t,
 }: {
   restaurantName: string;
   logoImage: string;
@@ -918,6 +925,7 @@ function LivePreview({
   menuTitle: string;
   menuItems: WebsiteMenuItem[];
   compact?: boolean;
+  t: Translator;
 }) {
   const validGallery = gallery.filter((item) => item.startsWith("http"));
   const validMenus = menuItems.filter((item) => item.pdf.startsWith("http"));
@@ -956,28 +964,28 @@ function LivePreview({
             className="rounded-full px-3 py-1.5 text-xs font-semibold text-white"
             style={{ backgroundColor: primaryColor }}
           >
-            Reservar
+            {t("preview.reserveBadge")}
           </span>
         </div>
 
         <div className="absolute inset-x-0 bottom-0 p-6">
-          <p className={theme.eyebrow}>{cuisine || "Restaurante"}</p>
+          <p className={theme.eyebrow}>{cuisine || t("preview.cuisineFallback")}</p>
 
           <h2 className={compact ? "mt-3 text-3xl font-semibold leading-[0.92] tracking-[-0.06em]" : "mt-3 text-4xl font-semibold leading-[0.9] tracking-[-0.06em]"}>
             {headline || restaurantName}
           </h2>
 
           <p className={theme.text}>
-            {description || "Reserva a tua mesa online em poucos segundos."}
+            {description || t("preview.descriptionFallback")}
           </p>
         </div>
       </div>
 
       <div className={theme.body}>
         <div className="grid grid-cols-3 gap-2">
-          <PreviewPill label="Template" value={template} />
-          <PreviewPill label="Menus" value={validMenus.length ? String(validMenus.length) : "—"} />
-          <PreviewPill label="Fotos" value={String(validGallery.length + (heroImage ? 1 : 0))} />
+          <PreviewPill label={t("preview.templateLabel")} value={template} />
+          <PreviewPill label={t("preview.menusLabel")} value={validMenus.length ? String(validMenus.length) : "—"} />
+          <PreviewPill label={t("preview.photosLabel")} value={String(validGallery.length + (heroImage ? 1 : 0))} />
         </div>
 
         <div className="mt-4 grid grid-cols-4 gap-2">
@@ -996,13 +1004,13 @@ function LivePreview({
 
                   {index > 0 && (
                     <div className="absolute inset-x-0 bottom-0 bg-black/35 px-2 py-1 text-[10px] font-semibold text-white">
-                      {galleryTitles[index - 1] || `Foto ${index}`}
+                      {galleryTitles[index - 1] || t("preview.photoNumberFallback", { index })}
                     </div>
                   )}
                 </>
               ) : (
                 <div className="flex h-full items-center justify-center text-xs opacity-40">
-                  Foto
+                  {t("preview.photoLabel")}
                 </div>
               )}
             </div>
@@ -1011,15 +1019,15 @@ function LivePreview({
 
         <div className="mt-4 rounded-2xl border border-current/10 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] opacity-40">
-            Menu
+            {t("preview.menuSectionLabel")}
           </p>
 
-          <p className="mt-2 text-lg font-semibold">{menuTitle || "Menus"}</p>
+          <p className="mt-2 text-lg font-semibold">{menuTitle || t("preview.menuTitleFallback")}</p>
 
           <p className="mt-1 text-sm opacity-55">
             {validMenus.length
-              ? `${validMenus.length} menu(s) carregado(s).`
-              : "Adiciona um ou mais menus em PDF."}
+              ? t("preview.menuLoadedCount", { count: validMenus.length })
+              : t("preview.menuNotLoaded")}
           </p>
         </div>
       </div>
@@ -1033,21 +1041,23 @@ function GalleryUploadField({
   onChange,
   title,
   onTitleChange,
+  t,
 }: {
   number: string;
   value: string;
   onChange: (url: string) => void;
   title: string;
   onTitleChange: (value: string) => void;
+  t: Translator;
 }) {
   return (
     <div className="rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-      <Field label={`Nome da foto ${number}`}>
+      <Field label={t("images.photoNameLabel", { number })}>
         <input
           name={`websiteGalleryTitle${number}`}
           value={title}
           onChange={(event) => onTitleChange(event.target.value)}
-          placeholder={number === "1" ? "Ambiente" : `Foto ${number}`}
+          placeholder={number === "1" ? t("images.photoPlaceholderFirst") : t("images.photoPlaceholderOther", { number })}
           className="input-premium h-11"
         />
       </Field>
@@ -1077,18 +1087,20 @@ function QualityCard({
   enabled,
   galleryCount,
   hasMenu,
+  t,
 }: {
   score: number;
   enabled: boolean;
   galleryCount: number;
   hasMenu: boolean;
+  t: Translator;
 }) {
   return (
     <div className="rounded-[2rem] border border-[#E1D0B8] bg-white p-5 shadow-[0_28px_90px_rgba(80,55,30,0.08)]">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
-            Qualidade
+            {t("quality.eyebrow")}
           </p>
 
           <p className="mt-2 text-4xl font-semibold tracking-[-0.06em]">
@@ -1103,20 +1115,20 @@ function QualityCard({
               : "flex h-16 w-16 items-center justify-center rounded-full border border-[#E7B7A8] bg-[#FFF0EA] text-sm font-semibold text-[#A14E36]"
           }
         >
-          {enabled ? "ON" : "OFF"}
+          {enabled ? t("quality.on") : t("quality.off")}
         </div>
       </div>
 
       <div className="mt-5 space-y-2 text-sm text-[#6B6258]">
         <p>
-          Galeria:{" "}
+          {t("quality.galleryLabel")}{" "}
           <span className="font-semibold text-[#16120E]">{galleryCount}/4</span>
         </p>
 
         <p>
-          Menu:{" "}
+          {t("quality.menuLabel")}{" "}
           <span className="font-semibold text-[#16120E]">
-            {hasMenu ? "Sim" : "Não"}
+            {hasMenu ? t("quality.menuYes") : t("quality.menuNo")}
           </span>
         </p>
       </div>

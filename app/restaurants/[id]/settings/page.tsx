@@ -2,9 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import ApplyMondayButton from "./ApplyMondayButton";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
 const inputClass =
   "h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]";
@@ -249,13 +252,13 @@ async function deleteProductionCenter(formData: FormData) {
 
 
 const weekdays = [
-  { label: "Segunda", key: "monday" },
-  { label: "Terça", key: "tuesday" },
-  { label: "Quarta", key: "wednesday" },
-  { label: "Quinta", key: "thursday" },
-  { label: "Sexta", key: "friday" },
-  { label: "Sábado", key: "saturday" },
-  { label: "Domingo", key: "sunday" },
+  { key: "monday" },
+  { key: "tuesday" },
+  { key: "wednesday" },
+  { key: "thursday" },
+  { key: "friday" },
+  { key: "saturday" },
+  { key: "sunday" },
 ] as const;
 
 async function canUseAdvancedReservationSettings(userId?: string | null) {
@@ -282,6 +285,7 @@ export default async function SettingsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const t = await getTranslations("dashboardSettings.general");
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
@@ -299,7 +303,7 @@ export default async function SettingsPage({
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#F5EFE6] p-10 text-[#16120E]">
-        Restaurante não encontrado
+        {t("notFound")}
       </main>
     );
   }
@@ -313,18 +317,18 @@ export default async function SettingsPage({
     <RestaurantSidebar
   id={id}
   restaurantName={restaurant.name}
-  active="Definições"
+  active="settings"
 />
 
     <section className="min-w-0 px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
         <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
   <div>
     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-      MesaLink Control
+      {t("header.eyebrow")}
     </p>
 
     <h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">
-      Configurações
+      {t("header.title")}
     </h1>
 
     <p className="mt-3 text-[#6B6258]">
@@ -333,7 +337,7 @@ export default async function SettingsPage({
   </div>
 
   <div className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#9B6F3B]">
-    Gestão operacional
+    {t("header.badge")}
   </div>
 </header>
 
@@ -343,66 +347,64 @@ export default async function SettingsPage({
           <section className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[420px_1fr]">
             <div className="rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-                Reservas
+                {t("reservations.eyebrow")}
               </p>
 
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.045em]">
-                Regras principais
+                {t("reservations.title")}
               </h2>
 
               <p className="mt-2 text-sm leading-relaxed text-[#6B6258]">
-                Defina se o restaurante trabalha por mesas ou por capacidade, e
-                quando uma reserva deve ficar pendente.
+                {t("reservations.description")}
               </p>
 
               <div className="mt-6 space-y-5">
                 {canUseAdvancedReservations ? (
                   <>
-                    <Field label="Modo de reservas">
+                    <Field label={t("reservations.modeLabel")}>
                       <select
                         name="reservationMode"
                         defaultValue={restaurant.reservationMode}
                         className={inputClass}
                       >
-                        <option value="TABLES">Por Mesas</option>
-                        <option value="CAPACITY">Por Capacidade</option>
+                        <option value="TABLES">{t("reservations.modeTables")}</option>
+                        <option value="CAPACITY">{t("reservations.modeCapacity")}</option>
                       </select>
                     </Field>
 
-                    <Field label="Capacidade total">
+                    <Field label={t("reservations.totalCapacityLabel")}>
                       <input
                         type="number"
                         name="totalCapacity"
                         defaultValue={restaurant.totalCapacity ?? ""}
-                        placeholder="Ex: 60"
+                        placeholder={t("reservations.totalCapacityPlaceholder")}
                         className={inputClass}
                       />
 
                       <p className="mt-2 text-xs text-[#9B8F82]">
-                        Usado apenas quando o modo é Por Capacidade.
+                        {t("reservations.totalCapacityHintAdvanced")}
                       </p>
                     </Field>
 
-                    <Field label="Aprovação manual a partir de">
+                    <Field label={t("reservations.manualApprovalLabel")}>
                       <input
                         type="number"
                         name="manualApprovalGuests"
                         defaultValue={restaurant.manualApprovalGuests ?? ""}
-                        placeholder="Ex: 8"
+                        placeholder={t("reservations.manualApprovalPlaceholder")}
                         className={inputClass}
                       />
 
                       <p className="mt-2 text-xs text-[#9B8F82]">
-                        Reservas com este número de pessoas ou mais ficam
-                        pendentes.
+                        {t("reservations.manualApprovalHint")}
                       </p>
                     </Field>
 
                     <ToggleBox
                       name="approvalOnTableMerge"
                       defaultChecked={restaurant.approvalOnTableMerge}
-                      title="Aprovação ao juntar mesas"
-                      text="Pedidos que exijam junção de mesas ficam pendentes."
+                      title={t("reservations.tableMergeTitle")}
+                      text={t("reservations.tableMergeText")}
                     />
                   </>
                 ) : (
@@ -413,42 +415,42 @@ export default async function SettingsPage({
                       value="CAPACITY"
                     />
 
-                    <Field label="Capacidade total">
+                    <Field label={t("reservations.totalCapacityLabel")}>
                       <input
                         type="number"
                         name="totalCapacity"
                         defaultValue={restaurant.totalCapacity ?? ""}
-                        placeholder="Ex: 60"
+                        placeholder={t("reservations.totalCapacityPlaceholder")}
                         className={inputClass}
                         required
                       />
 
                       <p className="mt-2 text-xs text-[#9B8F82]">
-                        Número máximo de pessoas que pode aceitar por horário.
+                        {t("reservations.totalCapacityHintBasic")}
                       </p>
                     </Field>
 
                     <div className="rounded-3xl border border-[#E1D0B8] bg-[#FFF9F0] p-5">
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
-                        Funcionalidade Pro
+                        {t("reservations.proBadge")}
                       </p>
 
                       <h3 className="mt-3 text-xl font-semibold">
-                        Gestão de mesas disponível no Pro
+                        {t("reservations.proTitle")}
                       </h3>
 
                       <ul className="mt-4 space-y-2 text-sm text-[#6B6258]">
-                        <li>✓ Mapa da sala</li>
-                        <li>✓ Reservas por mesa</li>
-                        <li>✓ Junção de mesas</li>
-                        <li>✓ Reservas ilimitadas</li>
+                        <li>✓ {t("reservations.proFeatures.map")}</li>
+                        <li>✓ {t("reservations.proFeatures.byTable")}</li>
+                        <li>✓ {t("reservations.proFeatures.merge")}</li>
+                        <li>✓ {t("reservations.proFeatures.unlimited")}</li>
                       </ul>
 
                       <Link
                         href="/billing?feature=tables"
                         className="mt-5 inline-flex rounded-full bg-[#16120E] px-5 py-3 font-semibold text-white transition hover:bg-[#2A2118]"
                       >
-                        Upgrade para Pro
+                        {t("reservations.upgradeButton")}
                       </Link>
                     </div>
                   </>
@@ -457,8 +459,8 @@ export default async function SettingsPage({
                 <ToggleBox
                   name="onlineReservationsEnabled"
                   defaultChecked={restaurant.onlineReservationsEnabled}
-                  title="Aceitar reservas online"
-                  text="Se estiver desligado, a página pública informa que o restaurante não está a aceitar reservas."
+                  title={t("reservations.onlineTitle")}
+                  text={t("reservations.onlineText")}
                 />
               </div>
             </div>
@@ -467,11 +469,11 @@ export default async function SettingsPage({
               <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-                    Horários
+                    {t("hours.eyebrow")}
                   </p>
 
                   <h2 className="mt-3 text-3xl font-semibold tracking-[-0.045em]">
-                    Funcionamento semanal
+                    {t("hours.title")}
                   </h2>
                 </div>
 
@@ -499,12 +501,12 @@ export default async function SettingsPage({
                           className="h-4 w-4 accent-[#16120E]"
                         />
 
-                        {day.label}
+                        {t(`hours.days.${day.key}`)}
                       </label>
 
                       <div>
                         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#9B8F82]">
-                          Almoço
+                          {t("hours.lunch")}
                         </p>
 
                         <input
@@ -517,7 +519,7 @@ export default async function SettingsPage({
 
                       <div>
                         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#9B8F82]">
-                          Jantar
+                          {t("hours.dinner")}
                         </p>
 
                         <input
@@ -535,19 +537,19 @@ export default async function SettingsPage({
           </section>
 <section className="rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-    Marketing & Reviews
+    {t("reviews.eyebrow")}
   </p>
 
   <h2 className="mt-3 text-3xl font-semibold tracking-[-0.045em]">
-    Google Reviews
+    {t("reviews.title")}
   </h2>
 
   <p className="mt-2 text-sm leading-relaxed text-[#6B6258]">
-    Configure o link para onde os clientes satisfeitos podem partilhar a experiência no Google.
+    {t("reviews.description")}
   </p>
 
   <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_220px]">
-    <Field label="Google Reviews URL">
+    <Field label={t("reviews.urlLabel")}>
       <input
         name="googleReviewUrl"
         defaultValue={restaurant.googleReviewUrl ?? ""}
@@ -556,26 +558,26 @@ export default async function SettingsPage({
       />
 
       <p className="mt-2 text-xs text-[#9B8F82]">
-        Este botão só aparece ao cliente quando este link estiver preenchido.
+        {t("reviews.urlHint")}
       </p>
     </Field>
 
-    <Field label="Mínimo para sugerir Google">
+    <Field label={t("reviews.thresholdLabel")}>
       <select
         name="reviewRedirectThreshold"
         defaultValue={restaurant.reviewRedirectThreshold ?? 4}
         className={inputClass}
       >
-        <option value={5}>5 estrelas</option>
-        <option value={4}>4 estrelas ou mais</option>
-        <option value={3}>3 estrelas ou mais</option>
+        <option value={5}>{t("reviews.threshold5")}</option>
+        <option value={4}>{t("reviews.threshold4")}</option>
+        <option value={3}>{t("reviews.threshold3")}</option>
       </select>
     </Field>
   </div>
 </section>
           <div className="sticky bottom-6 z-20 flex justify-end">
             <button className="rounded-full bg-[#16120E] px-8 py-4 font-semibold text-white shadow-[0_18px_55px_rgba(80,55,30,0.18)] transition hover:bg-[#2A2118]">
-              Guardar alterações
+              {t("saveButton")}
             </button>
           </div>
         </form>
@@ -587,15 +589,15 @@ export default async function SettingsPage({
   );
 }
 
-function PrinterCard({ restaurant }: { restaurant: any }) {
+function PrinterCard({ restaurant, t }: { restaurant: any; t: Translator }) {
   return (
     <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-        Impressoras
+        {t("printers.eyebrow")}
       </p>
 
       <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-        Impressoras do restaurante
+        {t("printers.title")}
       </h2>
 
       <form action={createPrinter} className="mt-5 space-y-3">
@@ -603,45 +605,45 @@ function PrinterCard({ restaurant }: { restaurant: any }) {
 
         <input
           name="name"
-          placeholder="Ex: Epson Cozinha"
+          placeholder={t("printers.namePlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
           <select name="type" defaultValue="KITCHEN" className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E]">
-            <option value="KITCHEN">Cozinha</option>
-            <option value="BAR">Bar</option>
-            <option value="ROOM">Sala</option>
-            <option value="CASHIER">Caixa</option>
-            <option value="OTHER">Outra</option>
+            <option value="KITCHEN">{t("printers.typeKitchen")}</option>
+            <option value="BAR">{t("printers.typeBar")}</option>
+            <option value="ROOM">{t("printers.typeRoom")}</option>
+            <option value="CASHIER">{t("printers.typeCashier")}</option>
+            <option value="OTHER">{t("printers.typeOther")}</option>
           </select>
 
           <select name="method" defaultValue="BROWSER" className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E]">
-            <option value="BROWSER">Browser / Tablet</option>
-            <option value="BLUETOOTH">Bluetooth</option>
-            <option value="BRIDGE">Print Bridge</option>
-            <option value="NETWORK">Rede/IP</option>
+            <option value="BROWSER">{t("printers.methodBrowser")}</option>
+            <option value="BLUETOOTH">{t("printers.methodBluetooth")}</option>
+            <option value="BRIDGE">{t("printers.methodBridge")}</option>
+            <option value="NETWORK">{t("printers.methodNetwork")}</option>
           </select>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <input name="ipAddress" placeholder="IP opcional" className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E]" />
-          <input name="port" type="number" placeholder="Porta" className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E]" />
+          <input name="ipAddress" placeholder={t("printers.ipPlaceholder")} className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E]" />
+          <input name="port" type="number" placeholder={t("printers.portPlaceholder")} className="h-12 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E]" />
         </div>
 
         <p className="rounded-2xl border border-[#E8DCCB] bg-[#FFF9F0] px-4 py-3 text-xs font-semibold leading-5 text-[#6B6258]">
-          Browser/Tablet abre a impressão normal do dispositivo. Bluetooth serve para tablets/Android com impressora emparelhada ou app/bridge de impressão. Rede/IP usa o endereço da impressora.
+          {t("printers.methodHint")}
         </p>
 
         <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white">
-          Criar impressora
+          {t("printers.createButton")}
         </button>
       </form>
 
       <div className="mt-5 space-y-2">
         {restaurant.printers.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-[#E8DCCB] bg-[#FFF9F0] p-4 text-sm text-[#6B6258]">
-            Ainda não tens impressoras.
+            {t("printers.emptyState")}
           </p>
         ) : (
           restaurant.printers.map((printer: any) => (
@@ -656,7 +658,7 @@ function PrinterCard({ restaurant }: { restaurant: any }) {
                     </p>
                   </div>
 
-                  <ChannelBadge label={printer.active ? "Ativa" : "Inativa"} active={printer.active} />
+                  <ChannelBadge label={printer.active ? t("printers.statusActive") : t("printers.statusInactive")} active={printer.active} />
                 </div>
               </summary>
 
@@ -668,37 +670,37 @@ function PrinterCard({ restaurant }: { restaurant: any }) {
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <select name="type" defaultValue={printer.type} className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]">
-                    <option value="KITCHEN">Cozinha</option>
-                    <option value="BAR">Bar</option>
-                    <option value="ROOM">Sala</option>
-                    <option value="CASHIER">Caixa</option>
-                    <option value="OTHER">Outra</option>
+                    <option value="KITCHEN">{t("printers.typeKitchen")}</option>
+                    <option value="BAR">{t("printers.typeBar")}</option>
+                    <option value="ROOM">{t("printers.typeRoom")}</option>
+                    <option value="CASHIER">{t("printers.typeCashier")}</option>
+                    <option value="OTHER">{t("printers.typeOther")}</option>
                   </select>
 
                   <select name="method" defaultValue={printer.method} className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]">
-                    <option value="BROWSER">Browser / Tablet</option>
-                    <option value="BLUETOOTH">Bluetooth</option>
-                    <option value="BRIDGE">Print Bridge</option>
-                    <option value="NETWORK">Rede/IP</option>
+                    <option value="BROWSER">{t("printers.methodBrowser")}</option>
+                    <option value="BLUETOOTH">{t("printers.methodBluetooth")}</option>
+                    <option value="BRIDGE">{t("printers.methodBridge")}</option>
+                    <option value="NETWORK">{t("printers.methodNetwork")}</option>
                   </select>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <input name="ipAddress" defaultValue={printer.ipAddress || ""} placeholder="IP" className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]" />
-                  <input name="port" type="number" defaultValue={printer.port || ""} placeholder="Porta" className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]" />
+                  <input name="ipAddress" defaultValue={printer.ipAddress || ""} placeholder={t("printers.editIpPlaceholder")} className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]" />
+                  <input name="port" type="number" defaultValue={printer.port || ""} placeholder={t("printers.editPortPlaceholder")} className="h-11 rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]" />
                 </div>
 
                 <p className="rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3 text-xs font-semibold leading-5 text-[#6B6258]">
-                  Para Bluetooth, emparelha a impressora no tablet/Android e usa a impressão do dispositivo ou uma app/bridge compatível. IP/porta só é necessário em Rede/IP.
+                  {t("printers.editMethodHint")}
                 </p>
 
                 <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3 text-sm font-bold text-[#6B6258]">
-                  <span>Ativa</span>
+                  <span>{t("printers.activeLabel")}</span>
                   <input name="active" type="checkbox" defaultChecked={printer.active} className="h-4 w-4 accent-[#16120E]" />
                 </label>
 
                 <button className="h-10 w-full rounded-full bg-[#16120E] text-xs font-semibold text-white">
-                  Guardar impressora
+                  {t("printers.saveButton")}
                 </button>
               </form>
 
@@ -708,11 +710,11 @@ function PrinterCard({ restaurant }: { restaurant: any }) {
 
                 <label className="flex items-center gap-2 text-xs font-bold text-[#A14E36]">
                   <input name="confirmDelete" type="checkbox" className="h-4 w-4 accent-red-400" />
-                  Confirmo apagar impressora
+                  {t("printers.confirmDeleteLabel")}
                 </label>
 
                 <button className="mt-3 h-9 rounded-full border border-red-300/30 bg-red-400/20 px-4 text-xs font-semibold uppercase text-[#A14E36]">
-                  Apagar
+                  {t("printers.deleteButton")}
                 </button>
               </form>
             </details>
@@ -723,20 +725,19 @@ function PrinterCard({ restaurant }: { restaurant: any }) {
   );
 }
 
-function ProductionCenterCard({ restaurant }: { restaurant: any }) {
+function ProductionCenterCard({ restaurant, t }: { restaurant: any; t: Translator }) {
   return (
     <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-        Produção
+        {t("productionCenters.eyebrow")}
       </p>
 
       <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-        Centros de produção
+        {t("productionCenters.title")}
       </h2>
 
       <p className="mt-2 text-sm leading-6 text-[#6B6258]">
-        Cria zonas como Cozinha, Bar, Sala 1 ou Cozinha 2. Depois associas cada
-        produto a uma destas zonas.
+        {t("productionCenters.description")}
       </p>
 
       <form action={createProductionCenter} className="mt-5 space-y-3">
@@ -744,7 +745,7 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
 
         <input
           name="name"
-          placeholder="Ex: Cozinha, Bar, Sala 1"
+          placeholder={t("productionCenters.namePlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
@@ -753,7 +754,7 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
   defaultValue=""
   className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-bold text-[#16120E]"
 >
-  <option value="">Sem impressora</option>
+  <option value="">{t("productionCenters.noPrinterOption")}</option>
   {restaurant.printers.map((printer: any) => (
     <option key={printer.id} value={printer.id}>
       {printer.name} · {printer.method}
@@ -764,19 +765,19 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
         <input
           name="position"
           type="number"
-          placeholder="Ordem"
+          placeholder={t("productionCenters.positionPlaceholder")}
           className="h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]"
         />
 
         <button className="h-12 w-full rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:opacity-90">
-          Criar produção
+          {t("productionCenters.createButton")}
         </button>
       </form>
 
       <div className="mt-5 space-y-2">
         {restaurant.productProductionCenters.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-[#E8DCCB] bg-[#FFF9F0] p-4 text-sm text-[#6B6258]">
-            Ainda não tens centros de produção.
+            {t("productionCenters.emptyState")}
           </p>
         ) : (
           restaurant.productProductionCenters.map((center: any) => (
@@ -792,13 +793,13 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
                     </p>
 
                     <p className="mt-1 text-xs font-semibold text-[#6B6258]">
-                      Impressora: {center.printer?.name || "Não definida"} · Ordem{" "}
+                      {t("productionCenters.printerLabel")}: {center.printer?.name || t("productionCenters.printerNotSet")} · {t("productionCenters.orderLabel")}{" "}
                       {center.position}
                     </p>
                   </div>
 
                   <ChannelBadge
-                    label={center.active ? "Ativa" : "Inativa"}
+                    label={center.active ? t("productionCenters.statusActive") : t("productionCenters.statusInactive")}
                     active={center.active}
                   />
                 </div>
@@ -826,7 +827,7 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
   defaultValue={center.printerId || ""}
   className="h-11 w-full rounded-2xl border border-[#E1D0B8] bg-white px-4 text-sm font-bold text-[#16120E]"
 >
-  <option value="">Sem impressora</option>
+  <option value="">{t("productionCenters.noPrinterOption")}</option>
   {restaurant.printers.map((printer: any) => (
     <option key={printer.id} value={printer.id}>
       {printer.name} · {printer.method}
@@ -842,7 +843,7 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
                 />
 
                 <label className="flex items-center justify-between rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3 text-sm font-bold text-[#6B6258]">
-                  <span>Ativa</span>
+                  <span>{t("productionCenters.activeLabel")}</span>
                   <input
                     name="active"
                     type="checkbox"
@@ -852,13 +853,13 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
                 </label>
 
                 <button className="h-10 w-full rounded-full bg-[#16120E] text-xs font-semibold text-white">
-                  Guardar produção
+                  {t("productionCenters.saveButton")}
                 </button>
               </form>
 
               <details className="mt-3">
                 <summary className="inline-flex cursor-pointer list-none rounded-full border border-red-300/20 bg-[#FFF0EA] px-4 py-2 text-xs font-semibold uppercase text-[#A14E36]">
-                  Eliminar produção
+                  {t("productionCenters.deleteToggleLabel")}
                 </summary>
 
                 <form
@@ -877,7 +878,7 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
                   />
 
                   <p className="text-xs font-bold text-[#A14E36]">
-                    Os produtos associados ficam sem produção.
+                    {t("productionCenters.deleteWarning")}
                   </p>
 
                   <label className="mt-3 flex items-center gap-2 text-xs font-bold text-[#A14E36]">
@@ -886,11 +887,11 @@ function ProductionCenterCard({ restaurant }: { restaurant: any }) {
                       type="checkbox"
                       className="h-4 w-4 accent-red-400"
                     />
-                    Confirmo que quero apagar
+                    {t("productionCenters.confirmDeleteLabel")}
                   </label>
 
                   <button className="mt-3 h-9 rounded-full border border-red-300/30 bg-red-400/20 px-4 text-xs font-semibold uppercase text-[#A14E36]">
-                    Apagar
+                    {t("productionCenters.deleteButton")}
                   </button>
                 </form>
               </details>
@@ -918,49 +919,45 @@ function ChannelBadge({ label, active }: { label: string; active: boolean }) {
 }
 
 
-function PrinterComingSoonCard() {
+function PrinterComingSoonCard({ t }: { t: Translator }) {
   return (
     <section className="mt-6 rounded-[32px] border border-[#E1D0B8] bg-white p-6 shadow-[0_18px_55px_rgba(80,55,30,0.045)] lg:p-8">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-            Impressoras
+            {t("printersComingSoon.eyebrow")}
           </p>
 
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.055em]">
-            Impressoras Coming Soon
+            {t("printersComingSoon.title")}
           </h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-[#6B6258]">
-            A configuração de impressoras e centros de produção ainda está em
-            desenvolvimento. Vamos disponibilizar esta área quando a impressão
-            estiver pronta para uso real em restaurantes.
+            {t("printersComingSoon.description")}
           </p>
         </div>
 
         <span className="w-fit rounded-full border border-[#E1C48C] bg-[#FFF4DF] px-5 py-3 text-xs font-black uppercase tracking-[0.2em] text-[#9B6F3B]">
-          Em breve
+          {t("printersComingSoon.badge")}
         </span>
       </div>
 
       <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <ComingSoonFeature title="Cozinha" text="Tickets enviados para a impressora da cozinha." />
-        <ComingSoonFeature title="Bar" text="Bebidas e pedidos separados por centro de produção." />
-        <ComingSoonFeature title="Sala" text="Impressão para sala, balcão ou caixa." />
-        <ComingSoonFeature title="Bluetooth" text="Preparado para tablet/app bridge Bluetooth." />
-        <ComingSoonFeature title="Rede/IP" text="Impressoras por endereço IP e porta." />
-        <ComingSoonFeature title="Print Bridge" text="Serviço local para impressão automática." />
+        <ComingSoonFeature title={t("printersComingSoon.features.kitchen.title")} text={t("printersComingSoon.features.kitchen.text")} />
+        <ComingSoonFeature title={t("printersComingSoon.features.bar.title")} text={t("printersComingSoon.features.bar.text")} />
+        <ComingSoonFeature title={t("printersComingSoon.features.room.title")} text={t("printersComingSoon.features.room.text")} />
+        <ComingSoonFeature title={t("printersComingSoon.features.bluetooth.title")} text={t("printersComingSoon.features.bluetooth.text")} />
+        <ComingSoonFeature title={t("printersComingSoon.features.network.title")} text={t("printersComingSoon.features.network.text")} />
+        <ComingSoonFeature title={t("printersComingSoon.features.bridge.title")} text={t("printersComingSoon.features.bridge.text")} />
       </div>
 
       <div className="mt-6 rounded-[24px] border border-[#E8DCCB] bg-[#FFF9F0] p-5">
         <p className="text-sm font-semibold text-[#16120E]">
-          Nota importante
+          {t("printersComingSoon.noteTitle")}
         </p>
 
         <p className="mt-2 text-sm leading-6 text-[#6B6258]">
-          Enquanto esta funcionalidade não estiver finalizada, a impressão por
-          produção, Bluetooth e bridge não deve ser considerada pronta para
-          operação diária.
+          {t("printersComingSoon.noteText")}
         </p>
       </div>
     </section>

@@ -256,7 +256,7 @@ voidedQuantity: Number(item.voidedQuantity ?? 0),
       <RestaurantSidebar
         id={restaurant.id}
         restaurantName={restaurant.name}
-        active="POS"
+        active="pos"
       />
 
       <POSClient

@@ -1,0 +1,175 @@
+{
+  "pricing": {
+    "hero": {
+      "badge": "Growth. Visibility. Control.",
+      "titleLine1": "选择合适的平台，",
+      "titleLine2": "助您的餐厅持续增长。",
+      "text": "通过一体化的预订、网站、QR点餐、客户管理（CRM）和营销工具，吸引更多顾客、提升营收，并简化日常运营。",
+      "stats": {
+        "trial": { "value": "7 天", "label": "完整试用" },
+        "yearly": { "value": "1 个月", "label": "年付赠送" },
+        "commission": { "value": "0€", "label": "佣金" }
+      }
+    },
+    "plans": {
+      "essentials": {
+        "name": "Essentials",
+        "badge": "7 天免费试用",
+        "description": "适合希望将预订、网站、QR点餐、CRM、评价管理和日常运营整合到同一系统中的餐厅。",
+        "features": [
+          "更多直接预订",
+          "包含高级网站",
+          "包含 QR 点餐",
+          "客户 CRM",
+          "Google 评价管理",
+          "餐桌地图",
+          "基础报表",
+          "预订零佣金"
+        ]
+      },
+      "growth": {
+        "name": "Growth",
+        "badge": "最受推荐",
+        "description": "适合希望通过营销挽回流失顾客、提升冷门时段业绩、增加回头客的餐厅。",
+        "features": [
+          "包含 Essentials 全部功能",
+          "包含 MesaLink 营销工具",
+          "挽回沉睡顾客",
+          "冷门时段促销活动",
+          "流失风险顾客提醒",
+          "自动生日提醒",
+          "VIP 会员忠诚计划",
+          "更多回头客"
+        ]
+      },
+      "perMonth": "/月",
+      "yearlyLabel": "年付",
+      "yearlySuffix": "/年",
+      "yearlyNote": "· 赠送 1 个月 · 节省 {saving}",
+      "ctaMonthly": "按月订阅 →",
+      "ctaYearly": "按年订阅 →"
+    },
+    "comparison": {
+      "badge": "为什么选择 MesaLink？",
+      "title": "更少分散系统，更多增长。",
+      "text": "MesaLink 将获客、预订、QR点餐、CRM、营销和评价管理整合在一起，提升营收、曝光度和管控力。",
+      "headers": {
+        "need": "需求",
+        "traditional": "传统方式",
+        "mesalink": "MesaLink"
+      },
+      "rows": {
+        "website": { "need": "网站 + SEO", "traditional": "独立供应商", "mesalink": "已包含" },
+        "reservations": { "need": "预订", "traditional": "独立系统", "mesalink": "已包含" },
+        "qrOrdering": { "need": "QR 点餐", "traditional": "独立附加模块", "mesalink": "已包含" },
+        "crm": { "need": "CRM", "traditional": "表格或外部工具", "mesalink": "已包含" },
+        "marketing": { "need": "营销", "traditional": "手动营销活动", "mesalink": "Growth 方案" },
+        "reviews": { "need": "评价管理", "traditional": "缺乏明确流程", "mesalink": "已包含" },
+        "billing": { "need": "税务开票", "traditional": "外部认证软件", "mesalink": "在 MesaLink 外部处理" }
+      }
+    },
+    "faq": {
+      "badge": "常见问题",
+      "title": "快速解答。",
+      "items": {
+        "trial": { "question": "有免费试用期吗？", "answer": "有。您可以在选择方案前免费试用全部功能 7 天。" },
+        "yearlyDiscount": { "question": "年付有折扣吗？", "answer": "有。年付可获赠 1 个月：Essentials 为每年 605€，Growth 为每年 825€，不含增值税。" },
+        "growthDifference": { "question": "Growth 方案有什么不同？", "answer": "Growth 方案增加了营销工具，帮助挽回流失顾客、提升冷门时段业绩并增加回头客。" },
+        "commissions": { "question": "预订会收取佣金吗？", "answer": "不会。MesaLink 不对预订收取任何佣金。" },
+        "billing": { "question": "税务开票怎么处理？", "answer": "税务开票由您选择的外部认证软件处理，该费用不由 MesaLink 收取。" },
+        "cancel": { "question": "可以取消订阅吗？", "answer": "可以，您可以随时取消。" }
+      }
+    },
+    "finalCta": {
+      "eyebrow": "立即开始",
+      "title": "免费试用 7 天，体验全部功能。",
+      "text": "在选择方案前，先体验全部功能。年付还可获赠 1 个月。",
+      "cta": "开始免费试用 →"
+    }
+  },
+  "contact": {
+    "badge": "联系我们",
+    "title": "让我们一起，为您的餐厅连接未来。",
+    "text": "对 MesaLink、系统部署、定价有疑问，或想了解该平台如何为您的餐厅服务？请给我们留言。",
+    "emailCard": {
+      "label": "邮箱",
+      "reply": "我们会尽快回复您。"
+    },
+    "infoCard": {
+      "title": "餐厅操作系统",
+      "text": "专业网站、在线预订、餐桌管理、客户管理，以及人工智能、营销和 QR 点餐等未来工具。"
+    },
+    "form": {
+      "namePlaceholder": "姓名",
+      "emailPlaceholder": "邮箱",
+      "restaurantPlaceholder": "餐厅名称",
+      "messagePlaceholder": "留言内容",
+      "send": "发送留言",
+      "note": "表单将在下一步与邮箱系统连接。"
+    }
+  },
+  "terms": {
+    "eyebrow": "法律信息",
+    "title": "服务条款",
+    "lastUpdated": "最近更新：{year}",
+    "backLink": "← 返回",
+    "sections": {
+      "service": {
+        "title": "1. 服务内容",
+        "text": "MesaLink 是一个用于餐厅预订管理的在线平台，包含公开预订页面、日历、客户管理、二维码（QR Code）及各类运营工具。"
+      },
+      "usage": {
+        "title": "2. 使用规范",
+        "text": "用户须保证所提供信息真实准确，并仅将本平台用于与其餐厅运营相关的合法用途。"
+      },
+      "payments": {
+        "title": "3. 付款",
+        "text": "付费方案按所选周期按月或按年收费。除另有说明外，所示价格均不含增值税。"
+      },
+      "cancellation": {
+        "title": "4. 取消订阅",
+        "text": "客户可随时取消订阅。服务的使用权限可能保留至已付费周期结束。"
+      },
+      "liability": {
+        "title": "5. 责任限制",
+        "text": "对于餐厅输入的错误信息、外部网络故障、第三方服务问题或平台的不当使用，MesaLink 概不负责。"
+      },
+      "contact": {
+        "title": "6. 联系方式",
+        "text": "如对本条款有任何疑问，请联系："
+      }
+    }
+  },
+  "privacy": {
+    "eyebrow": "法律信息",
+    "title": "隐私政策",
+    "lastUpdated": "最近更新：{year}",
+    "backLink": "← 返回",
+    "sections": {
+      "dataCollected": {
+        "title": "1. 我们收集的数据",
+        "text": "我们可能收集姓名、邮箱、电话、餐厅信息、已创建的预订、营业时间、客户信息，以及使用本平台所需的其他数据。"
+      },
+      "purpose": {
+        "title": "2. 使用目的",
+        "text": "所收集的数据用于提供 MesaLink 服务、处理预订、管理账户、与用户沟通以及改进平台功能。"
+      },
+      "customerData": {
+        "title": "3. 餐厅终端顾客的数据",
+        "text": "终端顾客的数据仅用于管理预订及与该预订相关的沟通。"
+      },
+      "dataSharing": {
+        "title": "4. 数据共享",
+        "text": "我们不会出售个人数据。我们可能会使用托管、支付、身份验证、邮件或技术支持所必需的第三方服务。"
+      },
+      "rights": {
+        "title": "5. 您的权利",
+        "text": "您可以通过以下邮箱申请访问、更正或删除您的数据："
+      },
+      "security": {
+        "title": "6. 安全性",
+        "text": "我们采取技术和组织措施来保护平台上处理的数据。"
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "full": {
+    "software": "Software",
+    "growth": "Growth",
+    "platform": "Platform",
+    "pricing": "Pricing",
+    "login": "Log in",
+    "cta": "Get started"
+  },
+  "compact": {
+    "login": "Log in",
+    "cta": "Try it"
+  }
+}

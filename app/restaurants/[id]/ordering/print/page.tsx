@@ -3,6 +3,7 @@ import PrintButton from "@/components/PrintButton";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -15,19 +16,16 @@ type PageProps = {
 
 const QR_SIZES = {
   small: {
-    label: "Pequeno",
     qr: 150,
     card: "print:h-[105mm]",
     cols: "print:grid-cols-2",
   },
   medium: {
-    label: "Médio",
     qr: 220,
     card: "print:h-[148.5mm]",
     cols: "print:grid-cols-2",
   },
   large: {
-    label: "Grande",
     qr: 320,
     card: "print:h-[297mm]",
     cols: "print:grid-cols-1",
@@ -36,21 +34,18 @@ const QR_SIZES = {
 
 const QR_TEMPLATES = {
   premium: {
-    label: "Premium",
     page: "bg-[#F5EFE6] text-[#16120E]",
     card: "border-[#16120E] bg-[#16120E] text-white",
     accent: "text-[#C8A56A]",
     qrWrap: "bg-white",
   },
   minimal: {
-    label: "Minimal",
     page: "bg-[#F5EFE6] text-[#16120E]",
     card: "border-[#E1D0B8] bg-white text-[#16120E]",
     accent: "text-[#9B6F3B]",
     qrWrap: "bg-white",
   },
   mesalink: {
-    label: "MesaLink",
     page: "bg-[#F5EFE6] text-[#16120E]",
     card:
       "border-[#D6C3A5] bg-gradient-to-br from-[#FFFDF8] via-[#FFF9F0] to-[#EFE5D6] text-[#16120E]",
@@ -65,6 +60,20 @@ export default async function PrintQrCodesPage({
 }: PageProps) {
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
+
+  const t = await getTranslations("dashboardOperations.ordering.print");
+
+  const sizeLabels = {
+    small: t("sizes.small"),
+    medium: t("sizes.medium"),
+    large: t("sizes.large"),
+  };
+
+  const templateLabels = {
+    premium: t("templates.premium"),
+    minimal: t("templates.minimal"),
+    mesalink: t("templates.mesalink"),
+  };
 
   const selectedSize =
     query.size === "small" || query.size === "large" ? query.size : "medium";
@@ -104,16 +113,17 @@ export default async function PrintQrCodesPage({
         <div className="flex flex-col gap-4 rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-              QR Ordering
+              {t("eyebrow")}
             </p>
 
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-              QR Codes
+              {t("title")}
             </h1>
 
             <p className="mt-2 text-sm font-bold text-[#6B6258]">
-              {restaurant.name} · {tables.length} mesa(s) · {template.label} ·{" "}
-              {size.label}
+              {restaurant.name} · {t("tablesCount", { count: tables.length })} ·{" "}
+              {templateLabels[selectedTemplate]} ·{" "}
+              {sizeLabels[selectedSize]}
             </p>
           </div>
 
@@ -122,7 +132,7 @@ export default async function PrintQrCodesPage({
 
         <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
-            Mesas
+            {t("tablesFilterEyebrow")}
           </p>
 
           <div className="flex flex-wrap gap-2">
@@ -134,7 +144,7 @@ export default async function PrintQrCodesPage({
                   : "border-[#E1D0B8] bg-[#FFF9F0] text-[#6B6258] hover:border-[#C8A56A]"
               }`}
             >
-              Todas
+              {t("allTablesFilter")}
             </Link>
 
             {restaurant.tables.map((table) => (
@@ -147,7 +157,7 @@ export default async function PrintQrCodesPage({
                     : "border-[#E1D0B8] bg-[#FFF9F0] text-[#6B6258] hover:border-[#C8A56A]"
                 }`}
               >
-                Mesa {table.number}
+                {t("tableLabel", { number: table.number })}
               </Link>
             ))}
           </div>
@@ -156,11 +166,11 @@ export default async function PrintQrCodesPage({
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
-              Template
+              {t("templateEyebrow")}
             </p>
 
             <div className="flex flex-wrap gap-2">
-              {Object.entries(QR_TEMPLATES).map(([key, item]) => (
+              {Object.keys(QR_TEMPLATES).map((key) => (
                 <Link
                   key={key}
                   href={`/restaurants/${restaurant.id}/ordering/print${
@@ -174,7 +184,7 @@ export default async function PrintQrCodesPage({
                       : "border-[#E1D0B8] bg-[#FFF9F0] text-[#6B6258] hover:border-[#C8A56A]"
                   }`}
                 >
-                  {item.label}
+                  {templateLabels[key as keyof typeof templateLabels]}
                 </Link>
               ))}
             </div>
@@ -182,11 +192,11 @@ export default async function PrintQrCodesPage({
 
           <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#9B6F3B]">
-              Tamanho
+              {t("sizeEyebrow")}
             </p>
 
             <div className="flex flex-wrap gap-2">
-              {Object.entries(QR_SIZES).map(([key, item]) => (
+              {Object.keys(QR_SIZES).map((key) => (
                 <Link
                   key={key}
                   href={`/restaurants/${restaurant.id}/ordering/print${
@@ -200,7 +210,7 @@ export default async function PrintQrCodesPage({
                       : "border-[#E1D0B8] bg-[#FFF9F0] text-[#6B6258] hover:border-[#C8A56A]"
                   }`}
                 >
-                  {item.label}
+                  {sizeLabels[key as keyof typeof sizeLabels]}
                 </Link>
               ))}
             </div>
@@ -223,11 +233,11 @@ export default async function PrintQrCodesPage({
                 <p
                   className={`text-xs font-semibold uppercase tracking-[0.22em] ${template.accent}`}
                 >
-                  MesaLink QR Ordering
+                  {t("cardBrand")}
                 </p>
 
                 <h2 className="mt-3 text-5xl font-semibold tracking-[-0.06em]">
-                  Mesa {table.number}
+                  {t("tableLabel", { number: table.number })}
                 </h2>
 
                 <p className={`mt-2 text-sm font-semibold ${template.accent}`}>
@@ -245,7 +255,7 @@ export default async function PrintQrCodesPage({
                 </div>
 
                 <p className="mt-6 text-lg font-semibold">
-                  Abra a câmara e faça o seu pedido
+                  {t("scanInstruction")}
                 </p>
 
                 <p className="mt-2 max-w-xs break-all text-[10px] font-bold opacity-50">

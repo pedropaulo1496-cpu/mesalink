@@ -1,0 +1,21 @@
+{
+  "list": {
+    "title": "餐厅",
+    "subtitle": "管理您的所有餐厅。",
+    "createButton": "创建餐厅",
+    "manage": "管理",
+    "reservations": "预订",
+    "calendar": "日历",
+    "publicPage": "公开页面",
+    "emptyState": "您还没有创建任何餐厅。"
+  },
+  "new": {
+    "title": "创建餐厅",
+    "namePlaceholder": "名称",
+    "slugPlaceholder": "示例-slug",
+    "emailPlaceholder": "电子邮件",
+    "phonePlaceholder": "电话",
+    "addressPlaceholder": "地址",
+    "submit": "保存"
+  }
+}

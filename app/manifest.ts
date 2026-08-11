@@ -4,14 +4,13 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "MesaLink",
     short_name: "MesaLink",
-    description:
-      "Reservas online, QR Ordering, website e marketing para restaurantes.",
+    description: "Reservas online, QR Ordering, website e marketing para restaurantes.",
     id: "/",
     start_url: "/dashboard",
     scope: "/",
     display: "standalone",
     orientation: "portrait-primary",
-    background_color: "#F4ECDF",
+    background_color: "#070504",
     theme_color: "#C8A56A",
     icons: [
       {

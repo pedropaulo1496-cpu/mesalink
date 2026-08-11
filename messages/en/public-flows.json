@@ -1,0 +1,228 @@
+{
+  "reserve": {
+    "badge": "Online booking",
+    "subtitle": "Choose the day, time, and number of guests. Your booking is confirmed in seconds.",
+    "chips": {
+      "quickConfirmation": "Quick confirmation",
+      "onlineBooking": "Online booking"
+    },
+    "unavailable": {
+      "title": "Bookings unavailable",
+      "text": "This restaurant isn't accepting online bookings right now."
+    },
+    "errors": {
+      "conflict": {
+        "title": "Time slot unavailable",
+        "text": "That table already has a booking for this time. Please choose another time."
+      },
+      "past": {
+        "title": "Invalid date",
+        "text": "You can't book a date or time in the past."
+      },
+      "capacity": {
+        "title": "No capacity",
+        "text": "The restaurant has no availability for this time."
+      },
+      "email": {
+        "title": "Invalid email",
+        "text": "Please enter a valid email to continue."
+      }
+    },
+    "steps": {
+      "when": "When?",
+      "time": "What time?",
+      "guests": "How many guests?",
+      "details": "Your details"
+    },
+    "closedDay": "The restaurant is closed on this day.",
+    "otherNumber": "Other number",
+    "guestsPlaceholder": "Number of guests",
+    "noTables": {
+      "title": "No tables available",
+      "text": "There are no tables available for {guests, plural, one {# guest} other {# guests}} at this time."
+    },
+    "pendingApproval": {
+      "title": "Request subject to approval",
+      "text": "For {guests, plural, one {# guest} other {# guests}}, the restaurant may combine tables. Your request will be pending confirmation."
+    },
+    "capacityMode": {
+      "title": "Capacity-based booking",
+      "text": "The restaurant manages tables internally. Just choose the day, time, and number of guests."
+    },
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "Full name",
+      "phone": "Phone",
+      "phonePlaceholder": "Phone",
+      "email": "Email",
+      "emailPlaceholder": "Email",
+      "birthDate": "Date of birth",
+      "required": "Required",
+      "optional": "Optional"
+    },
+    "birthDateNote": "Your date of birth is optional and may be used by the restaurant for birthday offers and personalized perks.",
+    "submitProcessing": "Processing...",
+    "submitRequest": "Send request",
+    "submitConfirm": "Confirm booking",
+    "consent": "By booking, you agree to be contacted about this reservation.",
+    "poweredBy": "Powered by MesaLink",
+    "email": {
+      "subjectPending": "Booking request received - {restaurantName}",
+      "subjectConfirmed": "Booking confirmed - {restaurantName}",
+      "headingPending": "Booking request received",
+      "headingConfirmed": "Booking confirmed",
+      "greeting": "Hi {customerName},",
+      "bodyPending": "We've received your booking request. The restaurant will confirm or decline it shortly.",
+      "bodyConfirmed": "Your booking has been successfully confirmed.",
+      "labelRestaurant": "Restaurant:",
+      "labelDate": "Date:",
+      "labelTime": "Time:",
+      "labelGuests": "Guests:",
+      "labelStatus": "Status:",
+      "statusPending": "Pending approval",
+      "statusConfirmed": "Confirmed",
+      "footerNote": "This email was sent automatically by MesaLink."
+    }
+  },
+  "reserveSuccess": {
+    "titleAlready": "Booking already made",
+    "titlePending": "Request received",
+    "titleConfirmed": "Booking confirmed",
+    "textAlready": "This booking was already on file — no need to submit it again.",
+    "textPending": "The restaurant has received your request and will respond shortly.",
+    "textConfirmed": "Your booking has been successfully registered.",
+    "labels": {
+      "name": "Name",
+      "guests": "Guests",
+      "date": "Date",
+      "time": "Time",
+      "status": "Status"
+    },
+    "statusPending": "Pending approval",
+    "statusConfirmed": "Confirmed",
+    "cta": "Discover MesaLink",
+    "poweredBy": "Powered by MesaLink"
+  },
+  "review": {
+    "title": "How was your experience?",
+    "subtitle": "Your feedback helps {restaurantName} improve every guest's experience.",
+    "thankYouPositiveTitle": "Thanks for the rating!",
+    "thankYouPositiveText": "We're thrilled you enjoyed the experience.",
+    "shareOnGoogle": "Share on Google",
+    "positiveNoGoogleText": "Your feedback helps us keep improving the experience for our guests.",
+    "thankYouNegativeTitle": "Thanks for the feedback.",
+    "thankYouNegativeText": "The {restaurantName} team will review your message to improve the experience.",
+    "vip": {
+      "badge": "Preferred Member",
+      "title": "Want to receive invites, news, and exclusive perks?",
+      "text": "Get invites, news, and special offers from {restaurantName}.",
+      "checkbox": "I'd like to receive news, events, and exclusive offers.",
+      "birthDateLabel": "Date of birth (optional)",
+      "confirmButton": "Confirm preference",
+      "confirming": "Confirming...",
+      "confirmedTitle": "Preference confirmed.",
+      "confirmedText": "Thanks for wanting to hear from {restaurantName}."
+    },
+    "ratingCommentPlaceholder": "We're sorry the experience wasn't perfect. Tell us what we can improve.",
+    "positiveHint": "Thanks for the rating. You can continue to share your experience publicly.",
+    "submitting": "Sending...",
+    "continue": "Continue",
+    "sendFeedback": "Send feedback",
+    "footerThanks": "Thank you for helping {restaurantName} improve every visit."
+  },
+  "publicSite": {
+    "nav": {
+      "about": "About",
+      "menu": "Menu",
+      "hours": "Hours",
+      "location": "Location"
+    },
+    "reserveButton": "Book now",
+    "viewMenu": "View menu",
+    "contact": {
+      "address": "Address",
+      "phone": "Phone",
+      "email": "Email"
+    },
+    "call": "Call",
+    "hoursTitle": "Hours",
+    "weekdays": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "weekdaysShort": {
+      "monday": "Mon",
+      "tuesday": "Tue",
+      "wednesday": "Wed",
+      "thursday": "Thu",
+      "friday": "Fri",
+      "saturday": "Sat",
+      "sunday": "Sun"
+    },
+    "hoursOpen": "Open",
+    "hoursClosed": "Closed",
+    "menuSection": {
+      "fallbackTitle": "Menu {index}",
+      "iconLabel": "Menu",
+      "available": "{count, plural, one {# menu available} other {# menus available}}"
+    },
+    "heroBadgeOnline": "Online",
+    "heroBadgeText": "Book in seconds",
+    "footerTagline": "Online booking by MesaLink"
+  },
+  "qrOrdering": {
+    "unavailableTitle": "QR Ordering unavailable",
+    "unavailableText": "This restaurant has temporarily disabled QR code ordering.",
+    "table": "Table {number}",
+    "waiterCalledBadge": "Waiter called",
+    "billRequestedBadge": "Bill requested",
+    "orderStatus": {
+      "title": "Table order",
+      "subtitle": "Current status",
+      "refresh": "Refresh",
+      "refreshing": "...",
+      "empty": "No orders yet at this table.",
+      "activeOrders": "Active orders",
+      "history": "History"
+    },
+    "actions": {
+      "callWaiter": "Call waiter",
+      "callingWaiter": "Calling...",
+      "requestBill": "Request bill",
+      "requestingBill": "Requesting...",
+      "hint": "You can call a waiter before placing an order. The bill becomes available once the table is open."
+    },
+    "product": {
+      "count": "{count, plural, one {# item} other {# items}}",
+      "vat": "VAT {rate}%",
+      "featured": "Featured",
+      "add": "Add"
+    },
+    "cart": {
+      "empty": "Cart is empty",
+      "summary": "{count, plural, one {# item} other {# items}} · {total}€",
+      "send": "Send order",
+      "sending": "Sending..."
+    },
+    "statusLabels": {
+      "pending": "Received",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "messages": {
+      "orderSuccess": "Order sent successfully.",
+      "orderError": "Couldn't send the order. Please try again.",
+      "waiterCalled": "Waiter called.",
+      "waiterError": "Couldn't call the waiter.",
+      "billRequested": "Bill requested.",
+      "billError": "Couldn't request the bill."
+    }
+  }
+}

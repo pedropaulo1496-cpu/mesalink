@@ -1,0 +1,21 @@
+{
+  "list": {
+    "title": "Restaurants",
+    "subtitle": "Gérez tous vos restaurants.",
+    "createButton": "Créer un restaurant",
+    "manage": "Gérer",
+    "reservations": "Réservations",
+    "calendar": "Calendrier",
+    "publicPage": "Page publique",
+    "emptyState": "Vous n'avez encore aucun restaurant créé."
+  },
+  "new": {
+    "title": "Créer un restaurant",
+    "namePlaceholder": "Nom",
+    "slugPlaceholder": "exemple-slug",
+    "emailPlaceholder": "Email",
+    "phonePlaceholder": "Téléphone",
+    "addressPlaceholder": "Adresse",
+    "submit": "Enregistrer"
+  }
+}

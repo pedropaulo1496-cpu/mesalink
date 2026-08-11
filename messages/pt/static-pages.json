@@ -1,0 +1,175 @@
+{
+  "pricing": {
+    "hero": {
+      "badge": "Growth. Visibility. Control.",
+      "titleLine1": "Escolha a plataforma certa para",
+      "titleLine2": "fazer crescer o restaurante.",
+      "text": "Atraia mais clientes, aumente a receita e simplifique a operação com reservas, website, QR Ordering, CRM e Marketing integrados.",
+      "stats": {
+        "trial": { "value": "7 dias", "label": "trial completo" },
+        "yearly": { "value": "1 mês", "label": "grátis no anual" },
+        "commission": { "value": "0€", "label": "comissões" }
+      }
+    },
+    "plans": {
+      "essentials": {
+        "name": "Essentials",
+        "badge": "7 dias grátis",
+        "description": "Para restaurantes que querem centralizar reservas, website, QR Ordering, CRM, reviews e operação num único sistema.",
+        "features": [
+          "Mais reservas diretas",
+          "Website premium incluído",
+          "QR Ordering incluído",
+          "CRM de clientes",
+          "Google Reviews",
+          "Mapa de mesas",
+          "Relatórios essenciais",
+          "Sem comissões por reserva"
+        ]
+      },
+      "growth": {
+        "name": "Growth",
+        "badge": "Mais recomendado",
+        "description": "Para restaurantes que querem recuperar clientes, promover dias fracos e aumentar visitas recorrentes com Marketing.",
+        "features": [
+          "Tudo do Essentials",
+          "Marketing MesaLink incluído",
+          "Recuperar clientes inativos",
+          "Campanhas para dias fracos",
+          "Clientes em risco",
+          "Aniversários automáticos",
+          "Fidelização VIP",
+          "Mais visitas recorrentes"
+        ]
+      },
+      "perMonth": "/mês",
+      "yearlyLabel": "Pagamento anual",
+      "yearlySuffix": "/ano",
+      "yearlyNote": "· 1 mês grátis · poupa {saving}",
+      "ctaMonthly": "Começar mensal →",
+      "ctaYearly": "Começar anual →"
+    },
+    "comparison": {
+      "badge": "Porque MesaLink?",
+      "title": "Menos sistemas separados. Mais crescimento.",
+      "text": "A MesaLink junta descoberta, reservas, QR Ordering, CRM, Marketing e reviews para aumentar receita, visibilidade e controlo.",
+      "headers": {
+        "need": "Necessidade",
+        "traditional": "Tradicional",
+        "mesalink": "MesaLink"
+      },
+      "rows": {
+        "website": { "need": "Website + SEO", "traditional": "Fornecedor separado", "mesalink": "Incluído" },
+        "reservations": { "need": "Reservas", "traditional": "Sistema isolado", "mesalink": "Incluído" },
+        "qrOrdering": { "need": "QR Ordering", "traditional": "Add-on separado", "mesalink": "Incluído" },
+        "crm": { "need": "CRM", "traditional": "Folhas ou ferramenta externa", "mesalink": "Incluído" },
+        "marketing": { "need": "Marketing", "traditional": "Campanhas manuais", "mesalink": "Growth" },
+        "reviews": { "need": "Reviews", "traditional": "Sem processo claro", "mesalink": "Incluído" },
+        "billing": { "need": "Faturação fiscal", "traditional": "Software certificado externo", "mesalink": "Tratada fora da MesaLink" }
+      }
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Perguntas rápidas.",
+      "items": {
+        "trial": { "question": "Existe período grátis?", "answer": "Sim. Pode experimentar todas as funcionalidades durante 7 dias antes de escolher o plano." },
+        "yearlyDiscount": { "question": "O pagamento anual tem desconto?", "answer": "Sim. No pagamento anual recebe 1 mês grátis: Essentials fica 605€/ano e Growth fica 825€/ano, sem IVA." },
+        "growthDifference": { "question": "Qual é a diferença do Growth?", "answer": "O Growth adiciona Marketing para recuperar clientes, promover dias fracos e aumentar visitas recorrentes." },
+        "commissions": { "question": "Há comissões por reserva?", "answer": "Não. A MesaLink não cobra comissão por reserva." },
+        "billing": { "question": "E a faturação fiscal?", "answer": "A faturação fiscal é tratada externamente por um software certificado à sua escolha. Esse custo não é cobrado pela MesaLink." },
+        "cancel": { "question": "Posso cancelar?", "answer": "Sim. Pode cancelar quando quiser." }
+      }
+    },
+    "finalCta": {
+      "eyebrow": "Comece hoje",
+      "title": "Teste tudo durante 7 dias.",
+      "text": "Experimente todas as funcionalidades antes de escolher plano. No pagamento anual, recebe 1 mês grátis.",
+      "cta": "Começar teste gratuito →"
+    }
+  },
+  "contact": {
+    "badge": "Fale connosco",
+    "title": "Vamos ligar o seu restaurante ao futuro.",
+    "text": "Tem dúvidas sobre o MesaLink, implementação, preços ou quer ver como a plataforma pode funcionar no seu restaurante? Envie-nos uma mensagem.",
+    "emailCard": {
+      "label": "Email",
+      "reply": "Respondemos o mais rapidamente possível."
+    },
+    "infoCard": {
+      "title": "O Sistema Operativo para Restaurantes",
+      "text": "Website profissional, reservas online, gestão de mesas, clientes e ferramentas futuras como IA, marketing e QR Ordering."
+    },
+    "form": {
+      "namePlaceholder": "Nome",
+      "emailPlaceholder": "Email",
+      "restaurantPlaceholder": "Restaurante",
+      "messagePlaceholder": "Mensagem",
+      "send": "Enviar mensagem",
+      "note": "O formulário será ligado ao email no próximo passo."
+    }
+  },
+  "terms": {
+    "eyebrow": "Legal",
+    "title": "Termos e Condições",
+    "lastUpdated": "Última atualização: {year}",
+    "backLink": "← Voltar",
+    "sections": {
+      "service": {
+        "title": "1. Serviço",
+        "text": "O MesaLink é uma plataforma online para gestão de reservas em restaurantes, incluindo página pública de reservas, calendário, clientes, QR Code e ferramentas de operação."
+      },
+      "usage": {
+        "title": "2. Utilização",
+        "text": "O utilizador compromete-se a fornecer informação verdadeira e a utilizar a plataforma apenas para fins legais e relacionados com a gestão do seu restaurante."
+      },
+      "payments": {
+        "title": "3. Pagamentos",
+        "text": "Os planos pagos são cobrados mensalmente ou anualmente, conforme selecionado. Os preços apresentados não incluem IVA, salvo indicação em contrário."
+      },
+      "cancellation": {
+        "title": "4. Cancelamento",
+        "text": "O cliente pode cancelar a subscrição. O acesso ao serviço poderá manter-se até ao final do período já pago."
+      },
+      "liability": {
+        "title": "5. Responsabilidade",
+        "text": "O MesaLink não se responsabiliza por informações incorretas introduzidas pelo restaurante, falhas externas de internet, serviços terceiros ou utilização indevida da plataforma."
+      },
+      "contact": {
+        "title": "6. Contacto",
+        "text": "Para questões relacionadas com estes termos, contacte:"
+      }
+    }
+  },
+  "privacy": {
+    "eyebrow": "Legal",
+    "title": "Política de Privacidade",
+    "lastUpdated": "Última atualização: {year}",
+    "backLink": "← Voltar",
+    "sections": {
+      "dataCollected": {
+        "title": "1. Dados recolhidos",
+        "text": "Podemos recolher dados como nome, email, telefone, informações do restaurante, reservas criadas, horários, clientes e dados necessários à utilização da plataforma."
+      },
+      "purpose": {
+        "title": "2. Finalidade",
+        "text": "Os dados são usados para fornecer o serviço MesaLink, processar reservas, gerir contas, comunicar com utilizadores e melhorar a plataforma."
+      },
+      "customerData": {
+        "title": "3. Dados dos clientes dos restaurantes",
+        "text": "Os dados dos clientes finais são usados apenas para gerir reservas e comunicações relacionadas com essas reservas."
+      },
+      "dataSharing": {
+        "title": "4. Partilha de dados",
+        "text": "Não vendemos dados pessoais. Poderemos usar serviços terceiros necessários para alojamento, pagamentos, autenticação, email ou suporte técnico."
+      },
+      "rights": {
+        "title": "5. Direitos",
+        "text": "Pode solicitar acesso, correção ou eliminação dos seus dados através do email:"
+      },
+      "security": {
+        "title": "6. Segurança",
+        "text": "Aplicamos medidas técnicas e organizativas para proteger os dados tratados na plataforma."
+      }
+    }
+  }
+}

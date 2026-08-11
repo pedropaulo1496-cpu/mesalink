@@ -1,0 +1,29 @@
+{
+  "badge": "7 dias grátis",
+  "aside": {
+    "label": "Onboarding",
+    "title": "Configure o seu restaurante.",
+    "description": "Crie o painel inicial para começar a receber reservas, gerir clientes, publicar o website e preparar o crescimento com CRM, Marketing e QR Ordering.",
+    "steps": {
+      "step1": "Criar restaurante",
+      "step2": "Configurar horários e mesas",
+      "step3": "Ativar reservas, website e QR"
+    },
+    "trial": {
+      "title": "Trial completo incluído",
+      "text": "Durante 7 dias pode explorar a MesaLink sem compromisso."
+    }
+  },
+  "form": {
+    "label": "Dados do restaurante",
+    "title": "Criar restaurante",
+    "description": "Estes dados aparecem no painel, no website e na página pública de reservas. Pode alterar tudo mais tarde.",
+    "errorEmail": "Introduza um email válido ou deixe o campo em branco.",
+    "namePlaceholder": "Nome do restaurante",
+    "emailPlaceholder": "Email do restaurante",
+    "phonePlaceholder": "Telefone",
+    "addressPlaceholder": "Morada",
+    "submit": "Criar restaurante →",
+    "footnote": "A MesaLink liga reservas, website, QR Ordering, clientes, marketing e operação."
+  }
+}

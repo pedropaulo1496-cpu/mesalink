@@ -1,0 +1,560 @@
+{
+  "client": {
+    "comingSoonBanner": {
+      "badge": "Coming Soon",
+      "title": "MesaLink POS",
+      "description": "Estamos a finalizar o POS, faturação, impressão e versão mobile."
+    },
+    "comingSoonPage": {
+      "badge": "Coming Soon",
+      "description": "Estamos a finalizar a nova geração do POS para garantir uma experiência estável em sala, caixa, produção, faturação e impressão.",
+      "restaurantLabel": "Restaurante",
+      "developingTitle": "Em desenvolvimento",
+      "developingDescription": "O POS ainda não está disponível para clientes. Quando estiver pronto, será ativado automaticamente nesta área.",
+      "features": {
+        "tables": "Gestão de mesas",
+        "qrOrdering": "QR Ordering",
+        "cashRegister": "Caixa",
+        "invoicing": "Faturação Moloni",
+        "production": "Produção",
+        "printers": "Impressoras",
+        "splitBill": "Split bill",
+        "mobilePos": "Mobile POS"
+      },
+      "availableSoonLabel": "Disponível em breve",
+      "availableSoonDescription": "Até lá, continua a usar Reservas, Clientes, QR Ordering, Website e Marketing."
+    },
+    "header": {
+      "eyebrow": "MESALINK POS",
+      "titleTables": "Mesas",
+      "titleQuickSale": "Venda rápida",
+      "titleTable": "Mesa {number}",
+      "backToTables": "← Voltar às mesas",
+      "printersButton": "Impressoras",
+      "seatsCount": "{count} lugares",
+      "noTable": "Sem mesa",
+      "experimentalBanner": {
+        "title": "Modo experimental ativo",
+        "description": "Testes de mesas, pedidos e pagamentos. Para faturação legal, configura Moloni.",
+        "cta": "Moloni"
+      },
+      "qrAttention": "QR Orders: {count, plural, one {# alerta pendente} other {# alertas pendentes}}"
+    },
+    "tabs": {
+      "tables": "Mesas",
+      "cash": "Caixa",
+      "service": "Serviço",
+      "kitchen": "QR Orders",
+      "production": "Produção",
+      "history": "Histórico",
+      "fiscal": "Faturação",
+      "documents": "Documentos",
+      "stats": "Estatísticas"
+    },
+    "tables": {
+      "allFilter": "Todas",
+      "openFilter": "Abertas",
+      "freeFilter": "Livres",
+      "tablesCount": "{count} mesas",
+      "tableLabel": "Mesa",
+      "freeLabel": "Livre"
+    },
+    "products": {
+      "emptyState": "Ainda não tens produtos",
+      "productsCount": "{count} produtos"
+    },
+    "cart": {
+      "eyebrow": "Conta",
+      "openBadge": "Aberta",
+      "guestOrderCount": "{guestCount} pax · {orderCount, plural, one {# pedido} other {# pedidos}}",
+      "cancelTableButton": "Cancelar mesa",
+      "cancellingLabel": "A cancelar...",
+      "currentAccountLabel": "Conta atual",
+      "emptyAccountTitle": "Conta sem itens pendentes",
+      "emptyAccountDescription": "Os produtos pagos deixam de aparecer aqui.",
+      "emptyCartTitle": "Conta vazia",
+      "emptyCartDescription": "Seleciona produtos para criar uma conta no POS.",
+      "editButton": "Editar",
+      "editItemTitle": "Editar item",
+      "removeItemTitle": "Remover item",
+      "saveButton": "Guardar",
+      "savingLabel": "...",
+      "cancelDraftButton": "Cancelar",
+      "newProductsLabel": "Novos produtos",
+      "noteLabel": "Nota: {notes}",
+      "sendOrderButton": "Lançar pedido",
+      "editLink": "editar",
+      "summary": {
+        "account": "Conta",
+        "discount": "Desc.",
+        "paid": "Pago",
+        "remaining": "Falta"
+      },
+      "totalToPayLabel": "Total a pagar",
+      "chargeButton": "Cobrar",
+      "splitButton": "Separar",
+      "discountButton": "Desconto",
+      "transferButton": "Transferir"
+    },
+    "openTableModal": {
+      "eyebrow": "Abrir mesa",
+      "title": "Mesa {number}",
+      "description": "Indica o número de pessoas sentadas para calcular ticket médio por pessoa.",
+      "peopleLabel": "Pessoas",
+      "paxLabel": "pax",
+      "confirmButton": "Abrir mesa",
+      "confirmButtonLoading": "A abrir..."
+    },
+    "splitItemsModal": {
+      "eyebrow": "Separar conta",
+      "title": "Escolher itens",
+      "description": "Seleciona os produtos que este cliente vai pagar.",
+      "availableLabel": "Disponível:",
+      "selectedLabel": "Selecionado",
+      "confirmButton": "Receber selecionados"
+    },
+    "transferModal": {
+      "eyebrow": "Transferir",
+      "title": "Mesa destino e itens",
+      "description": "Escolhe uma mesa destino e transfere tudo ou apenas alguns itens.",
+      "targetTableLabel": "Mesa destino",
+      "tableLabel": "Mesa",
+      "quickTransferLabel": "Transferência rápida",
+      "quickTransferDescriptionWithTable": "Move a conta inteira para Mesa {number}.",
+      "quickTransferDescriptionNoTable": "Move a conta inteira para a mesa escolhida.",
+      "transferAllButton": "Transferir tudo",
+      "itemsLabel": "Itens",
+      "selectedCount": "{selected}/{total} selecionados",
+      "noItemsLabel": "Não existem itens para transferir.",
+      "availableLabel": "Disponível: {quantity} × {price}",
+      "closeButton": "Fechar",
+      "transferSelectedButton": "Transferir selecionados",
+      "transferSelectedButtonLoading": "A transferir...",
+      "alerts": {
+        "chooseTargetTable": "Escolhe a mesa destino.",
+        "selectAtLeastOneItem": "Seleciona pelo menos um item.",
+        "transferAllConfirm": "Transferir a conta inteira para a Mesa {number}?"
+      }
+    },
+    "discountModal": {
+      "eyebrow": "Desconto",
+      "title": "Desconto da mesa",
+      "valuePlaceholder": "0",
+      "reasonPlaceholder": "Motivo",
+      "removeButton": "Remover desconto",
+      "saveButton": "Guardar desconto"
+    },
+    "lineEditor": {
+      "editNewProductEyebrow": "Editar novo produto",
+      "editNewProductDescription": "Antes de lançar para cozinha/impressora.",
+      "editLineEyebrow": "Editar linha",
+      "editLineDescription": "Quantidade, preço, desconto e nota.",
+      "quantityLabel": "Quantidade",
+      "priceLabel": "Preço",
+      "discountPercentLabel": "Desconto (%)",
+      "discountAmountLabel": "Desconto (€)",
+      "notesLabel": "Texto opcional",
+      "notesPlaceholder": "Sem salada, sem cebola...",
+      "subtotalLabel": "Subtotal",
+      "discountLabel": "Desconto",
+      "totalLabel": "Total",
+      "removeButton": "Remover",
+      "saveButton": "✓ Gravar",
+      "saveButtonLoading": "A gravar..."
+    },
+    "partialPayment": {
+      "eyebrow": "Pagamento parcial",
+      "description": "Receber apenas os itens selecionados.",
+      "confirmButton": "Confirmar pagamento",
+      "confirmButtonLoading": "A receber..."
+    },
+    "paymentMethods": {
+      "card": { "label": "Multibanco", "description": "Cartão ou terminal" },
+      "cash": { "label": "Dinheiro", "description": "Pagamento em numerário" },
+      "bankTransfer": { "label": "Transferência", "description": "Transferência bancária" }
+    },
+    "paymentModal": {
+      "eyebrow": "Cobrar",
+      "title": "Mesa {number}",
+      "description": "Escolhe o método de pagamento para fechar a mesa.",
+      "totalLabel": "Total",
+      "paxLabel": "{count} pax",
+      "perPersonLabel": "{amount} / pessoa",
+      "splitLabel": "Dividir conta",
+      "splitPerPaymentLabel": "{amount} por pagamento",
+      "chargeWithInvoiceButton": "Cobrar e emitir fatura",
+      "confirmButtonLoading": "A fechar...",
+      "confirmButtonWithInvoice": "Cobrar sem fatura",
+      "confirmButtonDefault": "Fechar mesa"
+    },
+    "invoiceModal": {
+      "title": "Emitir documento",
+      "description": "Escolhe o tipo de cliente e os dados fiscais.",
+      "finalConsumerButton": "Consumidor Final",
+      "vatCustomerButton": "Cliente com NIF",
+      "vatPlaceholder": "NIF",
+      "fetchVatButton": "Obter dados",
+      "namePlaceholder": "Nome",
+      "addressPlaceholder": "Morada Fiscal",
+      "emailPlaceholder": "Email",
+      "cancelButton": "Cancelar",
+      "confirmButtonLoading": "A emitir...",
+      "confirmButtonSimplified": "Emitir Fatura Simplificada",
+      "confirmButtonFull": "Emitir Fatura"
+    },
+    "creditNoteModal": {
+      "eyebrow": "Nota de crédito",
+      "title": "Anular documento",
+      "documentLabel": "Documento: {number} · {amount}",
+      "noDocumentNumber": "Sem número",
+      "reasonLabel": "Motivo",
+      "defaultReason": "Anulação de documento",
+      "cancelButton": "Cancelar",
+      "confirmButton": "Emitir NC",
+      "confirmButtonLoading": "A emitir..."
+    },
+    "cashRegister": {
+      "closedTitle": "Caixa fechada",
+      "closedDescription": "Abre a caixa antes de começar o serviço para associar os pagamentos do POS ao fecho do dia.",
+      "openButton": "Abrir caixa",
+      "cards": {
+        "openingAmount": "Valor inicial",
+        "cash": "Dinheiro",
+        "card": "Multibanco",
+        "transfer": "Transferência",
+        "totalReceived": "Total recebido",
+        "expectedCash": "Dinheiro esperado"
+      },
+      "eyebrow": "Caixa",
+      "openTitle": "Caixa aberta",
+      "openSince": "Aberta desde {time}",
+      "cashInButton": "+ Entrada",
+      "cashOutButton": "- Saída",
+      "closeButton": "Fechar caixa",
+      "movementsTitle": "Movimentos de caixa",
+      "movementIn": "Entrada",
+      "movementOut": "Saída",
+      "noReason": "Sem motivo",
+      "paymentsTitle": "Pagamentos",
+      "paymentsAssociated": "{count, plural, one {# pagamento associado a esta caixa.} other {# pagamentos associados a esta caixa.}}",
+      "modal": {
+        "openEyebrow": "Abrir caixa",
+        "closeEyebrow": "Fechar caixa",
+        "openValueTitle": "Valor inicial",
+        "closeValueTitle": "Valor contado",
+        "openDescription": "Indica o fundo de caixa com que vais iniciar o serviço.",
+        "closeDescription": "Indica o dinheiro contado fisicamente na caixa.",
+        "amountLabel": "Valor inicial",
+        "amountLabelClosing": "Valor contado",
+        "expectedCashLabel": "Dinheiro esperado",
+        "differenceLabel": "Diferença",
+        "openConfirm": "Abrir caixa",
+        "closeConfirm": "Fechar caixa",
+        "savingLabel": "A guardar..."
+      },
+      "movementModal": {
+        "eyebrow": "Movimento de caixa",
+        "inTitle": "Entrada",
+        "outTitle": "Saída",
+        "inDescription": "Regista dinheiro que entrou na caixa.",
+        "outDescription": "Regista dinheiro retirado da caixa, como compras ou trocos.",
+        "amountLabel": "Valor",
+        "reasonLabel": "Motivo",
+        "inPlaceholder": "Ex: Reforço de caixa",
+        "outPlaceholder": "Ex: Compras supermercado",
+        "saveIn": "Guardar entrada",
+        "saveOut": "Guardar saída",
+        "savingLabel": "A guardar..."
+      }
+    },
+    "service": {
+      "eyebrow": "Serviço",
+      "title": "Hoje",
+      "totalProjectedLabel": "Total previsto",
+      "invoicedLabel": "Faturado",
+      "openLabel": "Em aberto",
+      "openTablesLabel": "Mesas abertas",
+      "peopleLabel": "Pessoas",
+      "ticketPerPersonLabel": "Ticket/pessoa",
+      "cashLabel": "Dinheiro",
+      "cardLabel": "Multibanco",
+      "transferLabel": "Transferência"
+    },
+    "qrOrders": {
+      "eyebrow": "QR Orders",
+      "allResolvedTitle": "Tudo resolvido",
+      "allResolvedDescription": "Pedidos QR, chamadas de empregado e pedidos de conta aparecem aqui.",
+      "centerTitle": "Centro de pedidos QR",
+      "centerDescription": "Pedidos, chamadas de empregado e pedidos de conta.",
+      "pendingBadge": "{count, plural, one {# pendente} other {# pendentes}}",
+      "tableAlertsLabel": "Alertas da mesa",
+      "tableLabel": "Mesa {number}",
+      "calledWaiterLabel": "Chamou empregado · {time}",
+      "askedBillLabel": "Pediu a conta · {time}",
+      "resolveButton": "Marcar resolvido",
+      "resolveButtonLoading": "A resolver...",
+      "ordersForApprovalLabel": "Pedidos para aprovação",
+      "productCount": "{count, plural, one {# produto} other {# produtos}}",
+      "noteLabel": "Nota: {notes}",
+      "rejectButton": "Rejeitar",
+      "acceptButton": "Aceitar pedido",
+      "acceptButtonLoading": "A guardar..."
+    },
+    "production": {
+      "eyebrow": "Produção",
+      "noCenterLabel": "Sem centro",
+      "notDefinedLabel": "Não definida",
+      "title": "Tickets pendentes",
+      "pendingBadge": "{count, plural, one {# pendente} other {# pendentes}}",
+      "allFilter": "Todas",
+      "noJobsLabel": "Sem tickets pendentes",
+      "printerLabel": "Impressora:",
+      "methodLabel": "Método:",
+      "createdAtLabel": "Criado às {time}",
+      "printButton": "Imprimir",
+      "printedButton": "Impresso",
+      "failedButton": "Falhou",
+      "noteLabel": "Nota: {notes}",
+      "printBlockedError": "O browser bloqueou a janela de impressão.",
+      "printUpdateError": "Erro ao atualizar impressão.",
+      "printTemplate": {
+        "printerLabel": "Impressora:",
+        "sourceLabel": "Origem:",
+        "timeLabel": "Hora:",
+        "noteLabel": "Nota:"
+      }
+    },
+    "history": {
+      "eyebrow": "Histórico",
+      "title": "Pagamentos",
+      "subtitle": "{count, plural, one {Último # pagamento fechado no POS.} other {Últimos # pagamentos fechados no POS.}}",
+      "totalLabel": "Total",
+      "cashLabel": "Dinheiro",
+      "cardLabel": "Multibanco",
+      "transferLabel": "Transferência",
+      "loadingLabel": "A carregar histórico...",
+      "emptyTitle": "Ainda sem pagamentos",
+      "emptyDescription": "Quando fechares mesas, os pagamentos aparecem aqui.",
+      "quickSaleLabel": "Venda rápida",
+      "tableLabel": "Mesa {number}",
+      "fiscalDocumentLabel": "Documento fiscal: {number}",
+      "noDocumentNumber": "Sem número",
+      "openPdfLabel": "Abrir PDF",
+      "moreProductsLabel": "+ {count} produtos",
+      "methods": {
+        "cash": "Dinheiro",
+        "card": "Multibanco",
+        "bankTransfer": "Transferência"
+      }
+    },
+    "fiscal": {
+      "requiredView": {
+        "eyebrow": "Configuração obrigatória",
+        "title": "Configure a faturação antes de usar o POS",
+        "description": "Para abrir mesas, cobrar ou fechar vendas, o restaurante tem de ligar a conta Moloni e escolher as séries fiscais de Fatura, Fatura Simplificada e Nota de Crédito.",
+        "configureButton": "Configurar Moloni"
+      },
+      "serieSelect": {
+        "placeholderOption": "Selecionar série",
+        "notCommunicatedSuffix": " — não comunicada à AT"
+      },
+      "settingsView": {
+        "eyebrow": "Faturação",
+        "title": "Integração Moloni",
+        "incompleteWarningTitle": "Configuração incompleta",
+        "incompleteWarningDescription": "Para ativar o POS, tens de configurar a série de fatura, fatura simplificada e nota de crédito.",
+        "loadingLabel": "A carregar...",
+        "setupEyebrow": "Configuração necessária",
+        "setupTitle": "Ligue o Moloni para emitir faturas legais",
+        "setupDescription": "O MesaLink usa o Moloni para emitir faturas certificadas, faturas simplificadas, notas de crédito, QR Code fiscal e SAFT. Depois de configurado, pode emitir documentos diretamente no POS.",
+        "steps": {
+          "step1": { "title": "1. Criar conta Moloni", "text": "Crie ou aceda à conta Moloni do restaurante." },
+          "step2": { "title": "2. Criar séries fiscais", "text": "No Moloni, crie séries para Fatura, Fatura Simplificada e Nota de Crédito." },
+          "step3": { "title": "3. Comunicar séries à AT", "text": "As séries têm de estar comunicadas/ativas antes de emitir documentos reais." },
+          "step4": { "title": "4. Ligar ao MesaLink", "text": "Depois de ligado, escolha as séries nesta página e guarde." }
+        },
+        "importantTitle": "Importante",
+        "importantDescription": "Enquanto o Moloni não estiver configurado, o POS pode funcionar em modo experimental, mas não deve ser usado para faturação legal.",
+        "openMoloniButton": "Abrir Moloni",
+        "createMoloniAccountButton": "Criar conta Moloni",
+        "infoCards": {
+          "provider": "Provider",
+          "company": "Empresa",
+          "active": "Ativa",
+          "activeYes": "Sim",
+          "activeNo": "Não",
+          "invoiceSeries": "Série Fatura",
+          "simplifiedSeries": "Série fatura simplificada",
+          "creditNoteSeries": "Série nota de crédito",
+          "notConfigured": "Não configurada"
+        },
+        "seriesSectionEyebrow": "Configuração obrigatória",
+        "seriesSectionTitle": "Séries fiscais",
+        "seriesSectionDescription": "Para ativar o POS em modo real, escolhe as séries Moloni usadas para Fatura, Fatura Simplificada e Nota de Crédito.",
+        "serieLabels": {
+          "invoice": "Fatura",
+          "simplifiedInvoice": "Fatura Simplificada",
+          "creditNote": "Nota de Crédito"
+        },
+        "recommendationEyebrow": "Recomendação MesaLink",
+        "recommendationTitle": "Moloni ON é suficiente para começar",
+        "recommendationDescription": "Recomendamos o plano Moloni ON para usar faturação integrada no MesaLink. Inclui API, SAF-T, comunicação de séries à AT, clientes, artigos e documentos fiscais. Se precisar de mais documentos ou funcionalidades, pode fazer upgrade diretamente no Moloni.",
+        "viewPlansButton": "Ver planos Moloni",
+        "noSeriesTitle": "Ainda não tem séries fiscais?",
+        "noSeriesSteps": {
+          "step1": "1. Abrir Moloni",
+          "step2": "2. Ir a Configurações → Séries de documentos",
+          "step3": "3. Criar/comunicar série à AT",
+          "step4": "4. Voltar ao MesaLink e guardar as séries"
+        },
+        "saveButton": "Guardar séries",
+        "saveButtonLoading": "A guardar..."
+      },
+      "documentsView": {
+        "eyebrow": "Documentos",
+        "title": "Documentos fiscais",
+        "description": "Toda a faturação certificada é gerida diretamente no Moloni. Use esta página apenas como guia rápido para faturas, notas de crédito e SAF-T.",
+        "moloniCardEyebrow": "Moloni",
+        "moloniCardTitle": "Abrir documentos fiscais",
+        "moloniCardDescription": "Consulte faturas, emita notas de crédito e exporte o SAF-T diretamente na conta Moloni do restaurante.",
+        "openMoloniButton": "Abrir Moloni",
+        "helpCards": {
+          "creditNote": {
+            "title": "Emitir Nota de Crédito",
+            "steps": {
+              "step1": "Abrir Moloni",
+              "step2": "Ir a Documentos",
+              "step3": "Abrir Faturas ou Notas de Crédito",
+              "step4": "Escolher a fatura a corrigir",
+              "step5": "Criar Nota de Crédito",
+              "step6": "Emitir documento"
+            }
+          },
+          "saft": {
+            "title": "Exportar SAF-T",
+            "steps": {
+              "step1": "Abrir Moloni",
+              "step2": "Ir a A. Tributária",
+              "step3": "Entrar em Ficheiro SAF-T (PT)",
+              "step4": "Escolher o período",
+              "step5": "Exportar o ficheiro"
+            }
+          },
+          "invoices": {
+            "title": "Consultar Faturas",
+            "steps": {
+              "step1": "Abrir Moloni",
+              "step2": "Ir a Documentos",
+              "step3": "Entrar em Faturas"
+            }
+          },
+          "creditNotesList": {
+            "title": "Consultar Notas de Crédito",
+            "steps": {
+              "step1": "Abrir Moloni",
+              "step2": "Ir a Documentos",
+              "step3": "Entrar em Notas de Crédito"
+            }
+          }
+        },
+        "importantInfoTitle": "Informação importante",
+        "importantInfoDescription": "As faturas emitidas não devem ser apagadas. Caso exista um erro, deve ser emitida uma Nota de Crédito e, depois, uma nova fatura correta."
+      }
+    },
+    "stats": {
+      "eyebrow": "Estatísticas",
+      "title": "Relatório de hoje",
+      "invoicedLabel": "Faturado",
+      "paymentsLabel": "Pagamentos",
+      "peopleLabel": "Pessoas",
+      "avgTicketLabel": "Ticket médio",
+      "perPersonLabel": "Por pessoa",
+      "paymentMethodsTitle": "Métodos de pagamento",
+      "cashLabel": "Dinheiro",
+      "cardLabel": "Multibanco",
+      "transferLabel": "Transferência",
+      "topProductsTitle": "Produtos mais vendidos",
+      "noProductsLabel": "Ainda sem produtos vendidos.",
+      "loadingLabel": "A carregar estatísticas...",
+      "emptyLabel": "Sem dados para mostrar."
+    },
+    "comingSoonSection": {
+      "eyebrow": "Em breve",
+      "description": "Esta área já fica preparada para a próxima fase do POS."
+    },
+    "alerts": {
+      "openCashBeforeTable": "Tens de abrir a caixa antes de abrir mesas.",
+      "openCashBeforeQuickSale": "Tens de abrir a caixa antes de iniciar venda rápida.",
+      "sendOrderError": "Erro ao enviar pedido.",
+      "removeItemConfirm": "Remover {name} da conta?",
+      "updateAccountError": "Erro ao atualizar a conta.",
+      "openTableError": "Erro ao abrir mesa.",
+      "openTableUnexpectedResponse": "Mesa aberta, mas houve uma resposta inesperada.",
+      "cancelTableConfirm": "Cancelar a Mesa {number}? A mesa volta a ficar livre e os pedidos ficam cancelados.",
+      "cancelTableError": "Erro ao cancelar mesa.",
+      "transferError": "Erro ao transferir.",
+      "sendCartBeforeCharge": "Envia primeiro os novos produtos antes de cobrar.",
+      "unsavedAccountChanges": "Guarda ou cancela as alterações da conta antes de cobrar.",
+      "partialPaymentError": "Erro ao receber pagamento parcial.",
+      "updateItemError": "Erro ao atualizar item.",
+      "applyDiscountError": "Erro ao aplicar desconto.",
+      "creditNoteError": "Erro ao emitir nota de crédito.",
+      "creditNoteSuccess": "Nota de crédito emitida com sucesso.",
+      "genericError": "Erro.",
+      "vatRequired": "Indica primeiro o NIF.",
+      "fetchVatDataError": "Erro ao obter dados.",
+      "vatInvalidLength": "O NIF deve ter 9 dígitos.",
+      "customerNameRequired": "Indica o nome fiscal do cliente.",
+      "customerError": "Erro ao criar cliente fiscal.",
+      "seriesNotCommunicated": "A série Moloni deste restaurante ainda não está comunicada à AT. Vai ao Moloni > Configurações > Séries de documentos e comunica/ativa a série fiscal.",
+      "issueInvoiceError": "Erro ao emitir fatura.",
+      "invoiceSuccess": "Fatura emitida com sucesso.",
+      "closeTableError": "Erro ao fechar mesa.",
+      "openCashRegisterError": "Erro ao abrir caixa.",
+      "saveCashMovementError": "Erro ao guardar movimento.",
+      "closeCashRegisterError": "Erro ao fechar caixa.",
+      "rejectQrOrderConfirm": "Rejeitar este pedido QR?",
+      "resolveQrAlertError": "Erro ao resolver alerta QR.",
+      "saveSeriesError": "Erro ao guardar séries.",
+      "seriesSaved": "Séries guardadas."
+    }
+  },
+  "printBridge": {
+    "eyebrow": "MesaLink Print Bridge",
+    "title": "Impressão automática",
+    "downloadButton": "⬇ Download para Windows",
+    "installGuideButton": "Guia de instalação",
+    "description": "Liga este restaurante a um computador Windows para imprimir tickets automaticamente em impressoras USB, Bluetooth, Rede ou PDF.",
+    "connect": {
+      "title": "Ligar novo computador",
+      "deviceNameDefault": "PC Principal",
+      "generateTokenButton": "Gerar token do Bridge",
+      "copyTokenHintPrefix": "Depois copia o token para a aplicação",
+      "copyTokenHintApp": "MesaLink-Print-Bridge."
+    },
+    "connectedComputers": {
+      "title": "Computadores ligados",
+      "emptyState": "Ainda não há nenhum computador ligado.",
+      "lastConnectionLabel": "Última ligação:",
+      "never": "Nunca",
+      "activeLabel": "Ativo",
+      "inactiveLabel": "Inativo",
+      "tokenLabel": "Token",
+      "removeDeviceButton": "Remover dispositivo"
+    },
+    "mapPrinters": {
+      "title": "Mapear impressoras",
+      "description": "Escolhe que impressora Windows cada impressora MesaLink deve usar neste computador.",
+      "emptyState": "Liga primeiro um computador para poder mapear impressoras.",
+      "windowsPrintersFoundLabel": "Impressoras Windows encontradas: {count}",
+      "noAssociationOption": "Sem associação",
+      "saveButton": "Guardar",
+      "testButton": "Testar"
+    },
+    "testPrint": {
+      "jobTitle": "Teste de impressão",
+      "itemName": "Teste MesaLink Print Bridge",
+      "itemNotes": "Se este talão saiu, está tudo configurado."
+    }
+  }
+}

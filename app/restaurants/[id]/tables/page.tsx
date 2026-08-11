@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth";
 import type { ReactNode } from "react";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import { getTranslations } from "next-intl/server";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -130,6 +131,8 @@ export default async function TablesPage({
 
   const { id } = await params;
 
+  const t = await getTranslations("dashboardOperations.tables");
+
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
@@ -155,7 +158,7 @@ export default async function TablesPage({
   if (!restaurant) {
     return (
       <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
-        Restaurante não encontrado.
+        {t("notFound")}
       </main>
     );
   }
@@ -264,23 +267,23 @@ export default async function TablesPage({
         <RestaurantSidebar
   id={id}
   restaurantName={restaurant.name}
-  active="Sala & Mesas"
+  active="tables"
 />
 
         <section className="min-w-0 px-4 pb-28 pt-4 sm:px-5 lg:px-6 lg:pb-5 lg:pt-5">
           <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9B6F3B]">
-                Sala
+                {t("eyebrow")}
               </p>
 
               <h1 className="mt-1 text-4xl font-black tracking-[-0.07em] sm:text-5xl">
-                Mapa de mesas
+                {t("title")}
               </h1>
 
               <p className="mt-2 text-sm font-semibold text-[#6B6258]">
-                {restaurant.name} · {restaurant.tables.length} mesas ·{" "}
-                {totalCapacity} lugares
+                {restaurant.name} · {t("tablesCount", { count: restaurant.tables.length })} ·{" "}
+                {t("seatsCount", { count: totalCapacity })}
               </p>
             </div>
 
@@ -290,7 +293,7 @@ export default async function TablesPage({
             >
               <input type="hidden" name="restaurantId" value={restaurant.id} />
 
-              <MiniField label="Início">
+              <MiniField label={t("form.start")}>
                 <input
                   name="startNumber"
                   type="number"
@@ -300,7 +303,7 @@ export default async function TablesPage({
                 />
               </MiniField>
 
-              <MiniField label="Qtd.">
+              <MiniField label={t("form.quantity")}>
                 <input
                   name="quantity"
                   type="number"
@@ -312,7 +315,7 @@ export default async function TablesPage({
                 />
               </MiniField>
 
-              <MiniField label="Cap.">
+              <MiniField label={t("form.capacity")}>
                 <input
                   name="capacity"
                   type="number"
@@ -324,18 +327,18 @@ export default async function TablesPage({
                 />
               </MiniField>
 
-              <MiniField label="Formato">
+              <MiniField label={t("form.shape")}>
                 <select
                   name="shape"
                   defaultValue="square"
                   className="h-10 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
                 >
-                  <option value="square">Quadrada</option>
-                  <option value="round">Redonda</option>
+                  <option value="square">{t("form.shapeSquare")}</option>
+                  <option value="round">{t("form.shapeRound")}</option>
                 </select>
               </MiniField>
 
-              <MiniField label="Sala">
+              <MiniField label={t("form.room")}>
   <select
     name="roomId"
     className="h-10 rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-3 text-sm font-semibold outline-none"
@@ -349,7 +352,7 @@ export default async function TablesPage({
 </MiniField>
 
               <button className="h-10 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
-                Criar
+                {t("form.submit")}
               </button>
             </form>
           </header>

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function DashboardRecoveryButton() {
+  const t = useTranslations("dashboardMarketing.recoveryButton");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
@@ -20,15 +22,15 @@ export default function DashboardRecoveryButton() {
 
       if (!response.ok || !data.success) {
         setSuccess(false);
-        setMessage(data.error || "Erro ao executar recuperação.");
+        setMessage(data.error || t("error"));
         return;
       }
 
       setSuccess(true);
-      setMessage(`${data.emailsSent} emails enviados.`);
+      setMessage(t("successMessage", { count: data.emailsSent }));
     } catch {
       setSuccess(false);
-      setMessage("Erro ao executar recuperação.");
+      setMessage(t("error"));
     } finally {
       setLoading(false);
     }
@@ -42,7 +44,7 @@ export default function DashboardRecoveryButton() {
         disabled={loading}
         className="inline-flex rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118] disabled:opacity-50"
       >
-        {loading ? "A enviar..." : "Recuperar clientes"}
+        {loading ? t("sending") : t("cta")}
       </button>
 
       {message && (
