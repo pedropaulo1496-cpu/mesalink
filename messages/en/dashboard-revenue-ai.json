@@ -72,7 +72,7 @@
       "recovered": "Recovered",
       "attempts": "{count} recorded attempts",
       "rate": "{rate}% of sent",
-      "bookings": "{count} attributed bookings"
+      "bookings": "{count, plural, one {# attributed booking} other {# attributed bookings}}"
     },
     "result": {
       "failed": "Delivery failed",

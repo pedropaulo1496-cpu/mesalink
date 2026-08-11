@@ -72,7 +72,7 @@
       "recovered": "Recuperado",
       "attempts": "{count} tentativas registadas",
       "rate": "{rate}% dos enviados",
-      "bookings": "{count} reservas atribuídas"
+      "bookings": "{count, plural, one {# reserva atribuída} other {# reservas atribuídas}}"
     },
     "result": {
       "failed": "Não foi possível entregar",
