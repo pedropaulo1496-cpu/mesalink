@@ -69,7 +69,7 @@ export default function RevenueChannelsClient({ restaurantId, restaurantName, in
     <section className={`rounded-[28px] border p-5 ${status.providerConfigured ? "border-[#BFD5C2] bg-[#F4FBF5]" : "border-[#E5C8A8] bg-[#FFF7EA]"}`}>
       <div className="flex items-start gap-3">
         <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${status.providerConfigured ? "bg-[#D9EBDD] text-[#376348]" : "bg-[#F4DFC3] text-[#946332]"}`}>{status.providerConfigured ? <ShieldCheck size={20} /> : <TriangleAlert size={20} />}</div>
-        <div><p className="font-semibold">{status.providerConfigured ? "Conector central autenticado" : "Conector central por ativar"}</p><p className="mt-1 text-sm leading-6 text-[#6C6258]">{status.providerConfigured ? "As credenciais Twilio do MesaLink estão disponíveis e os pedidos recebidos são validados." : "Podes preparar os números. A ativação real começa quando o MesaLink adicionar TWILIO_ACCOUNT_SID e TWILIO_AUTH_TOKEN ao ambiente de produção."}</p></div>
+        <div><p className="font-semibold">{status.providerConfigured ? "Conector central autenticado" : "Conector central por ativar"}</p><p className="mt-1 text-sm leading-6 text-[#6C6258]">{status.providerConfigured ? "A ligação segura do MesaLink ao fornecedor está disponível e todos os pedidos recebidos são validados." : "Podes preparar os números. A equipa MesaLink conclui a ligação segura ao fornecedor antes de o canal ficar Ativo."}</p></div>
       </div>
     </section>
 
@@ -102,7 +102,7 @@ export default function RevenueChannelsClient({ restaurantId, restaurantName, in
 }
 
 function ChannelCard({ icon, title, subtitle, ready, partial = false, children }: { icon: React.ReactNode; title: string; subtitle: string; ready: boolean; partial?: boolean; children: React.ReactNode }) {
-  return <article className="rounded-[32px] border border-[#DFCDB0] bg-white p-5 shadow-[0_18px_55px_rgba(67,46,23,0.06)] sm:p-7"><div className="flex items-start gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#F1E5D2] text-[#8A6130]">{icon}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="text-xl font-semibold">{title}</h2><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${ready ? partial ? "bg-[#FFF0D8] text-[#8A6130]" : "bg-[#E1F2E4] text-[#376348]" : "bg-[#EFEAE3] text-[#766A5D]"}`}>{ready ? partial ? "Receção ativa" : "Ativo" : "Por configurar"}</span></div><p className="mt-1 text-sm text-[#6B6258]">{subtitle}</p></div></div><div className="mt-6 space-y-4">{children}</div></article>;
+  return <article className="min-w-0 rounded-[32px] border border-[#DFCDB0] bg-white p-5 shadow-[0_18px_55px_rgba(67,46,23,0.06)] sm:p-7"><div className="flex items-start gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#F1E5D2] text-[#8A6130]">{icon}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="text-xl font-semibold">{title}</h2><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${ready ? partial ? "bg-[#FFF0D8] text-[#8A6130]" : "bg-[#E1F2E4] text-[#376348]" : "bg-[#EFEAE3] text-[#766A5D]"}`}>{ready ? partial ? "Receção ativa" : "Ativo" : "Por configurar"}</span></div><p className="mt-1 text-sm text-[#6B6258]">{subtitle}</p></div></div><div className="mt-6 min-w-0 space-y-4">{children}</div></article>;
 }
 
 function Field({ label, value, onChange, placeholder, hint }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; hint?: string }) {
@@ -114,5 +114,5 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (val
 }
 
 function Webhook({ label, value, copied, onCopy }: { label: string; value: string; copied: boolean; onCopy: () => void }) {
-  return <div><p className="mb-2 text-[10px] font-black uppercase tracking-[0.13em] text-[#79664E]">{label}</p><button onClick={onCopy} className="flex w-full items-center gap-3 rounded-2xl border border-[#E5D6C0] bg-[#FAF7F2] p-3 text-left"><code className="min-w-0 flex-1 truncate text-[10px] text-[#5E5449]">{value}</code>{copied ? <Check size={15} className="shrink-0 text-[#3F6A4D]" /> : <Copy size={15} className="shrink-0 text-[#806D56]" />}</button></div>;
+  return <div className="min-w-0"><p className="mb-2 text-[10px] font-black uppercase tracking-[0.13em] text-[#79664E]">{label}</p><button onClick={onCopy} className="flex w-full min-w-0 items-center gap-3 overflow-hidden rounded-2xl border border-[#E5D6C0] bg-[#FAF7F2] p-3 text-left"><code className="min-w-0 flex-1 truncate text-[10px] text-[#5E5449]">{value}</code>{copied ? <Check size={15} className="shrink-0 text-[#3F6A4D]" /> : <Copy size={15} className="shrink-0 text-[#806D56]" />}</button></div>;
 }
