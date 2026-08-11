@@ -20,6 +20,11 @@ import {
   GlobeIcon,
   SettingsIcon,
   MoreIcon,
+  PosIcon,
+  MenuIcon,
+  BookIcon,
+  UsersIcon,
+  BillingIcon,
 } from "@/components/icons/nav-icons";
 import {
   DropdownMenu,
@@ -51,9 +56,29 @@ export default function BottomNav({ id }: { id: string }) {
 
   const moreLinks = [
     {
+      href: `/restaurants/${id}/pos`,
+      icon: PosIcon,
+      label: t("moreSheet.pos"),
+    },
+    {
+      href: `/restaurants/${id}/menu`,
+      icon: MenuIcon,
+      label: t("moreSheet.menu"),
+    },
+    {
+      href: `/restaurants/${id}/reservations`,
+      icon: BookIcon,
+      label: t("moreSheet.reservations"),
+    },
+    {
       href: `/restaurants/${id}/tables`,
       icon: GridIcon,
       label: t("moreSheet.tables"),
+    },
+    {
+      href: `/restaurants/${id}/customers`,
+      icon: UsersIcon,
+      label: t("moreSheet.customers"),
     },
     {
       href: `/restaurants/${id}/revenue-ai`,
@@ -84,6 +109,11 @@ export default function BottomNav({ id }: { id: string }) {
       href: `/restaurants/${id}/settings`,
       icon: SettingsIcon,
       label: t("moreSheet.settings"),
+    },
+    {
+      href: `/billing?restaurantId=${id}`,
+      icon: BillingIcon,
+      label: t("moreSheet.billing"),
     },
   ];
 

@@ -1,5 +1,6 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 const ROOT_DOMAIN = "mesalink.pt";
 
@@ -7,7 +8,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const host = request.headers.get("host") || "";
-  const hostname = host.split(":")[0];
+  const hostname = host.split(":")[0].toLowerCase().replace(/\.$/, "");
 
   const isRootDomain =
     hostname === ROOT_DOMAIN ||
@@ -19,6 +20,10 @@ export async function proxy(request: NextRequest) {
 
   const isVercelPreview =
     hostname.includes("vercel.app");
+
+  const isMesaLinkSubdomain =
+    hostname.endsWith(`.${ROOT_DOMAIN}`) &&
+    hostname !== `www.${ROOT_DOMAIN}`;
 
   // LOGGED-IN USER ON THE HOMEPAGE -> STRAIGHT TO THEIR DASHBOARD
   if (pathname === "/" && (isRootDomain || isLocalhost || isVercelPreview)) {
@@ -33,7 +38,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // MOBILE REDIRECT
-  if (pathname === "/") {
+  if (pathname === "/" && (isRootDomain || isLocalhost || isVercelPreview)) {
     const userAgent = request.headers.get("user-agent") || "";
 
     const isMobile =
@@ -54,7 +59,7 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
 
   if (!isRootDomain && !isLocalhost && !isVercelPreview) {
-    if (hostname.endsWith(`.${ROOT_DOMAIN}`)) {
+    if (isMesaLinkSubdomain) {
       const subdomain = hostname.replace(`.${ROOT_DOMAIN}`, "");
 
       if (
@@ -63,9 +68,33 @@ export async function proxy(request: NextRequest) {
         !pathname.startsWith("/api") &&
         !pathname.startsWith("/_next")
       ) {
-        url.pathname = pathname === "/" ? `/s/${subdomain}` : `/s/${subdomain}${pathname}`;
+        if (pathname === "/" || pathname === "/llms.txt") {
+          url.pathname =
+            pathname === "/" ? `/s/${subdomain}` : `/s/${subdomain}/llms.txt`;
+          return NextResponse.rewrite(url);
+        }
+        return NextResponse.next();
+      }
+    }
 
-        return NextResponse.rewrite(url);
+    if (
+      (pathname === "/" || pathname === "/llms.txt") &&
+      !hostname.endsWith(`.${ROOT_DOMAIN}`)
+    ) {
+      try {
+        const restaurant = await prisma.restaurant.findFirst({
+          where: { customDomain: hostname, customDomainVerified: true },
+          select: { slug: true },
+        });
+        if (restaurant) {
+          url.pathname =
+            pathname === "/"
+              ? `/s/${restaurant.slug}`
+              : `/s/${restaurant.slug}/llms.txt`;
+          return NextResponse.rewrite(url);
+        }
+      } catch (error) {
+        console.error("Custom domain routing failed", error);
       }
     }
   }

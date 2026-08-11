@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { isValidEmail } from "@/lib/validation";
 import PhoneField from "@/components/PhoneField";
 import { getLocale, getTranslations } from "next-intl/server";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
 const dashboardDateLocales: Record<string, string> = {
   pt: "pt-PT",
@@ -25,6 +26,7 @@ async function createCustomer(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const name = String(formData.get("name") || "").trim();
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const phone = String(formData.get("phone") || "").trim();
@@ -101,6 +103,7 @@ async function importCustomers(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const file = formData.get("file") as File | null;
 
   if (!file || file.size === 0) {

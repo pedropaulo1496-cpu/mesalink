@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import { getTranslations } from "next-intl/server";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -20,6 +21,7 @@ async function createTables(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const startNumber = Number(formData.get("startNumber") || 1);
   const quantity = Number(formData.get("quantity") || 1);
   const capacity = Number(formData.get("capacity") || 2);
@@ -29,6 +31,12 @@ async function createTables(formData: FormData) {
   const safeQuantity = Math.max(1, Math.min(quantity, 60));
   const safeCapacity = Math.max(1, Math.min(capacity, 30));
   const safeShape = shape === "round" ? "round" : "square";
+  const ownedRoom = roomId
+    ? await prisma.floorRoom.findFirst({
+        where: { id: roomId, restaurantId },
+        select: { id: true },
+      })
+    : null;
 
   await prisma.$transaction(
     Array.from({ length: safeQuantity }).map((_, index) => {
@@ -45,7 +53,7 @@ VALUES
     ${number},
     ${safeCapacity},
     ${restaurantId},
-    ${roomId || null},
+    ${ownedRoom?.id || null},
     ${safeShape},
     ${180 + column * 126},
     ${130 + row * 122},
@@ -62,6 +70,7 @@ async function saveFloorPlan(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const layout = String(formData.get("layout") || "[]");
 
   const tables = JSON.parse(layout) as {
@@ -95,8 +104,15 @@ async function assignReservationToTable(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const reservationId = String(formData.get("reservationId"));
   const tableId = String(formData.get("tableId"));
+
+  const ownedTable = await prisma.table.findFirst({
+    where: { id: tableId, restaurantId },
+    select: { id: true },
+  });
+  if (!ownedTable) return;
 
   await prisma.reservation.updateMany({
     where: { id: reservationId, restaurantId },
@@ -110,6 +126,7 @@ async function unassignReservation(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const reservationId = String(formData.get("reservationId"));
 
   await prisma.reservation.updateMany({
@@ -435,6 +452,7 @@ async function createRoom(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const name = String(formData.get("name") || "Nova sala").trim();
 
   await prisma.floorRoom.create({
@@ -448,12 +466,19 @@ async function moveTableToRoom(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const tableId = String(formData.get("tableId"));
   const roomId = String(formData.get("roomId"));
 
-  await prisma.table.update({
-    where: { id: tableId },
-    data: { roomId, mergeGroupId: null },
+  const ownedRoom = await prisma.floorRoom.findFirst({
+    where: { id: roomId, restaurantId },
+    select: { id: true },
+  });
+  if (!ownedRoom) return;
+
+  await prisma.table.updateMany({
+    where: { id: tableId, restaurantId },
+    data: { roomId: ownedRoom.id, mergeGroupId: null },
   });
 
   redirect(`/restaurants/${restaurantId}/tables`);
@@ -462,14 +487,16 @@ async function moveTableToRoom(formData: FormData) {
 async function deleteTable(formData: FormData) {
   "use server";
 
+  const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const tableId = String(formData.get("tableId"));
 
   await prisma.reservation.updateMany({
-    where: { tableId },
+    where: { tableId, restaurantId },
     data: { tableId: null },
   });
 
-  await prisma.table.delete({
-    where: { id: tableId },
+  await prisma.table.deleteMany({
+    where: { id: tableId, restaurantId },
   });
 }

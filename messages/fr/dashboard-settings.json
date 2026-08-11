@@ -333,7 +333,16 @@
       "domainLabel": "Domaine personnalisé",
       "domainCardTitle": "Domaine personnalisé",
       "domainCardText": "Bientôt, vous pourrez utiliser votre propre domaine au lieu d'un sous-domaine MesaLink.",
-      "comingSoonBadge": "Bientôt"
+      "comingSoonBadge": "Bientôt",
+      "domainManager": {
+        "title": "Votre domaine, géré par MesaLink", "description": "Achetez un nouveau domaine ou connectez le vôtre. MesaLink gère le paiement, la configuration, le DNS et le SSL.", "notConfigured": "La connexion centrale des domaines est temporairement indisponible. Réessayez dans quelques instants.",
+        "buyTab": "Acheter un domaine", "connectTab": "J'ai un domaine", "checkAvailability": "Vérifier", "calculateConnection": "Calculer la connexion", "available": "Disponible", "readyToConnect": "Prêt à connecter",
+        "domainCost": "Coût du domaine (1 an)", "connectionCost": "Coût du domaine", "servicePercent": "Service MesaLink · 5 %", "serviceFixed": "Configuration MesaLink", "stripeFee": "Traitement Stripe · {percent} % + 0,25 €", "total": "Total", "taxNote": "La TVA applicable est calculée au paiement. Les frais Stripe affichés utilisent les cartes standard de l'EEE.",
+        "holderTitle": "Titulaire du domaine", "holderText": "Ces données sont nécessaires à l'enregistrement et sont supprimées de MesaLink après l'achat.", "payAndRegister": "Payer et enregistrer", "payAndConnect": "Payer et connecter", "renewalNote": "L'achat couvre 1 an. Le renouvellement n'est pas automatique ; le nouveau coût sera affiché avant expiration.",
+        "activeEyebrow": "Domaine actif", "latestOrder": "Dernière demande", "dnsTitle": "Enregistrements à ajouter chez votre fournisseur", "dnsText": "Copiez exactement ces valeurs puis confirmez. Le SSL est émis automatiquement.", "copy": "Copier", "copied": "Copié", "refresh": "Confirmer la configuration",
+        "kinds": { "purchase": "Achat", "connect": "Connexion" }, "status": { "active": "Actif", "dns": "En attente du DNS", "processing": "Configuration", "refunded": "Remboursé", "failed": "Échec", "cancelled": "Annulé", "disputed": "Contesté" },
+        "fields": { "firstName": "Prénom", "lastName": "Nom", "email": "E-mail", "phone": "Téléphone international", "company": "Entreprise / restaurant", "address": "Adresse", "city": "Ville", "state": "Région", "zip": "Code postal", "country": "Pays (2 lettres)" }, "errors": { "quote": "Impossible de consulter le domaine.", "checkout": "Impossible d'ouvrir le paiement.", "status": "Impossible de confirmer l'état." }
+      }
     },
     "quality": {
       "eyebrow": "Qualité",

@@ -4,6 +4,7 @@ import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
 export default async function MarketingSettingsPage({
   params,
@@ -22,6 +23,8 @@ export default async function MarketingSettingsPage({
 
   async function saveGrowthSettings(formData: FormData) {
     "use server";
+
+    await assertRestaurantOwner(id);
 
     await prisma.restaurant.update({
       where: { id },

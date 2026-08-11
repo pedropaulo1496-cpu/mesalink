@@ -333,7 +333,22 @@
       "domainLabel": "Dominio propio",
       "domainCardTitle": "Dominio propio",
       "domainCardText": "Pronto podrás usar un dominio propio en lugar de un subdominio de MesaLink.",
-      "comingSoonBadge": "Próximamente"
+      "comingSoonBadge": "Próximamente",
+      "domainManager": {
+        "title": "Tu dominio, gestionado por MesaLink",
+        "description": "Compra un dominio nuevo o conecta uno que ya tengas. MesaLink gestiona pago, configuración, DNS y SSL.",
+        "notConfigured": "La conexión central de dominios no está disponible temporalmente. Inténtalo de nuevo en breve.",
+        "buyTab": "Comprar dominio", "connectTab": "Ya tengo dominio", "checkAvailability": "Ver disponibilidad", "calculateConnection": "Calcular conexión", "available": "Disponible", "readyToConnect": "Listo para conectar",
+        "domainCost": "Coste del dominio (1 año)", "connectionCost": "Coste del dominio", "servicePercent": "Servicio MesaLink · 5%", "serviceFixed": "Configuración MesaLink", "stripeFee": "Procesamiento Stripe · {percent}% + 0,25 €", "total": "Total",
+        "taxNote": "El IVA, cuando corresponda, se calcula en el checkout. La tarifa Stripe mostrada usa tarjetas estándar del EEE.",
+        "holderTitle": "Titular del dominio", "holderText": "Estos datos son obligatorios para registrar el dominio y se eliminan de MesaLink después de la compra.",
+        "payAndRegister": "Pagar y registrar dominio", "payAndConnect": "Pagar y conectar dominio", "renewalNote": "La compra cubre 1 año. La renovación no es automática; antes de caducar mostramos el nuevo coste con la misma fórmula.",
+        "activeEyebrow": "Dominio activo", "latestOrder": "Última solicitud", "dnsTitle": "Registros que debes añadir en tu proveedor", "dnsText": "Copia estos valores exactamente y confirma la configuración. El SSL se emite automáticamente.", "copy": "Copiar", "copied": "Copiado", "refresh": "Confirmar configuración",
+        "kinds": { "purchase": "Compra", "connect": "Conexión" },
+        "status": { "active": "Activo", "dns": "Esperando DNS", "processing": "Configurando", "refunded": "Reembolsado", "failed": "Falló", "cancelled": "Cancelado", "disputed": "En disputa" },
+        "fields": { "firstName": "Nombre", "lastName": "Apellidos", "email": "Email", "phone": "Teléfono internacional", "company": "Empresa / restaurante", "address": "Dirección", "city": "Ciudad", "state": "Provincia / región", "zip": "Código postal", "country": "País (2 letras)" },
+        "errors": { "quote": "No se pudo consultar el dominio.", "checkout": "No se pudo abrir el pago.", "status": "No se pudo confirmar el estado." }
+      }
     },
     "quality": {
       "eyebrow": "Calidad",

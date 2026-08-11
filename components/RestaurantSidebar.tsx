@@ -19,6 +19,7 @@ import {
   MenuIcon,
   BillingIcon,
   SettingsIcon,
+  PosIcon,
 } from "@/components/icons/nav-icons";
 
 type RestaurantSidebarProps = {
@@ -81,6 +82,12 @@ export default function RestaurantSidebar({
           icon: MenuIcon,
         },
         {
+          key: "pos",
+          name: t("items.pos"),
+          href: `/restaurants/${id}/pos`,
+          icon: PosIcon,
+        },
+        {
           key: "qrOrdering",
           name: t("items.qrOrdering"),
           href: `/restaurants/${id}/ordering`,
@@ -99,6 +106,12 @@ export default function RestaurantSidebar({
           name: t("items.reservations"),
           href: `/restaurants/${id}/reservations`,
           icon: BookIcon,
+        },
+        {
+          key: "calendar",
+          name: t("items.calendar"),
+          href: `/restaurants/${id}/calendar`,
+          icon: CalendarIcon,
         },
         {
           key: "tables",

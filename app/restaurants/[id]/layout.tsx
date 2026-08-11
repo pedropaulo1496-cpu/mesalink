@@ -1,24 +1,18 @@
-import { authOptions } from "@/lib/auth";
+import { notFound, redirect } from "next/navigation";
+import { getCurrentUser, isRestaurantOwner } from "@/lib/restaurant-auth";
 import { canAccessApp } from "@/lib/check-subscription";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
 
-export default async function RestaurantLayout({
+export default async function RestaurantAreaLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ id: string }>;
 }) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.email) {
-    redirect("/login");
-  }
-
-  const hasAccess = await canAccessApp(session.user.email);
-
-  if (!hasAccess) {
-    redirect("/billing");
-  }
-
-  return <>{children}</>;
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (!(await canAccessApp(user.email))) redirect("/billing");
+  const { id } = await params;
+  if (!(await isRestaurantOwner(id))) notFound();
+  return children;
 }

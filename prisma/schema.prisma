@@ -136,7 +136,8 @@ model Restaurant {
   websiteSeoTitle       String?
   websiteSeoDescription String?
   customDomain          String?
-  customDomainVerified  Boolean @default(false)
+  customDomainVerified  Boolean       @default(false)
+  domainOrders          DomainOrder[]
 
   plan String @default("FREE")
 
@@ -256,6 +257,56 @@ model Restaurant {
   customers                 Customer[]
 
   @@index([userId])
+  @@index([customDomain])
+}
+
+model DomainOrder {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  domain String
+  kind   String // PURCHASE | CONNECT
+  status String @default("QUOTED")
+
+  currency         String   @default("EUR")
+  providerCurrency String   @default("USD")
+  providerPrice    Decimal  @default(0) @db.Decimal(12, 2)
+  renewalPrice     Decimal? @db.Decimal(12, 2)
+  exchangeRate     Decimal  @default(1) @db.Decimal(12, 6)
+
+  providerPriceCents  Int @default(0)
+  servicePercentBps   Int @default(500)
+  servicePercentCents Int @default(0)
+  serviceFixedCents   Int @default(100)
+  stripeFeeBps        Int @default(150)
+  stripeFeeFixedCents Int @default(25)
+  stripeFeeCents      Int @default(0)
+  totalCents          Int
+
+  quoteExpiresAt DateTime
+  registrant     Json?
+  dnsRecords     Json?
+  verification   Json?
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String?
+  stripeChargeId          String?
+  stripeRefundId          String?
+  providerOrderId         String?
+  failureReason           String?
+
+  paidAt      DateTime?
+  purchasedAt DateTime?
+  verifiedAt  DateTime?
+  refundedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([restaurantId, createdAt])
+  @@index([domain, status])
+  @@index([status, updatedAt])
 }
 
 model WebsiteMenu {

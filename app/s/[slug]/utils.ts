@@ -96,11 +96,13 @@ export function getPrimaryColor(restaurant: PublicRestaurant) {
 }
 
 export function getReserveUrl(restaurant: PublicRestaurant) {
-  return `/reserve/${restaurant.slug}`;
+  return `https://www.mesalink.pt/reserve/${restaurant.slug}`;
 }
 
 export function getPublicWebsiteUrl(restaurant: PublicRestaurant) {
-  return `https://${restaurant.slug}.mesalink.pt`;
+  return restaurant.customDomainVerified && restaurant.customDomain
+    ? `https://${restaurant.customDomain}`
+    : `https://${restaurant.slug}.mesalink.pt`;
 }
 
 export function hasValidHeroImage(restaurant: PublicRestaurant) {

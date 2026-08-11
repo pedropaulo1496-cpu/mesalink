@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { isRestaurantOwner } from "@/lib/restaurant-auth";
 
 function amountFromDiscount(base: number, type: string, value: number) {
   if (type === "PERCENTAGE") {
@@ -96,6 +97,7 @@ export async function POST(
 ) {
   try {
     const { id: restaurantId } = await params;
+    if (!(await isRestaurantOwner(restaurantId))) return NextResponse.json({ error: "Sem acesso a este restaurante." }, { status: 403 });
     const { tableId, items, source = "POS" } = await request.json();
 
     if (!tableId || !items?.length) {
@@ -271,6 +273,7 @@ export async function PATCH(
 ) {
   try {
     const { id: restaurantId } = await params;
+    if (!(await isRestaurantOwner(restaurantId))) return NextResponse.json({ error: "Sem acesso a este restaurante." }, { status: 403 });
     const { sessionId, itemId, action, quantity } = await request.json();
 
     if (!sessionId || !itemId || !action) {

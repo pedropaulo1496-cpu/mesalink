@@ -6,7 +6,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const restaurants = await prisma.restaurant.findMany({
     where: { websiteEnabled: true },
-    select: { slug: true, updatedAt: true, user: { select: { subscription: true } } },
+    select: {
+      slug: true,
+      customDomain: true,
+      customDomainVerified: true,
+      updatedAt: true,
+      user: { select: { subscription: true } },
+    },
     take: 5000,
   });
   const publicRestaurants = restaurants.filter((restaurant) => {
@@ -33,7 +39,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
     { url: `${baseUrl}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
     ...publicRestaurants.map((restaurant) => ({
-      url: `${baseUrl}/s/${restaurant.slug}`,
+      url:
+        restaurant.customDomainVerified && restaurant.customDomain
+          ? `https://${restaurant.customDomain}`
+          : `${baseUrl}/s/${restaurant.slug}`,
       lastModified: restaurant.updatedAt,
       changeFrequency: "weekly" as const,
       priority: 0.75,

@@ -4,6 +4,7 @@ import Link from "next/link";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, getTranslations } from "next-intl/server";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
 const dashboardDateLocales: Record<string, string> = {
   pt: "pt-PT",
@@ -39,8 +40,14 @@ export default async function CustomerDetailPage({
 
   if (!restaurant) notFound();
 
-  const customer = await prisma.customer.findUnique({
-    where: { id: customerId },
+  const customer = await prisma.customer.findFirst({
+    where: {
+      id: customerId,
+      OR: [
+        { restaurantId: id },
+        { reservations: { some: { restaurantId: id } } },
+      ],
+    },
     include: {
       reservations: {
         where: { restaurantId: id },
@@ -208,9 +215,15 @@ export default async function CustomerDetailPage({
       action={async (formData) => {
         "use server";
 
-        await prisma.customer.update({
+        await assertRestaurantOwner(id);
+
+        await prisma.customer.updateMany({
           where: {
             id: customer.id,
+            OR: [
+              { restaurantId: id },
+              { reservations: { some: { restaurantId: id } } },
+            ],
           },
           data: {
             notes:
@@ -273,6 +286,8 @@ export default async function CustomerDetailPage({
       action={async (formData) => {
         "use server";
 
+        await assertRestaurantOwner(id);
+
         const tagsRaw = String(formData.get("tags") || "");
 
         const tags = tagsRaw
@@ -280,9 +295,13 @@ export default async function CustomerDetailPage({
           .map((tag) => tag.trim())
           .filter(Boolean);
 
-        await prisma.customer.update({
+        await prisma.customer.updateMany({
           where: {
             id: customer.id,
+            OR: [
+              { restaurantId: id },
+              { reservations: { some: { restaurantId: id } } },
+            ],
           },
           data: {
             tags,

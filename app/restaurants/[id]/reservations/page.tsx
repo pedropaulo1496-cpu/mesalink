@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, getTranslations } from "next-intl/server";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
 const dashboardDateLocales: Record<string, string> = {
   pt: "pt-PT",
@@ -28,11 +29,12 @@ async function updateReservationStatus(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const reservationId = String(formData.get("reservationId"));
   const status = String(formData.get("status"));
 
-  await prisma.reservation.update({
-    where: { id: reservationId },
+  await prisma.reservation.updateMany({
+    where: { id: reservationId, restaurantId },
     data: { status },
   });
 

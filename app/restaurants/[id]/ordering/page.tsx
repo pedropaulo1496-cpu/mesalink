@@ -11,6 +11,7 @@ import OrderingLiveOrders from "@/components/OrderingLiveOrders";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import { getTranslations } from "next-intl/server";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
 const TABS = [
   { key: "orders" },
@@ -29,6 +30,7 @@ async function saveQrSettings(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
 
   await prisma.restaurant.update({
     where: {
@@ -53,6 +55,7 @@ async function createQrTables(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const quantity = Number(formData.get("quantity") || 0);
   const capacity = Number(formData.get("capacity") || 2);
 
@@ -88,13 +91,14 @@ async function deleteQrTable(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const tableId = String(formData.get("tableId"));
   const confirmDelete = String(formData.get("confirmDelete") || "") === "on";
 
   if (!restaurantId || !tableId || !confirmDelete) return;
 
-  await prisma.table.delete({
-    where: { id: tableId },
+  await prisma.table.deleteMany({
+    where: { id: tableId, restaurantId },
   });
 
   revalidatePath(`/restaurants/${restaurantId}/ordering`);
@@ -104,13 +108,14 @@ async function resolveTableAlert(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const sessionId = String(formData.get("sessionId"));
   const type = String(formData.get("type"));
 
   if (!restaurantId || !sessionId || !type) return;
 
-  await prisma.orderingTableSession.update({
-    where: { id: sessionId },
+  await prisma.orderingTableSession.updateMany({
+    where: { id: sessionId, restaurantId },
     data:
       type === "waiter"
         ? { requestedWaiterAt: null }
@@ -124,6 +129,7 @@ async function createCategory(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const name = String(formData.get("name") || "").trim();
   const position = Number(formData.get("position") || 0);
 
@@ -140,14 +146,15 @@ async function updateCategory(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const categoryId = String(formData.get("categoryId"));
   const name = String(formData.get("name") || "").trim();
   const position = Number(formData.get("position") || 0);
 
   if (!restaurantId || !categoryId || !name) return;
 
-  await prisma.orderingCategory.update({
-    where: { id: categoryId },
+  await prisma.orderingCategory.updateMany({
+    where: { id: categoryId, restaurantId },
     data: { name, position },
   });
 
@@ -158,13 +165,18 @@ async function deleteCategory(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const categoryId = String(formData.get("categoryId"));
   const confirmDelete = String(formData.get("confirmDelete") || "") === "on";
 
   if (!restaurantId || !categoryId || !confirmDelete) return;
 
-  await prisma.orderingProduct.deleteMany({ where: { categoryId } });
-  await prisma.orderingCategory.delete({ where: { id: categoryId } });
+  await prisma.orderingProduct.deleteMany({
+    where: { categoryId, category: { restaurantId } },
+  });
+  await prisma.orderingCategory.deleteMany({
+    where: { id: categoryId, restaurantId },
+  });
 
   revalidatePath(`/restaurants/${restaurantId}/ordering`);
 }
@@ -173,6 +185,7 @@ async function createProduct(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const categoryId = String(formData.get("categoryId"));
   const name = String(formData.get("name") || "").trim();
   const description = String(formData.get("description") || "").trim();
@@ -186,9 +199,15 @@ async function createProduct(formData: FormData) {
 
   if (!restaurantId || !categoryId || !name || !price) return;
 
+  const ownedCategory = await prisma.orderingCategory.findFirst({
+    where: { id: categoryId, restaurantId },
+    select: { id: true },
+  });
+  if (!ownedCategory) return;
+
   await prisma.orderingProduct.create({
     data: {
-      categoryId,
+      categoryId: ownedCategory.id,
       name,
       description,
       price,
@@ -208,6 +227,7 @@ async function updateProduct(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const productId = String(formData.get("productId"));
   const name = String(formData.get("name") || "").trim();
   const description = String(formData.get("description") || "").trim();
@@ -221,8 +241,14 @@ async function updateProduct(formData: FormData) {
 
   if (!restaurantId || !productId || !name || !price) return;
 
+  const ownedProduct = await prisma.orderingProduct.findFirst({
+    where: { id: productId, category: { restaurantId } },
+    select: { id: true },
+  });
+  if (!ownedProduct) return;
+
   await prisma.orderingProduct.update({
-    where: { id: productId },
+    where: { id: ownedProduct.id },
     data: {
       name,
       description,
@@ -243,12 +269,15 @@ async function deleteProduct(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const productId = String(formData.get("productId"));
   const confirmDelete = String(formData.get("confirmDelete") || "") === "on";
 
   if (!restaurantId || !productId || !confirmDelete) return;
 
-  await prisma.orderingProduct.delete({ where: { id: productId } });
+  await prisma.orderingProduct.deleteMany({
+    where: { id: productId, category: { restaurantId } },
+  });
 
   revalidatePath(`/restaurants/${restaurantId}/ordering`);
 }
@@ -257,13 +286,14 @@ async function toggleProductActive(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const productId = String(formData.get("productId"));
   const active = String(formData.get("active")) === "true";
 
   if (!restaurantId || !productId) return;
 
-  await prisma.orderingProduct.update({
-    where: { id: productId },
+  await prisma.orderingProduct.updateMany({
+    where: { id: productId, category: { restaurantId } },
     data: { active: !active },
   });
 
@@ -274,12 +304,13 @@ async function removeProductImage(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const productId = String(formData.get("productId"));
 
   if (!restaurantId || !productId) return;
 
-  await prisma.orderingProduct.update({
-    where: { id: productId },
+  await prisma.orderingProduct.updateMany({
+    where: { id: productId, category: { restaurantId } },
     data: { imageUrl: null },
   });
 
@@ -290,13 +321,14 @@ async function updateOrderStatus(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const orderId = String(formData.get("orderId"));
   const status = String(formData.get("status"));
 
   if (!restaurantId || !orderId || !status) return;
 
-  await prisma.orderingOrder.update({
-    where: { id: orderId },
+  await prisma.orderingOrder.updateMany({
+    where: { id: orderId, restaurantId },
     data: { status },
   });
 
@@ -307,13 +339,14 @@ async function closeTableSession(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const sessionId = String(formData.get("sessionId"));
   const confirmClose = String(formData.get("confirmClose") || "") === "on";
 
   if (!restaurantId || !sessionId || !confirmClose) return;
 
-  await prisma.orderingTableSession.update({
-    where: { id: sessionId },
+  await prisma.orderingTableSession.updateMany({
+    where: { id: sessionId, restaurantId },
     data: {
       status: "CLOSED",
       closedAt: new Date(),

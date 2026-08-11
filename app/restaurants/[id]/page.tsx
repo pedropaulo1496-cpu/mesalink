@@ -361,8 +361,12 @@ const isGrowthPlan =
     return value * (stats.net / stats.gross);
   }
 
-  const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reserve/${restaurant.slug}`;
-  const websiteUrl = `https://${restaurant.slug}.mesalink.pt`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.mesalink.pt";
+  const publicUrl = `${appUrl}/reserve/${restaurant.slug}`;
+  const websiteUrl =
+    restaurant.customDomainVerified && restaurant.customDomain
+      ? `https://${restaurant.customDomain}`
+      : `https://${restaurant.slug}.mesalink.pt`;
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
@@ -889,6 +893,27 @@ function ReservationLinkCard({
             </div>
 
             <CopyButton text={publicUrl} />
+          </div>
+
+          <div className="mt-3 flex flex-col gap-3 rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
+                {t("reservationLink.steps.website.title")}
+              </p>
+              <p className="mt-1 truncate text-sm font-bold text-[#16120E]">
+                {websiteUrl}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                href={websiteUrl}
+                target="_blank"
+                className="rounded-full border border-[#E1D0B8] px-4 py-2 text-xs font-semibold text-[#9B6F3B] transition hover:bg-[#FFF9F0]"
+              >
+                {t("reservationLink.open")}
+              </Link>
+              <CopyButton text={websiteUrl} />
+            </div>
           </div>
         </div>
 

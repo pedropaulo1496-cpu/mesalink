@@ -133,7 +133,6 @@ export async function POST(
 
         websiteSeoTitle: getText(formData, "websiteSeoTitle", 70),
         websiteSeoDescription: getText(formData, "websiteSeoDescription", 180),
-        customDomain: getText(formData, "customDomain", 253),
       },
     });
 

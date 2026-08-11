@@ -333,7 +333,16 @@
       "domainLabel": "自定义域名",
       "domainCardTitle": "自定义域名",
       "domainCardText": "很快您将可以使用自己的域名，而不必使用 MesaLink 子域名。",
-      "comingSoonBadge": "即将推出"
+      "comingSoonBadge": "即将推出",
+      "domainManager": {
+        "title": "由 MesaLink 管理您的域名", "description": "购买新域名或连接已有域名。MesaLink 负责付款、配置、DNS 和 SSL。", "notConfigured": "域名中央连接暂时不可用，请稍后重试。",
+        "buyTab": "购买域名", "connectTab": "已有域名", "checkAvailability": "检查可用性", "calculateConnection": "计算连接费用", "available": "可购买", "readyToConnect": "可以连接",
+        "domainCost": "域名费用（1 年）", "connectionCost": "域名费用", "servicePercent": "MesaLink 服务费 · 5%", "serviceFixed": "MesaLink 配置费", "stripeFee": "Stripe 处理费 · {percent}% + €0.25", "total": "总计", "taxNote": "适用的增值税将在结账时计算。显示的 Stripe 费率适用于欧洲经济区标准卡。",
+        "holderTitle": "域名持有人", "holderText": "注册域名需要这些资料，购买完成后 MesaLink 会删除这些资料。", "payAndRegister": "付款并注册域名", "payAndConnect": "付款并连接域名", "renewalNote": "购买包含 1 年。不会自动续费；到期前会按同样透明的公式显示新费用。",
+        "activeEyebrow": "已启用域名", "latestOrder": "最新请求", "dnsTitle": "请在域名提供商处添加以下记录", "dnsText": "请准确复制这些值，然后确认配置。DNS 正确后将自动签发 SSL。", "copy": "复制", "copied": "已复制", "refresh": "确认配置",
+        "kinds": { "purchase": "购买", "connect": "连接" }, "status": { "active": "已启用", "dns": "等待 DNS", "processing": "配置中", "refunded": "已退款", "failed": "失败", "cancelled": "已取消", "disputed": "争议中" },
+        "fields": { "firstName": "名", "lastName": "姓", "email": "电子邮件", "phone": "国际电话号码", "company": "公司 / 餐厅", "address": "地址", "city": "城市", "state": "省 / 地区", "zip": "邮政编码", "country": "国家（2 个字母）" }, "errors": { "quote": "无法查询域名。", "checkout": "无法打开付款页面。", "status": "无法确认状态。" }
+      }
     },
     "quality": {
       "eyebrow": "质量评分",

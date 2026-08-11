@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import { CheckCircle2, Database, Image as ImageIcon, LoaderCircle, Search, Sparkles, WandSparkles } from "lucide-react";
+import { CustomDomainManager, type PublicDomainOrder } from "./CustomDomainManager";
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -66,15 +67,20 @@ type RestaurantWebsiteData = {
   websiteSeoTitle: string | null;
   websiteSeoDescription: string | null;
   customDomain: string | null;
+  customDomainVerified: boolean;
   websitePrimaryColor: string | null;
 };
 
 export function WebsiteEditorClient({
   restaurant,
   saved,
+  domainOrder,
+  domainServiceConfigured,
 }: {
   restaurant: RestaurantWebsiteData;
   saved: boolean;
+  domainOrder: PublicDomainOrder | null;
+  domainServiceConfigured: boolean;
 }) {
   const t = useTranslations("dashboardSettings.website");
   const [enabled, setEnabled] = useState(restaurant.websiteEnabled);
@@ -198,7 +204,6 @@ export function WebsiteEditorClient({
   const [seoDescription, setSeoDescription] = useState(
     restaurant.websiteSeoDescription || "",
   );
-  const [customDomain] = useState(restaurant.customDomain || "");
   const [primaryColor, setPrimaryColor] = useState(
     restaurant.websitePrimaryColor || "#111827",
   );
@@ -216,8 +221,12 @@ export function WebsiteEditorClient({
   }>(null);
   const [mobileMode, setMobileMode] = useState<"edit" | "preview">("edit");
 
-  const publicUrl = `/s/${slug || restaurant.slug}`;
-  const fullPublicUrl = `${slug || restaurant.slug}.mesalink.pt`;
+  const publicUrl = restaurant.customDomainVerified && restaurant.customDomain
+    ? `https://${restaurant.customDomain}`
+    : `/s/${slug || restaurant.slug}`;
+  const fullPublicUrl = restaurant.customDomainVerified && restaurant.customDomain
+    ? restaurant.customDomain
+    : `${slug || restaurant.slug}.mesalink.pt`;
   const previewTheme = getPreviewTheme(template, primaryColor);
   const gallery = [gallery1, gallery2, gallery3, gallery4];
   const galleryTitles = [
@@ -919,25 +928,17 @@ export function WebsiteEditorClient({
               </Field>
 
               <Field label={t("seo.domainLabel")}>
-                <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-5">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="font-semibold text-[#16120E]">
-                        {t("seo.domainCardTitle")}
-                      </p>
-
-                      <p className="mt-1 text-sm leading-6 text-[#6B6258]">
-                        {t("seo.domainCardText")}
-                      </p>
-                    </div>
-
-                    <span className="rounded-full border border-[#E1D0B8] bg-[#EFE5D6] px-3 py-1 text-xs font-semibold text-[#9B6F3B]">
-                      {t("seo.comingSoonBadge")}
-                    </span>
-                  </div>
-                </div>
-
-                <input type="hidden" name="customDomain" value={customDomain} />
+                <CustomDomainManager
+                  restaurantId={restaurant.id}
+                  restaurantName={restaurant.name}
+                  email={restaurant.email}
+                  phone={restaurant.phone}
+                  address={restaurant.address}
+                  activeDomain={restaurant.customDomain}
+                  activeDomainVerified={restaurant.customDomainVerified}
+                  initialOrder={domainOrder}
+                  serviceConfigured={domainServiceConfigured}
+                />
               </Field>
             </EditorBlock>
           </section>

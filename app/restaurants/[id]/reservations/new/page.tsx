@@ -6,11 +6,13 @@ import type { ReactNode } from "react";
 import BottomNav from "@/components/BottomNav";
 import PhoneField from "@/components/PhoneField";
 import { getTranslations } from "next-intl/server";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
 async function createReservation(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const reservationMode = String(formData.get("reservationMode"));
   const customerName = String(formData.get("customerName")).trim();
   const phone = String(formData.get("phone")).trim();

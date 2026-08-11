@@ -333,7 +333,16 @@
       "domainLabel": "Eigene Domain",
       "domainCardTitle": "Eigene Domain",
       "domainCardText": "Bald können Sie anstelle einer MesaLink-Subdomain eine eigene Domain verwenden.",
-      "comingSoonBadge": "Bald verfügbar"
+      "comingSoonBadge": "Bald verfügbar",
+      "domainManager": {
+        "title": "Ihre Domain, von MesaLink verwaltet", "description": "Kaufen Sie eine neue Domain oder verbinden Sie Ihre bestehende. MesaLink übernimmt Zahlung, Einrichtung, DNS und SSL.", "notConfigured": "Die zentrale Domain-Verbindung ist vorübergehend nicht verfügbar. Bitte versuchen Sie es gleich erneut.",
+        "buyTab": "Domain kaufen", "connectTab": "Domain vorhanden", "checkAvailability": "Verfügbarkeit prüfen", "calculateConnection": "Verbindung berechnen", "available": "Verfügbar", "readyToConnect": "Bereit zum Verbinden",
+        "domainCost": "Domainkosten (1 Jahr)", "connectionCost": "Domainkosten", "servicePercent": "MesaLink-Service · 5 %", "serviceFixed": "MesaLink-Einrichtung", "stripeFee": "Stripe-Verarbeitung · {percent} % + 0,25 €", "total": "Gesamt", "taxNote": "Die anwendbare MwSt. wird beim Checkout berechnet. Die Stripe-Gebühr gilt für EWR-Standardkarten.",
+        "holderTitle": "Domaininhaber", "holderText": "Diese Angaben sind für die Registrierung erforderlich und werden nach dem Kauf aus MesaLink gelöscht.", "payAndRegister": "Bezahlen und registrieren", "payAndConnect": "Bezahlen und verbinden", "renewalNote": "Der Kauf gilt für 1 Jahr. Die Verlängerung erfolgt nicht automatisch; der neue Preis wird vor Ablauf angezeigt.",
+        "activeEyebrow": "Aktive Domain", "latestOrder": "Letzte Anfrage", "dnsTitle": "DNS-Einträge für Ihren Anbieter", "dnsText": "Kopieren Sie diese Werte exakt und bestätigen Sie danach. SSL wird automatisch ausgestellt.", "copy": "Kopieren", "copied": "Kopiert", "refresh": "Einrichtung bestätigen",
+        "kinds": { "purchase": "Kauf", "connect": "Verbindung" }, "status": { "active": "Aktiv", "dns": "Wartet auf DNS", "processing": "Wird eingerichtet", "refunded": "Erstattet", "failed": "Fehlgeschlagen", "cancelled": "Abgebrochen", "disputed": "Angefochten" },
+        "fields": { "firstName": "Vorname", "lastName": "Nachname", "email": "E-Mail", "phone": "Internationale Telefonnummer", "company": "Firma / Restaurant", "address": "Adresse", "city": "Stadt", "state": "Bundesland / Region", "zip": "Postleitzahl", "country": "Land (2 Buchstaben)" }, "errors": { "quote": "Domain konnte nicht geprüft werden.", "checkout": "Zahlung konnte nicht geöffnet werden.", "status": "Status konnte nicht bestätigt werden." }
+      }
     },
     "quality": {
       "eyebrow": "Qualität",

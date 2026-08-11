@@ -3,6 +3,12 @@ import Stripe from "stripe";
 import { getAiCreditPack, grantPurchasedAiCredits, revokeRefundedAiCredits, type AiCreditPackId } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import {
+  handleDomainChargeDispute,
+  handleDomainChargeRefund,
+  markDomainCheckoutFailure,
+  settleDomainCheckout,
+} from "@/lib/domain-orders";
 
 type Product = "ESSENTIALS" | "GROWTH";
 
@@ -289,6 +295,16 @@ export async function POST(req: Request) {
         await settleReferralSession(session);
         return new Response("OK");
       }
+      if (session.metadata?.kind === "CUSTOM_DOMAIN") {
+        await settleDomainCheckout(session);
+        if (session.customer && session.metadata.userId) {
+          await prisma.subscription.updateMany({
+            where: { userId: session.metadata.userId, stripeCustomerId: null },
+            data: { stripeCustomerId: session.customer.toString() },
+          });
+        }
+        return new Response("OK");
+      }
 
       if (event.type === "checkout.session.completed") {
         const userId = session.metadata?.userId;
@@ -323,21 +339,26 @@ export async function POST(req: Request) {
     if (event.type === "checkout.session.async_payment_failed") {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.metadata?.kind === "REFERRAL_COMMISSION") await markReferralPaymentFailure(session, "PAYMENT_FAILED");
+      if (session.metadata?.kind === "CUSTOM_DOMAIN") await markDomainCheckoutFailure(session);
     }
 
     if (event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.metadata?.kind === "REFERRAL_COMMISSION") await markReferralPaymentFailure(session, "PENDING");
+      if (session.metadata?.kind === "CUSTOM_DOMAIN") await markDomainCheckoutFailure(session, true);
     }
 
     if (event.type === "charge.refunded") {
       const charge = event.data.object as Stripe.Charge;
       await revokeRefundedAiCredits({ chargeId: charge.id, refundedCents: charge.amount_refunded, totalCents: charge.amount });
       await handleReferralRefund(charge);
+      await handleDomainChargeRefund(charge);
     }
 
     if (event.type === "charge.dispute.created") {
-      await handleChargeDispute(event.data.object as Stripe.Dispute);
+      const dispute = event.data.object as Stripe.Dispute;
+      await handleChargeDispute(dispute);
+      await handleDomainChargeDispute(dispute);
     }
 
     if (event.type === "account.updated") {

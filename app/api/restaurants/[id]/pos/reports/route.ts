@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { isRestaurantOwner } from "@/lib/restaurant-auth";
 
 export async function GET(
   request: Request,
@@ -7,6 +8,7 @@ export async function GET(
 ) {
   try {
     const { id: restaurantId } = await params;
+    if (!(await isRestaurantOwner(restaurantId))) return NextResponse.json({ error: "Sem acesso a este restaurante." }, { status: 403 });
 
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);

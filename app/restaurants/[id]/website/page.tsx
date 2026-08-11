@@ -3,10 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { WebsiteEditorClient } from "./WebsiteEditorClient";
+import { publicDomainOrder } from "@/lib/domain-orders";
+import { isVercelDomainServiceConfigured } from "@/lib/vercel-domains";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ success?: string }>;
+  searchParams?: Promise<{ success?: string; domain?: string; order?: string }>;
 };
 
 export default async function RestaurantWebsitePage({
@@ -30,15 +32,23 @@ export default async function RestaurantWebsitePage({
           sortOrder: "asc",
         },
       },
+      domainOrders: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
     },
   });
 
   if (!restaurant) notFound();
 
+  const { domainOrders, ...restaurantData } = restaurant;
+
   return (
     <WebsiteEditorClient
-      restaurant={restaurant}
+      restaurant={restaurantData}
       saved={query?.success === "1"}
+      domainOrder={publicDomainOrder(domainOrders[0] || null)}
+      domainServiceConfigured={isVercelDomainServiceConfigured()}
     />
   );
 }

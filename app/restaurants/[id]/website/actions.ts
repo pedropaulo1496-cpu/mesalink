@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
 function normalizeSlug(value: string) {
   return value
@@ -16,6 +17,7 @@ function normalizeSlug(value: string) {
 
 export async function updateRestaurantWebsite(formData: FormData) {
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const rawSlug = String(formData.get("slug") || "");
 
   const slug = normalizeSlug(rawSlug);

@@ -2,9 +2,25 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { getCurrentUser } from "@/lib/restaurant-auth";
 
 async function createRestaurant(formData: FormData) {
   "use server";
+
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const account = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: {
+      subscription: { select: { restaurantLimit: true } },
+      _count: { select: { restaurants: true } },
+    },
+  });
+  const restaurantLimit = account?.subscription?.restaurantLimit ?? 1;
+  if ((account?._count.restaurants ?? 0) >= restaurantLimit) {
+    redirect("/billing?reason=restaurant_limit");
+  }
 
   const name = String(formData.get("name"));
   const slug = String(formData.get("slug"));
@@ -14,7 +30,7 @@ async function createRestaurant(formData: FormData) {
 
   try {
     await prisma.restaurant.create({
-      data: { name, slug, email, phone, address },
+      data: { name, slug, email, phone, address, userId: user.id },
     });
 
     redirect("/");
@@ -28,6 +44,9 @@ async function createRestaurant(formData: FormData) {
 }
 
 export default async function NewRestaurantPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
   const t = await getTranslations("restaurants.new");
 
   return (

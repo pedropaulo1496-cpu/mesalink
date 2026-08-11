@@ -6,9 +6,11 @@
   "items": {
     "dashboard": "Tableau de bord",
     "menu": "Menu & Produits",
+    "pos": "Caisse (POS)",
     "qrOrdering": "QR Ordering",
     "serviceDay": "Service du jour",
     "reservations": "Réservations",
+    "calendar": "Calendrier",
     "tables": "Salle & Tables",
     "customers": "Clients",
     "revenueAi": "Revenue AI",
@@ -32,12 +34,17 @@
     "moreSheet": {
       "title": "Plus d'options",
       "tables": "Salle",
+      "pos": "Caisse",
+      "menu": "Menu",
+      "reservations": "Réservations",
+      "customers": "Clients",
       "revenueAi": "Revenue AI",
       "partnerNetwork": "Partenaires",
       "marketing": "Mkt.",
       "website": "Site web",
       "aiVisibility": "Visibilité IA",
       "settings": "Param.",
+      "billing": "Facturation",
       "language": "Langue"
     }
   }

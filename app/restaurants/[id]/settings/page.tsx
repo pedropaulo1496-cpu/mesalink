@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 import ApplyMondayButton from "./ApplyMondayButton";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
@@ -12,10 +13,20 @@ type Translator = (key: string, values?: Record<string, string | number>) => str
 const inputClass =
   "h-12 w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 text-sm font-semibold text-[#16120E] outline-none placeholder:text-[#9B8F82] focus:border-[#C8A56A]";
 
+async function getOwnedPrinterId(restaurantId: string, printerId: string | null) {
+  if (!printerId) return null;
+  const printer = await prisma.restaurantPrinter.findFirst({
+    where: { id: printerId, restaurantId },
+    select: { id: true },
+  });
+  return printer?.id ?? null;
+}
+
 async function updateSettings(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
 
   const currentRestaurant = await prisma.restaurant.findUnique({
     where: { id: restaurantId },
@@ -109,6 +120,7 @@ async function createPrinter(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const name = String(formData.get("name") || "").trim();
   const type = String(formData.get("type") || "KITCHEN");
   const method = String(formData.get("method") || "BROWSER");
@@ -136,6 +148,7 @@ async function updatePrinter(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const printerId = String(formData.get("printerId"));
   const name = String(formData.get("name") || "").trim();
   const type = String(formData.get("type") || "KITCHEN");
@@ -146,8 +159,8 @@ async function updatePrinter(formData: FormData) {
 
   if (!restaurantId || !printerId || !name) return;
 
-  await prisma.restaurantPrinter.update({
-    where: { id: printerId },
+  await prisma.restaurantPrinter.updateMany({
+    where: { id: printerId, restaurantId },
     data: {
       name,
       type,
@@ -165,18 +178,19 @@ async function deletePrinter(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const printerId = String(formData.get("printerId"));
   const confirmDelete = String(formData.get("confirmDelete") || "") === "on";
 
   if (!restaurantId || !printerId || !confirmDelete) return;
 
   await prisma.productionCenter.updateMany({
-    where: { printerId },
+    where: { printerId, restaurantId },
     data: { printerId: null },
   });
 
-  await prisma.restaurantPrinter.delete({
-    where: { id: printerId },
+  await prisma.restaurantPrinter.deleteMany({
+    where: { id: printerId, restaurantId },
   });
 
   revalidatePath(`/restaurants/${restaurantId}/settings`);
@@ -186,17 +200,20 @@ async function createProductionCenter(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const name = String(formData.get("name") || "").trim();
   const printerId = String(formData.get("printerId") || "") || null;
   const position = Number(formData.get("position") || 0);
 
   if (!restaurantId || !name) return;
 
+  const ownedPrinterId = await getOwnedPrinterId(restaurantId, printerId);
+
   await prisma.productionCenter.create({
     data: {
       restaurantId,
       name,
-      printerId,
+      printerId: ownedPrinterId,
       position,
       active: true,
     },
@@ -209,6 +226,7 @@ async function updateProductionCenter(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const productionCenterId = String(formData.get("productionCenterId"));
   const name = String(formData.get("name") || "").trim();
   const printerId = String(formData.get("printerId") || "") || null;
@@ -217,11 +235,13 @@ async function updateProductionCenter(formData: FormData) {
 
   if (!restaurantId || !productionCenterId || !name) return;
 
-  await prisma.productionCenter.update({
-    where: { id: productionCenterId },
+  const ownedPrinterId = await getOwnedPrinterId(restaurantId, printerId);
+
+  await prisma.productionCenter.updateMany({
+    where: { id: productionCenterId, restaurantId },
     data: {
       name,
-      printerId,
+      printerId: ownedPrinterId,
       position,
       active,
     },
@@ -234,17 +254,24 @@ async function deleteProductionCenter(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const productionCenterId = String(formData.get("productionCenterId"));
   const confirmDelete = String(formData.get("confirmDelete") || "") === "on";
 
   if (!restaurantId || !productionCenterId || !confirmDelete) return;
 
+  const ownedCenter = await prisma.productionCenter.findFirst({
+    where: { id: productionCenterId, restaurantId },
+    select: { id: true },
+  });
+  if (!ownedCenter) return;
+
  await prisma.productProductionCenter.deleteMany({
-  where: { productionCenterId },
+  where: { productionCenterId: ownedCenter.id },
 });
 
-  await prisma.productionCenter.delete({
-    where: { id: productionCenterId },
+  await prisma.productionCenter.deleteMany({
+    where: { id: ownedCenter.id, restaurantId },
   });
 
   revalidatePath(`/restaurants/${restaurantId}/settings`);

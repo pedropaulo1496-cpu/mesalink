@@ -3,12 +3,14 @@ import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 
 async function createBridgeDevice(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const deviceName = String(formData.get("deviceName") || "PC Principal");
 
   const restaurant = await prisma.restaurant.findUnique({
@@ -40,6 +42,7 @@ async function deleteBridgeDevice(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const bridgeDeviceId = String(formData.get("bridgeDeviceId"));
 
   if (!restaurantId || !bridgeDeviceId) return;
@@ -51,14 +54,15 @@ async function deleteBridgeDevice(formData: FormData) {
     },
   });
 
-  await prisma.printBridgeDevice.update({
-    where: {
-      id: bridgeDeviceId,
-    },
-    data: {
-      active: false,
-    },
+  const remainingLinks = await prisma.printBridgeRestaurant.count({
+    where: { bridgeDeviceId, active: true },
   });
+  if (remainingLinks === 0) {
+    await prisma.printBridgeDevice.updateMany({
+      where: { id: bridgeDeviceId, user: { restaurants: { some: { id: restaurantId } } } },
+      data: { active: false },
+    });
+  }
 
   revalidatePath(`/restaurants/${restaurantId}/pos/print-bridge`);
 }
@@ -67,11 +71,24 @@ async function savePrinterMapping(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const bridgeDeviceId = String(formData.get("bridgeDeviceId"));
   const restaurantPrinterId = String(formData.get("restaurantPrinterId"));
   const windowsPrinterName = String(formData.get("windowsPrinterName") || "");
 
   if (!restaurantId || !bridgeDeviceId || !restaurantPrinterId) return;
+
+  const [bridgeLink, printer] = await Promise.all([
+    prisma.printBridgeRestaurant.findFirst({
+      where: { restaurantId, bridgeDeviceId, active: true },
+      select: { id: true },
+    }),
+    prisma.restaurantPrinter.findFirst({
+      where: { id: restaurantPrinterId, restaurantId },
+      select: { id: true },
+    }),
+  ]);
+  if (!bridgeLink || !printer) return;
 
   if (!windowsPrinterName) {
     await prisma.printBridgePrinterMapping.deleteMany({
@@ -106,16 +123,23 @@ async function testPrinter(formData: FormData) {
   "use server";
 
   const restaurantId = String(formData.get("restaurantId"));
+  await assertRestaurantOwner(restaurantId);
   const restaurantPrinterId = String(formData.get("restaurantPrinterId"));
 
   if (!restaurantId || !restaurantPrinterId) return;
+
+  const printer = await prisma.restaurantPrinter.findFirst({
+    where: { id: restaurantPrinterId, restaurantId, active: true },
+    select: { id: true },
+  });
+  if (!printer) return;
 
   const t = await getTranslations("dashboardPos.printBridge");
 
   await prisma.printJob.create({
     data: {
       restaurantId,
-      printerId: restaurantPrinterId,
+      printerId: printer.id,
       status: "PENDING",
       type: "TEST",
       title: t("testPrint.jobTitle"),

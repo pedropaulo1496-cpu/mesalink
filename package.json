@@ -14,6 +14,7 @@
     "@serwist/next": "^9.5.12",
     "@uploadthing/react": "^7.3.3",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/sdk": "^1.28.17",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

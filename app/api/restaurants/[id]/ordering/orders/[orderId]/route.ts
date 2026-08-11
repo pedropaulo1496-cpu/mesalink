@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { isRestaurantOwner } from "@/lib/restaurant-auth";
 
 export async function PATCH(
   request: Request,
@@ -13,6 +14,7 @@ export async function PATCH(
   }
 ) {
   const { id, orderId } = await params;
+  if (!(await isRestaurantOwner(id))) return NextResponse.json({ error: "Sem acesso a este restaurante." }, { status: 403 });
   const body = await request.json().catch(() => ({}));
 
   const status = String(body.status || "");
