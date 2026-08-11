@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "https://mesalink.pt" },
+  alternates: { canonical: "https://www.mesalink.pt" },
   robots: { index: false, follow: true },
 };
 

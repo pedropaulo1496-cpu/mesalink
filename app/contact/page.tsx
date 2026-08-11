@@ -7,7 +7,7 @@ import { getTranslations } from "next-intl/server";
 export const metadata: Metadata = {
   title: "Contacto e Demonstração",
   description: "Fale com a equipa MesaLink e peça uma demonstração do software de gestão para restaurantes.",
-  alternates: { canonical: "https://mesalink.pt/contact" },
+  alternates: { canonical: "https://www.mesalink.pt/contact" },
 };
 
 export default async function ContactPage() {

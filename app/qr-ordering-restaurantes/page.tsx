@@ -5,8 +5,8 @@ import RestaurantSolutionPage, { type SolutionPageContent } from "@/components/s
 export const metadata: Metadata = {
   title: "QR Ordering para Restaurantes: Menu e Pedidos na Mesa",
   description: "QR Ordering para restaurantes com menu digital, pedidos na mesa, chamada de empregado e pedido de conta. Sem aplicação para o cliente.",
-  alternates: { canonical: "https://mesalink.pt/qr-ordering-restaurantes" },
-  openGraph: { url: "https://mesalink.pt/qr-ordering-restaurantes", title: "QR Ordering e Menu Digital para Restaurantes — MesaLink", description: "Clientes consultam o menu e fazem pedidos diretamente da mesa através de QR Code." },
+  alternates: { canonical: "https://www.mesalink.pt/qr-ordering-restaurantes" },
+  openGraph: { url: "https://www.mesalink.pt/qr-ordering-restaurantes", title: "QR Ordering e Menu Digital para Restaurantes — MesaLink", description: "Clientes consultam o menu e fazem pedidos diretamente da mesa através de QR Code." },
 };
 
 const content: SolutionPageContent = {

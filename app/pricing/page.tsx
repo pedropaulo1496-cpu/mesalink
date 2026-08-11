@@ -26,7 +26,7 @@ const planIds = ["essentials", "growth"] as const;
 export const metadata: Metadata = {
   title: "Preços do Software para Restaurantes",
   description: "Planos MesaLink para restaurantes: reservas, website, QR Ordering, CRM, reviews, marketing e operação. Teste grátis durante 7 dias.",
-  alternates: { canonical: "https://mesalink.pt/pricing" },
+  alternates: { canonical: "https://www.mesalink.pt/pricing" },
 };
 
 const comparisonRowIds = [

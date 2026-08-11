@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://mesalink.pt"),
+  metadataBase: new URL("https://www.mesalink.pt"),
   title: {
     default: "MesaLink — Software de Gestão para Restaurantes",
     template: "%s | MesaLink",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   description:
     "Software de gestão para restaurantes com reservas online, POS, QR Ordering, mapa de mesas, website, CRM, marketing e reviews numa única plataforma.",
   applicationName: "MesaLink",
-  authors: [{ name: "MesaLink", url: "https://mesalink.pt" }],
+  authors: [{ name: "MesaLink", url: "https://www.mesalink.pt" }],
   creator: "MesaLink",
   publisher: "MesaLink",
   category: "Software para restaurantes",
@@ -77,21 +77,21 @@ export default async function RootLayout({
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": "https://mesalink.pt/#organization",
+    "@id": "https://www.mesalink.pt/#organization",
     name: "MesaLink",
-    url: "https://mesalink.pt",
-    logo: "https://mesalink.pt/icons/icon-512.png",
+    url: "https://www.mesalink.pt",
+    logo: "https://www.mesalink.pt/icons/icon-512.png",
     description:
       "Plataforma de gestão e crescimento criada para restaurantes.",
   };
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": "https://mesalink.pt/#website",
-    url: "https://mesalink.pt",
+    "@id": "https://www.mesalink.pt/#website",
+    url: "https://www.mesalink.pt",
     name: "MesaLink",
     alternateName: "MesaLink Restaurant OS",
-    publisher: { "@id": "https://mesalink.pt/#organization" },
+    publisher: { "@id": "https://www.mesalink.pt/#organization" },
     inLanguage: "pt-PT",
   };
 

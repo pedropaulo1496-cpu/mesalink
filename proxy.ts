@@ -20,14 +20,6 @@ export async function proxy(request: NextRequest) {
   const isVercelPreview =
     hostname.includes("vercel.app");
 
-  // One canonical production host prevents duplicate www/non-www versions.
-  if (hostname === `www.${ROOT_DOMAIN}`) {
-    const canonicalUrl = request.nextUrl.clone();
-    canonicalUrl.hostname = ROOT_DOMAIN;
-    canonicalUrl.port = "";
-    return NextResponse.redirect(canonicalUrl, 308);
-  }
-
   // LOGGED-IN USER ON THE HOMEPAGE -> STRAIGHT TO THEIR DASHBOARD
   if (pathname === "/" && (isRootDomain || isLocalhost || isVercelPreview)) {
     const token = await getToken({

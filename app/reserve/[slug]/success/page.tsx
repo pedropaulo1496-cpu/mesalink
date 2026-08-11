@@ -102,7 +102,7 @@ export default async function ReservationSuccessPage({
           </div>
 
           <a
-            href="https://mesalink.pt"
+            href="https://www.mesalink.pt"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-6 flex h-12 w-full items-center justify-center rounded-full bg-[#16120E] text-sm font-semibold text-white transition hover:bg-[#2A2118] active:scale-[0.99]"

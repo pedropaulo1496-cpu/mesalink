@@ -22,7 +22,7 @@ export type SolutionPageContent = {
 };
 
 export default function RestaurantSolutionPage({ content }: { content: SolutionPageContent }) {
-  const canonicalUrl = `https://mesalink.pt${content.path}`;
+  const canonicalUrl = `https://www.mesalink.pt${content.path}`;
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -34,14 +34,14 @@ export default function RestaurantSolutionPage({ content }: { content: SolutionP
         applicationSubCategory: "Restaurant Management Software",
         operatingSystem: "Web, Android",
         description: content.intro,
-        publisher: { "@id": "https://mesalink.pt/#organization" },
-        offers: { "@type": "Offer", price: "55", priceCurrency: "EUR", url: "https://mesalink.pt/pricing" },
+        publisher: { "@id": "https://www.mesalink.pt/#organization" },
+        offers: { "@type": "Offer", price: "55", priceCurrency: "EUR", url: "https://www.mesalink.pt/pricing" },
       },
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "MesaLink", item: "https://mesalink.pt" },
-          { "@type": "ListItem", position: 2, name: "Software para restaurantes", item: "https://mesalink.pt/software-para-restaurantes" },
+          { "@type": "ListItem", position: 1, name: "MesaLink", item: "https://www.mesalink.pt" },
+          { "@type": "ListItem", position: 2, name: "Software para restaurantes", item: "https://www.mesalink.pt/software-para-restaurantes" },
           { "@type": "ListItem", position: 3, name: content.schemaName, item: canonicalUrl },
         ],
       },

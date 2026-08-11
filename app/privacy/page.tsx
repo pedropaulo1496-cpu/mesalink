@@ -7,7 +7,7 @@ import { getTranslations } from "next-intl/server";
 export const metadata: Metadata = {
   title: "Política de Privacidade",
   description: "Política de privacidade e tratamento de dados da plataforma MesaLink.",
-  alternates: { canonical: "https://mesalink.pt/privacy" },
+  alternates: { canonical: "https://www.mesalink.pt/privacy" },
 };
 
 export default async function PrivacyPage() {

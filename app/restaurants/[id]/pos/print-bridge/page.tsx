@@ -199,7 +199,7 @@ export default async function PrintBridgePage({
   </a>
 
   <a
-    href="https://mesalink.pt"
+    href="https://www.mesalink.pt"
     target="_blank"
     className="inline-flex items-center rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-black text-[#11100F]"
   >

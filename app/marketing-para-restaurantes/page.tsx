@@ -5,8 +5,8 @@ import RestaurantSolutionPage, { type SolutionPageContent } from "@/components/s
 export const metadata: Metadata = {
   title: "CRM e Marketing para Restaurantes: Fidelização e Reviews",
   description: "CRM e marketing para restaurantes com recuperação de clientes, aniversários, campanhas, fidelização VIP, Google Reviews e medição de resultados.",
-  alternates: { canonical: "https://mesalink.pt/marketing-para-restaurantes" },
-  openGraph: { url: "https://mesalink.pt/marketing-para-restaurantes", title: "CRM e Marketing para Restaurantes — MesaLink", description: "Transforme reservas e visitas em relações que fazem os clientes voltar." },
+  alternates: { canonical: "https://www.mesalink.pt/marketing-para-restaurantes" },
+  openGraph: { url: "https://www.mesalink.pt/marketing-para-restaurantes", title: "CRM e Marketing para Restaurantes — MesaLink", description: "Transforme reservas e visitas em relações que fazem os clientes voltar." },
 };
 
 const content: SolutionPageContent = {

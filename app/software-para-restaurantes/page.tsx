@@ -15,7 +15,7 @@ import {
 import Footer from "@/components/Footer";
 import SiteHeader from "@/components/SiteHeader";
 
-const canonicalUrl = "https://mesalink.pt/software-para-restaurantes";
+const canonicalUrl = "https://www.mesalink.pt/software-para-restaurantes";
 
 export const metadata: Metadata = {
   title: "Software para Restaurantes: Reservas, POS, QR e Marketing",
@@ -108,10 +108,10 @@ export default function SoftwareParaRestaurantesPage() {
     operatingSystem: "Web, Android",
     description:
       "Software de gestão para restaurantes com reservas, POS, QR Ordering, mapa de mesas, website, CRM, marketing e reviews.",
-    publisher: { "@id": "https://mesalink.pt/#organization" },
+    publisher: { "@id": "https://www.mesalink.pt/#organization" },
     offers: [
-      { "@type": "Offer", name: "MesaLink Essentials", price: "55", priceCurrency: "EUR", url: "https://mesalink.pt/pricing" },
-      { "@type": "Offer", name: "MesaLink Growth", price: "75", priceCurrency: "EUR", url: "https://mesalink.pt/pricing" },
+      { "@type": "Offer", name: "MesaLink Essentials", price: "55", priceCurrency: "EUR", url: "https://www.mesalink.pt/pricing" },
+      { "@type": "Offer", name: "MesaLink Growth", price: "75", priceCurrency: "EUR", url: "https://www.mesalink.pt/pricing" },
     ],
     featureList: capabilities.map((item) => item.title),
   };
@@ -119,7 +119,7 @@ export default function SoftwareParaRestaurantesPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "MesaLink", item: "https://mesalink.pt" },
+      { "@type": "ListItem", position: 1, name: "MesaLink", item: "https://www.mesalink.pt" },
       { "@type": "ListItem", position: 2, name: "Software para restaurantes", item: canonicalUrl },
     ],
   };

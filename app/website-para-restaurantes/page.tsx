@@ -5,8 +5,8 @@ import RestaurantSolutionPage, { type SolutionPageContent } from "@/components/s
 export const metadata: Metadata = {
   title: "Website para Restaurantes com Reservas, Menu e SEO",
   description: "Crie um website para restaurante rápido e mobile-first com menu, reservas online, domínio próprio, SEO e preparação para pesquisas por IA.",
-  alternates: { canonical: "https://mesalink.pt/website-para-restaurantes" },
-  openGraph: { url: "https://mesalink.pt/website-para-restaurantes", title: "Website e SEO para Restaurantes — MesaLink", description: "Website ligado ao menu, reservas, reviews e dados reais do restaurante." },
+  alternates: { canonical: "https://www.mesalink.pt/website-para-restaurantes" },
+  openGraph: { url: "https://www.mesalink.pt/website-para-restaurantes", title: "Website e SEO para Restaurantes — MesaLink", description: "Website ligado ao menu, reservas, reviews e dados reais do restaurante." },
 };
 
 const content: SolutionPageContent = {

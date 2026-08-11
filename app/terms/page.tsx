@@ -7,7 +7,7 @@ import { getTranslations } from "next-intl/server";
 export const metadata: Metadata = {
   title: "Termos e Condições",
   description: "Termos e condições de utilização do software para restaurantes MesaLink.",
-  alternates: { canonical: "https://mesalink.pt/terms" },
+  alternates: { canonical: "https://www.mesalink.pt/terms" },
 };
 
 export default async function TermsPage() {

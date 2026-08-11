@@ -4,7 +4,7 @@ import { ArrowRight, Check, CircleAlert, Lightbulb, Scale } from "lucide-react";
 import Footer from "@/components/Footer";
 import SiteHeader from "@/components/SiteHeader";
 
-const canonicalUrl = "https://mesalink.pt/guias/como-escolher-software-para-restaurantes";
+const canonicalUrl = "https://www.mesalink.pt/guias/como-escolher-software-para-restaurantes";
 
 export const metadata: Metadata = {
   title: "Como Escolher Software para Restaurantes: Guia 2026",
@@ -75,15 +75,15 @@ export default function GuidePage() {
         dateModified: "2026-08-11",
         inLanguage: "pt-PT",
         mainEntityOfPage: canonicalUrl,
-        author: { "@id": "https://mesalink.pt/#organization" },
-        publisher: { "@id": "https://mesalink.pt/#organization" },
-        image: "https://mesalink.pt/icons/icon-512.png",
+        author: { "@id": "https://www.mesalink.pt/#organization" },
+        publisher: { "@id": "https://www.mesalink.pt/#organization" },
+        image: "https://www.mesalink.pt/icons/icon-512.png",
       },
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "MesaLink", item: "https://mesalink.pt" },
-          { "@type": "ListItem", position: 2, name: "Software para restaurantes", item: "https://mesalink.pt/software-para-restaurantes" },
+          { "@type": "ListItem", position: 1, name: "MesaLink", item: "https://www.mesalink.pt" },
+          { "@type": "ListItem", position: 2, name: "Software para restaurantes", item: "https://www.mesalink.pt/software-para-restaurantes" },
           { "@type": "ListItem", position: 3, name: "Como escolher software para restaurantes", item: canonicalUrl },
         ],
       },

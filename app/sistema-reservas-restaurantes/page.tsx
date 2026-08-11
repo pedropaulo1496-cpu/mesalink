@@ -5,8 +5,8 @@ import RestaurantSolutionPage, { type SolutionPageContent } from "@/components/s
 export const metadata: Metadata = {
   title: "Sistema de Reservas para Restaurantes sem Comissões",
   description: "Sistema de reservas para restaurantes com calendário, mapa de mesas, confirmações, clientes e reservas online 24/7 sem comissão. Experimente o MesaLink.",
-  alternates: { canonical: "https://mesalink.pt/sistema-reservas-restaurantes" },
-  openGraph: { url: "https://mesalink.pt/sistema-reservas-restaurantes", title: "Sistema de Reservas para Restaurantes — MesaLink", description: "Reservas diretas, mesas, confirmações e clientes num único sistema, sem comissão por reserva." },
+  alternates: { canonical: "https://www.mesalink.pt/sistema-reservas-restaurantes" },
+  openGraph: { url: "https://www.mesalink.pt/sistema-reservas-restaurantes", title: "Sistema de Reservas para Restaurantes — MesaLink", description: "Reservas diretas, mesas, confirmações e clientes num único sistema, sem comissão por reserva." },
 };
 
 const content: SolutionPageContent = {
