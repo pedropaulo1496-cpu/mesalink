@@ -282,7 +282,9 @@
   "birthdayCard": {
     "title": "Aniversários",
     "subtitle": "{count} clientes fazem aniversário este mês.",
-    "runNow": "Executar · 1 crédito/email",
+    "runNow": "Executar agora",
+    "emailBalance": "{count} emails disponíveis",
+    "creditRate": "1 crédito = 75 emails",
     "sending": "A enviar...",
     "error": "Erro ao executar aniversários.",
     "successMessage": "Campanha executada • {emailsSent} emails enviados • {skipped} ignorados"
@@ -344,7 +346,8 @@
     "subjectPlaceholder": "Ex: Temos novidades para si",
     "messageLabel": "Mensagem",
     "messagePlaceholder": "Escreva a mensagem da campanha...",
-    "submit": "Enviar · 1 crédito por contacto",
+    "submit": "Enviar campanha",
+    "emailRate": "1.000 emails incluídos por conta · depois 1 crédito = 75 emails",
     "segmentTemplates": {
       "vip": {
         "subject": "Convite exclusivo para clientes VIP",
@@ -371,7 +374,9 @@
   "recoveryCard": {
     "title": "Recuperação de Clientes",
     "subtitle": "{count} clientes não visitam há mais de 60 dias.",
-    "runNow": "Executar · 1 crédito/email",
+    "runNow": "Executar agora",
+    "emailBalance": "{count} emails disponíveis",
+    "creditRate": "1 crédito = 75 emails",
     "sending": "A enviar...",
     "error": "Erro ao executar recuperação.",
     "successMessage": "{emailsSent} emails enviados • {created} campanhas criadas"

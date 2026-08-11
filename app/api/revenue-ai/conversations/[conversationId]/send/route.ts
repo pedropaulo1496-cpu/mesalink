@@ -2,7 +2,9 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { authOptions } from "@/lib/auth";
-import { AI_CREDIT_COSTS, hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
+import { hasGrowthAccess } from "@/lib/ai-billing";
+import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
+import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 import { prisma } from "@/lib/prisma";
 
@@ -33,20 +35,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
   });
   if (duplicate) return NextResponse.json({ success: true, message: duplicate, duplicate: true });
 
-  const creditReference = `revenue_email:${conversation.id}:${crypto.randomUUID()}`;
+  const emailReference = `email:revenue_follow_up:${conversation.id}:${crypto.randomUUID()}`;
   let creditsRemaining = user.subscription?.aiCredits || 0;
+  let emailsRemaining = user.subscription?.emailBalance || 0;
+  let emailReserved = false;
   try {
-    const creditCharge = await spendAiCredits({
+    const allowance = await reserveEmailSend({
       userId: user.id,
-      amount: AI_CREDIT_COSTS.REVENUE_EMAIL,
-      feature: "REVENUE_EMAIL",
-      description: `Email Revenue AI para ${conversation.contactName}`,
-      reference: creditReference,
+      restaurantId: conversation.restaurantId,
+      category: "REVENUE_FOLLOW_UP",
+      reference: emailReference,
     });
-    creditsRemaining = creditCharge.balance;
+    if (!allowance.canSend) return NextResponse.json({ error: "Este email já foi processado." }, { status: 409 });
+    emailReserved = true;
+    creditsRemaining = allowance.aiCredits;
+    emailsRemaining = allowance.emailBalance;
   } catch (error) {
-    if (error instanceof InsufficientAiCreditsError) {
-      return NextResponse.json({ error: "Saldo insuficiente. Cada envio custa 1 crédito.", code: "INSUFFICIENT_AI_CREDITS", required: error.required, available: error.available }, { status: 402 });
+    if (error instanceof InsufficientEmailAllowanceError) {
+      return NextResponse.json({ error: "Os 1.000 emails incluídos terminaram e não existem créditos AI. Cada crédito disponibiliza 75 emails.", code: "INSUFFICIENT_EMAIL_ALLOWANCE", emailsRemaining: error.emailBalance, aiCredits: error.aiCredits }, { status: 402 });
     }
     throw error;
   }
@@ -75,10 +81,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
       subject: `${conversation.restaurant.name}: podemos ajudar?`,
       html: `<div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px"><div style="max-width:560px;margin:auto;background:white;border:1px solid #E1D0B8;border-radius:24px;padding:30px"><p style="white-space:pre-wrap;line-height:1.65;color:#29221B">${escapeHtml(content)}</p><a href="${clickUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700">Reservar mesa</a><p style="margin-top:28px;font-size:12px;color:#817365">Mensagem enviada por ${escapeHtml(conversation.restaurant.name)} através do MesaLink porque aceitou receber comunicações deste restaurante.</p>${marketingTrackingPixel(openUrl)}</div></div>`,
     });
+    const deliveryId = requireAcceptedEmail(delivery);
+    await completeEmailSend(emailReference);
 
     const now = new Date();
     const message = await prisma.revenueMessage.create({
-      data: { conversationId, direction: "OUTBOUND", sender: "AI_REVIEWED", channel: "EMAIL", content, status: "SENT", externalId: delivery.data?.id, sentAt: now },
+      data: { conversationId, direction: "OUTBOUND", sender: "AI_REVIEWED", channel: "EMAIL", content, status: "SENT", externalId: deliveryId, sentAt: now },
     });
     await prisma.revenueConversation.update({
       where: { id: conversationId },
@@ -89,11 +97,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
       data: {
         status: "SENT",
         sentAt: now,
-        deliveryId: delivery.data?.id || null,
+        deliveryId,
         nextFollowUpAt: new Date(now.getTime() + 48 * 60 * 60 * 1000),
       },
     });
-    return NextResponse.json({ success: true, message, creditsRemaining });
+    return NextResponse.json({ success: true, message, creditsRemaining, emailsRemaining });
   } catch (error) {
     if (trackingActionId) {
       await prisma.marketingAction.update({
@@ -104,13 +112,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
         },
       }).catch(() => null);
     }
-    await refundAiCredits({
-      userId: user.id,
-      amount: AI_CREDIT_COSTS.REVENUE_EMAIL,
-      feature: "REVENUE_EMAIL",
-      description: `Crédito devolvido: email para ${conversation.contactName} não enviado`,
-      reference: creditReference,
-    });
+    if (emailReserved) await refundEmailSend(emailReference);
     return NextResponse.json({ error: error instanceof Error ? error.message : "Falha no envio." }, { status: 502 });
   }
 }

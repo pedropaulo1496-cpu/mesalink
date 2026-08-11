@@ -123,13 +123,14 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 {t("hero.description")}
               </p>
 
-              <div className="mt-8 grid gap-3 sm:grid-cols-4">
+              <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
                 <Info label={t("stats.currentPlan.label")} value={currentPlan} />
                 <Info
                   label={t("stats.trial.label")}
                   value={trialActive ? t("stats.trial.daysLeft", { days: trialDaysLeft }) : t("stats.trial.ended")}
                 />
                 <Info label={t("stats.aiCredits.label")} value={String(subscription.aiCredits)} />
+                <Info label={t("stats.emailBalance.label")} value={String(subscription.emailBalance)} />
                 <Info label={t("stats.yearlyPayment.label")} value={t("stats.yearlyPayment.value")} />
               </div>
             </div>
@@ -297,7 +298,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
               <CreditCost value="10" label={t("credits.costs.visibility")} />
               <CreditCost value="5" label={t("credits.costs.website")} />
               <CreditCost value="1" label={t("credits.costs.draft")} />
-              <CreditCost value="1" label={t("credits.costs.email")} />
+              <CreditCost value="75" label={t("credits.costs.email")} />
             </div>
           </div>
           <div className="mt-7 grid gap-3 md:grid-cols-3">

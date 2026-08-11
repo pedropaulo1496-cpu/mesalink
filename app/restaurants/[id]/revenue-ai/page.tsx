@@ -346,7 +346,7 @@ export default async function RevenueAiPage({
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("automation.title")}</h2>
               <p className="mt-2 text-sm leading-6 text-[#6B6258]">{t("automation.description")}</p>
               <div className="mt-6">
-                <RecoveryAutomationCard inactiveCustomers={inactiveCustomers.length} restaurantId={id} />
+                <RecoveryAutomationCard inactiveCustomers={inactiveCustomers.length} restaurantId={id} emailsRemaining={subscription?.emailBalance || 0} />
               </div>
             </div>
 

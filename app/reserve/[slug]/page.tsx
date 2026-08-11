@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { Resend } from "resend";
 import { getLocale, getTranslations } from "next-intl/server";
 import ReserveForm from "./ReserveForm";
+import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
+import { requireAcceptedEmail } from "@/lib/email-delivery";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -315,10 +317,21 @@ async function createPublicReservation(formData: FormData) {
     const shouldSendEmail =
       ["ESSENTIALS", "GROWTH", "PRO"].includes(plan) &&
       Boolean(email) &&
+      Boolean(restaurant.user?.id) &&
       Boolean(process.env.RESEND_API_KEY);
 
     if (shouldSendEmail) {
+      const emailReference = `email:reservation_confirmation:${finalReservation.id}`;
+      let emailReserved = false;
       try {
+        const allowance = await reserveEmailSend({
+          userId: restaurant.user!.id,
+          restaurantId: restaurant.id,
+          category: "RESERVATION_CONFIRMATION",
+          reference: emailReference,
+        });
+        if (!allowance.canSend) throw new Error("Reservation confirmation already processed");
+        emailReserved = true;
         const locale = await getLocale();
         const emailT = await getTranslations("publicFlows.reserve.email");
         const intlLocale = emailDateLocales[locale] ?? "pt-PT";
@@ -341,7 +354,7 @@ async function createPublicReservation(formData: FormData) {
           ? emailT("statusPending")
           : emailT("statusConfirmed");
 
-        await resend.emails.send({
+        const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
           to: email,
           subject,
@@ -371,7 +384,10 @@ async function createPublicReservation(formData: FormData) {
             </div>
           `,
         });
+        requireAcceptedEmail(delivery);
+        await completeEmailSend(emailReference);
       } catch (error) {
+        if (emailReserved) await refundEmailSend(emailReference);
         console.error("Erro ao enviar email de reserva:", error);
       }
     }

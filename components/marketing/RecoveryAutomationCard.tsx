@@ -6,9 +6,11 @@ import { useTranslations } from "next-intl";
 export default function RecoveryAutomationCard({
   inactiveCustomers,
   restaurantId,
+  emailsRemaining,
 }: {
   inactiveCustomers: number;
   restaurantId: string;
+  emailsRemaining: number;
 }) {
   const t = useTranslations("dashboardMarketing.recoveryCard");
   const [loading, setLoading] = useState(false);
@@ -57,6 +59,9 @@ export default function RecoveryAutomationCard({
 
           <p className="mt-1 text-sm text-[#6B6258]">
             {t("subtitle", { count: inactiveCustomers })}
+          </p>
+          <p className="mt-2 text-xs font-semibold text-[#8A6130]">
+            {t("emailBalance", { count: emailsRemaining })} · {t("creditRate")}
           </p>
         </div>
 

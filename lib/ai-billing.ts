@@ -5,7 +5,6 @@ export const AI_CREDIT_COSTS = {
   AI_VISIBILITY_SCAN: 10,
   WEBSITE_COPY: 5,
   REVENUE_DRAFT: 1,
-  REVENUE_EMAIL: 1,
 } as const;
 
 export const AI_CREDIT_PACKS = {

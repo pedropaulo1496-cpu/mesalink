@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { AI_CREDIT_COSTS, hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
+import { hasGrowthAccess } from "@/lib/ai-billing";
+import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
+import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -123,18 +125,18 @@ async function runRecovery(restaurantId: unknown) {
       });
 
       created++;
-      const creditReference = `marketing_recovery:${action.id}`;
-      let creditCharged = false;
+      const emailReference = `email:marketing_recovery:${action.id}`;
+      let emailReserved = false;
 
       try {
-        await spendAiCredits({
+        const allowance = await reserveEmailSend({
           userId: user!.id,
-          amount: AI_CREDIT_COSTS.REVENUE_EMAIL,
-          feature: "REVENUE_EMAIL",
-          description: `Email automático de recuperação para ${customer.name}`,
-          reference: creditReference,
+          restaurantId: customer.restaurantId,
+          category: "REVENUE_RECOVERY",
+          reference: emailReference,
         });
-        creditCharged = true;
+        if (!allowance.canSend) throw new Error("Email already reserved");
+        emailReserved = true;
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
         const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
 
@@ -183,32 +185,31 @@ async function runRecovery(restaurantId: unknown) {
             </div>
           `,
         });
+        const deliveryId = requireAcceptedEmail(delivery);
 
+        await completeEmailSend(emailReference);
         await prisma.marketingAction.update({
           where: { id: action.id },
-          data: { status: "SENT", deliveryId: delivery.data?.id || null, failureReason: null, sentAt: new Date(), nextFollowUpAt: new Date(Date.now() + 48 * 60 * 60 * 1000) },
+          data: { status: "SENT", deliveryId, failureReason: null, sentAt: new Date(), nextFollowUpAt: new Date(Date.now() + 48 * 60 * 60 * 1000) },
         });
         emailsSent++;
       } catch (error) {
         console.error("Erro ao enviar email de recuperação:", error);
-        if (creditCharged) {
-          await refundAiCredits({
-            userId: user!.id,
-            amount: AI_CREDIT_COSTS.REVENUE_EMAIL,
-            feature: "REVENUE_EMAIL",
-            description: `Crédito devolvido: email automático para ${customer.name} não enviado`,
-            reference: creditReference,
-          });
-        }
+        if (emailReserved) await refundEmailSend(emailReference);
         await prisma.marketingAction.update({
           where: { id: action.id },
           data: { status: "FAILED", failureReason: error instanceof Error ? error.message.slice(0, 500) : "Email delivery failed" },
         });
-        if (error instanceof InsufficientAiCreditsError) {
-          return NextResponse.json({ success: false, error: "Saldo insuficiente. Cada email automático custa 1 crédito.", code: "INSUFFICIENT_AI_CREDITS", required: error.required, available: error.available, emailsSent }, { status: 402 });
+        if (error instanceof InsufficientEmailAllowanceError) {
+          return NextResponse.json({ success: false, error: "Os 1.000 emails incluídos terminaram e não existem créditos AI. Cada crédito disponibiliza mais 75 emails.", code: "INSUFFICIENT_EMAIL_ALLOWANCE", emailsRemaining: error.emailBalance, aiCredits: error.aiCredits, emailsSent }, { status: 402 });
         }
       }
     }
+
+    const finalAllowance = await prisma.subscription.findUnique({
+      where: { userId: user!.id },
+      select: { emailBalance: true, aiCredits: true },
+    });
 
     return NextResponse.json({
       success: true,
@@ -216,6 +217,8 @@ async function runRecovery(restaurantId: unknown) {
       created,
       emailsSent,
       skipped,
+      emailsRemaining: finalAllowance?.emailBalance || 0,
+      aiCredits: finalAllowance?.aiCredits || 0,
     });
   } catch (error) {
     console.error(error);

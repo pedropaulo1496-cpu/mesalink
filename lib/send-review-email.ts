@@ -1,4 +1,6 @@
 import { Resend } from "resend";
+import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
+import { requireAcceptedEmail } from "@/lib/email-delivery";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -6,6 +8,8 @@ type SendReviewEmailParams = {
   to: string;
   customerName: string;
   restaurantName: string;
+  restaurantId: string;
+  userId: string;
   reservationId: string;
 };
 
@@ -13,16 +17,27 @@ export async function sendReviewEmail({
   to,
   customerName,
   restaurantName,
+  restaurantId,
+  userId,
   reservationId,
 }: SendReviewEmailParams) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const reviewUrl = `${baseUrl}/review/${reservationId}`;
+  const emailReference = `email:review_request:${reservationId}`;
+  const allowance = await reserveEmailSend({
+    userId,
+    restaurantId,
+    category: "REVIEW_REQUEST",
+    reference: emailReference,
+  });
+  if (!allowance.canSend) return { sent: false, duplicate: true };
 
-  await resend.emails.send({
-    from: "MesaLink <noreply@mesalink.pt>",
-    to,
-    subject: `Como foi a sua experiência no ${restaurantName}?`,
-    html: `
+  try {
+    const delivery = await resend.emails.send({
+      from: "MesaLink <noreply@mesalink.pt>",
+      to,
+      subject: `Como foi a sua experiência no ${restaurantName}?`,
+      html: `
       <div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px;">
         <div style="max-width:560px;margin:0 auto;background:white;border:1px solid #E1D0B8;border-radius:28px;padding:32px;">
           <p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#9B6F3B;font-weight:700;">
@@ -47,5 +62,12 @@ export async function sendReviewEmail({
         </div>
       </div>
     `,
-  });
+    });
+    requireAcceptedEmail(delivery);
+    await completeEmailSend(emailReference);
+    return { sent: true, duplicate: false };
+  } catch (error) {
+    await refundEmailSend(emailReference);
+    throw error;
+  }
 }

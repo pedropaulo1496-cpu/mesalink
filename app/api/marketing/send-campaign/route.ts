@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { AI_CREDIT_COSTS, hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
+import { hasGrowthAccess } from "@/lib/ai-billing";
+import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
+import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -143,17 +145,17 @@ export async function POST(request: Request) {
           trackingToken: createMarketingTrackingToken(),
         },
       });
-      const creditReference = `marketing_campaign:${action.id}`;
-      let creditCharged = false;
+      const emailReference = `email:marketing_campaign:${action.id}`;
+      let emailReserved = false;
       try {
-        await spendAiCredits({
+        const allowance = await reserveEmailSend({
           userId: user.id,
-          amount: AI_CREDIT_COSTS.REVENUE_EMAIL,
-          feature: "REVENUE_EMAIL",
-          description: `Email de campanha para ${customer.name}`,
-          reference: creditReference,
+          restaurantId,
+          category: "MANUAL_CAMPAIGN",
+          reference: emailReference,
         });
-        creditCharged = true;
+        if (!allowance.canSend) throw new Error("Email already reserved");
+        emailReserved = true;
         const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
         const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
@@ -199,25 +201,21 @@ export async function POST(request: Request) {
             </div>
           `,
         });
+        const deliveryId = requireAcceptedEmail(delivery);
 
+        await completeEmailSend(emailReference);
         await prisma.marketingAction.update({
           where: { id: action.id },
-          data: { status: "SENT", sentAt: new Date(), deliveryId: delivery.data?.id || null, failureReason: null },
+          data: { status: "SENT", sentAt: new Date(), deliveryId, failureReason: null },
         });
 
         emailsSent++;
       } catch (error) {
         console.error(error);
-        if (creditCharged) await refundAiCredits({
-          userId: user.id,
-          amount: AI_CREDIT_COSTS.REVENUE_EMAIL,
-          feature: "REVENUE_EMAIL",
-          description: `Crédito devolvido: campanha para ${customer.name} não enviada`,
-          reference: creditReference,
-        });
+        if (emailReserved) await refundEmailSend(emailReference);
         await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "FAILED", failureReason: error instanceof Error ? error.message.slice(0, 500) : "Email delivery failed" } });
-        if (error instanceof InsufficientAiCreditsError) {
-          return NextResponse.redirect(new URL(`/restaurants/${restaurantId}/marketing?campaignError=credits&emailsSent=${emailsSent}`, request.url), 303);
+        if (error instanceof InsufficientEmailAllowanceError) {
+          return NextResponse.redirect(new URL(`/restaurants/${restaurantId}/marketing?campaignError=emails&emailsSent=${emailsSent}`, request.url), 303);
         }
       }
     }

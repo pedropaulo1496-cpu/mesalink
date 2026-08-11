@@ -119,7 +119,8 @@ export default function NewCampaignForm({
             />
           </label>
 
-          <div className="mt-6 flex justify-end">
+          <div className="mt-6 flex flex-col items-end gap-2">
+            <p className="text-xs font-semibold text-[#8A6130]">{t("emailRate")}</p>
             <button className="rounded-full bg-[#16120E] px-8 py-4 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
               {t("submit")}
             </button>

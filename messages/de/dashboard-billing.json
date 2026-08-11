@@ -23,6 +23,7 @@
         "value": "0€"
       },
       "aiCredits": { "label": "AI-Credits" },
+      "emailBalance": { "label": "Verfügbare E-Mails" },
       "yearlyPayment": {
         "label": "Jährliche Zahlung",
         "value": "1 Monat gratis"
@@ -69,7 +70,8 @@
           "Google Bewertungen",
           "Tischplan",
           "Wesentliche Berichte",
-          "Keine Provision pro Reservierung"
+          "Keine Provision pro Reservierung",
+          "1.000 E-Mails inklusive"
         ]
       },
       "growth": {
@@ -94,11 +96,11 @@
     "credits": {
       "kicker": "Vorausbezahlte Nutzung",
       "title": "Guthaben: {credits} AI-Credits",
-      "description": "Extras mit variablen Kosten werden immer im Voraus bezahlt. Keine unerwarteten automatischen Abbuchungen.",
+      "description": "Jedes Konto erhält 1.000 E-Mails. Danach fügt 1 AI-Credit automatisch 75 E-Mails hinzu, einschließlich Reservierungsbestätigungen, Bewertungen und Kampagnen.",
       "success": "Zahlung bestätigt. Die Credits werden nach Abschluss der Stripe-Verarbeitung verfügbar.",
       "buy": "Mit Stripe kaufen",
       "taxNote": "Preise ohne MwSt. Stripe berechnet die anwendbare Steuer beim Checkout.",
-      "costs": { "visibility": "GEO-Audit", "website": "Website-Inhalte", "draft": "Revenue-AI-Entwurf", "email": "gesendete E-Mail" }
+      "costs": { "visibility": "GEO-Audit", "website": "Website-Inhalte", "draft": "Revenue-AI-Entwurf", "email": "E-Mails pro Credit" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

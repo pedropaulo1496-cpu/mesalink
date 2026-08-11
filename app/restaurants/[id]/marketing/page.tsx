@@ -783,6 +783,7 @@ const riskRevenue =
                 <RecoveryAutomationCard
                   inactiveCustomers={inactiveCustomers.length}
                   restaurantId={id}
+                  emailsRemaining={subscription?.emailBalance || 0}
                 />
 
                 <AutomationCard
@@ -791,7 +792,7 @@ const riskRevenue =
                   activeLabel={t("main.badges.active")}
                 />
 
-                <BirthdayAutomationCard birthdayCustomers={birthdayCustomers.length} restaurantId={id} />
+                <BirthdayAutomationCard birthdayCustomers={birthdayCustomers.length} restaurantId={id} emailsRemaining={subscription?.emailBalance || 0} />
 
                 <Link
                   href={`/restaurants/${id}/marketing/campaigns/new`}

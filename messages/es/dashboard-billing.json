@@ -23,6 +23,7 @@
         "value": "0€"
       },
       "aiCredits": { "label": "Créditos AI" },
+      "emailBalance": { "label": "Emails disponibles" },
       "yearlyPayment": {
         "label": "Pago anual",
         "value": "1 mes gratis"
@@ -69,7 +70,8 @@
           "Reseñas de Google",
           "Mapa de mesas",
           "Informes esenciales",
-          "Sin comisiones por reserva"
+          "Sin comisiones por reserva",
+          "1.000 emails incluidos"
         ]
       },
       "growth": {
@@ -94,11 +96,11 @@
     "credits": {
       "kicker": "Consumo prepago",
       "title": "Saldo: {credits} créditos AI",
-      "description": "Los extras con coste variable siempre se pagan por adelantado. No hay cargos automáticos inesperados.",
+      "description": "Cada cuenta recibe 1.000 emails. Después, 1 crédito AI añade automáticamente 75 emails, incluidas confirmaciones de reserva, reseñas y campañas.",
       "success": "Pago confirmado. Los créditos estarán disponibles cuando Stripe termine el procesamiento.",
       "buy": "Comprar con Stripe",
       "taxNote": "Precios sin IVA. Stripe calcula el impuesto aplicable en el checkout.",
-      "costs": { "visibility": "auditoría GEO", "website": "contenido web", "draft": "borrador Revenue AI", "email": "email enviado" }
+      "costs": { "visibility": "auditoría GEO", "website": "contenido web", "draft": "borrador Revenue AI", "email": "emails por crédito" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

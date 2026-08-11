@@ -9,6 +9,8 @@ import { Resend } from "resend";
 import { cookies } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
 import { isLocale, defaultLocale } from "@/i18n/locales";
+import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
+import { requireAcceptedEmail } from "@/lib/email-delivery";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -124,7 +126,7 @@ if (status === "FINISHED" && reservation.customerId) {
     if (
   upgradedVipTier &&
   currentCustomer.email &&
-  reservation.restaurant &&
+  reservation.restaurant?.userId &&
   process.env.RESEND_API_KEY
 ) {
 
@@ -150,7 +152,19 @@ if (status === "FINISHED" && reservation.customerId) {
     namespace: "dashboardOverview.day.vipEmail",
   });
 
-  await resend.emails.send({
+  const emailReference = `email:vip_upgrade:${reservation.id}:${vipTier}`;
+  let emailReserved = false;
+  try {
+    const allowance = await reserveEmailSend({
+      userId: reservation.restaurant.userId,
+      restaurantId: reservation.restaurant.id,
+      category: "VIP_UPGRADE",
+      reference: emailReference,
+    });
+    if (!allowance.canSend) throw new Error("VIP email already processed");
+    emailReserved = true;
+
+  const delivery = await resend.emails.send({
     from: "MesaLink <noreply@mesalink.pt>",
     to: currentCustomer.email,
     subject: emailT("subject", { customerName: currentCustomer.name, tier: vipTier }),
@@ -199,6 +213,8 @@ if (status === "FINISHED" && reservation.customerId) {
       </div>
     `,
   });
+  requireAcceptedEmail(delivery);
+  await completeEmailSend(emailReference);
 
 await prisma.marketingAction.create({
   data: {
@@ -210,6 +226,10 @@ await prisma.marketingAction.create({
     estimatedRevenue: 0,
   },
 });
+  } catch (error) {
+    if (emailReserved) await refundEmailSend(emailReference);
+    console.error("Erro ao enviar email VIP:", error);
+  }
 }
   }
 }
@@ -217,14 +237,20 @@ await prisma.marketingAction.create({
   if (
     status === "FINISHED" &&
     reservation.email &&
-    reservation.restaurant
+    reservation.restaurant?.userId
   ) {
-    await sendReviewEmail({
-      to: reservation.email,
-      customerName: reservation.customerName,
-      restaurantName: reservation.restaurant.name,
-      reservationId: reservation.id,
-    });
+    try {
+      await sendReviewEmail({
+        to: reservation.email,
+        customerName: reservation.customerName,
+        restaurantName: reservation.restaurant.name,
+        restaurantId: reservation.restaurant.id,
+        userId: reservation.restaurant.userId,
+        reservationId: reservation.id,
+      });
+    } catch (error) {
+      console.error("Erro ao enviar pedido de review:", error);
+    }
   }
 
   redirect(`/restaurants/${restaurantId}/day?day=${day}`);

@@ -2,7 +2,9 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { authOptions } from "@/lib/auth";
-import { AI_CREDIT_COSTS, hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
+import { hasGrowthAccess } from "@/lib/ai-billing";
+import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
+import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { prisma } from "@/lib/prisma";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 
@@ -51,7 +53,7 @@ async function runBirthdays(restaurantId: string | null) {
     let emailsSent = 0;
     let created = 0;
     let skipped = 0;
-    let insufficientCredits = false;
+    let insufficientAllowance = false;
 
     for (const customer of customers) {
       if (!customer.birthDate || !customer.email || new Date(customer.birthDate).getMonth() !== currentMonth) continue;
@@ -89,18 +91,18 @@ async function runBirthdays(restaurantId: string | null) {
         },
       });
       created += 1;
-      const creditReference = `marketing_birthday:${action.id}`;
-      let creditCharged = false;
+      const emailReference = `email:marketing_birthday:${action.id}`;
+      let emailReserved = false;
 
       try {
-        await spendAiCredits({
+        const allowance = await reserveEmailSend({
           userId: owner.id,
-          amount: AI_CREDIT_COSTS.REVENUE_EMAIL,
-          feature: "REVENUE_EMAIL",
-          description: `Email de aniversário para ${customer.name}`,
-          reference: creditReference,
+          restaurantId: customer.restaurantId,
+          category: "BIRTHDAY",
+          reference: emailReference,
         });
-        creditCharged = true;
+        if (!allowance.canSend) throw new Error("Email already reserved");
+        emailReserved = true;
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
         const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
         const delivery = await resend.emails.send({
@@ -109,22 +111,18 @@ async function runBirthdays(restaurantId: string | null) {
           subject: `${cleanSubject(customer.name)}, feliz aniversário`,
           html: `<div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #E1D0B8;border-radius:28px;padding:32px"><p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#9B6F3B;font-weight:700">${escapeHtml(restaurant.name)}</p><h1 style="font-size:30px;line-height:1.1;color:#16120E">Feliz aniversário, ${escapeHtml(customer.name)}.</h1><p style="font-size:15px;line-height:1.6;color:#6B6258">Toda a equipa deseja-lhe um excelente dia. Esperamos recebê-lo novamente muito em breve.</p>${restaurant.birthdayOffer ? `<div style="margin-top:16px;padding:16px;border-radius:16px;background:#FFF9F0;border:1px solid #E1D0B8"><strong>Oferta especial</strong><p>${escapeHtml(restaurant.birthdayOffer)}</p></div>` : ""}<a href="${clickUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700">Reservar mesa</a><p style="margin-top:28px;font-size:12px;color:#8A7C6D">Recebeu este email porque aceitou receber comunicações deste restaurante.</p>${marketingTrackingPixel(openUrl)}</div></div>`,
         });
-        await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "SENT", sentAt: new Date(), deliveryId: delivery.data?.id || null, failureReason: null } });
+        const deliveryId = requireAcceptedEmail(delivery);
+        await completeEmailSend(emailReference);
+        await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "SENT", sentAt: new Date(), deliveryId, failureReason: null } });
         emailsSent += 1;
       } catch (error) {
-        if (creditCharged) await refundAiCredits({
-          userId: owner.id,
-          amount: AI_CREDIT_COSTS.REVENUE_EMAIL,
-          feature: "REVENUE_EMAIL",
-          description: `Crédito devolvido: email de aniversário para ${customer.name} não enviado`,
-          reference: creditReference,
-        });
+        if (emailReserved) await refundEmailSend(emailReference);
         await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "FAILED", failureReason: error instanceof Error ? error.message.slice(0, 500) : "Email delivery failed" } });
-        if (error instanceof InsufficientAiCreditsError) insufficientCredits = true;
+        if (error instanceof InsufficientEmailAllowanceError) insufficientAllowance = true;
       }
     }
 
-    return NextResponse.json({ success: !insufficientCredits, customersFound: customers.length, created, emailsSent, skipped, ...(insufficientCredits ? { error: "Saldo insuficiente. Cada email de aniversário custa 1 crédito.", code: "INSUFFICIENT_AI_CREDITS" } : {}) }, { status: insufficientCredits && emailsSent === 0 ? 402 : 200 });
+    return NextResponse.json({ success: !insufficientAllowance, customersFound: customers.length, created, emailsSent, skipped, ...(insufficientAllowance ? { error: "Os emails incluídos terminaram e não existem créditos AI. Cada crédito disponibiliza mais 75 emails.", code: "INSUFFICIENT_EMAIL_ALLOWANCE" } : {}) }, { status: insufficientAllowance && emailsSent === 0 ? 402 : 200 });
   } catch (error) {
     console.error("Birthday automation failed", error);
     return NextResponse.json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
