@@ -780,7 +780,10 @@ const riskRevenue =
                   activeLabel={t("main.badges.active")}
                 />
 
-                <RecoveryAutomationCard inactiveCustomers={inactiveCustomers.length} />
+                <RecoveryAutomationCard
+                  inactiveCustomers={inactiveCustomers.length}
+                  restaurantId={id}
+                />
 
                 <AutomationCard
                   title={t("main.automations.vipClub.title")}

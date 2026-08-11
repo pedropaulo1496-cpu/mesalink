@@ -212,10 +212,12 @@
     },
     "aiBuilder": {
       "title": "IA Website Builder",
-      "description": "Función en desarrollo.",
+      "description": "Describe el restaurante y deja que la IA prepare los textos principales del sitio.",
       "cardTitle": "IA Website Builder",
-      "cardText": "Creación automática de contenido para sitios web.",
-      "comingSoonBadge": "Próximamente"
+      "cardText": "Ej.: restaurante italiano familiar en Lisboa con ambiente acogedor y pasta fresca.",
+      "comingSoonBadge": "Activo",
+      "generateButton": "Crear textos con IA",
+      "generatingButton": "Creando el sitio web…"
     },
     "firstImpression": {
       "title": "Primera impresión",

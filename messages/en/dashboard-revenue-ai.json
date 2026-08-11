@@ -1,0 +1,88 @@
+{
+  "eyebrow": "Revenue AI",
+  "live": "Scanning",
+  "title": "Recover revenue before it disappears.",
+  "subtitle": "MesaLink finds cancellations, no-shows, inactive customers and contacts without a booking — then turns every signal into a recovery action.",
+  "rulesCta": "Rules and offers",
+  "hero": {
+    "recoveredLabel": "Revenue recovered this month",
+    "recoveredHint": "{count} conversions attributed to MesaLink actions",
+    "atRisk": "Revenue at risk",
+    "pipeline": "In recovery",
+    "opportunities": "Opportunities",
+    "activeFollowups": "Active follow-ups"
+  },
+  "opportunities": {
+    "eyebrow": "Opportunity inbox",
+    "title": "Sales you can still recover",
+    "updated": "Calculated from real restaurant data",
+    "items": "{count} cases",
+    "cancelled": {
+      "title": "Cancelled reservations",
+      "description": "Recent reservations that can be rebooked before the guest chooses another restaurant.",
+      "cta": "View reservations"
+    },
+    "inactive": {
+      "title": "Inactive customers",
+      "description": "Customers with consent and email who have not returned in more than 60 days.",
+      "cta": "View customers"
+    },
+    "leads": {
+      "title": "Contacts without a booking",
+      "description": "Contacts created more than 48 hours ago who have not booked or visited yet.",
+      "cta": "Create follow-up"
+    },
+    "noShows": {
+      "title": "No-shows to recover",
+      "description": "Guests who missed a booking and can be offered a second chance to reschedule.",
+      "cta": "Open customers"
+    }
+  },
+  "automation": {
+    "eyebrow": "Active agent",
+    "title": "Automated email recovery",
+    "description": "MesaLink identifies eligible customers, avoids duplicate outreach and sends a return invitation using the restaurant's configured offer."
+  },
+  "channels": {
+    "eyebrow": "Channels",
+    "title": "Everything connected in one place",
+    "email": "MesaLink email",
+    "website": "Website leads",
+    "whatsapp": "WhatsApp",
+    "calls": "Missed calls",
+    "ready": "Active",
+    "connected": "Connected",
+    "configure": "Configure",
+    "next": "Next integration"
+  },
+  "activity": {
+    "eyebrow": "Agent activity",
+    "title": "Every attempt, every result",
+    "viewAll": "View Growth Engine",
+    "unknownCustomer": "Customer",
+    "empty": "There are no recovery attempts yet. Run the first automation above.",
+    "types": {
+      "recovery": "Inactive customer recovery",
+      "birthday": "Birthday message",
+      "campaign": "Manual campaign",
+      "followup": "Follow-up"
+    },
+    "status": {
+      "sent": "Sent",
+      "opened": "Opened",
+      "clicked": "Clicked",
+      "booked": "Booked",
+      "converted": "Recovered"
+    }
+  },
+  "upsell": {
+    "eyebrow": "MesaLink Growth",
+    "title": "Find lost sales. Recover them automatically.",
+    "description": "Activate Revenue AI to turn scattered signals into follow-ups and measure the only outcome that matters: recovered revenue.",
+    "feature1": "Cancellations and no-shows",
+    "feature2": "Inactive customers and leads",
+    "feature3": "Automated follow-ups",
+    "feature4": "Attributed recovered revenue",
+    "cta": "Activate MesaLink Growth"
+  }
+}

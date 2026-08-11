@@ -14,7 +14,10 @@ import {
   QrIcon,
   GridIcon,
   MegaphoneIcon,
+  RevenueAiIcon,
+  PartnerNetworkIcon,
   AiVisibilityIcon,
+  GlobeIcon,
   SettingsIcon,
   MoreIcon,
 } from "@/components/icons/nav-icons";
@@ -53,9 +56,24 @@ export default function BottomNav({ id }: { id: string }) {
       label: t("moreSheet.tables"),
     },
     {
+      href: `/restaurants/${id}/revenue-ai`,
+      icon: RevenueAiIcon,
+      label: t("moreSheet.revenueAi"),
+    },
+    {
+      href: `/restaurants/${id}/partner-network`,
+      icon: PartnerNetworkIcon,
+      label: t("moreSheet.partnerNetwork"),
+    },
+    {
       href: `/restaurants/${id}/marketing`,
       icon: MegaphoneIcon,
       label: t("moreSheet.marketing"),
+    },
+    {
+      href: `/restaurants/${id}/website`,
+      icon: GlobeIcon,
+      label: t("moreSheet.website"),
     },
     {
       href: `/restaurants/${id}/ai-visibility`,

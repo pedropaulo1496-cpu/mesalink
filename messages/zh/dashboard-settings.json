@@ -212,10 +212,12 @@
     },
     "aiBuilder": {
       "title": "AI 网站生成器",
-      "description": "功能开发中。",
+      "description": "描述餐厅，让 AI 准备网站的核心文案。",
       "cardTitle": "AI 网站生成器",
-      "cardText": "自动生成网站内容。",
-      "comingSoonBadge": "即将推出"
+      "cardText": "例如：位于里斯本的家庭式意大利餐厅，氛围温馨，提供新鲜意面。",
+      "comingSoonBadge": "已启用",
+      "generateButton": "使用 AI 创建文案",
+      "generatingButton": "正在创建网站…"
     },
     "firstImpression": {
       "title": "第一印象",

@@ -36,6 +36,10 @@ export default async function PrivacyPage() {
         {t("sections.dataSharing.text")}
       </LegalSection>
 
+      <LegalSection title={t("sections.partnerNetwork.title")}>
+        {t("sections.partnerNetwork.text")}
+      </LegalSection>
+
       <LegalSection title={t("sections.rights.title")}>
         {t("sections.rights.text")}
         <br />

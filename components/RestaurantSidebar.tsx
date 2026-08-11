@@ -13,6 +13,8 @@ import {
   GlobeIcon,
   QrIcon,
   MegaphoneIcon,
+  RevenueAiIcon,
+  PartnerNetworkIcon,
   AiVisibilityIcon,
   MenuIcon,
   BillingIcon,
@@ -110,6 +112,18 @@ export default function RestaurantSidebar({
     {
       title: t("sections.growth"),
       items: [
+        {
+          key: "revenueAi",
+          name: t("items.revenueAi"),
+          href: `/restaurants/${id}/revenue-ai`,
+          icon: RevenueAiIcon,
+        },
+        {
+          key: "partnerNetwork",
+          name: t("items.partnerNetwork"),
+          href: `/restaurants/${id}/partner-network`,
+          icon: PartnerNetworkIcon,
+        },
         {
           key: "customers",
           name: t("items.customers"),

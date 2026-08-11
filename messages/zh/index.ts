@@ -4,6 +4,7 @@ import dashboardBilling from "./dashboard-billing.json";
 import dashboardCrm from "./dashboard-crm.json";
 import dashboardMarketing from "./dashboard-marketing.json";
 import dashboardAiVisibility from "../en/dashboard-ai-visibility.json";
+import dashboardRevenueAi from "../en/dashboard-revenue-ai.json";
 import dashboardMenu from "./dashboard-menu.json";
 import dashboardOperations from "./dashboard-operations.json";
 import dashboardOverview from "./dashboard-overview.json";
@@ -25,6 +26,7 @@ export default {
   dashboardCrm,
   dashboardMarketing,
   dashboardAiVisibility,
+  dashboardRevenueAi,
   dashboardMenu,
   dashboardOperations,
   dashboardOverview,

@@ -126,6 +126,10 @@
         "title": "3. Payments",
         "text": "Paid plans are billed monthly or annually, as selected. Prices shown do not include VAT unless stated otherwise."
       },
+      "partnerNetwork": {
+        "title": "3-A. Partner Network and commissions",
+        "text": "In the Partner Network, professional partners may submit group requests without the final guest's name, phone number or email. Partners agree not to enter identifiers in requests and must be authorised to represent the group. Restaurants freely choose whether to accept. After the service, the restaurant pays the agreed commission to MesaLink; 15% of the gross commission belongs to MesaLink and 85% is transferred to the partner through a verified payments account. Cancellations, no-shows, refunds, invoicing and taxes follow the applicable agreement and law."
+      },
       "cancellation": {
         "title": "4. Cancellation",
         "text": "The customer may cancel their subscription. Access to the service may remain available until the end of the period already paid for."
@@ -161,6 +165,10 @@
       "dataSharing": {
         "title": "4. Data sharing",
         "text": "We do not sell personal data. We may use third-party services necessary for hosting, payments, authentication, email or technical support."
+      },
+      "partnerNetwork": {
+        "title": "4-A. Partner Network data",
+        "text": "Group requests and benefit cards use a code and minimal data such as date, party size, area, budget and structured preferences. MesaLink does not request the final guest's name, phone number or email in this flow. Public cards contain no identifiers and are excluded from indexing. Because the partner may keep additional information that links the code to a guest, this data is treated as pseudonymised and protected under the GDPR. Partners' professional, tax and payment data may be processed by Stripe for verification, charges and transfers."
       },
       "rights": {
         "title": "5. Rights",

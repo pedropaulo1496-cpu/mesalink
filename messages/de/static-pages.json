@@ -126,6 +126,10 @@
         "title": "3. Zahlungen",
         "text": "Kostenpflichtige Pläne werden je nach Auswahl monatlich oder jährlich abgerechnet. Die angezeigten Preise verstehen sich, sofern nicht anders angegeben, zzgl. MwSt."
       },
+      "partnerNetwork": {
+        "title": "3-A. Partner Network und Provisionen",
+        "text": "Im Partner Network können professionelle Partner Gruppenanfragen ohne Namen, Telefonnummer oder E-Mail des Endkunden übermitteln. Partner dürfen keine Identifikatoren eingeben und müssen zur Vertretung der Gruppe berechtigt sein. Restaurants entscheiden frei über die Annahme. Nach der Leistung zahlt das Restaurant die vereinbarte Provision an MesaLink; 15 % der Bruttoprovision verbleiben bei MesaLink und 85 % werden über ein verifiziertes Zahlungskonto an den Partner übertragen. Stornierungen, Erstattungen, Rechnungen und Steuern richten sich nach Vereinbarung und Gesetz."
+      },
       "cancellation": {
         "title": "4. Kündigung",
         "text": "Der Kunde kann sein Abonnement kündigen. Der Zugang zum Dienst kann bis zum Ende des bereits bezahlten Zeitraums bestehen bleiben."
@@ -161,6 +165,10 @@
       "dataSharing": {
         "title": "4. Weitergabe von Daten",
         "text": "Wir verkaufen keine personenbezogenen Daten. Wir können Drittanbieterdienste nutzen, die für Hosting, Zahlungen, Authentifizierung, E-Mail oder technischen Support erforderlich sind."
+      },
+      "partnerNetwork": {
+        "title": "4-A. Daten des Partner Network",
+        "text": "Gruppenanfragen und Vorteilskarten verwenden einen Code und minimale Angaben wie Datum, Gruppengröße, Gebiet, Budget und strukturierte Wünsche. MesaLink fragt in diesem Ablauf nicht nach Name, Telefonnummer oder E-Mail des Endkunden. Öffentliche Karten enthalten keine Identifikatoren und werden von der Indexierung ausgeschlossen. Da der Partner zusätzliche Informationen behalten kann, die den Code einer Person zuordnen, werden die Daten als pseudonymisiert und gemäß DSGVO geschützt behandelt. Stripe kann Geschäfts-, Steuer- und Zahlungsdaten zur Verifizierung und Auszahlung verarbeiten."
       },
       "rights": {
         "title": "5. Rechte",

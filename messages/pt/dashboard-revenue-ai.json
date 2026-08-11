@@ -1,0 +1,88 @@
+{
+  "eyebrow": "Revenue AI",
+  "live": "A analisar",
+  "title": "Recupera receita antes de a perder.",
+  "subtitle": "O MesaLink encontra cancelamentos, no-shows, clientes inativos e contactos sem reserva — e transforma cada sinal numa ação de recuperação.",
+  "rulesCta": "Regras e ofertas",
+  "hero": {
+    "recoveredLabel": "Receita recuperada este mês",
+    "recoveredHint": "{count} conversões atribuídas a ações do MesaLink",
+    "atRisk": "Receita em risco",
+    "pipeline": "Em recuperação",
+    "opportunities": "Oportunidades",
+    "activeFollowups": "Follow-ups ativos"
+  },
+  "opportunities": {
+    "eyebrow": "Opportunity inbox",
+    "title": "Vendas que ainda podes recuperar",
+    "updated": "Calculado com dados reais do restaurante",
+    "items": "{count} casos",
+    "cancelled": {
+      "title": "Reservas canceladas",
+      "description": "Reservas recentes que podem ser remarcadas antes de o cliente escolher outro restaurante.",
+      "cta": "Ver reservas"
+    },
+    "inactive": {
+      "title": "Clientes desaparecidos",
+      "description": "Clientes com consentimento e email que não regressam há mais de 60 dias.",
+      "cta": "Ver clientes"
+    },
+    "leads": {
+      "title": "Contactos sem reserva",
+      "description": "Contactos criados há mais de 48 horas que ainda não fizeram uma reserva ou visita.",
+      "cta": "Criar follow-up"
+    },
+    "noShows": {
+      "title": "No-shows por recuperar",
+      "description": "Clientes que faltaram e podem receber uma segunda oportunidade para remarcar.",
+      "cta": "Abrir clientes"
+    }
+  },
+  "automation": {
+    "eyebrow": "Agente ativo",
+    "title": "Recuperação automática por email",
+    "description": "O MesaLink identifica clientes elegíveis, evita contactos duplicados e envia o convite de regresso com a oferta definida pelo restaurante."
+  },
+  "channels": {
+    "eyebrow": "Canais",
+    "title": "Tudo ligado num só lugar",
+    "email": "Email MesaLink",
+    "website": "Leads do website",
+    "whatsapp": "WhatsApp",
+    "calls": "Chamadas não atendidas",
+    "ready": "Ativo",
+    "connected": "Ligado",
+    "configure": "Configurar",
+    "next": "Próxima integração"
+  },
+  "activity": {
+    "eyebrow": "Atividade do agente",
+    "title": "Cada tentativa, cada resultado",
+    "viewAll": "Ver Growth Engine",
+    "unknownCustomer": "Cliente",
+    "empty": "Ainda não existem tentativas de recuperação. Executa a primeira automação acima.",
+    "types": {
+      "recovery": "Recuperação de cliente inativo",
+      "birthday": "Mensagem de aniversário",
+      "campaign": "Campanha manual",
+      "followup": "Follow-up"
+    },
+    "status": {
+      "sent": "Enviado",
+      "opened": "Aberto",
+      "clicked": "Clicado",
+      "booked": "Reservado",
+      "converted": "Recuperado"
+    }
+  },
+  "upsell": {
+    "eyebrow": "MesaLink Growth",
+    "title": "Encontra vendas perdidas. Recupera-as automaticamente.",
+    "description": "Ativa o Revenue AI para transformar sinais dispersos em follow-ups e medir apenas o que interessa: receita recuperada.",
+    "feature1": "Cancelamentos e no-shows",
+    "feature2": "Clientes inativos e leads",
+    "feature3": "Follow-ups automáticos",
+    "feature4": "Receita recuperada atribuída",
+    "cta": "Ativar MesaLink Growth"
+  }
+}

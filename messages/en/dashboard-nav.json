@@ -11,6 +11,8 @@
     "reservations": "Reservations",
     "tables": "Floor & Tables",
     "customers": "Customers",
+    "revenueAi": "Revenue AI",
+    "partnerNetwork": "Partner Network",
     "marketing": "Marketing",
     "website": "Website",
     "aiVisibility": "AI Visibility",
@@ -30,7 +32,10 @@
     "moreSheet": {
       "title": "More options",
       "tables": "Floor",
+      "revenueAi": "Revenue AI",
+      "partnerNetwork": "Partners",
       "marketing": "Mkt.",
+      "website": "Website",
       "aiVisibility": "AI Visibility",
       "settings": "Set.",
       "language": "Language"

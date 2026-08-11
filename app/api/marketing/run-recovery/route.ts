@@ -1,24 +1,61 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function POST() {
-  return runRecovery();
+export async function POST(request: Request) {
+  const body = await request.json().catch(() => null);
+  return runRecovery(body?.restaurantId);
 }
 
-export async function GET() {
-  return runRecovery();
+export async function GET(request: Request) {
+  const restaurantId = new URL(request.url).searchParams.get("restaurantId");
+  return runRecovery(restaurantId);
 }
 
-async function runRecovery() {
+async function runRecovery(restaurantId: unknown) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json({ success: false, error: "Não autenticado." }, { status: 401 });
+    }
+
+    if (typeof restaurantId !== "string" || !restaurantId) {
+      return NextResponse.json(
+        { success: false, error: "Restaurante em falta." },
+        { status: 400 },
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+
+    const restaurant = user
+      ? await prisma.restaurant.findFirst({
+          where: { id: restaurantId, userId: user.id },
+          select: { id: true },
+        })
+      : null;
+
+    if (!restaurant) {
+      return NextResponse.json(
+        { success: false, error: "Restaurante não encontrado." },
+        { status: 404 },
+      );
+    }
+
     const sixtyDaysAgo = new Date();
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
     const customers = await prisma.customer.findMany({
       where: {
+        restaurantId,
         marketingOptIn: true,
         email: {
           not: null,

@@ -212,10 +212,12 @@
     },
     "aiBuilder": {
       "title": "AI Website Builder",
-      "description": "Feature under development.",
+      "description": "Describe the restaurant and let AI prepare the website's core copy.",
       "cardTitle": "AI Website Builder",
-      "cardText": "Automatic content creation for websites.",
-      "comingSoonBadge": "Coming Soon"
+      "cardText": "E.g. family-run Italian restaurant in Lisbon with a warm atmosphere and fresh pasta.",
+      "comingSoonBadge": "Active",
+      "generateButton": "Create copy with AI",
+      "generatingButton": "Creating the website…"
     },
     "firstImpression": {
       "title": "First impression",

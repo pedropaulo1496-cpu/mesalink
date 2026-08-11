@@ -11,6 +11,8 @@
     "reservations": "预订",
     "tables": "大厅与餐桌",
     "customers": "客户",
+    "revenueAi": "Revenue AI",
+    "partnerNetwork": "合作伙伴网络",
     "marketing": "营销",
     "website": "网站",
     "aiVisibility": "AI 可见度",
@@ -30,7 +32,10 @@
     "moreSheet": {
       "title": "更多选项",
       "tables": "大厅",
+      "revenueAi": "Revenue AI",
+      "partnerNetwork": "合作伙伴",
       "marketing": "营销",
+      "website": "网站",
       "aiVisibility": "AI 可见度",
       "settings": "设置",
       "language": "语言"

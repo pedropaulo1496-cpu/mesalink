@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/software-para-restaurantes", "/sistema-reservas-restaurantes", "/qr-ordering-restaurantes", "/website-para-restaurantes", "/marketing-para-restaurantes", "/pricing", "/contact", "/s/", "/r/"],
+      allow: ["/", "/software-para-restaurantes", "/sistema-reservas-restaurantes", "/qr-ordering-restaurantes", "/website-para-restaurantes", "/marketing-para-restaurantes", "/partners", "/pricing", "/contact", "/s/", "/r/"],
       disallow: [
         "/api/",
         "/dashboard",
@@ -14,6 +14,9 @@ export default function robots(): MetadataRoute.Robots {
         "/billing",
         "/onboarding",
         "/trial-expired",
+        "/partners/app",
+        "/partners/register",
+        "/partners/cards/",
       ],
     },
     sitemap: `${baseUrl}/sitemap.xml`,

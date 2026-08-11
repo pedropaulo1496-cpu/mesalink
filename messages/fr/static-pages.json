@@ -126,6 +126,10 @@
         "title": "3. Paiements",
         "text": "Les plans payants sont facturés mensuellement ou annuellement, selon l'option choisie. Les prix affichés n'incluent pas la TVA, sauf indication contraire."
       },
+      "partnerNetwork": {
+        "title": "3-A. Partner Network et commissions",
+        "text": "Dans la Partner Network, les partenaires professionnels peuvent envoyer des demandes de groupe sans le nom, le téléphone ou l’e-mail du client final. Le partenaire s’engage à ne pas introduire d’identifiants et à être autorisé à représenter le groupe. Le restaurant accepte ou refuse librement. Après le service, le restaurant paie la commission convenue à MesaLink ; 15 % de la commission brute revient à MesaLink et 85 % est transféré au partenaire via un compte de paiement vérifié. Les annulations, remboursements, factures et taxes suivent l’accord applicable et la loi."
+      },
       "cancellation": {
         "title": "4. Annulation",
         "text": "Le client peut annuler son abonnement. L'accès au service peut rester actif jusqu'à la fin de la période déjà payée."
@@ -161,6 +165,10 @@
       "dataSharing": {
         "title": "4. Partage des données",
         "text": "Nous ne vendons pas de données personnelles. Nous pouvons faire appel à des services tiers nécessaires à l'hébergement, aux paiements, à l'authentification, à l'email ou au support technique."
+      },
+      "partnerNetwork": {
+        "title": "4-A. Données de la Partner Network",
+        "text": "Les demandes et cartes d’avantages utilisent un code et des données minimales : date, nombre de personnes, zone, budget et préférences structurées. MesaLink ne demande pas le nom, le téléphone ou l’e-mail du client final dans ce flux. Les cartes publiques ne contiennent aucun identifiant et sont exclues de l’indexation. Comme le partenaire peut conserver des informations permettant de relier le code au client, ces données sont traitées comme pseudonymisées et protégées par le RGPD. Stripe peut traiter les données professionnelles, fiscales et de paiement pour la vérification et les transferts."
       },
       "rights": {
         "title": "5. Droits",

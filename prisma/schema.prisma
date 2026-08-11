@@ -20,6 +20,7 @@ model User {
   subscription        Subscription?
   passwordResetTokens PasswordResetToken[]
   printBridgeDevices  PrintBridgeDevice[]
+  referralPartner     ReferralPartner?
 }
 
 model Subscription {
@@ -105,6 +106,10 @@ model Restaurant {
 
   plan String @default("FREE")
 
+  referralNetworkEnabled          Boolean @default(false)
+  referralDefaultCommissionType   String  @default("PER_PERSON")
+  referralDefaultCommissionAmount Decimal @default(5) @db.Decimal(10, 2)
+
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
 
@@ -176,8 +181,13 @@ model Restaurant {
 
   posTableSessions POSTableSession[]
 
-  fiscalIntegration        FiscalIntegration?
-  fiscalDocuments          FiscalDocument[]
+  fiscalIntegration FiscalIntegration?
+  fiscalDocuments   FiscalDocument[]
+
+  referralAgreements       ReferralAgreement[]
+  referralOffers           ReferralOffer[]
+  acceptedReferralGroups   ReferralGroup[]         @relation("AcceptedReferralRestaurant")
+  referralBenefits         ReferralBenefit[]
   posCashRegisters         POSCashRegister[]
   posDiscounts             POSDiscount[]
   posReceipts              POSReceipt[]
@@ -189,7 +199,7 @@ model Restaurant {
   printers                 RestaurantPrinter[]
   printBridgeToken         String?                 @unique
   printBridgeRestaurants   PrintBridgeRestaurant[]
-  customers Customer[]
+  customers                Customer[]
 
   @@index([userId])
 }
@@ -271,7 +281,7 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  marketingOptIn    Boolean           @default(false)
+  marketingOptIn    Boolean   @default(false)
   marketingJoinedAt DateTime?
 
   birthDate DateTime?
@@ -283,7 +293,7 @@ model Customer {
   totalVisits Int @default(0)
 
   vipTier   String?
-  riskScore Int @default(0)
+  riskScore Int     @default(0)
 
   notes String?
   tags  String[] @default([])
@@ -293,11 +303,10 @@ model Customer {
   marketingActions MarketingAction[]
   posTableSessions POSTableSession[]
 
+  @@unique([restaurantId, email])
   @@index([restaurantId])
   @@index([email])
   @@index([phone])
-
-  @@unique([restaurantId, email])
 }
 
 model Reservation {
@@ -329,6 +338,7 @@ model Reservation {
 
   createdAt        DateTime          @default(now())
   posTableSessions POSTableSession[]
+  referralGroup    ReferralGroup?
 
   @@unique([restaurantId, customerId, date], name: "Reservation_dedupe_key")
   @@index([restaurantId])
@@ -547,6 +557,203 @@ model MarketingAction {
   @@index([restaurantId])
   @@index([customerId])
   @@index([restaurantId, status, type])
+}
+
+model ReferralPartner {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  businessName String
+  partnerType  String  @default("HOTEL")
+  contactName  String?
+  email        String  @unique
+  phone        String?
+  city         String?
+
+  status                   String  @default("PENDING")
+  stripeAccountId          String? @unique
+  stripeOnboardingComplete Boolean @default(false)
+
+  termsAcceptedAt   DateTime?
+  privacyAcceptedAt DateTime?
+  termsVersion      String?
+
+  defaultCommissionType   String  @default("PER_PERSON")
+  defaultCommissionAmount Decimal @default(5) @db.Decimal(10, 2)
+
+  agreements   ReferralAgreement[]
+  groups       ReferralGroup[]
+  payments     ReferralPayment[]
+  benefitCards ReferralBenefitCard[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([partnerType, city])
+}
+
+model ReferralAgreement {
+  id String @id @default(cuid())
+
+  partnerId    String
+  restaurantId String
+
+  partner    ReferralPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  restaurant Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  commissionType     String  @default("PER_PERSON")
+  commissionAmount   Decimal @db.Decimal(10, 2)
+  platformFeePercent Decimal @default(15) @db.Decimal(5, 2)
+  active             Boolean @default(true)
+
+  startsAt  DateTime  @default(now())
+  endsAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([partnerId, restaurantId])
+  @@index([restaurantId, active])
+}
+
+model ReferralGroup {
+  id         String @id @default(cuid())
+  publicCode String @unique
+
+  partnerId            String
+  acceptedRestaurantId String?
+  reservationId        String? @unique
+
+  partner            ReferralPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  acceptedRestaurant Restaurant?     @relation("AcceptedReferralRestaurant", fields: [acceptedRestaurantId], references: [id])
+  reservation        Reservation?    @relation(fields: [reservationId], references: [id])
+
+  desiredDate     DateTime
+  alternativeDate DateTime?
+  guests          Int
+  cuisineTypes    String[]  @default([])
+  city            String?
+  area            String?
+  budgetPerPerson Decimal?  @db.Decimal(10, 2)
+  notes           String?
+
+  commissionType     String  @default("PER_PERSON")
+  commissionAmount   Decimal @db.Decimal(10, 2)
+  platformFeePercent Decimal @default(15) @db.Decimal(5, 2)
+
+  status    String    @default("OPEN")
+  expiresAt DateTime?
+
+  offers  ReferralOffer[]
+  payment ReferralPayment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerId, status])
+  @@index([acceptedRestaurantId, status])
+  @@index([desiredDate, status])
+}
+
+model ReferralOffer {
+  id String @id @default(cuid())
+
+  groupId      String
+  restaurantId String
+
+  group      ReferralGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  restaurant Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  commissionType     String  @default("PER_PERSON")
+  commissionAmount   Decimal @db.Decimal(10, 2)
+  platformFeePercent Decimal @default(15) @db.Decimal(5, 2)
+
+  status      String    @default("PENDING")
+  message     String?
+  respondedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([groupId, restaurantId])
+  @@index([restaurantId, status])
+}
+
+model ReferralPayment {
+  id String @id @default(cuid())
+
+  groupId   String @unique
+  partnerId String
+
+  group   ReferralGroup   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  partner ReferralPartner @relation(fields: [partnerId], references: [id])
+
+  grossCommission Decimal @db.Decimal(10, 2)
+  platformFee     Decimal @db.Decimal(10, 2)
+  partnerNet      Decimal @db.Decimal(10, 2)
+  currency        String  @default("EUR")
+  status          String  @default("PENDING")
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+  stripeTransferId        String? @unique
+
+  paidAt        DateTime?
+  transferredAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([partnerId, status])
+}
+
+model ReferralBenefit {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  benefitType String   @default("PERCENT")
+  value       Decimal? @db.Decimal(10, 2)
+  minSpend    Decimal? @db.Decimal(10, 2)
+  terms       String?
+
+  active         Boolean   @default(true)
+  validFrom      DateTime  @default(now())
+  validUntil     DateTime?
+  maxRedemptions Int?
+  redemptions    Int       @default(0)
+
+  cards ReferralBenefitCard[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([restaurantId, active])
+  @@index([validFrom, validUntil])
+}
+
+model ReferralBenefitCard {
+  id         String @id @default(cuid())
+  publicCode String @unique
+
+  benefitId String
+  partnerId String
+  benefit   ReferralBenefit @relation(fields: [benefitId], references: [id], onDelete: Cascade)
+  partner   ReferralPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  guestCount Int       @default(1)
+  status     String    @default("ACTIVE")
+  expiresAt  DateTime?
+  redeemedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([partnerId, status])
+  @@index([benefitId, status])
+  @@index([expiresAt, status])
 }
 
 model POSTableSession {
@@ -1065,12 +1272,12 @@ model PrintBridgeDevice {
   restaurants PrintBridgeRestaurant[]
   mappings    PrintBridgePrinterMapping[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  windowsPrinters Json?
 
   @@index([userId])
   @@index([token])
-  windowsPrinters Json?
 }
 
 model PrintBridgeRestaurant {

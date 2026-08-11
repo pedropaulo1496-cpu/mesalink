@@ -11,6 +11,8 @@
     "reservations": "Reservas",
     "tables": "Sala & Mesas",
     "customers": "Clientes",
+    "revenueAi": "Revenue AI",
+    "partnerNetwork": "Rede de Parceiros",
     "marketing": "Marketing",
     "website": "Website",
     "aiVisibility": "Visibilidade IA",
@@ -30,7 +32,10 @@
     "moreSheet": {
       "title": "Mais opções",
       "tables": "Sala",
+      "revenueAi": "Revenue AI",
+      "partnerNetwork": "Parceiros",
       "marketing": "Mkt.",
+      "website": "Website",
       "aiVisibility": "Visibilidade IA",
       "settings": "Def.",
       "language": "Idioma"

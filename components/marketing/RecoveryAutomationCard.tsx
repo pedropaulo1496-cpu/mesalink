@@ -5,8 +5,10 @@ import { useTranslations } from "next-intl";
 
 export default function RecoveryAutomationCard({
   inactiveCustomers,
+  restaurantId,
 }: {
   inactiveCustomers: number;
+  restaurantId: string;
 }) {
   const t = useTranslations("dashboardMarketing.recoveryCard");
   const [loading, setLoading] = useState(false);
@@ -19,6 +21,8 @@ export default function RecoveryAutomationCard({
 
       const response = await fetch("/api/marketing/run-recovery", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ restaurantId }),
       });
 
       const data = await response.json();

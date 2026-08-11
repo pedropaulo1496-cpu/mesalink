@@ -126,6 +126,10 @@
         "title": "3. Pagamentos",
         "text": "Os planos pagos são cobrados mensalmente ou anualmente, conforme selecionado. Os preços apresentados não incluem IVA, salvo indicação em contrário."
       },
+      "partnerNetwork": {
+        "title": "3-A. Partner Network e comissões",
+        "text": "Na Partner Network, parceiros profissionais podem enviar pedidos de grupos sem o nome, telefone ou email do cliente final. O parceiro compromete-se a não introduzir identificadores nos pedidos e a ter legitimidade para representar o grupo. O restaurante escolhe livremente aceitar ou recusar. Após o serviço, o restaurante paga a comissão acordada ao MesaLink; 15% da comissão bruta pertence ao MesaLink e 85% é transferido para o parceiro através de uma conta de pagamentos verificada. Cancelamentos, no-shows, reembolsos, faturação e impostos seguem o acordo aplicável e a legislação em vigor."
+      },
       "cancellation": {
         "title": "4. Cancelamento",
         "text": "O cliente pode cancelar a subscrição. O acesso ao serviço poderá manter-se até ao final do período já pago."
@@ -161,6 +165,10 @@
       "dataSharing": {
         "title": "4. Partilha de dados",
         "text": "Não vendemos dados pessoais. Poderemos usar serviços terceiros necessários para alojamento, pagamentos, autenticação, email ou suporte técnico."
+      },
+      "partnerNetwork": {
+        "title": "4-A. Dados da Partner Network",
+        "text": "Os pedidos de grupo e cartões de benefícios usam um código e dados mínimos como data, número de pessoas, zona, orçamento e preferências estruturadas. O MesaLink não solicita o nome, telefone ou email do cliente final neste fluxo. Os cartões públicos não contêm identificadores e são excluídos da indexação. Como o parceiro pode conservar informação adicional que permita associar o código ao cliente, estes dados são tratados como pseudonimizados e protegidos ao abrigo do RGPD. Dados profissionais, fiscais e de pagamento dos parceiros podem ser tratados pelo Stripe para verificação, cobrança e transferências."
       },
       "rights": {
         "title": "5. Direitos",

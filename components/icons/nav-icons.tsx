@@ -125,6 +125,28 @@ export function AiVisibilityIcon() {
   );
 }
 
+export function RevenueAiIcon() {
+  return (
+    <IconSvg>
+      <path d="M12 3v18" />
+      <path d="M16.5 6.5c-.9-.9-2.3-1.5-4.1-1.5-2.5 0-4.4 1.3-4.4 3.3 0 5 8.5 1.8 8.5 6.8 0 2.2-1.9 3.9-4.8 3.9-1.8 0-3.5-.6-4.7-1.8" />
+      <path d="m18.5 4 .7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8Z" />
+    </IconSvg>
+  );
+}
+
+export function PartnerNetworkIcon() {
+  return (
+    <IconSvg>
+      <path d="m8.5 12 2 2 5-5" />
+      <path d="M7.5 6.5 4 8v6l4 2" />
+      <path d="m16.5 6.5 3.5 1.5v6l-4 2" />
+      <path d="M8.5 6.5 12 4l3.5 2.5" />
+      <path d="M8 16.5 12 20l4-3.5" />
+    </IconSvg>
+  );
+}
+
 export function PosIcon() {
   return (
     <IconSvg>

@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { FileUploadField } from "@/components/FileUploadField";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import BottomNav from "@/components/BottomNav";
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -194,8 +194,9 @@ export function WebsiteEditorClient({
   const [email, setEmail] = useState(restaurant.email || "");
   const [phone, setPhone] = useState(restaurant.phone || "");
   const [address, setAddress] = useState(restaurant.address || "");
-  const [aiBrief] = useState("");
+  const [aiBrief, setAiBrief] = useState("");
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [mobileMode, setMobileMode] = useState<"edit" | "preview">("edit");
 
   const publicUrl = `/s/${slug || restaurant.slug}`;
   const fullPublicUrl = `${slug || restaurant.slug}.mesalink.pt`;
@@ -247,6 +248,7 @@ export function WebsiteEditorClient({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          restaurantId: restaurant.id,
           name: restaurant.name,
           cuisine,
           address,
@@ -312,20 +314,20 @@ export function WebsiteEditorClient({
 
   function improveText() {
     if (headline) setHeadline(cleanHeadline(headline));
-    if (description) setDescription(polishText(description, restaurant.name));
-    if (aboutText) setAboutText(polishText(aboutText, restaurant.name));
-    if (featureText) setFeatureText(polishText(featureText, restaurant.name));
+    if (description) setDescription(polishText(description));
+    if (aboutText) setAboutText(polishText(aboutText));
+    if (featureText) setFeatureText(polishText(featureText));
     if (menuDescription) {
-      setMenuDescription(polishText(menuDescription, restaurant.name));
+      setMenuDescription(polishText(menuDescription));
     }
-    if (sectionText) setSectionText(polishText(sectionText, restaurant.name));
+    if (sectionText) setSectionText(polishText(sectionText));
     if (galleryDescription) {
-      setGalleryDescription(polishText(galleryDescription, restaurant.name));
+      setGalleryDescription(polishText(galleryDescription));
     }
     if (locationDescription) {
-      setLocationDescription(polishText(locationDescription, restaurant.name));
+      setLocationDescription(polishText(locationDescription));
     }
-    if (finalCtaText) setFinalCtaText(polishText(finalCtaText, restaurant.name));
+    if (finalCtaText) setFinalCtaText(polishText(finalCtaText));
     if (seoDescription) {
       setSeoDescription(toSeoDescription(seoDescription, restaurant.name));
     }
@@ -340,9 +342,9 @@ export function WebsiteEditorClient({
   active="website"
 />
 
-        <div className="min-w-0 px-4 py-5 sm:px-6 lg:px-8">
+        <div className="min-w-0 px-4 pb-40 pt-5 sm:px-6 lg:px-8 lg:pb-8">
           <header className="sticky top-0 z-40 -mx-4 border-b border-[#E1D0B8] bg-[#F5EFE6]/90 px-4 py-3 backdrop-blur-2xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-3">
                 <div>
@@ -350,7 +352,7 @@ export function WebsiteEditorClient({
                     {t("header.eyebrow")}
                   </p>
 
-                  <h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em]">
+                  <h1 className="mt-1 text-3xl font-semibold tracking-[-0.065em] sm:mt-2 sm:text-4xl">
                     {t("header.title")}
                   </h1>
                 </div>
@@ -372,12 +374,12 @@ export function WebsiteEditorClient({
                 )}
               </div>
 
-              <p className="mt-3 text-sm text-[#6B6258]">
+              <p className="mt-2 hidden text-sm text-[#6B6258] sm:block">
                 {t("header.subtitle")}
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="hidden gap-2 xl:flex">
               <button
                 type="button"
                 onClick={improveText}
@@ -404,15 +406,42 @@ export function WebsiteEditorClient({
               </button>
             </div>
           </div>
+
+          <div className="mt-3 grid grid-cols-2 rounded-2xl border border-[#DCCBAF] bg-white p-1 xl:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileMode("edit")}
+              aria-pressed={mobileMode === "edit"}
+              className={`h-10 rounded-xl text-sm font-semibold transition ${
+                mobileMode === "edit"
+                  ? "bg-[#16120E] text-white shadow-sm"
+                  : "text-[#6B6258]"
+              }`}
+            >
+              {t("header.title")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileMode("preview")}
+              aria-pressed={mobileMode === "preview"}
+              className={`h-10 rounded-xl text-sm font-semibold transition ${
+                mobileMode === "preview"
+                  ? "bg-[#16120E] text-white shadow-sm"
+                  : "text-[#6B6258]"
+              }`}
+            >
+              {t("previewCard.eyebrow")}
+            </button>
+          </div>
         </header>
 
         <form
           id="website-editor-form"
           action={`/api/restaurants/${restaurant.id}/website`}
           method="POST"
-          className="grid gap-6 py-8 xl:grid-cols-[minmax(0,1fr)_340px]"
+          className="grid gap-6 py-5 sm:py-8 xl:grid-cols-[minmax(0,1fr)_340px]"
         >
-          <section className="space-y-6">
+          <section className={`space-y-4 sm:space-y-6 ${mobileMode === "preview" ? "hidden xl:block" : ""}`}>
             <EditorBlock
               number="01"
               title={t("publish.title")}
@@ -477,7 +506,8 @@ export function WebsiteEditorClient({
               description={t("aiBuilder.description")}
             >
               <div className="rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-6">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-5">
+                  <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold">{t("aiBuilder.cardTitle")}</h3>
 
@@ -486,9 +516,28 @@ export function WebsiteEditorClient({
                     </p>
                   </div>
 
-                  <span className="rounded-full border border-[#E1D0B8] bg-[#EFE5D6] px-3 py-1 text-xs font-semibold text-[#9B6F3B]">
-                    {t("aiBuilder.comingSoonBadge")}
+                  <span className="shrink-0 rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-3 py-1 text-xs font-semibold text-[#3F6A4D]">
+                    AI
                   </span>
+                  </div>
+
+                  <textarea
+                    value={aiBrief}
+                    onChange={(event) => setAiBrief(event.target.value)}
+                    rows={3}
+                    aria-label={t("aiBuilder.cardTitle")}
+                    placeholder={t("aiBuilder.cardText")}
+                    className="input-premium min-h-24 py-3"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={generateWebsiteWithAi}
+                    disabled={isGeneratingAi}
+                    className="inline-flex h-12 items-center justify-center rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118] disabled:cursor-wait disabled:opacity-55"
+                  >
+                    {isGeneratingAi ? t("aiBuilder.generatingButton") : t("aiBuilder.generateButton")}
+                  </button>
                 </div>
               </div>
             </EditorBlock>
@@ -782,16 +831,18 @@ export function WebsiteEditorClient({
             </EditorBlock>
           </section>
 
-          <aside className="space-y-4 xl:sticky xl:top-28 xl:self-start">
-            <QualityCard
-              score={score}
-              enabled={enabled}
-              galleryCount={galleryCount}
-              hasMenu={menuCount > 0}
-              t={t}
-            />
+          <aside className={`flex flex-col gap-4 xl:sticky xl:top-28 xl:self-start ${mobileMode === "edit" ? "hidden xl:flex" : "flex"}`}>
+            <div className="order-2 xl:order-none">
+              <QualityCard
+                score={score}
+                enabled={enabled}
+                galleryCount={galleryCount}
+                hasMenu={menuCount > 0}
+                t={t}
+              />
+            </div>
 
-            <div className="rounded-[2rem] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.06)]">
+            <div className="order-3 rounded-[2rem] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.06)] xl:order-none">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
                 {t("publicCard.eyebrow")}
               </p>
@@ -819,7 +870,7 @@ export function WebsiteEditorClient({
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-[#E1D0B8] bg-[#FFF9F0] p-5 shadow-[0_14px_44px_rgba(80,55,30,0.035)]">
+            <div className="order-4 rounded-[2rem] border border-[#E1D0B8] bg-[#FFF9F0] p-5 shadow-[0_14px_44px_rgba(80,55,30,0.035)] xl:order-none">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
                 {t("checklist.eyebrow")}
               </p>
@@ -835,7 +886,7 @@ export function WebsiteEditorClient({
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-[2rem] border border-[#E1D0B8] bg-white shadow-[0_18px_55px_rgba(80,55,30,0.06)]">
+            <div className="order-1 overflow-hidden rounded-[2rem] border border-[#E1D0B8] bg-white shadow-[0_18px_55px_rgba(80,55,30,0.06)] xl:order-none">
               <div className="border-b border-[#E8DCCB] bg-[#FFF9F0] px-5 py-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]">
                   {t("previewCard.eyebrow")}
@@ -864,6 +915,25 @@ export function WebsiteEditorClient({
         </form>
         </div>
       </div>
+
+      <div className="fixed bottom-[84px] left-3 right-3 z-40 grid grid-cols-[auto_1fr] gap-2 rounded-[22px] border border-white/15 bg-[#17130F]/96 p-2 shadow-[0_20px_65px_rgba(23,19,15,0.32)] backdrop-blur-2xl lg:hidden">
+        <button
+          type="button"
+          onClick={mobileMode === "edit" ? improveText : () => setMobileMode("edit")}
+          className="inline-flex h-12 items-center justify-center rounded-[16px] border border-white/15 px-4 text-sm font-semibold text-white"
+        >
+          {mobileMode === "edit" ? t("header.improveTextButton") : t("header.title")}
+        </button>
+        <button
+          form="website-editor-form"
+          type="submit"
+          className="inline-flex h-12 items-center justify-center rounded-[16px] bg-[#C8A56A] px-5 text-sm font-black text-[#17130F]"
+        >
+          {t("header.saveButton")}
+        </button>
+      </div>
+
+      <BottomNav id={restaurant.id} />
     </main>
   );
 }
@@ -1212,7 +1282,7 @@ function cleanHeadline(value: string) {
   return value.trim().replace(/\s+/g, " ").replace(/\.+$/g, "").slice(0, 90);
 }
 
-function polishText(value: string, restaurantName: string) {
+function polishText(value: string) {
   const clean = value.trim().replace(/\s+/g, " ").replace(/\s+([,.!?])/g, "$1");
 
   if (!clean) return clean;

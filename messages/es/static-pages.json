@@ -126,6 +126,10 @@
         "title": "3. Pagos",
         "text": "Los planes de pago se facturan mensual o anualmente, según lo seleccionado. Los precios mostrados no incluyen IVA, salvo indicación contraria."
       },
+      "partnerNetwork": {
+        "title": "3-A. Partner Network y comisiones",
+        "text": "En la Partner Network, los socios profesionales pueden enviar solicitudes de grupos sin el nombre, teléfono o correo del cliente final. El socio se compromete a no introducir identificadores y a estar autorizado para representar al grupo. El restaurante decide libremente si acepta. Tras el servicio, el restaurante paga la comisión acordada a MesaLink; el 15 % de la comisión bruta corresponde a MesaLink y el 85 % se transfiere al socio mediante una cuenta de pagos verificada. Cancelaciones, reembolsos, facturación e impuestos se rigen por el acuerdo y la legislación aplicable."
+      },
       "cancellation": {
         "title": "4. Cancelación",
         "text": "El cliente puede cancelar su suscripción. El acceso al servicio podrá mantenerse hasta el final del período ya pagado."
@@ -161,6 +165,10 @@
       "dataSharing": {
         "title": "4. Compartición de datos",
         "text": "No vendemos datos personales. Podemos utilizar servicios de terceros necesarios para alojamiento, pagos, autenticación, email o soporte técnico."
+      },
+      "partnerNetwork": {
+        "title": "4-A. Datos de la Partner Network",
+        "text": "Las solicitudes y tarjetas de beneficios usan un código y datos mínimos como fecha, número de personas, zona, presupuesto y preferencias estructuradas. MesaLink no solicita el nombre, teléfono o correo del cliente final en este flujo. Las tarjetas públicas no contienen identificadores y se excluyen de la indexación. Como el socio puede conservar información adicional que vincule el código al cliente, estos datos se tratan como seudonimizados y protegidos por el RGPD. Stripe puede tratar datos profesionales, fiscales y de pago para la verificación, los cobros y las transferencias."
       },
       "rights": {
         "title": "5. Derechos",

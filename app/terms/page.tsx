@@ -32,6 +32,10 @@ export default async function TermsPage() {
         {t("sections.payments.text")}
       </LegalSection>
 
+      <LegalSection title={t("sections.partnerNetwork.title")}>
+        {t("sections.partnerNetwork.text")}
+      </LegalSection>
+
       <LegalSection title={t("sections.cancellation.title")}>
         {t("sections.cancellation.text")}
       </LegalSection>
