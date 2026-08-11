@@ -232,6 +232,39 @@ async function handleReferralRefund(charge: Stripe.Charge) {
   ]);
 }
 
+async function handleChargeDispute(dispute: Stripe.Dispute) {
+  const chargeId = typeof dispute.charge === "string" ? dispute.charge : dispute.charge.id;
+  const charge = await stripe.charges.retrieve(chargeId);
+  await revokeRefundedAiCredits({ chargeId, refundedCents: charge.amount, totalCents: charge.amount });
+
+  const payment = await prisma.referralPayment.findUnique({ where: { stripeChargeId: chargeId } });
+  if (!payment) return;
+  const partnerNetCents = Math.round(Number(payment.partnerNet) * 100);
+  const reversedCents = Math.round(Number(payment.reversedAmount) * 100);
+  const reversalDelta = Math.max(0, partnerNetCents - reversedCents);
+
+  if (payment.stripeTransferId && reversalDelta > 0) {
+    await stripe.transfers.createReversal(
+      payment.stripeTransferId,
+      { amount: reversalDelta, metadata: { referralPaymentId: payment.id, stripeDisputeId: dispute.id } },
+      { idempotencyKey: `referral_dispute_${payment.id}_${dispute.id}` },
+    );
+  }
+
+  await prisma.$transaction([
+    prisma.referralPayment.update({
+      where: { id: payment.id },
+      data: {
+        status: "DISPUTED",
+        reversedAmount: partnerNetCents / 100,
+        failedAt: new Date(),
+        lastError: `Pagamento contestado no Stripe (${dispute.id}).`,
+      },
+    }),
+    prisma.referralGroup.update({ where: { id: payment.groupId }, data: { status: "DISPUTED" } }),
+  ]);
+}
+
 export async function POST(req: Request) {
   const body = await req.text();
   const signature = (await headers()).get("stripe-signature");
@@ -301,6 +334,10 @@ export async function POST(req: Request) {
       const charge = event.data.object as Stripe.Charge;
       await revokeRefundedAiCredits({ chargeId: charge.id, refundedCents: charge.amount_refunded, totalCents: charge.amount });
       await handleReferralRefund(charge);
+    }
+
+    if (event.type === "charge.dispute.created") {
+      await handleChargeDispute(event.data.object as Stripe.Dispute);
     }
 
     if (event.type === "account.updated") {

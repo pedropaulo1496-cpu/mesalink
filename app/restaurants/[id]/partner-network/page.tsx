@@ -162,6 +162,7 @@ function groupStatus(value: string) {
   if (value === "PAID") return "Pago";
   if (value === "REFUNDED") return "Reembolsado";
   if (value === "PARTIALLY_REFUNDED") return "Reembolso parcial";
+  if (value === "DISPUTED") return "Pagamento contestado";
   return value;
 }
 
