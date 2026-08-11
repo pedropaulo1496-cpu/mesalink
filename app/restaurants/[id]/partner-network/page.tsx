@@ -7,7 +7,7 @@ import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import { ReferralAgreementForm, ReferralNetworkSettingsForm } from "@/components/partners/PartnerNetworkControls";
 import { authOptions } from "@/lib/auth";
-import { calculateReferralCommission, isCommissionType } from "@/lib/referrals";
+import { calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
 
 export default async function PartnerNetworkPage({
@@ -59,7 +59,7 @@ export default async function PartnerNetworkPage({
     return total + calculateReferralCommission({ guests: offer.group.guests, commissionType: type, commissionAmount: Number(offer.commissionAmount) }).gross;
   }, 0);
   const completedGroups = restaurant.acceptedReferralGroups.filter((group) => ["COMPLETED", "PAID"].includes(group.status));
-  const paidCommission = restaurant.acceptedReferralGroups.reduce((total, group) => total + Number(group.payment?.grossCommission || 0), 0);
+  const paidCommission = restaurant.acceptedReferralGroups.reduce((total, group) => total + Math.max(0, Number(group.payment?.grossCommission || 0) - Number(group.payment?.refundedAmount || 0)), 0);
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
@@ -94,7 +94,7 @@ export default async function PartnerNetworkPage({
                   <div className="flex items-start justify-between gap-4"><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-black tracking-[0.08em]">{group.publicCode}</p><span className="rounded-full bg-[#F1E6D5] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.13em] text-[#795D38]">{partnerType(group.partner.partnerType)}</span></div><p className="mt-2 text-xs text-[#7A6D60]">{group.partner.status === "ACTIVE" ? "Parceiro verificado" : "Parceiro em verificação"}</p></div><p className="text-xl font-semibold text-[#704E27]">{formatMoney(amounts.gross)}</p></div>
                   <div className="mt-5 grid grid-cols-2 gap-3"><Detail label="Data" value={new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short" }).format(group.desiredDate)} /><Detail label="Grupo" value={`${group.guests} pessoas`} /><Detail label="Zona" value={group.area || group.city || "Flexível"} /><Detail label="Budget" value={group.budgetPerPerson ? `${formatMoney(Number(group.budgetPerPerson))} / pessoa` : "Não indicado"} /></div>
                   {group.notes && <div className="mt-3 rounded-[20px] border border-[#E8DCCB] bg-[#FFF9F0] p-4 text-sm leading-6 text-[#665B50]">{group.notes}</div>}
-                  <div className="mt-5 rounded-[20px] bg-[#17120D] p-4 text-white"><div className="flex items-center justify-between text-xs"><span className="text-white/50">Parceiro recebe 85%</span><span>{formatMoney(amounts.partnerNet)}</span></div><div className="mt-2 flex items-center justify-between text-xs"><span className="text-white/50">MesaLink retém 15%</span><span>{formatMoney(amounts.platformFee)}</span></div></div>
+                  <div className="mt-5 rounded-[20px] bg-[#17120D] p-4 text-white"><div className="flex items-center justify-between text-xs"><span className="text-white/50">Parceiro recebe 85%</span><span>{formatMoney(amounts.partnerNet)}</span></div><div className="mt-2 flex items-center justify-between text-xs"><span className="text-white/50">MesaLink retém 15%</span><span>{formatMoney(amounts.platformFee)}</span></div><div className="mt-2 flex items-center justify-between border-t border-white/10 pt-2 text-xs"><span className="text-white/50">Serviço e pagamento</span><span>{formatMoney(calculateReferralServiceFee(amounts.gross))}</span></div></div>
                   <div className="mt-4 grid grid-cols-2 gap-2"><form action={`/api/referral-offers/${offer.id}/decline`} method="POST"><button className="h-12 w-full rounded-full border border-[#D8C6A9] bg-white text-sm font-bold">Recusar</button></form><form action={`/api/referral-offers/${offer.id}/accept`} method="POST"><button className="h-12 w-full rounded-full bg-[#17120D] text-sm font-bold text-white">Aceitar grupo</button></form></div>
                 </article>;
               })}
@@ -106,15 +106,15 @@ export default async function PartnerNetworkPage({
             <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 sm:p-8">
               <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Serviço e pagamento</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Grupos aceites</h2>
-              <p className="mt-2 text-sm leading-6 text-[#6B6258]">Depois da refeição, confirma o serviço e paga a comissão. O Stripe transfere automaticamente 85% para o parceiro e o MesaLink retém 15%.</p>
+              <p className="mt-2 text-sm leading-6 text-[#6B6258]">Depois da refeição, confirma o serviço e paga a comissão. O Stripe transfere 85% para o parceiro; o MesaLink retém 15% e cobra 5% + 0,35€ pelo serviço e processamento.</p>
               <div className="mt-6 space-y-3">
                 {restaurant.acceptedReferralGroups.map((group) => (
                   <div key={group.id} className="grid gap-4 rounded-[24px] border border-[#E1D0B8] bg-white p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                    <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><span className="rounded-full border border-[#DCCCAD] bg-[#FFF9ED] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-[#795D38]">{groupStatus(group.status)}</span></div><p className="mt-2 text-sm text-[#6B6258]">{group.guests} pessoas · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short" }).format(group.desiredDate)} · comissão {formatMoney(Number(group.payment?.grossCommission || 0))}</p></div>
+                    <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><span className="rounded-full border border-[#DCCCAD] bg-[#FFF9ED] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-[#795D38]">{groupStatus(group.status)}</span></div><p className="mt-2 text-sm text-[#6B6258]">{group.guests} pessoas · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short" }).format(group.desiredDate)} · comissão {formatMoney(Number(group.payment?.grossCommission || 0))}{group.payment && Number(group.payment.serviceFee) > 0 ? ` + ${formatMoney(Number(group.payment.serviceFee))} serviço` : ""}</p></div>
                     <div>
                       {group.status === "BOOKED" && group.desiredDate <= new Date() && <form action={`/api/referral-groups/${group.id}/complete`} method="POST"><button className="h-11 rounded-full border border-[#CBB795] bg-[#FFF9F0] px-5 text-sm font-bold">Confirmar refeição</button></form>}
                       {group.status === "BOOKED" && group.desiredDate > new Date() && <span className="text-xs font-semibold text-[#806F5C]">Pagamento após a refeição</span>}
-                      {group.status === "COMPLETED" && <form action={`/api/referral-groups/${group.id}/checkout`} method="POST"><button className="h-11 rounded-full bg-[#17120D] px-5 text-sm font-bold text-white">Pagar comissão</button></form>}
+                      {group.status === "COMPLETED" && <form action={`/api/referral-groups/${group.id}/checkout`} method="POST"><button className="h-11 rounded-full bg-[#17120D] px-5 text-sm font-bold text-white">Pagar {formatMoney(Number(group.payment?.grossCommission || 0) + Number(group.payment?.serviceFee || 0))}</button></form>}
                       {group.status === "PAID" && <span className="inline-flex items-center gap-2 text-xs font-bold text-[#3F6A4D]"><CheckCircle2 size={16} /> Comissão paga</span>}
                     </div>
                   </div>
@@ -160,6 +160,8 @@ function groupStatus(value: string) {
   if (value === "BOOKED") return "Reservado";
   if (value === "COMPLETED") return "Por pagar";
   if (value === "PAID") return "Pago";
+  if (value === "REFUNDED") return "Reembolsado";
+  if (value === "PARTIALLY_REFUNDED") return "Reembolso parcial";
   return value;
 }
 
@@ -168,6 +170,8 @@ function resultMessage(value: string) {
   if (value === "declined") return "Proposta recusada.";
   if (value === "completed") return "Refeição confirmada. A comissão está pronta para pagamento.";
   if (value === "payment-success") return "Pagamento recebido. A transferência para o parceiro será confirmada automaticamente.";
+  if (value === "payment-processing") return "Pagamento em validação pelo Stripe. O estado será atualizado automaticamente antes da transferência.";
+  if (value === "payment-error") return "Não foi possível abrir o pagamento. Tenta novamente ou contacta o suporte.";
   if (value === "already-paid") return "Esta comissão já foi paga.";
   if (value === "payment-cancelled") return "O pagamento foi cancelado e pode ser retomado.";
   if (value === "partner-payment-pending") return "O parceiro ainda precisa de concluir a verificação para receber pagamentos.";

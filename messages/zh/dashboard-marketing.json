@@ -282,7 +282,7 @@
   "birthdayCard": {
     "title": "生日客户",
     "subtitle": "本月有 {count} 位客户生日。",
-    "runNow": "立即执行",
+    "runNow": "执行 · 每封邮件 1 点",
     "sending": "发送中...",
     "error": "执行生日活动时出错。",
     "successMessage": "活动已执行 • 已发送 {emailsSent} 封邮件 • 已跳过 {skipped} 位"
@@ -344,7 +344,7 @@
     "subjectPlaceholder": "例如:我们为您准备了新内容",
     "messageLabel": "内容",
     "messagePlaceholder": "撰写营销活动内容...",
-    "submit": "发送营销活动",
+    "submit": "发送 · 每位联系人 1 点",
     "segmentTemplates": {
       "vip": {
         "subject": "VIP 客户专属邀请",
@@ -371,7 +371,7 @@
   "recoveryCard": {
     "title": "客户唤回",
     "subtitle": "有 {count} 位客户超过 60 天未到访。",
-    "runNow": "立即执行",
+    "runNow": "执行 · 每封邮件 1 点",
     "sending": "发送中...",
     "error": "执行唤回时出错。",
     "successMessage": "已发送 {emailsSent} 封邮件 • 已创建 {created} 个营销活动"

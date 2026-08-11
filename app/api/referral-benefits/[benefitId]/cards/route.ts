@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
+import { hasGrowthAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 import { createBenefitCardCode } from "@/lib/referrals";
 
@@ -20,7 +21,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ ben
     select: { referralPartner: { select: { id: true, status: true } } },
   });
   const partner = user?.referralPartner;
-  if (!partner) return NextResponse.json({ error: "Perfil de parceiro não encontrado." }, { status: 403 });
+  if (!partner || partner.status === "SUSPENDED") return NextResponse.json({ error: "Perfil de parceiro não disponível." }, { status: 403 });
 
   const now = new Date();
   const benefit = await prisma.referralBenefit.findFirst({
@@ -31,12 +32,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ ben
       OR: [{ validUntil: null }, { validUntil: { gt: now } }],
       restaurant: { referralNetworkEnabled: true },
     },
-    select: { id: true, validUntil: true, maxRedemptions: true, redemptions: true },
+    select: {
+      id: true,
+      validUntil: true,
+      maxRedemptions: true,
+      redemptions: true,
+      restaurant: { select: { user: { select: { subscription: true } } } },
+    },
   });
 
-  if (!benefit || (benefit.maxRedemptions != null && benefit.redemptions >= benefit.maxRedemptions)) {
+  if (!benefit || !hasGrowthAccess(benefit.restaurant.user?.subscription) || (benefit.maxRedemptions != null && benefit.redemptions >= benefit.maxRedemptions)) {
     return NextResponse.json({ error: "Este benefício já não está disponível." }, { status: 409 });
   }
+
+
+  const recentCards = await prisma.referralBenefitCard.count({
+    where: { partnerId: partner.id, createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }, status: "ACTIVE" },
+  });
+  if (recentCards >= 50) return NextResponse.json({ error: "Limite diário de cartões atingido. Contacta o MesaLink se precisares de uma campanha maior." }, { status: 429 });
 
   const card = await prisma.referralBenefitCard.create({
     data: {

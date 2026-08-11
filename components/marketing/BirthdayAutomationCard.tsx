@@ -5,8 +5,10 @@ import { useTranslations } from "next-intl";
 
 export default function BirthdayAutomationCard({
   birthdayCustomers,
+  restaurantId,
 }: {
   birthdayCustomers: number;
+  restaurantId: string;
 }) {
   const t = useTranslations("dashboardMarketing.birthdayCard");
   const [loading, setLoading] = useState(false);
@@ -19,6 +21,8 @@ export default function BirthdayAutomationCard({
 
       const response = await fetch("/api/marketing/run-birthdays", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ restaurantId }),
       });
 
       const data = await response.json();

@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { AI_CREDIT_COSTS, hasAppAccess, InsufficientAiCreditsError, spendAiCredits } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -11,19 +12,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
-    return NextResponse.json(
-      { error: "O gerador de IA ainda não está configurado." },
-      { status: 500 }
-    );
-  }
-
   const body = await req.json().catch(() => null);
   const restaurantId = typeof body?.restaurantId === "string" ? body.restaurantId : "";
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true },
+    include: { subscription: true },
   });
 
   const restaurant = user && restaurantId
@@ -36,6 +30,24 @@ export async function POST(req: Request) {
   if (!restaurant) {
     return NextResponse.json({ error: "Restaurante não encontrado." }, { status: 404 });
   }
+  if (!hasAppAccess(user?.subscription)) return NextResponse.json({ error: "É necessário um plano MesaLink ativo." }, { status: 403 });
+
+  let creditsRemaining = user?.subscription?.aiCredits || 0;
+  try {
+    const creditCharge = await spendAiCredits({
+      userId: user!.id,
+      amount: AI_CREDIT_COSTS.WEBSITE_COPY,
+      feature: "WEBSITE_COPY",
+      description: `Conteúdo AI para o website de ${restaurant.name}`,
+      reference: `website_copy:${restaurant.id}:${crypto.randomUUID()}`,
+    });
+    creditsRemaining = creditCharge.balance;
+  } catch (error) {
+    if (error instanceof InsufficientAiCreditsError) {
+      return NextResponse.json({ error: "Saldo insuficiente. Gerar o conteúdo completo custa 5 créditos.", code: "INSUFFICIENT_AI_CREDITS", required: error.required, available: error.available }, { status: 402 });
+    }
+    throw error;
+  }
 
   const clean = (value: unknown, maxLength: number) =>
     typeof value === "string" ? value.trim().slice(0, maxLength) : "";
@@ -44,9 +56,9 @@ export async function POST(req: Request) {
   const instagram = clean(body?.instagram, 160);
   const brief = clean(body?.brief, 1200);
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
   try {
+    if (!process.env.OPENAI_API_KEY) throw new Error("OpenAI not configured");
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
@@ -116,12 +128,28 @@ Brief/conceito: ${brief}
     const content = response.choices[0]?.message.content;
     if (!content) throw new Error("Resposta de IA vazia.");
 
-    return NextResponse.json(JSON.parse(content));
+    return NextResponse.json({ ...JSON.parse(content), creditsRemaining });
   } catch (error) {
     console.error("Website AI generation error:", error);
-    return NextResponse.json(
-      { error: "Não foi possível criar os textos agora. Tenta novamente." },
-      { status: 500 },
-    );
+    const place = address || "a sua localização";
+    const concept = brief || cuisine || "uma experiência pensada para receber bem";
+    return NextResponse.json({
+      headline: `${restaurant.name}, à mesa em ${place}`,
+      description: `${restaurant.name} apresenta ${concept}. Consulte o menu e reserve diretamente.`,
+      aboutTitle: `A história do ${restaurant.name}`,
+      aboutText: brief || `Conheça o conceito, a cozinha e a equipa do ${restaurant.name}.`,
+      featureTitle: cuisine ? `Uma cozinha de ${cuisine}` : "Uma experiência com identidade",
+      featureText: brief || "Descubra o menu, as especialidades e a experiência preparada pelo restaurante.",
+      galleryTitle: "O restaurante em imagens",
+      galleryDescription: "Conheça o espaço, os pratos e os detalhes antes da sua visita.",
+      locationTitle: "Onde estamos",
+      locationDescription: address ? `Encontre-nos em ${address}.` : "Consulte a localização e planeie a sua visita.",
+      ctaTitle: "Reserve a sua mesa",
+      ctaText: "Escolha a data e envie o pedido de reserva diretamente ao restaurante.",
+      seoTitle: `${restaurant.name}${cuisine ? ` | ${cuisine}` : ""}`.slice(0, 60),
+      seoDescription: `${restaurant.name}${address ? ` em ${address}` : ""}. Menu, informações e reservas online.`.slice(0, 155),
+      fallback: true,
+      creditsRemaining,
+    });
   }
 }

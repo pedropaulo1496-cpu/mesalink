@@ -22,6 +22,7 @@
         "label": "佣金",
         "value": "0€"
       },
+      "aiCredits": { "label": "AI 点数" },
       "yearlyPayment": {
         "label": "年付",
         "value": "赠送 1 个月"
@@ -89,6 +90,15 @@
           "note": "保留当前的续订日期。"
         }
       }
+    },
+    "credits": {
+      "kicker": "预付费使用",
+      "title": "余额：{credits} AI 点数",
+      "description": "所有可变成本的附加功能均采用预付费，不会产生意外的自动扣款。",
+      "success": "付款已确认。Stripe 完成处理后点数即可使用。",
+      "buy": "通过 Stripe 购买",
+      "taxNote": "价格不含增值税。Stripe 会在结账时计算适用税费。",
+      "costs": { "visibility": "GEO 审计", "website": "网站内容", "draft": "Revenue AI 草稿", "email": "已发送邮件" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

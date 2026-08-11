@@ -1,8 +1,18 @@
 import type { MetadataRoute } from "next";
+import { prisma } from "@/lib/prisma";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.mesalink.pt";
   const now = new Date();
+  const restaurants = await prisma.restaurant.findMany({
+    where: { websiteEnabled: true },
+    select: { slug: true, updatedAt: true, user: { select: { subscription: true } } },
+    take: 5000,
+  });
+  const publicRestaurants = restaurants.filter((restaurant) => {
+    const subscription = restaurant.user?.subscription;
+    return subscription?.status === "ACTIVE" || (subscription?.status === "TRIAL" && subscription.trialEndsAt && subscription.trialEndsAt > now);
+  });
 
   return [
     { url: baseUrl, lastModified: now, changeFrequency: "weekly", priority: 1 },
@@ -22,5 +32,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
     { url: `${baseUrl}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
+    ...publicRestaurants.map((restaurant) => ({
+      url: `${baseUrl}/s/${restaurant.slug}`,
+      lastModified: restaurant.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
+    })),
   ];
 }

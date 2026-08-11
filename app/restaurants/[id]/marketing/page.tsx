@@ -791,7 +791,7 @@ const riskRevenue =
                   activeLabel={t("main.badges.active")}
                 />
 
-                <BirthdayAutomationCard birthdayCustomers={birthdayCustomers.length} />
+                <BirthdayAutomationCard birthdayCustomers={birthdayCustomers.length} restaurantId={id} />
 
                 <Link
                   href={`/restaurants/${id}/marketing/campaigns/new`}

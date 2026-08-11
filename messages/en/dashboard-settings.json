@@ -216,7 +216,7 @@
       "cardTitle": "AI Website Builder",
       "cardText": "E.g. family-run Italian restaurant in Lisbon with a warm atmosphere and fresh pasta.",
       "comingSoonBadge": "Active",
-      "generateButton": "Create copy with AI",
+        "generateButton": "Create copy · 5 credits",
       "generatingButton": "Creating the website…"
     },
     "firstImpression": {

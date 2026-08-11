@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       guests < 1 ||
       guests > 200 ||
       Number.isNaN(desiredDate.getTime()) ||
-      desiredDate <= new Date() ||
+      desiredDate <= new Date(Date.now() + 2 * 60 * 60 * 1000) ||
       !commissionType ||
       !Number.isFinite(commissionAmount) ||
       commissionAmount <= 0 ||
@@ -54,14 +54,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "A conta Partner não está disponível." }, { status: 403 });
     }
 
+    const openGroups = await prisma.referralGroup.count({ where: { partnerId: partner.id, status: "OPEN" } });
+    if (openGroups >= 20) return NextResponse.json({ error: "Conclui ou cancela pedidos em aberto antes de publicar novos grupos." }, { status: 429 });
+
     const [restaurants, agreements] = await Promise.all([
       prisma.restaurant.findMany({
         where: { id: { in: restaurantIds }, referralNetworkEnabled: true },
-        select: {
-          id: true,
-          referralDefaultCommissionType: true,
-          referralDefaultCommissionAmount: true,
-        },
+        select: { id: true },
       }),
       prisma.referralAgreement.findMany({
         where: {
@@ -78,7 +77,6 @@ export async function POST(request: Request) {
     }
 
     const agreementByRestaurant = new Map(agreements.map((item) => [item.restaurantId, item]));
-    const restaurantById = new Map(restaurants.map((item) => [item.id, item]));
     const publicCode = createReferralCode();
     const expiresAt = new Date(Math.min(desiredDate.getTime() - 2 * 60 * 60 * 1000, Date.now() + 48 * 60 * 60 * 1000));
     const occasionLabels: Record<string, string> = {
@@ -123,11 +121,10 @@ export async function POST(request: Request) {
         offers: {
           create: restaurantIds.map((restaurantId) => {
             const agreement = agreementByRestaurant.get(restaurantId);
-            const restaurant = restaurantById.get(restaurantId)!;
             return {
               restaurantId,
-              commissionType: agreement?.commissionType || restaurant.referralDefaultCommissionType || commissionType,
-              commissionAmount: agreement?.commissionAmount || restaurant.referralDefaultCommissionAmount || commissionAmount,
+              commissionType: agreement?.commissionType || commissionType,
+              commissionAmount: agreement?.commissionAmount || commissionAmount,
               platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT,
             };
           }),

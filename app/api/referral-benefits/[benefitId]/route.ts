@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
+import { hasGrowthAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ benefitId: string }> }) {
@@ -11,8 +12,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ be
   const body = await request.json().catch(() => null);
   if (typeof body?.active !== "boolean") return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  if (!hasGrowthAccess(user.subscription)) return NextResponse.json({ error: "Os cartões e promoções estão disponíveis no plano Growth." }, { status: 403 });
 
   const result = await prisma.referralBenefit.updateMany({
     where: { id: benefitId, restaurant: { userId: user.id } },

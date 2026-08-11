@@ -1,21 +1,31 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { AI_CREDIT_COSTS, hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) return NextResponse.json({ success: false, error: "Não autenticado." }, { status: 401 });
     const body = await request.formData();
 
     const restaurantId = String(body.get("restaurantId"));
     const segment = String(body.get("segment"));
     const tag = String(body.get("tag") || "").trim();
-    const subject = String(body.get("subject"));
-    const message = String(body.get("message"));
+    const subject = cleanText(body.get("subject"), 120).replace(/[\r\n]+/g, " ");
+    const message = cleanText(body.get("message"), 5000);
+    if (!subject || !message) return NextResponse.json({ success: false, error: "Assunto e mensagem são obrigatórios." }, { status: 400 });
 
-    const restaurant = await prisma.restaurant.findUnique({
-      where: { id: restaurantId },
+    const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
+    if (!user) return NextResponse.json({ success: false, error: "Não autenticado." }, { status: 401 });
+    if (!hasGrowthAccess(user.subscription)) return NextResponse.json({ success: false, error: "As campanhas estão disponíveis no plano Growth." }, { status: 403 });
+
+    const restaurant = await prisma.restaurant.findFirst({
+      where: { id: restaurantId, userId: user.id },
     });
 
     if (!restaurant) {
@@ -122,8 +132,29 @@ export async function POST(request: Request) {
     const reserveUrl = `${baseUrl}/reserve/${restaurant.slug}`;
 
     for (const customer of customers) {
+      const action = await prisma.marketingAction.create({
+        data: {
+          restaurantId,
+          customerId: customer.id,
+          type: "MANUAL_CAMPAIGN",
+          status: "QUEUED",
+          sentAt: new Date(),
+          estimatedRevenue: 0,
+          channel: "EMAIL",
+        },
+      });
+      const creditReference = `marketing_campaign:${action.id}`;
+      let creditCharged = false;
       try {
-        await resend.emails.send({
+        await spendAiCredits({
+          userId: user.id,
+          amount: AI_CREDIT_COSTS.REVENUE_EMAIL,
+          feature: "REVENUE_EMAIL",
+          description: `Email de campanha para ${customer.name}`,
+          reference: creditReference,
+        });
+        creditCharged = true;
+        const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
           to: customer.email!,
           subject,
@@ -131,15 +162,15 @@ export async function POST(request: Request) {
             <div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px;">
               <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #E1D0B8;border-radius:28px;padding:32px;">
                 <p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#9B6F3B;font-weight:700;margin:0;">
-                  ${restaurant.name}
+                  ${escapeHtml(restaurant.name)}
                 </p>
 
                 <h1 style="font-size:30px;line-height:1.1;margin:16px 0;color:#16120E;">
-                  ${subject}
+                  ${escapeHtml(subject)}
                 </h1>
 
                 <p style="font-size:15px;line-height:1.8;color:#6B6258;white-space:pre-line;">
-                  ${message}
+                  ${escapeHtml(message)}
                 </p>
 
                 <a
@@ -167,20 +198,25 @@ export async function POST(request: Request) {
           `,
         });
 
-        await prisma.marketingAction.create({
-          data: {
-            restaurantId,
-            customerId: customer.id,
-            type: "MANUAL_CAMPAIGN",
-            status: "SENT",
-            sentAt: new Date(),
-            estimatedRevenue: 0,
-          },
+        await prisma.marketingAction.update({
+          where: { id: action.id },
+          data: { status: "SENT", sentAt: new Date(), deliveryId: delivery.data?.id || null, failureReason: null },
         });
 
         emailsSent++;
       } catch (error) {
         console.error(error);
+        if (creditCharged) await refundAiCredits({
+          userId: user.id,
+          amount: AI_CREDIT_COSTS.REVENUE_EMAIL,
+          feature: "REVENUE_EMAIL",
+          description: `Crédito devolvido: campanha para ${customer.name} não enviada`,
+          reference: creditReference,
+        });
+        await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "FAILED", failureReason: error instanceof Error ? error.message.slice(0, 500) : "Email delivery failed" } });
+        if (error instanceof InsufficientAiCreditsError) {
+          return NextResponse.redirect(new URL(`/restaurants/${restaurantId}/marketing?campaignError=credits&emailsSent=${emailsSent}`, request.url), 303);
+        }
       }
     }
 
@@ -203,4 +239,12 @@ export async function POST(request: Request) {
       },
     );
   }
+}
+
+function cleanText(value: FormDataEntryValue | null, max: number) {
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]!);
 }

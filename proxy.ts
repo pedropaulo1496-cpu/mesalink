@@ -63,7 +63,7 @@ export async function proxy(request: NextRequest) {
         !pathname.startsWith("/api") &&
         !pathname.startsWith("/_next")
       ) {
-        url.pathname = `/s/${subdomain}`;
+        url.pathname = pathname === "/" ? `/s/${subdomain}` : `/s/${subdomain}${pathname}`;
 
         return NextResponse.rewrite(url);
       }

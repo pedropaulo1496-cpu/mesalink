@@ -282,7 +282,7 @@
   "birthdayCard": {
     "title": "Birthdays",
     "subtitle": "{count} customers have a birthday this month.",
-    "runNow": "Run now",
+    "runNow": "Run · 1 credit/email",
     "sending": "Sending...",
     "error": "Error running birthdays.",
     "successMessage": "Campaign executed • {emailsSent} emails sent • {skipped} skipped"
@@ -344,7 +344,7 @@
     "subjectPlaceholder": "E.g.: We have news for you",
     "messageLabel": "Message",
     "messagePlaceholder": "Write the campaign message...",
-    "submit": "Send campaign",
+    "submit": "Send · 1 credit per contact",
     "segmentTemplates": {
       "vip": {
         "subject": "Exclusive invitation for VIP customers",
@@ -371,7 +371,7 @@
   "recoveryCard": {
     "title": "Customer Recovery",
     "subtitle": "{count} customers haven't visited in over 60 days.",
-    "runNow": "Run now",
+    "runNow": "Run · 1 credit/email",
     "sending": "Sending...",
     "error": "Error running recovery.",
     "successMessage": "{emailsSent} emails sent • {created} campaigns created"

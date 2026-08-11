@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { calculateReferralCommission, isCommissionType } from "@/lib/referrals";
+import { calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request, { params }: { params: Promise<{ offerId: string }> }) {
@@ -20,7 +20,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ off
   if (!offer) return NextResponse.json({ error: "Oferta não encontrada." }, { status: 404 });
   const backUrl = new URL(`/restaurants/${offer.restaurantId}/partner-network`, request.url);
 
-  if (offer.status !== "PENDING" || offer.group.status !== "OPEN" || offer.group.desiredDate <= new Date()) {
+  if (offer.status !== "PENDING" || offer.group.status !== "OPEN" || offer.group.desiredDate <= new Date() || (offer.group.expiresAt && offer.group.expiresAt <= new Date())) {
     backUrl.searchParams.set("result", "unavailable");
     return NextResponse.redirect(backUrl, 303);
   }
@@ -77,6 +77,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ off
             grossCommission: amounts.gross,
             platformFee: amounts.platformFee,
             partnerNet: amounts.partnerNet,
+            serviceFee: calculateReferralServiceFee(amounts.gross),
             status: "PENDING",
           },
         }),

@@ -282,10 +282,15 @@ export default async function RevenueAiPage({
               <h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">{t("title")}</h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">{t("subtitle")}</p>
             </div>
-            <Link href={`/restaurants/${id}/marketing/settings`} className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full border border-[#D8C6A9] bg-white px-5 text-sm font-semibold transition hover:bg-[#FFF9F0]">
-              <Workflow size={16} />
-              {t("rulesCta")}
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href={`/restaurants/${id}/revenue-ai/inbox`} className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full bg-[#17120D] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
+                <MessageCircleMore size={16} /> Inbox de oportunidades
+              </Link>
+              <Link href={`/restaurants/${id}/marketing/settings`} className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full border border-[#D8C6A9] bg-white px-5 text-sm font-semibold transition hover:bg-[#FFF9F0]">
+                <Workflow size={16} />
+                {t("rulesCta")}
+              </Link>
+            </div>
           </header>
 
           <section className="mt-7 overflow-hidden rounded-[38px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_35px_100px_rgba(44,31,18,0.24)]">

@@ -1,6 +1,8 @@
 import { randomBytes } from "crypto";
 
 export const MESALINK_REFERRAL_FEE_PERCENT = 15;
+export const MESALINK_REFERRAL_SERVICE_PERCENT = 5;
+export const MESALINK_REFERRAL_SERVICE_FIXED = 0.35;
 
 export type CommissionType = "PER_PERSON" | "TOTAL";
 
@@ -30,6 +32,10 @@ export function calculateReferralCommission({
 
 export function createReferralCode() {
   return `ML-${randomBytes(4).toString("hex").toUpperCase()}`;
+}
+
+export function calculateReferralServiceFee(grossCommission: number) {
+  return roundCurrency(grossCommission * (MESALINK_REFERRAL_SERVICE_PERCENT / 100) + MESALINK_REFERRAL_SERVICE_FIXED);
 }
 
 export function createBenefitCardCode() {

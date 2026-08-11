@@ -7,7 +7,7 @@
     "hero": {
       "kicker": "Growth. Visibility. Control.",
       "title": "Choose the right plan to grow your restaurant.",
-      "description": "All plans include Website, Reservations, QR Ordering, CRM, Reviews and integrated operations. Growth adds Marketing to win back customers and increase repeat visits."
+      "description": "All plans include Website, Reservations, QR Ordering, CRM, Reviews and integrated operations. Growth unlocks Revenue AI, AI Visibility and partner cards; variable usage is prepaid."
     },
     "stats": {
       "currentPlan": {
@@ -21,6 +21,9 @@
       "commissions": {
         "label": "Commissions",
         "value": "0€"
+      },
+      "aiCredits": {
+        "label": "AI credits"
       },
       "yearlyPayment": {
         "label": "Annual payment",
@@ -72,7 +75,7 @@
         ]
       },
       "growth": {
-        "description": "For restaurants that want to win back customers, boost slow days and increase repeat visits with Marketing.",
+        "description": "For restaurants that want to recover revenue, gain visibility in AI search and activate local partners.",
         "features": [
           "Everything in Essentials",
           "MesaLink Marketing included",
@@ -81,13 +84,31 @@
           "At-risk customers",
           "Automatic birthdays",
           "VIP loyalty",
-          "More repeat visits"
+          "More repeat visits",
+          "Revenue AI opportunity inbox",
+          "AI Visibility / GEO",
+          "Partner cards and promotions",
+          "Prepaid credits for AI usage"
         ],
         "upgrade": {
           "kicker": "Upgrade",
           "price": "+20€/month",
           "note": "Keeps your current renewal date."
         }
+      }
+    },
+    "credits": {
+      "kicker": "Prepaid usage",
+      "title": "Balance: {credits} AI credits",
+      "description": "Extras with variable costs are always prepaid. There is no open-ended usage or unexpected automatic billing.",
+      "success": "Payment confirmed. Credits become available as soon as Stripe completes processing.",
+      "buy": "Buy with Stripe",
+      "taxNote": "Prices exclude VAT. Applicable tax is calculated by Stripe at checkout. Credits do not expire while the account is active.",
+      "costs": {
+        "visibility": "GEO audit",
+        "website": "website copy",
+        "draft": "Revenue AI draft",
+        "email": "email sent"
       }
     },
     "platformSection": {

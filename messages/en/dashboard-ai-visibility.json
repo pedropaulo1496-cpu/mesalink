@@ -29,6 +29,20 @@
   "howItWorksText": "This initial score uses the business, website, menu and review data already in MesaLink. The next phase will add live AI-engine tests and external citation monitoring.",
   "nextPhase": "Next phase",
   "nextPhaseText": "Monitor real prompts and execute improvements automatically through the Website Builder, content, local pages, structured data and review management.",
+  "liveScan": {
+    "run": "Measure real visibility",
+    "eyebrow": "Answers and sources",
+    "title": "External web-search audit",
+    "description": "Tests high-intent local questions, records whether the restaurant appears, who appears instead and which sources support the answer. This is an API web-search measurement, not a guarantee for every ChatGPT session.",
+    "measuredAt": "External measurement from {date}",
+    "mentionRate": "Mention rate",
+    "sources": "Sources",
+    "mentioned": "Mentioned",
+    "notMentioned": "Not mentioned",
+    "competitors": "Competitors",
+    "emptyTitle": "No external measurement yet.",
+    "emptyText": "Run the first audit to compare prompts, competitors and cited sources."
+  },
   "opportunities": {
     "publishWebsite": { "title": "Publish the restaurant website", "text": "An accessible website creates an owned source that AI systems can understand and cite." },
     "defineCuisine": { "title": "Clearly define cuisine and specialties", "text": "Connect the restaurant to the words guests use, including cuisine, dishes and experience." },

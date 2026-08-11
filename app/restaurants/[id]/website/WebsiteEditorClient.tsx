@@ -279,7 +279,7 @@ export function WebsiteEditorClient({
       setSeoDescription(data.seoDescription || "");
     } catch (error) {
       console.error(error);
-      alert(t("aiErrors.generateFailedAlert"));
+      alert(error instanceof Error ? error.message : t("aiErrors.generateFailedAlert"));
     } finally {
       setIsGeneratingAi(false);
     }

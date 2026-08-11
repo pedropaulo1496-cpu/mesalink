@@ -7,6 +7,7 @@ import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import { BenefitToggleButton, CreatePartnerBenefitForm, RedeemBenefitCardForm } from "@/components/partners/PartnerBenefitControls";
 import { authOptions } from "@/lib/auth";
+import { hasGrowthAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 
 export default async function RestaurantBenefitsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -14,7 +15,8 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
+  if (!hasGrowthAccess(user?.subscription)) redirect(`/billing?restaurantId=${id}`);
   const restaurant = user ? await prisma.restaurant.findFirst({
     where: { id, userId: user.id },
     include: {

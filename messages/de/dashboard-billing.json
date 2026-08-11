@@ -22,6 +22,7 @@
         "label": "Provisionen",
         "value": "0€"
       },
+      "aiCredits": { "label": "AI-Credits" },
       "yearlyPayment": {
         "label": "Jährliche Zahlung",
         "value": "1 Monat gratis"
@@ -89,6 +90,15 @@
           "note": "Behält Ihr aktuelles Verlängerungsdatum bei."
         }
       }
+    },
+    "credits": {
+      "kicker": "Vorausbezahlte Nutzung",
+      "title": "Guthaben: {credits} AI-Credits",
+      "description": "Extras mit variablen Kosten werden immer im Voraus bezahlt. Keine unerwarteten automatischen Abbuchungen.",
+      "success": "Zahlung bestätigt. Die Credits werden nach Abschluss der Stripe-Verarbeitung verfügbar.",
+      "buy": "Mit Stripe kaufen",
+      "taxNote": "Preise ohne MwSt. Stripe berechnet die anwendbare Steuer beim Checkout.",
+      "costs": { "visibility": "GEO-Audit", "website": "Website-Inhalte", "draft": "Revenue-AI-Entwurf", "email": "gesendete E-Mail" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

@@ -22,6 +22,7 @@
         "label": "Commissions",
         "value": "0€"
       },
+      "aiCredits": { "label": "Crédits AI" },
       "yearlyPayment": {
         "label": "Paiement annuel",
         "value": "1 mois offert"
@@ -89,6 +90,15 @@
           "note": "Conserve votre date de renouvellement actuelle."
         }
       }
+    },
+    "credits": {
+      "kicker": "Utilisation prépayée",
+      "title": "Solde : {credits} crédits AI",
+      "description": "Les extras à coût variable sont toujours prépayés. Aucun débit automatique inattendu.",
+      "success": "Paiement confirmé. Les crédits seront disponibles après traitement par Stripe.",
+      "buy": "Acheter avec Stripe",
+      "taxNote": "Prix hors TVA. Stripe calcule la taxe applicable lors du paiement.",
+      "costs": { "visibility": "audit GEO", "website": "contenu du site", "draft": "brouillon Revenue AI", "email": "e-mail envoyé" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

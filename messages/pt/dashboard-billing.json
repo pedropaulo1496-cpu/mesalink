@@ -7,7 +7,7 @@
     "hero": {
       "kicker": "Growth. Visibility. Control.",
       "title": "Escolha o plano certo para fazer crescer o restaurante.",
-      "description": "Todos os planos incluem Website, Reservas, QR Ordering, CRM, Reviews e operação integrada. O Growth adiciona Marketing para recuperar clientes e aumentar visitas recorrentes."
+      "description": "Todos os planos incluem Website, Reservas, QR Ordering, CRM, Reviews e operação integrada. O Growth desbloqueia Revenue AI, AI Visibility e cartões de parceiros; o consumo variável é pré-pago."
     },
     "stats": {
       "currentPlan": {
@@ -21,6 +21,9 @@
       "commissions": {
         "label": "Comissões",
         "value": "0€"
+      },
+      "aiCredits": {
+        "label": "Créditos AI"
       },
       "yearlyPayment": {
         "label": "Pagamento anual",
@@ -72,7 +75,7 @@
         ]
       },
       "growth": {
-        "description": "Para restaurantes que querem recuperar clientes, promover dias fracos e aumentar visitas recorrentes com Marketing.",
+        "description": "Para restaurantes que querem recuperar receita, ganhar visibilidade em pesquisas por IA e ativar parceiros locais.",
         "features": [
           "Tudo do Essentials",
           "Marketing MesaLink incluído",
@@ -81,13 +84,31 @@
           "Clientes em risco",
           "Aniversários automáticos",
           "Fidelização VIP",
-          "Mais visitas recorrentes"
+          "Mais visitas recorrentes",
+          "Revenue AI e caixa de oportunidades",
+          "AI Visibility / GEO",
+          "Cartões e promoções de parceiros",
+          "Consumo AI com créditos pré-pagos"
         ],
         "upgrade": {
           "kicker": "Upgrade",
           "price": "+20€/mês",
           "note": "Mantém a data de renovação atual."
         }
+      }
+    },
+    "credits": {
+      "kicker": "Consumo pré-pago",
+      "title": "Saldo: {credits} créditos AI",
+      "description": "Os extras com custo variável são sempre pré-pagos. Nunca há consumo aberto nem cobranças automáticas inesperadas.",
+      "success": "Pagamento confirmado. Os créditos ficam disponíveis assim que o Stripe concluir o processamento.",
+      "buy": "Comprar com Stripe",
+      "taxNote": "Preços sem IVA. O imposto aplicável é calculado pelo Stripe no checkout. Créditos não expiram enquanto a conta estiver ativa.",
+      "costs": {
+        "visibility": "auditoria GEO",
+        "website": "conteúdo website",
+        "draft": "rascunho Revenue AI",
+        "email": "email enviado"
       }
     },
     "platformSection": {

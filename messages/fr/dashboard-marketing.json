@@ -282,7 +282,7 @@
   "birthdayCard": {
     "title": "Anniversaires",
     "subtitle": "{count} clients fêtent leur anniversaire ce mois-ci.",
-    "runNow": "Exécuter maintenant",
+    "runNow": "Lancer · 1 crédit/e-mail",
     "sending": "Envoi en cours...",
     "error": "Erreur lors de l'exécution des anniversaires.",
     "successMessage": "Campagne exécutée • {emailsSent} emails envoyés • {skipped} ignorés"
@@ -344,7 +344,7 @@
     "subjectPlaceholder": "Ex : Nous avons des nouveautés pour vous",
     "messageLabel": "Message",
     "messagePlaceholder": "Rédigez le message de la campagne...",
-    "submit": "Envoyer la campagne",
+    "submit": "Envoyer · 1 crédit par contact",
     "segmentTemplates": {
       "vip": {
         "subject": "Invitation exclusive pour nos clients VIP",
@@ -371,7 +371,7 @@
   "recoveryCard": {
     "title": "Récupération de clients",
     "subtitle": "{count} clients n'ont pas visité depuis plus de 60 jours.",
-    "runNow": "Exécuter maintenant",
+    "runNow": "Lancer · 1 crédit/e-mail",
     "sending": "Envoi en cours...",
     "error": "Erreur lors de l'exécution de la récupération.",
     "successMessage": "{emailsSent} emails envoyés • {created} campagnes créées"

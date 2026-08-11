@@ -35,6 +35,20 @@
   "howItWorksText": "Este primeiro score usa os dados do negócio, website, menu e reviews existentes no MesaLink. A próxima fase acrescentará testes reais em motores de IA e monitorização de citações externas.",
   "nextPhase": "Próxima fase",
   "nextPhaseText": "Monitorizar prompts reais e executar melhorias automaticamente através do Website Builder, conteúdo, páginas locais, dados estruturados e gestão de reviews.",
+  "liveScan": {
+    "run": "Medir visibilidade real",
+    "eyebrow": "Resposta e fontes",
+    "title": "Auditoria externa com pesquisa web",
+    "description": "Testa perguntas locais de intenção elevada, regista se o restaurante aparece, quem aparece em alternativa e que fontes sustentam a resposta. É uma medição da API com pesquisa web, não uma garantia sobre todas as sessões de ChatGPT.",
+    "measuredAt": "Medição externa de {date}",
+    "mentionRate": "Taxa de menção",
+    "sources": "Fontes",
+    "mentioned": "Mencionado",
+    "notMentioned": "Não mencionado",
+    "competitors": "Concorrentes",
+    "emptyTitle": "Ainda não existe uma medição externa.",
+    "emptyText": "Execute a primeira auditoria para comparar prompts, concorrentes e fontes citadas."
+  },
   "opportunities": {
     "publishWebsite": { "title": "Publicar o website do restaurante", "text": "Um website acessível cria uma fonte própria que os sistemas de IA podem compreender e citar." },
     "defineCuisine": { "title": "Definir claramente a cozinha e especialidades", "text": "Associe o restaurante aos termos que os clientes usam, como tipo de cozinha, pratos e experiência." },

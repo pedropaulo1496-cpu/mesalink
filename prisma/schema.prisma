@@ -16,11 +16,12 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  restaurants         Restaurant[]
-  subscription        Subscription?
-  passwordResetTokens PasswordResetToken[]
-  printBridgeDevices  PrintBridgeDevice[]
-  referralPartner     ReferralPartner?
+  restaurants          Restaurant[]
+  subscription         Subscription?
+  passwordResetTokens  PasswordResetToken[]
+  printBridgeDevices   PrintBridgeDevice[]
+  referralPartner      ReferralPartner?
+  aiCreditTransactions AiCreditTransaction[]
 }
 
 model Subscription {
@@ -33,6 +34,7 @@ model Subscription {
 
   restaurantLimit Int @default(1)
   priceMonthly    Int @default(0)
+  aiCredits       Int @default(0)
 
   stripeCustomerId     String?
   stripeSubscriptionId String?
@@ -188,6 +190,8 @@ model Restaurant {
   referralOffers           ReferralOffer[]
   acceptedReferralGroups   ReferralGroup[]         @relation("AcceptedReferralRestaurant")
   referralBenefits         ReferralBenefit[]
+  aiVisibilityScans        AiVisibilityScan[]
+  revenueConversations     RevenueConversation[]
   posCashRegisters         POSCashRegister[]
   posDiscounts             POSDiscount[]
   posReceipts              POSReceipt[]
@@ -300,8 +304,9 @@ model Customer {
 
   source String? // RESERVATION, MANUAL, IMPORT
 
-  marketingActions MarketingAction[]
-  posTableSessions POSTableSession[]
+  marketingActions     MarketingAction[]
+  revenueConversations RevenueConversation[]
+  posTableSessions     POSTableSession[]
 
   @@unique([restaurantId, email])
   @@index([restaurantId])
@@ -336,9 +341,10 @@ model Reservation {
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id])
 
-  createdAt        DateTime          @default(now())
-  posTableSessions POSTableSession[]
-  referralGroup    ReferralGroup?
+  createdAt            DateTime              @default(now())
+  posTableSessions     POSTableSession[]
+  referralGroup        ReferralGroup?
+  revenueConversations RevenueConversation[]
 
   @@unique([restaurantId, customerId, date], name: "Reservation_dedupe_key")
   @@index([restaurantId])
@@ -547,12 +553,20 @@ model MarketingAction {
   reservationId String?
 
   estimatedRevenue Decimal? @db.Decimal(10, 2)
+  actualRevenue    Decimal? @db.Decimal(10, 2)
+
+  channel        String    @default("EMAIL")
+  deliveryId     String?
+  failureReason  String?
+  repliedAt      DateTime?
+  nextFollowUpAt DateTime?
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id])
 
   customer Customer? @relation(fields: [customerId], references: [id])
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([restaurantId])
   @@index([customerId])
@@ -692,19 +706,158 @@ model ReferralPayment {
   grossCommission Decimal @db.Decimal(10, 2)
   platformFee     Decimal @db.Decimal(10, 2)
   partnerNet      Decimal @db.Decimal(10, 2)
+  serviceFee      Decimal @default(0) @db.Decimal(10, 2)
   currency        String  @default("EUR")
   status          String  @default("PENDING")
 
   stripeCheckoutSessionId String? @unique
   stripePaymentIntentId   String? @unique
+  stripeChargeId          String? @unique
   stripeTransferId        String? @unique
+
+  checkoutAttempt Int     @default(0)
+  refundedAmount  Decimal @default(0) @db.Decimal(10, 2)
+  reversedAmount  Decimal @default(0) @db.Decimal(10, 2)
+  lastError       String?
 
   paidAt        DateTime?
   transferredAt DateTime?
+  failedAt      DateTime?
+  refundedAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@index([partnerId, status])
+}
+
+model AiCreditTransaction {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount       Int
+  balanceAfter Int
+  kind         String
+  feature      String?
+  description  String
+  reference    String  @unique
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+  stripeChargeId          String? @unique
+  refundedCents           Int     @default(0)
+  revokedCredits          Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model RevenueConversation {
+  id String @id @default(cuid())
+
+  restaurantId  String
+  customerId    String?
+  reservationId String?
+
+  restaurant  Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  customer    Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+
+  sourceId        String
+  opportunityType String
+  channel         String @default("EMAIL")
+  status          String @default("NEW")
+
+  contactName  String
+  contactEmail String?
+  contactPhone String?
+
+  lastMessagePreview String?
+  aiSummary          String?
+  handoffReason      String?
+  nextFollowUpAt     DateTime?
+  lastMessageAt      DateTime  @default(now())
+
+  estimatedRevenue Decimal?  @db.Decimal(10, 2)
+  recoveredRevenue Decimal?  @db.Decimal(10, 2)
+  recoveredAt      DateTime?
+
+  messages RevenueMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([restaurantId, opportunityType, sourceId])
+  @@index([restaurantId, status, lastMessageAt])
+  @@index([restaurantId, nextFollowUpAt])
+}
+
+model RevenueMessage {
+  id String @id @default(cuid())
+
+  conversationId String
+  conversation   RevenueConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  direction     String
+  sender        String
+  channel       String
+  content       String
+  status        String  @default("DRAFT")
+  externalId    String?
+  failureReason String?
+
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([status, sentAt])
+}
+
+model AiVisibilityScan {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  status          String  @default("RUNNING")
+  provider        String  @default("OPENAI_WEB_SEARCH")
+  overallScore    Int?
+  readinessScore  Int?
+  visibilityScore Int?
+  mentionRate     Int?
+  sourceCount     Int?
+  error           String?
+
+  results AiVisibilityPromptResult[]
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([restaurantId, createdAt])
+  @@index([restaurantId, status])
+}
+
+model AiVisibilityPromptResult {
+  id String @id @default(cuid())
+
+  scanId String
+  scan   AiVisibilityScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  prompt        String
+  engine        String   @default("OPENAI_WEB_SEARCH")
+  mentioned     Boolean  @default(false)
+  position      Int?
+  answerSummary String?
+  competitors   String[] @default([])
+  sourceUrls    String[] @default([])
+
+  createdAt DateTime @default(now())
+
+  @@index([scanId])
+  @@index([mentioned, createdAt])
 }
 
 model ReferralBenefit {

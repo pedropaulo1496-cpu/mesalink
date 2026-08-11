@@ -10,15 +10,16 @@ import {
   Globe2,
   MessageSquareText,
   Radar,
-  RefreshCw,
   Search,
   Sparkles,
   Star,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import VisibilityScanButton from "@/components/ai-visibility/VisibilityScanButton";
 import { authOptions } from "@/lib/auth";
 import { calculateAiVisibility, type VisibilityOpportunity } from "@/lib/ai-visibility";
+import { hasGrowthAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 
 export default async function AiVisibilityPage({
@@ -32,9 +33,12 @@ export default async function AiVisibilityPage({
 
   if (!session?.user?.email) redirect("/login");
 
+  const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
+  if (!user) redirect("/login");
+
   const [restaurant, reviewAggregate] = await Promise.all([
-    prisma.restaurant.findUnique({
-      where: { id },
+    prisma.restaurant.findFirst({
+      where: { id, userId: user.id },
       include: {
         websiteMenus: { select: { id: true } },
         orderingCategories: {
@@ -44,6 +48,12 @@ export default async function AiVisibilityPage({
               select: { description: true },
             },
           },
+        },
+        aiVisibilityScans: {
+          where: { status: "COMPLETED" },
+          orderBy: { createdAt: "desc" },
+          take: 4,
+          include: { results: { orderBy: { createdAt: "asc" } } },
         },
       },
     }),
@@ -67,13 +77,15 @@ export default async function AiVisibilityPage({
   });
 
   const actionableCount = report.opportunities.filter((item) => item.tone !== "positive").length;
+  const latestScan = restaurant.aiVisibilityScans[0];
+  const displayedOverall = latestScan?.overallScore ?? report.overall;
   const cuisine = restaurant.websiteCuisine?.trim() || restaurant.name;
   const location = restaurant.address?.split(",").at(-1)?.trim() || "a sua cidade";
   const scoreMessage =
-    report.overall >= 75 ? t("scoreHigh") : report.overall >= 45 ? t("scoreMedium") : t("scoreLow");
+    displayedOverall >= 75 ? t("scoreHigh") : displayedOverall >= 45 ? t("scoreMedium") : t("scoreLow");
 
   const metrics = [
-    { label: t("metrics.chatgpt"), value: report.chatgpt, icon: <Bot size={18} /> },
+    { label: t("metrics.chatgpt"), value: latestScan?.visibilityScore ?? report.chatgpt, icon: <Bot size={18} /> },
     { label: t("metrics.search"), value: report.search, icon: <Search size={18} /> },
     { label: t("metrics.reviews"), value: report.reviews, icon: <Star size={18} /> },
     { label: t("metrics.website"), value: report.website, icon: <Globe2 size={18} /> },
@@ -102,13 +114,7 @@ export default async function AiVisibilityPage({
               <p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">{t("subtitle")}</p>
             </div>
 
-            <Link
-              href={`/restaurants/${id}/ai-visibility?refresh=1`}
-              className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
-            >
-              <RefreshCw size={16} />
-              {t("rescan")}
-            </Link>
+            <VisibilityScanButton restaurantId={id} credits={user.subscription?.aiCredits || 0} canScan={hasGrowthAccess(user.subscription)} label={`${latestScan ? t("rescan") : t("liveScan.run")} · 10 créditos`} />
           </header>
 
           <section className="mt-7 overflow-hidden rounded-[38px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_35px_100px_rgba(44,31,18,0.24)]">
@@ -116,11 +122,11 @@ export default async function AiVisibilityPage({
               <div className="flex flex-col items-center justify-center border-b border-white/10 p-8 text-center xl:border-b-0 xl:border-r">
                 <div
                   className="grid h-48 w-48 place-items-center rounded-full p-[11px]"
-                  style={{ background: `conic-gradient(#D7B267 ${report.overall}%, rgba(255,255,255,.1) 0)` }}
+                  style={{ background: `conic-gradient(#D7B267 ${displayedOverall}%, rgba(255,255,255,.1) 0)` }}
                 >
                   <div className="grid h-full w-full place-items-center rounded-full bg-[#17120D]">
                     <div>
-                      <p className="text-6xl font-semibold tracking-[-0.08em]">{report.overall}</p>
+                      <p className="text-6xl font-semibold tracking-[-0.08em]">{displayedOverall}</p>
                       <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-white/45">
                         {t("scoreOutOf")}
                       </p>
@@ -134,7 +140,7 @@ export default async function AiVisibilityPage({
               <div className="p-6 sm:p-8 lg:p-10">
                 <div className="flex items-center gap-2 text-xs font-semibold text-white/45">
                   <Sparkles size={14} className="text-[#D7B267]" />
-                  {t("lastAnalysis")}
+                  {latestScan ? t("liveScan.measuredAt", { date: new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short" }).format(latestScan.completedAt || latestScan.createdAt) }) : t("lastAnalysis")}
                 </div>
                 <div className="mt-7 grid gap-x-8 gap-y-6 md:grid-cols-2">
                   {metrics.map((metric) => (
@@ -143,6 +149,22 @@ export default async function AiVisibilityPage({
                 </div>
               </div>
             </div>
+          </section>
+
+          <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-6 shadow-[0_24px_75px_rgba(80,55,30,0.07)] sm:p-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div><p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B58A45]">{t("liveScan.eyebrow")}</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("liveScan.title")}</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">{t("liveScan.description")}</p></div>
+              {latestScan && <div className="grid grid-cols-2 gap-2 sm:flex"><LiveMetric label={t("liveScan.mentionRate")} value={`${latestScan.mentionRate || 0}%`} /><LiveMetric label={t("liveScan.sources")} value={String(latestScan.sourceCount || 0)} /></div>}
+            </div>
+            {latestScan ? <div className="mt-6 grid gap-3 xl:grid-cols-3">
+              {latestScan.results.map((result) => <article key={result.id} className="rounded-[26px] border border-[#E8DCCB] bg-[#FFFDFC] p-5">
+                <div className="flex items-center justify-between gap-3"><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.13em] ${result.mentioned ? "bg-[#ECF7EC] text-[#3F6A4D]" : "bg-[#FCEBE8] text-[#9C332D]"}`}>{result.mentioned ? t("liveScan.mentioned") : t("liveScan.notMentioned")}</span>{result.position && <span className="text-xs font-black text-[#795D38]">#{result.position}</span>}</div>
+                <p className="mt-4 text-sm font-semibold leading-6">“{result.prompt}”</p>
+                {result.answerSummary && <p className="mt-3 text-xs leading-5 text-[#6B6258]">{result.answerSummary}</p>}
+                {result.competitors.length > 0 && <p className="mt-4 text-xs text-[#75695C]"><strong>{t("liveScan.competitors")}:</strong> {result.competitors.join(", ")}</p>}
+                {result.sourceUrls.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{result.sourceUrls.slice(0, 3).map((url) => <a key={url} href={url} target="_blank" rel="noreferrer" className="max-w-full truncate rounded-full border border-[#DCCCAD] bg-white px-3 py-1.5 text-[10px] font-bold text-[#795D38]">{safeHost(url)}</a>)}</div>}
+              </article>)}
+            </div> : <div className="mt-6 rounded-[26px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-8 text-center"><Radar className="mx-auto text-[#9B6F3B]" /><p className="mt-4 font-semibold">{t("liveScan.emptyTitle")}</p><p className="mt-2 text-sm text-[#6B6258]">{t("liveScan.emptyText")}</p></div>}
           </section>
 
           <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-6 shadow-[0_24px_75px_rgba(80,55,30,0.07)] sm:p-8">
@@ -246,4 +268,12 @@ function Query({ text }: { text: string }) {
       <CheckCircle2 size={17} className="shrink-0 text-[#BCA98F]" />
     </div>
   );
+}
+
+function LiveMetric({ label, value }: { label: string; value: string }) {
+  return <div className="min-w-28 rounded-[20px] border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-3 text-center"><p className="text-xl font-semibold">{value}</p><p className="mt-1 text-[9px] font-black uppercase tracking-[0.13em] text-[#8A7863]">{label}</p></div>;
+}
+
+function safeHost(url: string) {
+  try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return "fonte"; }
 }

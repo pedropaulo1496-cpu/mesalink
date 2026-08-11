@@ -92,7 +92,7 @@ export async function POST() {
     where: { userId: user.id },
     data: {
       plan: "GROWTH",
-      priceMonthly: 99,
+      priceMonthly: 75,
     },
   });
 

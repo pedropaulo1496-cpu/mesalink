@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
+import { hasGrowthAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 
 const benefitTypes = new Set(["PERCENT", "FIXED", "PERK"]);
@@ -38,8 +39,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Revê o benefício, o valor, a validade e os limites." }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  if (!hasGrowthAccess(user.subscription)) return NextResponse.json({ error: "Os cartões e promoções estão disponíveis no plano Growth." }, { status: 403 });
 
   const restaurant = await prisma.restaurant.findFirst({ where: { id, userId: user.id }, select: { id: true } });
   if (!restaurant) return NextResponse.json({ error: "Restaurante não encontrado." }, { status: 404 });
