@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { authOptions } from "@/lib/auth";
 import { AI_CREDIT_COSTS, hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
+import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -84,6 +85,7 @@ async function runBirthdays(restaurantId: string | null) {
           sentAt: new Date(),
           estimatedRevenue: 0,
           channel: "EMAIL",
+          trackingToken: createMarketingTrackingToken(),
         },
       });
       created += 1;
@@ -100,12 +102,12 @@ async function runBirthdays(restaurantId: string | null) {
         });
         creditCharged = true;
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-        const reserveUrl = `${baseUrl}/reserve/${restaurant.slug}`;
+        const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
         const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
           to: customer.email,
           subject: `${cleanSubject(customer.name)}, feliz aniversário`,
-          html: `<div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #E1D0B8;border-radius:28px;padding:32px"><p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#9B6F3B;font-weight:700">${escapeHtml(restaurant.name)}</p><h1 style="font-size:30px;line-height:1.1;color:#16120E">Feliz aniversário, ${escapeHtml(customer.name)}.</h1><p style="font-size:15px;line-height:1.6;color:#6B6258">Toda a equipa deseja-lhe um excelente dia. Esperamos recebê-lo novamente muito em breve.</p>${restaurant.birthdayOffer ? `<div style="margin-top:16px;padding:16px;border-radius:16px;background:#FFF9F0;border:1px solid #E1D0B8"><strong>Oferta especial</strong><p>${escapeHtml(restaurant.birthdayOffer)}</p></div>` : ""}<a href="${reserveUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700">Reservar mesa</a><p style="margin-top:28px;font-size:12px;color:#8A7C6D">Recebeu este email porque aceitou receber comunicações deste restaurante.</p></div></div>`,
+          html: `<div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #E1D0B8;border-radius:28px;padding:32px"><p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#9B6F3B;font-weight:700">${escapeHtml(restaurant.name)}</p><h1 style="font-size:30px;line-height:1.1;color:#16120E">Feliz aniversário, ${escapeHtml(customer.name)}.</h1><p style="font-size:15px;line-height:1.6;color:#6B6258">Toda a equipa deseja-lhe um excelente dia. Esperamos recebê-lo novamente muito em breve.</p>${restaurant.birthdayOffer ? `<div style="margin-top:16px;padding:16px;border-radius:16px;background:#FFF9F0;border:1px solid #E1D0B8"><strong>Oferta especial</strong><p>${escapeHtml(restaurant.birthdayOffer)}</p></div>` : ""}<a href="${clickUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700">Reservar mesa</a><p style="margin-top:28px;font-size:12px;color:#8A7C6D">Recebeu este email porque aceitou receber comunicações deste restaurante.</p>${marketingTrackingPixel(openUrl)}</div></div>`,
         });
         await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "SENT", sentAt: new Date(), deliveryId: delivery.data?.id || null, failureReason: null } });
         emailsSent += 1;

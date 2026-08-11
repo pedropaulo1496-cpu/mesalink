@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { authOptions } from "@/lib/auth";
 import { AI_CREDIT_COSTS, hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
+import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request, { params }: { params: Promise<{ conversationId: string }> }) {
@@ -51,12 +52,28 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
+  let trackingActionId: string | null = null;
   try {
+    const trackingAction = await prisma.marketingAction.create({
+      data: {
+        restaurantId: conversation.restaurantId,
+        customerId: conversation.customerId,
+        type: "FOLLOW_UP",
+        status: "QUEUED",
+        channel: "EMAIL",
+        sentAt: new Date(),
+        estimatedRevenue: conversation.estimatedRevenue,
+        trackingToken: createMarketingTrackingToken(),
+      },
+    });
+    trackingActionId = trackingAction.id;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, trackingAction.trackingToken!);
     const delivery = await resend.emails.send({
       from: `${conversation.restaurant.name} via MesaLink <noreply@mesalink.pt>`,
       to: conversation.contactEmail,
       subject: `${conversation.restaurant.name}: podemos ajudar?`,
-      html: `<div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px"><div style="max-width:560px;margin:auto;background:white;border:1px solid #E1D0B8;border-radius:24px;padding:30px"><p style="white-space:pre-wrap;line-height:1.65;color:#29221B">${escapeHtml(content)}</p><p style="margin-top:28px;font-size:12px;color:#817365">Mensagem enviada por ${escapeHtml(conversation.restaurant.name)} através do MesaLink porque aceitou receber comunicações deste restaurante.</p></div></div>`,
+      html: `<div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px"><div style="max-width:560px;margin:auto;background:white;border:1px solid #E1D0B8;border-radius:24px;padding:30px"><p style="white-space:pre-wrap;line-height:1.65;color:#29221B">${escapeHtml(content)}</p><a href="${clickUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700">Reservar mesa</a><p style="margin-top:28px;font-size:12px;color:#817365">Mensagem enviada por ${escapeHtml(conversation.restaurant.name)} através do MesaLink porque aceitou receber comunicações deste restaurante.</p>${marketingTrackingPixel(openUrl)}</div></div>`,
     });
 
     const now = new Date();
@@ -67,8 +84,26 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
       where: { id: conversationId },
       data: { status: "WAITING_CUSTOMER", lastMessagePreview: content, lastMessageAt: now, nextFollowUpAt: new Date(now.getTime() + 48 * 60 * 60 * 1000) },
     });
+    await prisma.marketingAction.update({
+      where: { id: trackingAction.id },
+      data: {
+        status: "SENT",
+        sentAt: now,
+        deliveryId: delivery.data?.id || null,
+        nextFollowUpAt: new Date(now.getTime() + 48 * 60 * 60 * 1000),
+      },
+    });
     return NextResponse.json({ success: true, message, creditsRemaining });
   } catch (error) {
+    if (trackingActionId) {
+      await prisma.marketingAction.update({
+        where: { id: trackingActionId },
+        data: {
+          status: "FAILED",
+          failureReason: error instanceof Error ? error.message.slice(0, 500) : "Email delivery failed",
+        },
+      }).catch(() => null);
+    }
     await refundAiCredits({
       userId: user.id,
       amount: AI_CREDIT_COSTS.REVENUE_EMAIL,

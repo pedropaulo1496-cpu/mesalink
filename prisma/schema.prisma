@@ -544,11 +544,17 @@ model MarketingAction {
   type   String
   status String @default("SENT")
 
-  sentAt      DateTime  @default(now())
-  openedAt    DateTime?
-  clickedAt   DateTime?
-  bookedAt    DateTime?
-  convertedAt DateTime?
+  sentAt        DateTime  @default(now())
+  openedAt      DateTime?
+  clickedAt     DateTime?
+  lastOpenedAt  DateTime?
+  lastClickedAt DateTime?
+  bookedAt      DateTime?
+  convertedAt   DateTime?
+
+  trackingToken String? @unique
+  openCount     Int     @default(0)
+  clickCount    Int     @default(0)
 
   reservationId String?
 

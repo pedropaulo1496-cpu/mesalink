@@ -61,6 +61,46 @@
     "viewAll": "Ver Growth Engine",
     "unknownCustomer": "Cliente",
     "empty": "Ainda não existem tentativas de recuperação. Executa a primeira automação acima.",
+    "tapHint": "Toca para ver detalhes",
+    "showAll": "Ver todas as {count} tentativas",
+    "showLess": "Mostrar apenas as mais recentes",
+    "privacyNote": "As aberturas são aproximadas: alguns serviços de email carregam imagens automaticamente. Cliques e reservas são sinais mais fiáveis.",
+    "summary": {
+      "sent": "Enviados",
+      "opened": "Abriram",
+      "clicked": "Clicaram",
+      "recovered": "Recuperado",
+      "attempts": "{count} tentativas registadas",
+      "rate": "{rate}% dos enviados",
+      "bookings": "{count} reservas atribuídas"
+    },
+    "result": {
+      "failed": "Não foi possível entregar",
+      "queued": "A aguardar envio",
+      "sent": "Enviado, ainda sem interação",
+      "opened": "{opens} aberturas registadas",
+      "clicked": "{clicks} cliques após {opens} aberturas",
+      "booked": "Reserva efetuada, receita por confirmar",
+      "converted": "Reserva atribuída · {amount}"
+    },
+    "details": {
+      "sent": "Envio",
+      "opens": "Aberturas",
+      "clicks": "Cliques",
+      "revenue": "Receita atribuída",
+      "potential": "Valor potencial",
+      "timeline": "Cronologia do resultado",
+      "sentAt": "Enviado",
+      "firstOpened": "Primeira abertura",
+      "firstClicked": "Primeiro clique",
+      "convertedAt": "Reserva recuperada",
+      "lastOpened": "Última abertura",
+      "lastClicked": "Último clique",
+      "nextFollowUp": "Próximo follow-up",
+      "notRecorded": "Ainda não aconteceu",
+      "deliveryFailed": "O serviço de email não conseguiu entregar esta mensagem.",
+      "viewCustomer": "Abrir ficha do cliente"
+    },
     "types": {
       "recovery": "Recuperação de cliente inativo",
       "birthday": "Mensagem de aniversário",
@@ -72,7 +112,9 @@
       "opened": "Aberto",
       "clicked": "Clicado",
       "booked": "Reservado",
-      "converted": "Recuperado"
+      "converted": "Recuperado",
+      "failed": "Falhou",
+      "queued": "Em fila"
     }
   },
   "upsell": {

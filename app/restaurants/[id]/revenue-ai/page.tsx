@@ -19,6 +19,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import RecoveryAutomationCard from "@/components/marketing/RecoveryAutomationCard";
+import RevenueActivityFeed from "@/components/revenue-ai/RevenueActivityFeed";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -110,7 +111,7 @@ export default async function RevenueAiPage({
       orderBy: { createdAt: "desc" },
       take: 100,
       include: {
-        customer: { select: { name: true } },
+        customer: { select: { id: true, name: true } },
       },
     }),
   ]);
@@ -132,13 +133,28 @@ export default async function RevenueAiPage({
       currency: "EUR",
       maximumFractionDigits: 0,
     }).format(value);
-  const formatDate = (value: Date) =>
-    new Intl.DateTimeFormat(intlLocale, {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(value);
+  const activityActions = marketingActions.map((action) => ({
+    id: action.id,
+    customerId: action.customer?.id ?? action.customerId,
+    customerName: action.customer?.name ?? null,
+    type: action.type,
+    status: action.status,
+    channel: action.channel,
+    sentAt: action.sentAt.toISOString(),
+    openedAt: action.openedAt?.toISOString() ?? null,
+    lastOpenedAt: action.lastOpenedAt?.toISOString() ?? null,
+    clickedAt: action.clickedAt?.toISOString() ?? null,
+    lastClickedAt: action.lastClickedAt?.toISOString() ?? null,
+    bookedAt: action.bookedAt?.toISOString() ?? null,
+    convertedAt: action.convertedAt?.toISOString() ?? null,
+    repliedAt: action.repliedAt?.toISOString() ?? null,
+    nextFollowUpAt: action.nextFollowUpAt?.toISOString() ?? null,
+    openCount: action.openCount,
+    clickCount: action.clickCount,
+    estimatedRevenue: action.estimatedRevenue === null ? null : Number(action.estimatedRevenue),
+    actualRevenue: action.actualRevenue === null ? null : Number(action.actualRevenue),
+    failureReason: action.failureReason,
+  }));
 
   const cancelledReservations = reservations.filter((item) =>
     ["CANCELLED", "REJECTED"].includes(item.status),
@@ -354,19 +370,11 @@ export default async function RevenueAiPage({
               </div>
               <Link href={`/restaurants/${id}/marketing`} className="hidden items-center gap-1 text-sm font-semibold text-[#7A542A] sm:flex">{t("activity.viewAll")}<ArrowUpRight size={16} /></Link>
             </div>
-            <div className="mt-6 space-y-3">
-              {marketingActions.slice(0, 6).map((action) => (
-                <div key={action.id} className="flex items-center gap-4 rounded-[24px] border border-[#E1D0B8] bg-white p-4">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#F1E6D5] text-[#8A6130]"><Mail size={17} /></div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{action.customer?.name || t("activity.unknownCustomer")}</p>
-                    <p className="mt-1 text-xs text-[#7D7164]">{actionLabel(action.type, t)} · {formatDate(action.sentAt)}</p>
-                  </div>
-                  <span className="rounded-full border border-[#DDCFBA] bg-[#FFF9F0] px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-[#795D38]">{statusLabel(action.status, t)}</span>
-                </div>
-              ))}
-              {marketingActions.length === 0 && <div className="rounded-[24px] border border-dashed border-[#D6C3A5] bg-white/60 p-8 text-center text-sm text-[#6B6258]">{t("activity.empty")}</div>}
-            </div>
+            <RevenueActivityFeed
+              restaurantId={id}
+              locale={intlLocale}
+              actions={activityActions}
+            />
           </section>
         </section>
       </div>
@@ -401,19 +409,4 @@ function ChannelRow({ icon, name, status, active = false }: { icon: ReactNode; n
 
 function LockedFeature({ icon, text }: { icon: ReactNode; text: string }) {
   return <div className="flex items-center gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 text-sm font-semibold"><span className="text-[#9B6F3B]">{icon}</span>{text}</div>;
-}
-
-function actionLabel(type: string, t: Awaited<ReturnType<typeof getTranslations>>) {
-  if (type === "INACTIVE_RECOVERY") return t("activity.types.recovery");
-  if (type === "BIRTHDAY") return t("activity.types.birthday");
-  if (type === "MANUAL_CAMPAIGN") return t("activity.types.campaign");
-  return t("activity.types.followup");
-}
-
-function statusLabel(status: string, t: Awaited<ReturnType<typeof getTranslations>>) {
-  if (status === "CONVERTED") return t("activity.status.converted");
-  if (status === "BOOKED") return t("activity.status.booked");
-  if (status === "CLICKED") return t("activity.status.clicked");
-  if (status === "OPENED") return t("activity.status.opened");
-  return t("activity.status.sent");
 }

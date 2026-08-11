@@ -21,6 +21,15 @@ async function createPublicReservation(formData: FormData) {
 
   const slug = String(formData.get("slug") || "");
   const restaurantId = String(formData.get("restaurantId") || "");
+  const marketingTokenValue = String(formData.get("marketingToken") || "");
+  const marketingToken = /^[a-f0-9]{48}$/.test(marketingTokenValue)
+    ? marketingTokenValue
+    : null;
+  const errorRedirect = (error: string) => {
+    const query = new URLSearchParams({ error });
+    if (marketingToken) query.set("ml_action", marketingToken);
+    return `/reserve/${slug}?${query.toString()}`;
+  };
   const tableIdValue = String(formData.get("tableId") ?? "");
   const customerName = String(formData.get("customerName") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
@@ -31,11 +40,11 @@ async function createPublicReservation(formData: FormData) {
   const reservationMode = String(formData.get("reservationMode") ?? "TABLES");
 
   if (!customerName || !phone || !email) {
-    redirect(`/reserve/${slug}?error=missing`);
+    redirect(errorRedirect("missing"));
   }
 
   if (!isValidEmail(email)) {
-    redirect(`/reserve/${slug}?error=email`);
+    redirect(errorRedirect("email"));
   }
 
   const birthDate = birthDateValue
@@ -43,7 +52,7 @@ async function createPublicReservation(formData: FormData) {
     : null;
 
   if (date < new Date()) {
-    redirect(`/reserve/${slug}?error=past`);
+    redirect(errorRedirect("past"));
   }
 
   const restaurant = await prisma.restaurant.findUnique({
@@ -95,7 +104,7 @@ async function createPublicReservation(formData: FormData) {
     const coversThisMonth = Number(coversThisMonthResult[0]?.total || 0);
 
     if (coversThisMonth + guests > 100) {
-      redirect(`/reserve/${slug}?error=free_limit`);
+      redirect(errorRedirect("free_limit"));
     }
   }
 
@@ -133,7 +142,7 @@ async function createPublicReservation(formData: FormData) {
     });
 
     if (conflictingReservation) {
-      redirect(`/reserve/${slug}?error=conflict`);
+      redirect(errorRedirect("conflict"));
     }
   }
 
@@ -273,23 +282,35 @@ async function createPublicReservation(formData: FormData) {
   // Se a reserva já existia e estava ativa, não repetir efeitos secundários
   // (conversão de marketing, email de confirmação) — só avisar o cliente.
   if (!alreadyBooked) {
-    await prisma.marketingAction.updateMany({
+    const actionToAttribute = await prisma.marketingAction.findFirst({
       where: {
         customerId: customer.id,
         restaurantId: restaurant.id,
-        status: {
-          in: ["SENT", "OPENED", "CLICKED"],
-        },
-        type: {
-          in: ["INACTIVE_RECOVERY", "BIRTHDAY"],
-        },
+        status: { in: ["SENT", "OPENED", "CLICKED", "BOOKED"] },
+        ...(marketingToken
+          ? { trackingToken: marketingToken }
+          : {
+              type: {
+                in: ["INACTIVE_RECOVERY", "BIRTHDAY", "MANUAL_CAMPAIGN", "FOLLOW_UP"],
+              },
+            }),
       },
-      data: {
-        status: "CONVERTED",
-        convertedAt: new Date(),
-        estimatedRevenue: guests * (restaurant.averageTicket ?? 25),
-      },
+      orderBy: { sentAt: "desc" },
+      select: { id: true },
     });
+
+    if (actionToAttribute) {
+      await prisma.marketingAction.update({
+        where: { id: actionToAttribute.id },
+        data: {
+          status: "CONVERTED",
+          bookedAt: new Date(),
+          convertedAt: new Date(),
+          reservationId: finalReservation.id,
+          estimatedRevenue: guests * (restaurant.averageTicket ?? 25),
+        },
+      });
+    }
 
     const shouldSendEmail =
       ["ESSENTIALS", "GROWTH", "PRO"].includes(plan) &&
@@ -370,10 +391,15 @@ export default async function PublicReservePage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; ml_action?: string }>;
 }) {
   const { slug } = await params;
-  const { error } = await searchParams;
+  const { error, ml_action: marketingTokenValue } = await searchParams;
+  const marketingToken =
+    typeof marketingTokenValue === "string" &&
+    /^[a-f0-9]{48}$/.test(marketingTokenValue)
+      ? marketingTokenValue
+      : undefined;
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { slug },
@@ -391,6 +417,7 @@ export default async function PublicReservePage({
     <ReserveForm
       restaurant={restaurant}
       error={error}
+      marketingToken={marketingToken}
       createPublicReservation={createPublicReservation}
     />
   );

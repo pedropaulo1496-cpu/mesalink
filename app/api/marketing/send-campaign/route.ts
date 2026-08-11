@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { AI_CREDIT_COSTS, hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
+import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -129,8 +130,6 @@ export async function POST(request: Request) {
     let emailsSent = 0;
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const reserveUrl = `${baseUrl}/reserve/${restaurant.slug}`;
-
     for (const customer of customers) {
       const action = await prisma.marketingAction.create({
         data: {
@@ -141,6 +140,7 @@ export async function POST(request: Request) {
           sentAt: new Date(),
           estimatedRevenue: 0,
           channel: "EMAIL",
+          trackingToken: createMarketingTrackingToken(),
         },
       });
       const creditReference = `marketing_campaign:${action.id}`;
@@ -154,6 +154,7 @@ export async function POST(request: Request) {
           reference: creditReference,
         });
         creditCharged = true;
+        const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
         const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
           to: customer.email!,
@@ -174,7 +175,7 @@ export async function POST(request: Request) {
                 </p>
 
                 <a
-                  href="${reserveUrl}"
+                  href="${clickUrl}"
                   style="
                     display:inline-block;
                     margin-top:24px;
@@ -193,6 +194,7 @@ export async function POST(request: Request) {
                 <p style="margin-top:28px;font-size:12px;line-height:1.5;color:#8A7C6D;">
                   Recebeu este email porque aceitou receber comunicações deste restaurante.
                 </p>
+                ${marketingTrackingPixel(openUrl)}
               </div>
             </div>
           `,

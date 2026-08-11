@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { AI_CREDIT_COSTS, hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
+import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -117,6 +118,7 @@ async function runRecovery(restaurantId: unknown) {
           sentAt: new Date(),
           estimatedRevenue: Number(restaurant.averageTicket || 25),
           channel: "EMAIL",
+          trackingToken: createMarketingTrackingToken(),
         },
       });
 
@@ -134,7 +136,7 @@ async function runRecovery(restaurantId: unknown) {
         });
         creditCharged = true;
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-        const reserveUrl = `${baseUrl}/reserve/${restaurant.slug}`;
+        const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
 
         const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
@@ -169,13 +171,14 @@ async function runRecovery(restaurantId: unknown) {
                     : ""
                 }
 
-                <a href="${reserveUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:white;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;font-size:14px;">
+                <a href="${clickUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:white;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;font-size:14px;">
                   Reservar mesa
                 </a>
 
                 <p style="margin-top:28px;font-size:12px;line-height:1.5;color:#8A7C6D;">
                   Recebeu este email porque aceitou receber comunicações deste restaurante.
                 </p>
+                ${marketingTrackingPixel(openUrl)}
               </div>
             </div>
           `,

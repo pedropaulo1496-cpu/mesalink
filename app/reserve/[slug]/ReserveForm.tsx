@@ -180,10 +180,12 @@ function getTodayDateValue() {
 export default function ReserveForm({
   restaurant,
   error,
+  marketingToken,
   createPublicReservation,
 }: {
   restaurant: Restaurant;
   error?: string;
+  marketingToken?: string;
   createPublicReservation: (formData: FormData) => void;
 }) {
   const t = useTranslations("publicFlows.reserve");
@@ -510,6 +512,9 @@ export default function ReserveForm({
               >
                 <input type="hidden" name="slug" value={restaurant.slug} />
                 <input type="hidden" name="restaurantId" value={restaurant.id} />
+                {marketingToken && (
+                  <input type="hidden" name="marketingToken" value={marketingToken} />
+                )}
                 <input type="hidden" name="date" value={selectedDateValue} />
                 <input type="hidden" name="guests" value={guests} />
                 <input

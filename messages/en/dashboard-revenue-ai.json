@@ -61,6 +61,46 @@
     "viewAll": "View Growth Engine",
     "unknownCustomer": "Customer",
     "empty": "There are no recovery attempts yet. Run the first automation above.",
+    "tapHint": "Tap to see details",
+    "showAll": "View all {count} attempts",
+    "showLess": "Show recent attempts only",
+    "privacyNote": "Opens are approximate: some email services load images automatically. Clicks and bookings are more reliable signals.",
+    "summary": {
+      "sent": "Sent",
+      "opened": "Opened",
+      "clicked": "Clicked",
+      "recovered": "Recovered",
+      "attempts": "{count} recorded attempts",
+      "rate": "{rate}% of sent",
+      "bookings": "{count} attributed bookings"
+    },
+    "result": {
+      "failed": "Delivery failed",
+      "queued": "Waiting to send",
+      "sent": "Sent, no interaction yet",
+      "opened": "{opens} recorded opens",
+      "clicked": "{clicks} clicks after {opens} opens",
+      "booked": "Booking made, revenue pending",
+      "converted": "Attributed booking · {amount}"
+    },
+    "details": {
+      "sent": "Delivery",
+      "opens": "Opens",
+      "clicks": "Clicks",
+      "revenue": "Attributed revenue",
+      "potential": "Potential value",
+      "timeline": "Result timeline",
+      "sentAt": "Sent",
+      "firstOpened": "First open",
+      "firstClicked": "First click",
+      "convertedAt": "Recovered booking",
+      "lastOpened": "Last open",
+      "lastClicked": "Last click",
+      "nextFollowUp": "Next follow-up",
+      "notRecorded": "Not happened yet",
+      "deliveryFailed": "The email service could not deliver this message.",
+      "viewCustomer": "Open customer profile"
+    },
     "types": {
       "recovery": "Inactive customer recovery",
       "birthday": "Birthday message",
@@ -72,7 +112,9 @@
       "opened": "Opened",
       "clicked": "Clicked",
       "booked": "Booked",
-      "converted": "Recovered"
+      "converted": "Recovered",
+      "failed": "Failed",
+      "queued": "Queued"
     }
   },
   "upsell": {
