@@ -69,6 +69,17 @@
       "recommendedCampaign": "Recommended campaign",
       "recommendedCampaignText": "Recover customers with no recent visit using a controlled incentive."
     },
+    "summary": {
+      "today": { "eyebrow": "Today's operation", "title": "What matters now", "openDay": "Open service", "reservations": "Bookings", "guests": "Guests", "pending": "Pending", "qrOrders": "QR orders", "occupancy": "Expected occupancy" },
+      "attention": { "eyebrow": "Action needed", "title": "Needs your attention", "reservations": "Bookings to confirm", "groups": "Partner groups to answer", "conversations": "Revenue AI inbox conversations", "qrOrders": "QR orders in progress", "clear": "Everything is handled. No pending actions." },
+      "upcoming": { "eyebrow": "Schedule", "title": "Upcoming bookings", "all": "View all", "guests": "{count, plural, one {# guest} other {# guests}}", "pending": "to confirm", "empty": "There are no upcoming bookings yet." },
+      "growth": { "eyebrow": "Growth", "title": "Restaurant pulse", "active": "Active", "available": "Available on Growth" },
+      "marketing": { "eyebrow": "Marketing & Loyalty", "performance": "{sent} contacts this month · {rate}% opened", "empty": "No contacts have been sent this month yet." },
+      "ai": { "eyebrow": "AI Visibility", "noScan": "Not measured", "performance": "{mentions}% presence · {sources} sources", "runScan": "Run the first real diagnostic.", "priceBelow": "Price below the area", "priceAbove": "Price above the area", "priceAligned": "Price aligned with the area" },
+      "partners": { "eyebrow": "Partner Network", "pending": "{count, plural, one {# new group} other {# new groups}}", "clear": "No new requests", "booked": "{count, plural, =0 {No future groups} one {# group already booked} other {# groups already booked}}" },
+      "website": { "eyebrow": "Website", "published": "Published", "draft": "Not finished", "finish": "Complete and publish the website." },
+      "quick": { "eyebrow": "Shortcuts", "title": "Frequent actions", "newReservation": "New booking", "day": "Today's service", "bookingPage": "Booking page", "website": "Open website" }
+    },
     "reservationLink": {
       "sectionLabel": "Online reservations",
       "title": "Public link",

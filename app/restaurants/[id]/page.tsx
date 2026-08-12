@@ -1,17 +1,29 @@
-import SignOutButton from "@/components/SignOutButton";
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { getLocale, getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
+import {
+  ArrowUpRight,
+  CalendarCheck2,
+  CalendarClock,
+  CheckCircle2,
+  CircleDollarSign,
+  Clock3,
+  Globe2,
+  Handshake,
+  Plus,
+  QrCode,
+  Sparkles,
+  UsersRound,
+} from "lucide-react";
+import BottomNav from "@/components/BottomNav";
+import RestaurantSidebar from "@/components/RestaurantSidebar";
+import SignOutButton from "@/components/SignOutButton";
 import { authOptions } from "@/lib/auth";
 import { canAccessApp, getUserWithSubscription } from "@/lib/check-subscription";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import type { ReactNode } from "react";
-import CopyButton from "@/components/CopyButton";
-import RestaurantSidebar from "@/components/RestaurantSidebar";
-import BottomNav from "@/components/BottomNav";
-import UpgradeToGrowthButton from "@/components/UpgradeToGrowthButton";
-import DashboardRecoveryButton from "@/components/marketing/DashboardRecoveryButton";
-import { getLocale, getTranslations } from "next-intl/server";
+import { parsePriceBenchmark } from "@/lib/ai-visibility-pricing";
+import { prisma } from "@/lib/prisma";
 
 type TFunc = (key: string, values?: Record<string, string | number>) => string;
 
@@ -24,48 +36,30 @@ const dashboardDateLocales: Record<string, string> = {
   es: "es-ES",
 };
 
-function money(value: number) {
-  return `${value.toFixed(2)}€`;
-}
+type ReservationSummary = {
+  id: string;
+  customerName: string;
+  date: Date;
+  guests: number;
+  status: string;
+};
 
 function sameDay(a: Date, b: Date) {
-  return (
-    a.getDate() === b.getDate() &&
-    a.getMonth() === b.getMonth() &&
-    a.getFullYear() === b.getFullYear()
-  );
+  return a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
 }
 
-function startOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
+function formatMoney(value: number, locale: string) {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(value || 0);
 }
 
-function getLineGross(item: any) {
-  return Number(
-    item.totalPrice ??
-      item.lineTotal ??
-      Number(item.unitPrice ?? 0) * Number(item.quantity ?? 0),
-  );
-}
-
-function getLineVatRate(item: any, product?: any) {
-  return Number(item.vatRate ?? product?.vatRate ?? 0);
-}
-
-function getLineNet(gross: number, vatRate: number) {
-  if (!vatRate || vatRate <= 0) return gross;
-  return gross / (1 + vatRate / 100);
-}
-
-export default async function RestaurantPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function RestaurantPage({ params }: { params: Promise<{ id: string }> }) {
   const t = await getTranslations("dashboardOverview.home");
   const locale = await getLocale();
   const intlLocale = dashboardDateLocales[locale] ?? "pt-PT";
-
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
 
@@ -73,39 +67,18 @@ export default async function RestaurantPage({
   if (!hasAccess) redirect("/billing");
 
   const billingUser = await getUserWithSubscription(session.user.email);
-
   const subscription = billingUser?.subscription;
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const trialEndsAt = subscription?.trialEndsAt ?? null;
-  const nowForBilling = new Date();
-
-  const trialActive =
-    subscription?.status === "TRIAL" &&
-    trialEndsAt &&
-    trialEndsAt > nowForBilling;
-
-  const trialDaysTotal = 7;
+  const trialActive = subscription?.status === "TRIAL" && Boolean(trialEndsAt && trialEndsAt > now);
   const trialDaysLeft = trialEndsAt
-    ? Math.max(
-        0,
-        Math.ceil(
-          (trialEndsAt.getTime() - nowForBilling.getTime()) /
-            (1000 * 60 * 60 * 24),
-        ),
-      )
+    ? Math.max(0, Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
     : 0;
-
-  const trialProgress = trialEndsAt
-    ? Math.min(
-        100,
-        Math.max(0, Math.round(((trialDaysTotal - trialDaysLeft) / trialDaysTotal) * 100)),
-      )
-    : 0;
-
+  const trialProgress = trialEndsAt ? Math.min(100, Math.max(0, Math.round(((7 - trialDaysLeft) / 7) * 100))) : 0;
   const subscriptionPlan = String(subscription?.plan ?? "").toUpperCase();
   const subscriptionActive = subscription?.status === "ACTIVE";
-const isGrowthPlan =
-  trialActive || (subscriptionActive && subscriptionPlan === "GROWTH");
-  const isEssentialsPlan = subscriptionActive && subscriptionPlan === "ESSENTIALS";
+  const growthAccess = trialActive || (subscriptionActive && subscriptionPlan === "GROWTH");
   const billingLabel = trialActive
     ? t("billing.trial")
     : subscriptionActive && subscriptionPlan === "GROWTH"
@@ -113,44 +86,28 @@ const isGrowthPlan =
       : subscriptionActive && subscriptionPlan === "ESSENTIALS"
         ? t("billing.essentials")
         : t("billing.subscription");
-
   const billingSubLabel = trialActive
     ? t("billing.trialDaysLeft", { days: trialDaysLeft })
     : subscriptionActive
       ? t("billing.active")
       : t("billing.renew");
-
   const billingProgress = trialActive ? trialProgress : subscriptionActive ? 100 : 0;
 
   const { id } = await params;
-  const includeVat = true;
-
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
       tables: { include: { reservations: true } },
       reservations: true,
-      orderingOrders: {
-        orderBy: { createdAt: "desc" },
-        take: 800,
-        include: { items: true },
-      },
       orderingTableSessions: {
         where: { status: "OPEN" },
-        include: { orders: { include: { items: true } } },
-      },
-      orderingCategories: {
-        include: { products: true },
+        include: { orders: { select: { status: true } } },
       },
     },
   });
 
   if (!restaurant) {
-    return (
-      <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">
-        {t("notFound")}
-      </main>
-    );
+    return <main className="min-h-screen bg-[#F5EFE6] p-6 text-[#16120E]">{t("notFound")}</main>;
   }
 
   const hasConfiguredHours = [
@@ -169,835 +126,219 @@ const isGrowthPlan =
     restaurant.sundayLunch,
     restaurant.sundayDinner,
   ].some(Boolean);
+  if (!hasConfiguredHours) redirect(`/restaurants/${id}/settings?setup=true`);
 
-  if (!hasConfiguredHours) {
-    redirect(`/restaurants/${id}/settings?setup=true`);
-  }
-
-  const now = new Date();
-  const monthStart = startOfMonth(now);
-
-  const customers = await prisma.customer.findMany({
-    where: {
-      reservations: {
-        some: {
-          restaurantId: id,
-        },
+  const [marketingActions, latestScan, pendingPartnerOffers, bookedPartnerGroups, openRevenueConversations] = await Promise.all([
+    prisma.marketingAction.findMany({
+      where: { restaurantId: id, sentAt: { gte: monthStart } },
+      select: {
+        status: true,
+        openedAt: true,
+        bookedAt: true,
+        convertedAt: true,
+        openCount: true,
+        estimatedRevenue: true,
+        actualRevenue: true,
       },
-    },
-  });
+    }),
+    prisma.aiVisibilityScan.findFirst({
+      where: { restaurantId: id, status: "COMPLETED" },
+      orderBy: { createdAt: "desc" },
+      select: { overallScore: true, mentionRate: true, sourceCount: true, priceBenchmark: true, completedAt: true },
+    }),
+    prisma.referralOffer.count({
+      where: { restaurantId: id, status: "PENDING", group: { status: "OPEN" } },
+    }),
+    prisma.referralGroup.count({
+      where: { acceptedRestaurantId: id, status: "BOOKED", desiredDate: { gte: now } },
+    }),
+    prisma.revenueConversation.count({
+      where: { restaurantId: id, status: { notIn: ["RECOVERED", "LOST", "ARCHIVED"] } },
+    }),
+  ]);
 
-  const acceptedQrStatuses = [
-    "ACCEPTED",
-    "PREPARING",
-    "READY",
-    "DELIVERED",
-    "COMPLETED",
-    "PAID",
-    "CONFIRMED",
-  ];
-
-  const qrRevenueOrders = (restaurant.orderingOrders ?? []).filter((order: any) => {
-    const status = String(order.status ?? "").toUpperCase();
-
-    return acceptedQrStatuses.includes(status);
-  });
-
-  const tableReservations = restaurant.tables.flatMap((table) =>
-    table.reservations.map((reservation) => ({
-      ...reservation,
-      tableNumber: table.number,
-    })),
+  const tableReservations = restaurant.tables.flatMap((table) => table.reservations);
+  const allReservations = [...tableReservations, ...restaurant.reservations].filter(
+    (reservation, index, array) => array.findIndex((item) => item.id === reservation.id) === index,
   );
-
-  const directReservations = restaurant.reservations.map((reservation) => ({
-    ...reservation,
-    tableNumber: null as number | null,
-  }));
-
-  const allReservations = [...tableReservations, ...directReservations].filter(
-    (reservation, index, array) =>
-      array.findIndex((item) => item.id === reservation.id) === index,
-  );
-
   const inactiveStatuses = ["CANCELLED", "REJECTED", "NO_SHOW"];
-
-  const activeReservations = allReservations.filter(
-    (reservation) => !inactiveStatuses.includes(String(reservation.status)),
-  );
-
-  const reservationsToday = activeReservations.filter((reservation) =>
-    sameDay(new Date(reservation.date), now),
-  );
-
-  const pendingToday = reservationsToday.filter(
-    (reservation) => reservation.status === "PENDING",
-  );
-
-  const guestsToday = reservationsToday.reduce(
-    (total, reservation) => total + reservation.guests,
-    0,
-  );
-
-  const nextReservations = activeReservations
-    .filter((reservation) => new Date(reservation.date) >= new Date())
+  const activeReservations = allReservations.filter((reservation) => !inactiveStatuses.includes(String(reservation.status)));
+  const reservationsToday = activeReservations.filter((reservation) => sameDay(new Date(reservation.date), now));
+  const pendingToday = reservationsToday.filter((reservation) => reservation.status === "PENDING");
+  const guestsToday = reservationsToday.reduce((total, reservation) => total + reservation.guests, 0);
+  const nextReservations: ReservationSummary[] = activeReservations
+    .filter((reservation) => new Date(reservation.date) >= now)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 5);
-
-  const totalCapacity =
-    restaurant.reservationMode === "CAPACITY" && restaurant.totalCapacity
-      ? restaurant.totalCapacity
-      : restaurant.tables.reduce((total, table) => total + table.capacity, 0);
-
-  const occupancyRate =
-    totalCapacity > 0 ? Math.round((guestsToday / totalCapacity) * 100) : 0;
-
+    .slice(0, 4)
+    .map((reservation) => ({
+      id: reservation.id,
+      customerName: reservation.customerName,
+      date: reservation.date,
+      guests: reservation.guests,
+      status: reservation.status,
+    }));
+  const totalCapacity = restaurant.reservationMode === "CAPACITY" && restaurant.totalCapacity
+    ? restaurant.totalCapacity
+    : restaurant.tables.reduce((total, table) => total + table.capacity, 0);
+  const occupancyRate = totalCapacity > 0 ? Math.min(100, Math.round((guestsToday / totalCapacity) * 100)) : 0;
   const qrOrdersOpen = restaurant.orderingTableSessions.reduce(
-    (total, tableSession) =>
-      total +
-      tableSession.orders.filter((order) => {
-        const status = String(order.status ?? "").toUpperCase();
-
-        return ["ACCEPTED", "PREPARING", "READY"].includes(status);
-      }).length,
+    (total, tableSession) => total + tableSession.orders.filter((order) => ["ACCEPTED", "PREPARING", "READY"].includes(String(order.status).toUpperCase())).length,
     0,
   );
 
-  const riskyCustomers = customers.filter(
-    (customer) => (customer.riskScore ?? 0) >= 50,
+  const sentActions = marketingActions.filter((action) => action.status !== "FAILED");
+  const openedActions = sentActions.filter((action) => action.openedAt || action.openCount > 0);
+  const convertedActions = sentActions.filter(
+    (action) => action.convertedAt || action.bookedAt || ["BOOKED", "CONVERTED"].includes(action.status),
   );
-
-  const riskyRevenue = riskyCustomers.reduce(
-    (total, customer) =>
-      total +
-      (customer.totalVisits ?? customer.visitCount ?? 0) *
-        Number(restaurant.averageTicket || 25),
+  const attributedRevenue = convertedActions.reduce(
+    (total, action) => total + Number(action.actualRevenue || action.estimatedRevenue || 0),
     0,
   );
-
-  const productMap = new Map<string, any>();
-
-  for (const category of restaurant.orderingCategories ?? []) {
-    for (const product of category.products ?? []) {
-      productMap.set(product.id, {
-        ...product,
-        categoryName: category.name,
-      });
-    }
-  }
-
-  function buildSalesStats(from: Date) {
-    const categoryMap = new Map<string, { name: string; gross: number; net: number; vat: number; quantity: number }>();
-    const productSalesMap = new Map<string, { name: string; category: string; gross: number; net: number; vat: number; quantity: number }>();
-
-    let gross = 0;
-    let net = 0;
-    let vat = 0;
-
-    for (const order of qrRevenueOrders ?? []) {
-      const createdAt = new Date(order.createdAt ?? 0);
-      if (createdAt < from) continue;
-
-      for (const item of order.items ?? []) {
-        const product = item.productId ? productMap.get(item.productId) : null;
-        const lineGross = getLineGross(item);
-        const vatRate = getLineVatRate(item, product);
-        const lineNet = getLineNet(lineGross, vatRate);
-        const lineVat = Math.max(0, lineGross - lineNet);
-        const quantity = Number(item.quantity ?? 0);
-        const productName = item.productName ?? product?.name ?? "Produto";
-        const categoryName = product?.categoryName ?? "Sem categoria";
-
-        gross += lineGross;
-        net += lineNet;
-        vat += lineVat;
-
-        const categoryCurrent = categoryMap.get(categoryName) ?? {
-          name: categoryName,
-          gross: 0,
-          net: 0,
-          vat: 0,
-          quantity: 0,
-        };
-
-        categoryCurrent.gross += lineGross;
-        categoryCurrent.net += lineNet;
-        categoryCurrent.vat += lineVat;
-        categoryCurrent.quantity += quantity;
-        categoryMap.set(categoryName, categoryCurrent);
-
-        const productKey = item.productId ?? productName;
-        const productCurrent = productSalesMap.get(productKey) ?? {
-          name: productName,
-          category: categoryName,
-          gross: 0,
-          net: 0,
-          vat: 0,
-          quantity: 0,
-        };
-
-        productCurrent.gross += lineGross;
-        productCurrent.net += lineNet;
-        productCurrent.vat += lineVat;
-        productCurrent.quantity += quantity;
-        productSalesMap.set(productKey, productCurrent);
-      }
-    }
-
-    return {
-      gross,
-      net,
-      vat,
-      categories: Array.from(categoryMap.values()).sort((a, b) => b.gross - a.gross),
-      products: Array.from(productSalesMap.values()).sort((a, b) => b.net - a.net),
-    };
-  }
-
-  const monthSalesStats = buildSalesStats(monthStart);
-
-  function valueWithoutFlatVat(value: number, stats: { gross: number; net: number }) {
-    if (includeVat) return value;
-    if (stats.gross <= 0) return value;
-    return value * (stats.net / stats.gross);
-  }
-
+  const openRate = sentActions.length ? Math.round((openedActions.length / sentActions.length) * 100) : 0;
+  const priceBenchmark = parsePriceBenchmark(latestScan?.priceBenchmark);
+  const pricePosition = priceBenchmark?.position === "BELOW"
+    ? t("summary.ai.priceBelow")
+    : priceBenchmark?.position === "ABOVE"
+      ? t("summary.ai.priceAbove")
+      : priceBenchmark?.position === "ALIGNED"
+        ? t("summary.ai.priceAligned")
+        : null;
+  const attentionCount = pendingToday.length + pendingPartnerOffers + openRevenueConversations + qrOrdersOpen;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.mesalink.pt";
-  const publicUrl = `${appUrl}/reserve/${restaurant.slug}`;
-  const websiteUrl =
-    restaurant.customDomainVerified && restaurant.customDomain
-      ? `https://${restaurant.customDomain}`
-      : `https://${restaurant.slug}.mesalink.pt`;
+  const reservationUrl = `${appUrl}/reserve/${restaurant.slug}`;
+  const websiteUrl = restaurant.customDomainVerified && restaurant.customDomain
+    ? `https://${restaurant.customDomain}`
+    : `https://${restaurant.slug}.mesalink.pt`;
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
       <div className="grid min-h-screen lg:grid-cols-[276px_1fr]">
         <RestaurantSidebar id={id} restaurantName={restaurant.name} />
 
-        <section className="px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-7 lg:pt-7">
+        <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-8 lg:pt-7">
           <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#9B6F3B]">
-                {t("eyebrow")}
-              </p>
-
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <h1 className="text-4xl font-semibold leading-none tracking-[-0.065em] sm:text-5xl">
-                  {restaurant.name}
-                </h1>
-
-                <span
-                  className={`rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
-                    restaurant.onlineReservationsEnabled
-                      ? "border-[#B7D7B8] bg-[#ECF7EC] text-[#3F6A4D]"
-                      : "border-[#E7B7A8] bg-[#FFF0EA] text-[#A14E36]"
-                  }`}
-                >
+              <div className="flex flex-wrap items-center gap-2.5">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#9B6F3B]">{t("eyebrow")}</p>
+                <span className={`rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.13em] ${restaurant.onlineReservationsEnabled ? "border-[#B7D7B8] bg-[#ECF7EC] text-[#3F6A4D]" : "border-[#E7B7A8] bg-[#FFF0EA] text-[#A14E36]"}`}>
                   {restaurant.onlineReservationsEnabled ? t("statusOnline") : t("statusOffline")}
                 </span>
               </div>
-
-              <p className="mt-3 text-sm text-[#6B6258]">
-                {restaurant.address || t("addressFallback")}
-              </p>
+              <h1 className="mt-2 text-3xl font-semibold leading-none tracking-[-0.06em] sm:text-4xl">{restaurant.name}</h1>
+              <p className="mt-2 text-sm capitalize text-[#6B6258]">{new Intl.DateTimeFormat(intlLocale, { weekday: "long", day: "numeric", month: "long" }).format(now)}</p>
             </div>
-
             <div className="flex flex-wrap items-center gap-2">
-              {billingUser?.isAdmin && (
-                <Link
-            href="/backoffice"
-                  className="rounded-full border border-[#C8A56A] bg-[#FFF7E8] px-4 py-3 text-xs font-bold text-[#7B5528] transition hover:bg-white"
-                >
-                  MesaLink Admin
-                </Link>
-              )}
-              <SubscriptionStatusButton
-                restaurantId={id}
-                label={billingLabel}
-                subLabel={billingSubLabel}
-                progress={billingProgress}
-                expired={!trialActive && !subscriptionActive}
-              />
+              {billingUser?.isAdmin && <Link href="/backoffice" className="rounded-full border border-[#C8A56A] bg-[#FFF7E8] px-4 py-3 text-xs font-bold text-[#7B5528]">MesaLink Admin</Link>}
+              <SubscriptionStatusButton restaurantId={id} label={billingLabel} subLabel={billingSubLabel} progress={billingProgress} expired={!trialActive && !subscriptionActive} />
               <SignOutButton />
             </div>
           </header>
 
-          <section className="mt-7 grid gap-3 sm:grid-cols-2">
-            <MetricCard label={t("metrics.reservationsToday")} value={reservationsToday.length} sub={t("metrics.coversToday", { count: guestsToday })} strong />
-            <MetricCard label={t("metrics.qrActive")} value={qrOrdersOpen} sub={t("metrics.qrOpenOrders")} />
-          </section>
+          <section className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
+            <div className="overflow-hidden rounded-[28px] bg-[#17120D] text-white shadow-[0_22px_70px_rgba(42,28,16,0.14)]">
+              <div className="flex flex-col gap-4 p-5 sm:p-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#D7B267]">{t("summary.today.eyebrow")}</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">{t("summary.today.title")}</h2></div>
+                  <Link href={`/restaurants/${id}/day`} className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-[#17120D]">{t("summary.today.openDay")} <ArrowUpRight size={13} /></Link>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <DarkMetric icon={<CalendarCheck2 size={16} />} value={String(reservationsToday.length)} label={t("summary.today.reservations")} />
+                  <DarkMetric icon={<UsersRound size={16} />} value={String(guestsToday)} label={t("summary.today.guests")} />
+                  <DarkMetric icon={<Clock3 size={16} />} value={String(pendingToday.length)} label={t("summary.today.pending")} alert={pendingToday.length > 0} />
+                  <DarkMetric icon={<QrCode size={16} />} value={String(qrOrdersOpen)} label={t("summary.today.qrOrders")} alert={qrOrdersOpen > 0} />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.12em] text-white/55"><span>{t("summary.today.occupancy")}</span><span>{guestsToday}/{totalCapacity || 0} · {occupancyRate}%</span></div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#D7B267]" style={{ width: `${occupancyRate}%` }} /></div>
+                </div>
+              </div>
+            </div>
 
-          <section className="mt-6 grid gap-6 xl:grid-cols-2">
-            <CompactOpsCard
-              t={t}
-              reservationsToday={reservationsToday.length}
-              pendingToday={pendingToday.length}
-              guestsToday={guestsToday}
-              totalCapacity={totalCapacity}
-              occupancyRate={occupancyRate}
-              tablesCount={restaurant.tables.length}
-            />
-
-            <ReservationLinkCard t={t} id={id} publicUrl={publicUrl} websiteUrl={websiteUrl} />
-          </section>
-
-          <section className="mt-6 grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-            <ReservationsCompactCard t={t} intlLocale={intlLocale} id={id} reservations={nextReservations} />
-            <MarketingRoiCard
+            <AttentionCard
               t={t}
               restaurantId={id}
-              isGrowth={isGrowthPlan}
-              riskyCustomers={riskyCustomers}
-              riskyRevenue={valueWithoutFlatVat(riskyRevenue, monthSalesStats)}
-              averageTicket={valueWithoutFlatVat(Number(restaurant.averageTicket || 25), monthSalesStats)}
+              total={attentionCount}
+              pendingReservations={pendingToday.length}
+              partnerOffers={pendingPartnerOffers}
+              conversations={openRevenueConversations}
+              qrOrders={qrOrdersOpen}
             />
+          </section>
+
+          <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(320px,0.72fr)_minmax(0,1.28fr)]">
+            <UpcomingReservations t={t} intlLocale={intlLocale} restaurantId={id} reservations={nextReservations} />
+
+            <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-4 shadow-[0_18px_55px_rgba(80,55,30,0.05)] sm:p-5">
+              <div className="flex items-end justify-between gap-4">
+                <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">{t("summary.growth.eyebrow")}</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">{t("summary.growth.title")}</h2></div>
+                <span className={`rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.11em] ${growthAccess ? "bg-[#ECF7EC] text-[#3F6A4D]" : "bg-[#F1E6D5] text-[#795D38]"}`}>{growthAccess ? t("summary.growth.active") : t("summary.growth.available")}</span>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <GrowthTile href={`/restaurants/${id}/marketing`} icon={<CircleDollarSign size={18} />} eyebrow={t("summary.marketing.eyebrow")} title={formatMoney(attributedRevenue, intlLocale)} description={sentActions.length ? t("summary.marketing.performance", { sent: sentActions.length, rate: openRate }) : t("summary.marketing.empty")} tone="gold" />
+                <GrowthTile href={`/restaurants/${id}/ai-visibility`} icon={<Sparkles size={18} />} eyebrow={t("summary.ai.eyebrow")} title={latestScan?.overallScore != null ? `${latestScan.overallScore}/100` : t("summary.ai.noScan")} description={latestScan ? t("summary.ai.performance", { mentions: latestScan.mentionRate || 0, sources: latestScan.sourceCount || 0 }) : t("summary.ai.runScan")} badge={pricePosition} tone="blue" />
+                <GrowthTile href={`/restaurants/${id}/partner-network`} icon={<Handshake size={18} />} eyebrow={t("summary.partners.eyebrow")} title={pendingPartnerOffers ? t("summary.partners.pending", { count: pendingPartnerOffers }) : t("summary.partners.clear")} description={t("summary.partners.booked", { count: bookedPartnerGroups })} alert={pendingPartnerOffers > 0} tone="green" />
+                <GrowthTile href={`/restaurants/${id}/website`} icon={<Globe2 size={18} />} eyebrow={t("summary.website.eyebrow")} title={restaurant.websiteEnabled ? t("summary.website.published") : t("summary.website.draft")} description={restaurant.websiteEnabled ? websiteUrl.replace(/^https?:\/\//, "") : t("summary.website.finish")} tone="cream" />
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-4 flex flex-col gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="px-2"><p className="text-[10px] font-black uppercase tracking-[0.19em] text-[#9B6F3B]">{t("summary.quick.eyebrow")}</p><p className="mt-1 text-sm font-semibold">{t("summary.quick.title")}</p></div>
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              <QuickLink href={`/restaurants/${id}/reservations/new`} icon={<Plus size={14} />} label={t("summary.quick.newReservation")} primary />
+              <QuickLink href={`/restaurants/${id}/day`} icon={<CalendarClock size={14} />} label={t("summary.quick.day")} />
+              <QuickLink href={reservationUrl} icon={<ArrowUpRight size={14} />} label={t("summary.quick.bookingPage")} external />
+              {restaurant.websiteEnabled && <QuickLink href={websiteUrl} icon={<Globe2 size={14} />} label={t("summary.quick.website")} external />}
+            </div>
           </section>
         </section>
       </div>
-
       <BottomNav id={id} />
     </main>
   );
 }
 
-function SubscriptionStatusButton({
-  restaurantId,
-  label,
-  subLabel,
-  progress,
-  expired = false,
-}: {
-  restaurantId: string;
-  label: string;
-  subLabel: string;
-  progress: number;
-  expired?: boolean;
-}) {
-  return (
-    <Link
-      href={`/billing?restaurantId=${restaurantId}`}
-      className={`flex items-center gap-3 rounded-full border bg-white px-3 py-2 shadow-[0_12px_35px_rgba(80,55,30,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(80,55,30,0.10)] ${
-        expired
-          ? "border-[#E7B7A8] text-[#A14E36]"
-          : "border-[#E1D0B8] text-[#16120E]"
-      }`}
-    >
-      <div className="text-right">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B6258]">
-          {label}
-        </p>
-        <p className={`text-xs font-bold ${expired ? "text-[#A14E36]" : "text-[#9B6F3B]"}`}>
-          {subLabel}
-        </p>
-      </div>
-
-      <ProgressRing progress={progress} danger={expired} />
-    </Link>
-  );
+function AttentionCard({ t, restaurantId, total, pendingReservations, partnerOffers, conversations, qrOrders }: { t: TFunc; restaurantId: string; total: number; pendingReservations: number; partnerOffers: number; conversations: number; qrOrders: number }) {
+  const items = [
+    { count: pendingReservations, label: t("summary.attention.reservations"), href: `/restaurants/${restaurantId}/day` },
+    { count: partnerOffers, label: t("summary.attention.groups"), href: `/restaurants/${restaurantId}/partner-network` },
+    { count: conversations, label: t("summary.attention.conversations"), href: `/restaurants/${restaurantId}/revenue-ai/inbox` },
+    { count: qrOrders, label: t("summary.attention.qrOrders"), href: `/restaurants/${restaurantId}/ordering` },
+  ].filter((item) => item.count > 0);
+  return <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.05)]"><div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">{t("summary.attention.eyebrow")}</p><h2 className="mt-1 text-xl font-semibold tracking-[-0.04em]">{t("summary.attention.title")}</h2></div><span className={`grid h-9 min-w-9 place-items-center rounded-full px-2 text-sm font-black ${total ? "bg-[#FFF0EA] text-[#A14E36]" : "bg-[#ECF7EC] text-[#3F6A4D]"}`}>{total || <CheckCircle2 size={17} />}</span></div>{items.length ? <div className="mt-4 space-y-2">{items.map((item) => <Link key={item.href} href={item.href} className="flex items-center justify-between gap-3 rounded-[16px] border border-[#E8DCCB] bg-[#FFF9F0] px-3.5 py-3 transition hover:border-[#C8A56A] hover:bg-white"><span className="text-xs font-semibold">{item.label}</span><span className="flex items-center gap-2 text-sm font-black text-[#9B6F3B]">{item.count}<ArrowUpRight size={12} /></span></Link>)}</div> : <div className="mt-5 rounded-[18px] bg-[#ECF7EC] p-4 text-sm font-semibold text-[#3F6A4D]">{t("summary.attention.clear")}</div>}</div>;
 }
 
-function ProgressRing({
-  progress,
-  danger = false,
-}: {
-  progress: number;
-  danger?: boolean;
-}) {
+function UpcomingReservations({ t, intlLocale, restaurantId, reservations }: { t: TFunc; intlLocale: string; restaurantId: string; reservations: ReservationSummary[] }) {
+  return <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-4 shadow-[0_18px_55px_rgba(80,55,30,0.05)] sm:p-5"><div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">{t("summary.upcoming.eyebrow")}</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">{t("summary.upcoming.title")}</h2></div><Link href={`/restaurants/${restaurantId}/reservations/upcoming`} className="text-xs font-bold text-[#9B6F3B]">{t("summary.upcoming.all")} →</Link></div><div className="mt-4 overflow-hidden rounded-[20px] border border-[#E8DCCB]">{reservations.length ? reservations.map((reservation) => <div key={reservation.id} className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-[#E8DCCB] bg-[#FFFDFC] px-3 py-3 last:border-b-0"><div className="rounded-xl bg-[#F1E6D5] py-2 text-center"><p className="text-[9px] font-black uppercase text-[#8A6D49]">{new Intl.DateTimeFormat(intlLocale, { day: "2-digit", month: "short" }).format(reservation.date)}</p><p className="mt-0.5 text-xs font-black">{new Intl.DateTimeFormat(intlLocale, { hour: "2-digit", minute: "2-digit" }).format(reservation.date)}</p></div><div className="min-w-0"><p className="truncate text-sm font-semibold">{reservation.customerName}</p><p className="mt-0.5 text-[10px] text-[#776B5F]">{t("summary.upcoming.guests", { count: reservation.guests })}{reservation.status === "PENDING" ? ` · ${t("summary.upcoming.pending")}` : ""}</p></div><span className="text-xs font-black text-[#9B6F3B]">{reservation.guests}p</span></div>) : <div className="p-6 text-center text-sm text-[#70665B]">{t("summary.upcoming.empty")}</div>}</div></div>;
+}
+
+function DarkMetric({ icon, value, label, alert = false }: { icon: ReactNode; value: string; label: string; alert?: boolean }) {
+  return <div className={`rounded-[18px] border p-3 ${alert ? "border-[#D7B267]/45 bg-[#D7B267]/10" : "border-white/10 bg-white/[0.045]"}`}><div className="flex items-center justify-between text-[#D7B267]">{icon}<span className="text-xl font-semibold tracking-[-0.04em] text-white">{value}</span></div><p className="mt-2 text-[9px] font-black uppercase tracking-[0.09em] text-white/50">{label}</p></div>;
+}
+
+const toneClasses = {
+  gold: "border-[#E4CEAA] bg-[#FFF8EC] text-[#8A602C]",
+  blue: "border-[#C8DCE6] bg-[#F2F8FB] text-[#356C83]",
+  green: "border-[#C8DEC5] bg-[#F1F8F0] text-[#47704B]",
+  cream: "border-[#E1D0B8] bg-[#FFFDFC] text-[#8A6D49]",
+};
+
+function GrowthTile({ href, icon, eyebrow, title, description, badge, alert = false, tone }: { href: string; icon: ReactNode; eyebrow: string; title: string; description: string; badge?: string | null; alert?: boolean; tone: keyof typeof toneClasses }) {
+  return <Link href={href} className={`group rounded-[20px] border p-4 transition hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(80,55,30,0.07)] ${toneClasses[tone]}`}><div className="flex items-start justify-between gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-white/75">{icon}</span><ArrowUpRight size={14} className="opacity-45 transition group-hover:opacity-100" /></div><div className="mt-3 flex flex-wrap items-center gap-2"><p className="text-[9px] font-black uppercase tracking-[0.13em] opacity-65">{eyebrow}</p>{alert && <span className="h-1.5 w-1.5 rounded-full bg-[#C65B3F]" />}</div><p className="mt-1 text-xl font-semibold tracking-[-0.04em] text-[#17120D]">{title}</p><p className="mt-1 text-xs leading-5 text-[#6B6258]">{description}</p>{badge && <span className="mt-2 inline-block rounded-full bg-white/80 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.08em]">{badge}</span>}</Link>;
+}
+
+function QuickLink({ href, icon, label, primary = false, external = false }: { href: string; icon: ReactNode; label: string; primary?: boolean; external?: boolean }) {
+  return <Link href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined} className={`inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-xs font-bold transition ${primary ? "bg-[#17120D] text-white" : "border border-[#D8C6A9] bg-white text-[#5E4B36] hover:border-[#B99056]"}`}>{icon}{label}</Link>;
+}
+
+function SubscriptionStatusButton({ restaurantId, label, subLabel, progress, expired = false }: { restaurantId: string; label: string; subLabel: string; progress: number; expired?: boolean }) {
+  return <Link href={`/billing?restaurantId=${restaurantId}`} className={`flex items-center gap-3 rounded-full border bg-white px-3 py-2 shadow-[0_12px_35px_rgba(80,55,30,0.06)] ${expired ? "border-[#E7B7A8] text-[#A14E36]" : "border-[#E1D0B8] text-[#16120E]"}`}><div className="text-right"><p className="text-[9px] font-black uppercase tracking-[0.13em] text-[#6B6258]">{label}</p><p className={`text-xs font-bold ${expired ? "text-[#A14E36]" : "text-[#9B6F3B]"}`}>{subLabel}</p></div><ProgressRing progress={progress} danger={expired} /></Link>;
+}
+
+function ProgressRing({ progress, danger = false }: { progress: number; danger?: boolean }) {
   const safeProgress = Math.max(0, Math.min(100, progress));
-  const radius = 17;
+  const radius = 15;
   const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference - (safeProgress / 100) * circumference;
-
-  return (
-    <div className="relative flex h-11 w-11 items-center justify-center">
-      <svg viewBox="0 0 44 44" className="h-11 w-11 -rotate-90">
-        <circle
-          cx="22"
-          cy="22"
-          r={radius}
-          fill="none"
-          stroke="#E8DCCB"
-          strokeWidth="4"
-        />
-        <circle
-          cx="22"
-          cy="22"
-          r={radius}
-          fill="none"
-          stroke={danger ? "#C55A42" : "#C8A56A"}
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-        />
-      </svg>
-
-      <span className="absolute text-[10px] font-black text-[#16120E]">
-        {safeProgress}%
-      </span>
-    </div>
-  );
-}
-
-function Panel({ children, compact = false }: { children: ReactNode; compact?: boolean }) {
-  return (
-    <div className={`h-full rounded-[32px] border border-[#E1D0B8] bg-white shadow-[0_22px_70px_rgba(80,55,30,0.055)] ${compact ? "p-4 lg:p-5" : "p-5 lg:p-6"}`}>
-      {children}
-    </div>
-  );
-}
-
-function SectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9B6F3B]">
-      {children}
-    </p>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  sub,
-  strong,
-}: {
-  label: string;
-  value: number | string;
-  sub: string;
-  strong?: boolean;
-}) {
-  return (
-    <div className={`rounded-2xl border px-4 py-3 ${strong ? "border-[#C8A56A] bg-[#16120E] text-white" : "border-[#E1D0B8] bg-[#FFF9F0]"}`}>
-      <p className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${strong ? "text-[#D8AE62]" : "text-[#6B6258]"}`}>
-        {label}
-      </p>
-      <p className="mt-1 text-2xl font-semibold leading-none tracking-[-0.05em]">
-        {value}
-      </p>
-      <p className={`mt-1 text-[10px] font-bold ${strong ? "text-white/65" : "text-[#6B6258]"}`}>
-        {sub}
-      </p>
-    </div>
-  );
-}
-
-function CompactOpsCard({
-  t,
-  reservationsToday,
-  pendingToday,
-  guestsToday,
-  totalCapacity,
-  occupancyRate,
-  tablesCount,
-}: {
-  t: TFunc;
-  reservationsToday: number;
-  pendingToday: number;
-  guestsToday: number;
-  totalCapacity: number;
-  occupancyRate: number;
-  tablesCount: number;
-}) {
-  return (
-    <Panel>
-      <SectionLabel>{t("ops.sectionLabel")}</SectionLabel>
-      <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
-        {t("ops.title")}
-      </h2>
-
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        <SmallStat value={reservationsToday} label={t("ops.reservationsToday")} />
-        <SmallStat value={guestsToday} label={t("ops.guestsReserved")} />
-        <SmallStat value={pendingToday} label={t("ops.pending")} />
-      </div>
-
-      <div className="mt-5 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-[#6B6258]">
-            {t("ops.occupancy")}
-          </p>
-          <p className="text-lg font-semibold">{occupancyRate}%</p>
-        </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#E8DCCB]">
-          <div className="h-full rounded-full bg-[#C8A56A]" style={{ width: `${Math.min(occupancyRate, 100)}%` }} />
-        </div>
-        <p className="mt-2 text-xs font-bold text-[#6B6258]">
-          {t("ops.seatsAndTables", { guests: guestsToday, capacity: totalCapacity || 0, tables: tablesCount })}
-        </p>
-      </div>
-
-      <div className="mt-4 rounded-2xl border border-[#E1D0B8] bg-white p-4">
-        <p className="text-sm font-semibold">{t("ops.usefulCapacity")}</p>
-        <p className="mt-2 text-2xl font-semibold tracking-[-0.05em]">
-          {totalCapacity || 0}
-        </p>
-        <p className="text-xs text-[#6B6258]">{t("ops.seatsConfigured")}</p>
-      </div>
-    </Panel>
-  );
-}
-
-function ReservationsCompactCard({
-  t,
-  intlLocale,
-  id,
-  reservations,
-}: {
-  t: TFunc;
-  intlLocale: string;
-  id: string;
-  reservations: any[];
-}) {
-  return (
-    <Panel compact>
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <SectionLabel>{t("reservationsCard.sectionLabel")}</SectionLabel>
-          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
-            {t("reservationsCard.title")}
-          </h2>
-        </div>
-        <Link
-          href={`/restaurants/${id}/reservations/upcoming`}
-          className="text-sm font-semibold text-[#9B6F3B]"
-        >
-          {t("reservationsCard.viewAll")}
-        </Link>
-      </div>
-
-      <div className="mt-4 overflow-hidden rounded-[24px] border border-[#E8DCCB] bg-[#FFF9F0]">
-        {reservations.length === 0 ? (
-          <div className="p-4 text-sm text-[#6B6258]">
-            {t("reservationsCard.empty")}
-          </div>
-        ) : (
-          reservations.map((reservation) => (
-            <ReservationMiniLine key={reservation.id} t={t} intlLocale={intlLocale} reservation={reservation} />
-          ))
-        )}
-      </div>
-    </Panel>
-  );
-}
-
-function ReservationMiniLine({
-  t,
-  intlLocale,
-  reservation,
-}: {
-  t: TFunc;
-  intlLocale: string;
-  reservation: any;
-}) {
-  return (
-    <details className="group border-b border-[#E8DCCB] last:border-b-0">
-      <summary className="grid cursor-pointer list-none grid-cols-[70px_1fr_auto] items-center gap-3 px-4 py-3 transition hover:bg-white">
-        <p className="font-semibold">
-          {new Date(reservation.date).toLocaleTimeString(intlLocale, {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </p>
-        <div className="min-w-0">
-          <p className="truncate font-semibold">{reservation.customerName}</p>
-          <p className="text-xs text-[#6B6258]">
-            {new Date(reservation.date).toLocaleDateString(intlLocale)}
-          </p>
-        </div>
-        <p className="text-sm font-bold text-[#9B6F3B]">{t("reservationsCard.pax", { count: reservation.guests })}</p>
-      </summary>
-
-      <div className="grid gap-2 border-t border-[#E8DCCB] bg-white px-4 py-3 text-xs text-[#6B6258] sm:grid-cols-2">
-        <div>
-          <p className="font-semibold text-[#16120E]">{t("reservationsCard.mobile")}</p>
-          <p className="mt-1">{reservation.phone || t("reservationsCard.mobileEmpty")}</p>
-        </div>
-
-        <div>
-          <p className="font-semibold text-[#16120E]">{t("reservationsCard.email")}</p>
-          <p className="mt-1 break-all">{reservation.email || t("reservationsCard.emailEmpty")}</p>
-        </div>
-      </div>
-    </details>
-  );
-}
-
-function MarketingRoiCard({
-  t,
-  restaurantId,
-  isGrowth,
-  riskyCustomers,
-  riskyRevenue,
-  averageTicket,
-}: {
-  t: TFunc;
-  restaurantId: string;
-  isGrowth: boolean;
-  riskyCustomers: any[];
-  riskyRevenue: number;
-  averageTicket: number;
-}) {
-  if (!isGrowth) {
-    return (
-      <Panel compact>
-        <div className="flex h-full flex-col">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <SectionLabel>{t("marketingTeaser.sectionLabel")}</SectionLabel>
-              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
-                {t("marketingTeaser.title")}
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">
-                {t("marketingTeaser.text")}
-              </p>
-            </div>
-
-            <span className="w-fit rounded-full border border-[#D8C5A5] bg-[#FFF9F0] px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#9B6F3B]">
-              {t("marketingTeaser.badge")}
-            </span>
-          </div>
-
-          <div className="mt-5 grid gap-2 sm:grid-cols-2">
-            <GrowthFeature text={t("marketingTeaser.features.riskyCustomers")} />
-            <GrowthFeature text={t("marketingTeaser.features.autoCampaigns")} />
-            <GrowthFeature text={t("marketingTeaser.features.autoBirthdays")} />
-            <GrowthFeature text={t("marketingTeaser.features.campaignRoi")} />
-          </div>
-
-          <div className="mt-auto pt-5">
-            <div className="flex flex-col gap-4 rounded-[24px] border border-[#D8C5A5] bg-[#FFF9F0] p-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#9B6F3B]">
-                  {t("marketingTeaser.upgradeLabel")}
-                </p>
-                <p className="mt-1 text-3xl font-semibold tracking-[-0.05em]">
-                  {t("marketingTeaser.price", { price: 20 })}
-                </p>
-                <p className="mt-1 text-xs font-semibold text-[#6B6258]">
-                  {t("marketingTeaser.priceNote")}
-                </p>
-              </div>
-
-              <UpgradeToGrowthButton />
-            </div>
-          </div>
-        </div>
-      </Panel>
-    );
-  }
-
-  const targetCustomers = riskyCustomers.length;
-  const expectedRecoveredCustomers = Math.max(0, Math.round(targetCustomers * 0.18));
-  const expectedRevenue = expectedRecoveredCustomers * averageTicket;
-  const roi = riskyRevenue > 0 ? Math.round((expectedRevenue / riskyRevenue) * 100) : 0;
-
-  return (
-    <Panel compact>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <SectionLabel>{t("marketingActive.sectionLabel")}</SectionLabel>
-          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
-            {t("marketingActive.title")}
-          </h2>
-          <p className="mt-2 text-sm text-[#6B6258]">
-            {t("marketingActive.text")}
-          </p>
-        </div>
-
-        <Link
-          href={`/restaurants/${restaurantId}/marketing`}
-          className="rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
-        >
-          {t("marketingActive.viewMarketing")}
-        </Link>
-      </div>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-4">
-        <SmallStat value={targetCustomers} label={t("marketingActive.riskyCustomers")} />
-        <SmallStat value={money(riskyRevenue)} label={t("marketingActive.riskyValue")} />
-        <SmallStat value={money(expectedRevenue)} label={t("marketingActive.estimatedRevenue")} />
-        <SmallStat value={`${roi}%`} label={t("marketingActive.estimatedRoi")} />
-      </div>
-
-           <div className="mt-5 rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-semibold">{t("marketingActive.recommendedCampaign")}</p>
-            <p className="mt-1 text-xs font-bold text-[#6B6258]">
-              {t("marketingActive.recommendedCampaignText")}
-            </p>
-          </div>
-
-          <p className="text-right text-2xl font-semibold tracking-[-0.05em] text-[#9B6F3B]">
-            {expectedRecoveredCustomers}
-          </p>
-        </div>
-
-        <div className="mt-4">
-          <DashboardRecoveryButton restaurantId={restaurantId} />
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
-function GrowthFeature({ text }: { text: string }) {
-  return (
-    <div className="rounded-2xl border border-[#E1D0B8] bg-white px-4 py-3 text-sm font-semibold text-[#16120E]">
-      ✓ {text}
-    </div>
-  );
-}
-
-function ReservationLinkCard({
-  t,
-  id,
-  publicUrl,
-  websiteUrl,
-}: {
-  t: TFunc;
-  id: string;
-  publicUrl: string;
-  websiteUrl: string;
-}) {
-  return (
-    <Panel compact>
-      <div className="flex h-full flex-col">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <SectionLabel>{t("reservationLink.sectionLabel")}</SectionLabel>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">
-              {t("reservationLink.title")}
-            </h2>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-[#6B6258]">
-              {t("reservationLink.text")}
-            </p>
-          </div>
-
-          <span className="rounded-full border border-[#B7D7B8] bg-[#ECF7EC] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#3F6A4D]">
-            {t("reservationLink.active")}
-          </span>
-        </div>
-
-        <div className="mt-5 rounded-[26px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9B6F3B]">
-              {t("reservationLink.urlLabel")}
-            </p>
-
-            <Link
-              href={publicUrl}
-              target="_blank"
-              className="text-xs font-semibold text-[#9B6F3B] hover:text-[#16120E]"
-            >
-              {t("reservationLink.open")}
-            </Link>
-          </div>
-
-          <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_auto]">
-            <div className="min-w-0 rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3">
-              <p className="truncate text-sm font-bold text-[#16120E]">
-                {publicUrl}
-              </p>
-            </div>
-
-            <CopyButton text={publicUrl} />
-          </div>
-
-          <div className="mt-3 flex flex-col gap-3 rounded-2xl border border-[#E8DCCB] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
-                {t("reservationLink.steps.website.title")}
-              </p>
-              <p className="mt-1 truncate text-sm font-bold text-[#16120E]">
-                {websiteUrl}
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <Link
-                href={websiteUrl}
-                target="_blank"
-                className="rounded-full border border-[#E1D0B8] px-4 py-2 text-xs font-semibold text-[#9B6F3B] transition hover:bg-[#FFF9F0]"
-              >
-                {t("reservationLink.open")}
-              </Link>
-              <CopyButton text={websiteUrl} />
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 flex-1 rounded-[26px] border border-[#E1D0B8] bg-white p-4">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9B6F3B]">
-            {t("reservationLink.howToUse")}
-          </p>
-
-          <div className="mt-4 grid gap-3">
-            <InstructionStep
-              number="1"
-              title={t("reservationLink.steps.googleMaps.title")}
-              text={t("reservationLink.steps.googleMaps.text")}
-            />
-            <InstructionStep
-              number="2"
-              title={t("reservationLink.steps.socials.title")}
-              text={t("reservationLink.steps.socials.text")}
-            />
-            <InstructionStep
-              number="3"
-              title={t("reservationLink.steps.website.title")}
-              text={t("reservationLink.steps.website.text")}
-            />
-          </div>
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
-function InstructionStep({
-  number,
-  title,
-  text,
-}: {
-  number: string;
-  title: string;
-  text: string;
-}) {
-  return (
-    <div className="grid grid-cols-[34px_1fr] gap-3 rounded-2xl bg-[#FFF9F0] p-3">
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#16120E] text-xs font-semibold text-white">
-        {number}
-      </div>
-
-      <div>
-        <p className="text-sm font-semibold text-[#16120E]">{title}</p>
-        <p className="mt-1 text-xs leading-5 text-[#6B6258]">{text}</p>
-      </div>
-    </div>
-  );
-}
-
-function ActionLink({ href, title, sub }: { href: string; title: string; sub: string }) {
-  return (
-    <Link href={href} className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 transition hover:border-[#C8A56A] hover:bg-white">
-      <p className="font-semibold">{title}</p>
-      <p className="mt-1 text-xs text-[#6B6258]">{sub}</p>
-    </Link>
-  );
-}
-
-function SmallStat({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-      <p className="text-2xl font-semibold tracking-[-0.05em]">{value}</p>
-      <p className="mt-1 text-xs text-[#6B6258]">{label}</p>
-    </div>
-  );
-}
-
-function PrimaryLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <Link href={href} className="rounded-full bg-[#16120E] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
-      {children}
-    </Link>
-  );
+  return <div className="relative flex h-9 w-9 items-center justify-center"><svg viewBox="0 0 40 40" className="h-9 w-9 -rotate-90"><circle cx="20" cy="20" r={radius} fill="none" stroke="#E8DCCB" strokeWidth="4" /><circle cx="20" cy="20" r={radius} fill="none" stroke={danger ? "#C55A42" : "#C8A56A"} strokeWidth="4" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference - (safeProgress / 100) * circumference} /></svg><span className="absolute text-[8px] font-black">{safeProgress}%</span></div>;
 }

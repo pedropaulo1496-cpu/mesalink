@@ -69,6 +69,17 @@
       "recommendedCampaign": "Empfohlene Kampagne",
       "recommendedCampaignText": "Kunden ohne kürzlichen Besuch mit einem kontrollierten Anreiz zurückgewinnen."
     },
+    "summary": {
+      "today": { "eyebrow": "Heutiger Betrieb", "title": "Das Wesentliche jetzt", "openDay": "Service öffnen", "reservations": "Reservierungen", "guests": "Gäste", "pending": "Ausstehend", "qrOrders": "QR-Bestellungen", "occupancy": "Erwartete Belegung" },
+      "attention": { "eyebrow": "Handlungsbedarf", "title": "Benötigt Ihre Aufmerksamkeit", "reservations": "Reservierungen bestätigen", "groups": "Partnergruppen beantworten", "conversations": "Revenue-AI-Gespräche", "qrOrders": "QR-Bestellungen in Arbeit", "clear": "Alles erledigt. Keine offenen Aufgaben." },
+      "upcoming": { "eyebrow": "Agenda", "title": "Nächste Reservierungen", "all": "Alle anzeigen", "guests": "{count, plural, one {# Gast} other {# Gäste}}", "pending": "zu bestätigen", "empty": "Noch keine kommenden Reservierungen." },
+      "growth": { "eyebrow": "Wachstum", "title": "Restaurant-Puls", "active": "Aktiv", "available": "Mit Growth verfügbar" },
+      "marketing": { "eyebrow": "Marketing & Loyalität", "performance": "{sent} Kontakte diesen Monat · {rate}% geöffnet", "empty": "Diesen Monat wurden noch keine Kontakte gesendet." },
+      "ai": { "eyebrow": "KI-Sichtbarkeit", "noScan": "Nicht gemessen", "performance": "{mentions}% Präsenz · {sources} Quellen", "runScan": "Erste echte Diagnose starten.", "priceBelow": "Preis unter dem Gebiet", "priceAbove": "Preis über dem Gebiet", "priceAligned": "Preis passend zum Gebiet" },
+      "partners": { "eyebrow": "Partnernetzwerk", "pending": "{count, plural, one {# neue Gruppe} other {# neue Gruppen}}", "clear": "Keine neuen Anfragen", "booked": "{count, plural, =0 {Keine zukünftigen Gruppen} one {# Gruppe bereits gebucht} other {# Gruppen bereits gebucht}}" },
+      "website": { "eyebrow": "Website", "published": "Veröffentlicht", "draft": "Nicht fertig", "finish": "Website fertigstellen und veröffentlichen." },
+      "quick": { "eyebrow": "Kurzbefehle", "title": "Häufige Aktionen", "newReservation": "Neue Reservierung", "day": "Heutiger Service", "bookingPage": "Reservierungsseite", "website": "Website öffnen" }
+    },
     "reservationLink": {
       "sectionLabel": "Online-Reservierungen",
       "title": "Öffentlicher Link",

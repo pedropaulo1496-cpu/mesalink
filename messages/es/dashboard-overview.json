@@ -69,6 +69,17 @@
       "recommendedCampaign": "Campaña recomendada",
       "recommendedCampaignText": "Recuperar clientes sin visitas recientes con un incentivo controlado."
     },
+    "summary": {
+      "today": { "eyebrow": "Operación de hoy", "title": "Lo esencial, ahora", "openDay": "Abrir servicio", "reservations": "Reservas", "guests": "Personas", "pending": "Pendientes", "qrOrders": "Pedidos QR", "occupancy": "Ocupación prevista" },
+      "attention": { "eyebrow": "Acción necesaria", "title": "Necesita tu atención", "reservations": "Reservas por confirmar", "groups": "Grupos de socios por responder", "conversations": "Conversaciones en Revenue AI", "qrOrders": "Pedidos QR en preparación", "clear": "Todo resuelto. No hay acciones pendientes." },
+      "upcoming": { "eyebrow": "Agenda", "title": "Próximas reservas", "all": "Ver todas", "guests": "{count, plural, one {# persona} other {# personas}}", "pending": "por confirmar", "empty": "Todavía no hay próximas reservas." },
+      "growth": { "eyebrow": "Crecimiento", "title": "Pulso del restaurante", "active": "Activo", "available": "Disponible en Growth" },
+      "marketing": { "eyebrow": "Marketing y Fidelización", "performance": "{sent} contactos este mes · {rate}% abrieron", "empty": "Todavía no se enviaron contactos este mes." },
+      "ai": { "eyebrow": "Visibilidad IA", "noScan": "Sin medir", "performance": "{mentions}% de presencia · {sources} fuentes", "runScan": "Ejecuta el primer diagnóstico real.", "priceBelow": "Precio bajo para la zona", "priceAbove": "Precio alto para la zona", "priceAligned": "Precio alineado con la zona" },
+      "partners": { "eyebrow": "Red de Socios", "pending": "{count, plural, one {# grupo nuevo} other {# grupos nuevos}}", "clear": "Sin nuevas solicitudes", "booked": "{count, plural, =0 {Ningún grupo futuro} one {# grupo ya reservado} other {# grupos ya reservados}}" },
+      "website": { "eyebrow": "Website", "published": "Publicado", "draft": "Por terminar", "finish": "Completa y publica el website." },
+      "quick": { "eyebrow": "Atajos", "title": "Acciones frecuentes", "newReservation": "Nueva reserva", "day": "Servicio del día", "bookingPage": "Página de reservas", "website": "Abrir website" }
+    },
     "reservationLink": {
       "sectionLabel": "Reservas online",
       "title": "Enlace público",
