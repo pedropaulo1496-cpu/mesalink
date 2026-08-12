@@ -15,9 +15,11 @@ import {
   Plus,
   QrCode,
   Sparkles,
+  TicketCheck,
   UsersRound,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import RecoveryOfferButton from "@/components/marketing/RecoveryOfferButton";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import SignOutButton from "@/components/SignOutButton";
 import { authOptions } from "@/lib/auth";
@@ -39,6 +41,8 @@ const dashboardDateLocales: Record<string, string> = {
 type ReservationSummary = {
   id: string;
   customerName: string;
+  phone: string;
+  email: string | null;
   date: Date;
   guests: number;
   status: string;
@@ -173,6 +177,8 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
     .map((reservation) => ({
       id: reservation.id,
       customerName: reservation.customerName,
+      phone: reservation.phone,
+      email: reservation.email,
       date: reservation.date,
       guests: reservation.guests,
       status: reservation.status,
@@ -283,6 +289,8 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
             </div>
           </section>
 
+          <MarketingQuickActions t={t} restaurantId={id} growthAccess={growthAccess} />
+
           <section className="mt-4 flex flex-col gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="px-2"><p className="text-[10px] font-black uppercase tracking-[0.19em] text-[#9B6F3B]">{t("summary.quick.eyebrow")}</p><p className="mt-1 text-sm font-semibold">{t("summary.quick.title")}</p></div>
             <div className="grid grid-cols-2 gap-2 sm:flex">
@@ -299,6 +307,10 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   );
 }
 
+function MarketingQuickActions({ t, restaurantId, growthAccess }: { t: TFunc; restaurantId: string; growthAccess: boolean }) {
+  return <section className="mt-4 flex flex-col gap-4 rounded-[24px] border border-[#E1D0B8] bg-white p-4 shadow-[0_14px_40px_rgba(80,55,30,0.04)] lg:flex-row lg:items-center lg:justify-between"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] bg-[#FFF0D3] text-[#8A602C]"><Sparkles size={17} /></span><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">{t("summary.marketing.quickEyebrow")}</p><p className="mt-1 text-sm font-semibold">{t("summary.marketing.quickTitle")}</p></div></div><div className="grid grid-cols-2 gap-2 sm:flex">{growthAccess ? <RecoveryOfferButton restaurantId={restaurantId} label={t("summary.marketing.recover")} compact /> : <QuickLink href={`/restaurants/${restaurantId}/marketing`} icon={<Sparkles size={14} />} label={t("summary.marketing.open")} primary />}<QuickLink href={`/restaurants/${restaurantId}/marketing/campaigns/new`} icon={<Plus size={14} />} label={t("summary.marketing.newCampaign")} /><QuickLink href={`/restaurants/${restaurantId}/marketing/loyalty`} icon={<TicketCheck size={14} />} label={t("summary.marketing.cards")} /><QuickLink href={`/restaurants/${restaurantId}/marketing`} icon={<ArrowUpRight size={14} />} label={t("summary.marketing.results")} /></div></section>;
+}
+
 function AttentionCard({ t, restaurantId, total, pendingReservations, partnerOffers, conversations, qrOrders }: { t: TFunc; restaurantId: string; total: number; pendingReservations: number; partnerOffers: number; conversations: number; qrOrders: number }) {
   const items = [
     { count: pendingReservations, label: t("summary.attention.reservations"), href: `/restaurants/${restaurantId}/day` },
@@ -310,7 +322,7 @@ function AttentionCard({ t, restaurantId, total, pendingReservations, partnerOff
 }
 
 function UpcomingReservations({ t, intlLocale, restaurantId, reservations }: { t: TFunc; intlLocale: string; restaurantId: string; reservations: ReservationSummary[] }) {
-  return <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-4 shadow-[0_18px_55px_rgba(80,55,30,0.05)] sm:p-5"><div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">{t("summary.upcoming.eyebrow")}</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">{t("summary.upcoming.title")}</h2></div><Link href={`/restaurants/${restaurantId}/reservations/upcoming`} className="text-xs font-bold text-[#9B6F3B]">{t("summary.upcoming.all")} →</Link></div><div className="mt-4 overflow-hidden rounded-[20px] border border-[#E8DCCB]">{reservations.length ? reservations.map((reservation) => <div key={reservation.id} className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-[#E8DCCB] bg-[#FFFDFC] px-3 py-3 last:border-b-0"><div className="rounded-xl bg-[#F1E6D5] py-2 text-center"><p className="text-[9px] font-black uppercase text-[#8A6D49]">{new Intl.DateTimeFormat(intlLocale, { day: "2-digit", month: "short" }).format(reservation.date)}</p><p className="mt-0.5 text-xs font-black">{new Intl.DateTimeFormat(intlLocale, { hour: "2-digit", minute: "2-digit" }).format(reservation.date)}</p></div><div className="min-w-0"><p className="truncate text-sm font-semibold">{reservation.customerName}</p><p className="mt-0.5 text-[10px] text-[#776B5F]">{t("summary.upcoming.guests", { count: reservation.guests })}{reservation.status === "PENDING" ? ` · ${t("summary.upcoming.pending")}` : ""}</p></div><span className="text-xs font-black text-[#9B6F3B]">{reservation.guests}p</span></div>) : <div className="p-6 text-center text-sm text-[#70665B]">{t("summary.upcoming.empty")}</div>}</div></div>;
+  return <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-4 shadow-[0_18px_55px_rgba(80,55,30,0.05)] sm:p-5"><div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">{t("summary.upcoming.eyebrow")}</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">{t("summary.upcoming.title")}</h2></div><Link href={`/restaurants/${restaurantId}/reservations/upcoming`} className="text-xs font-bold text-[#9B6F3B]">{t("summary.upcoming.all")} →</Link></div><div className="mt-4 overflow-hidden rounded-[20px] border border-[#E8DCCB]">{reservations.length ? reservations.map((reservation) => <details key={reservation.id} className="group border-b border-[#E8DCCB] bg-[#FFFDFC] last:border-b-0"><summary className="grid cursor-pointer list-none grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-3 transition hover:bg-white"><div className="rounded-xl bg-[#F1E6D5] py-2 text-center"><p className="text-[9px] font-black uppercase text-[#8A6D49]">{new Intl.DateTimeFormat(intlLocale, { day: "2-digit", month: "short" }).format(reservation.date)}</p><p className="mt-0.5 text-xs font-black">{new Intl.DateTimeFormat(intlLocale, { hour: "2-digit", minute: "2-digit" }).format(reservation.date)}</p></div><div className="min-w-0"><p className="truncate text-sm font-semibold">{reservation.customerName}</p><p className="mt-0.5 text-[10px] text-[#776B5F]">{t("summary.upcoming.guests", { count: reservation.guests })}{reservation.status === "PENDING" ? ` · ${t("summary.upcoming.pending")}` : ""}</p></div><span className="flex items-center gap-2 text-xs font-black text-[#9B6F3B]">{reservation.guests}p <span className="transition group-open:rotate-180">⌄</span></span></summary><div className="grid gap-2 border-t border-[#EEE3D3] bg-white px-3 py-3 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#FFF9F0] px-3 py-2"><p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#8A7863]">{t("reservationsCard.mobile")}</p><a href={`tel:${reservation.phone}`} className="mt-1 block truncate font-semibold text-[#17120D]">{reservation.phone || t("reservationsCard.mobileEmpty")}</a></div><div className="rounded-xl bg-[#FFF9F0] px-3 py-2"><p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#8A7863]">{t("reservationsCard.email")}</p>{reservation.email ? <a href={`mailto:${reservation.email}`} className="mt-1 block truncate font-semibold text-[#17120D]">{reservation.email}</a> : <p className="mt-1 font-semibold text-[#776B5F]">{t("reservationsCard.emailEmpty")}</p>}</div></div></details>) : <div className="p-6 text-center text-sm text-[#70665B]">{t("summary.upcoming.empty")}</div>}</div></div>;
 }
 
 function DarkMetric({ icon, value, label, alert = false }: { icon: ReactNode; value: string; label: string; alert?: boolean }) {

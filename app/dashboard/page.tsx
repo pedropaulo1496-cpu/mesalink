@@ -35,15 +35,17 @@ export default async function DashboardPage() {
     redirect("/backoffice");
   }
 
+  const restaurant = user.restaurants[0];
+
+  // A conta principal do restaurante tem prioridade. Um utilizador pode também
+  // ter um perfil Partners, mas só deve entrar nessa app através de /partners/app.
+  if (restaurant) {
+    redirect(`/restaurants/${restaurant.id}`);
+  }
+
   if (user.referralPartner) {
     redirect("/partners/app");
   }
 
-  const restaurant = user.restaurants[0];
-
-  if (!restaurant) {
-    redirect("/onboarding");
-  }
-
-  redirect(`/restaurants/${restaurant.id}`);
+  redirect("/onboarding");
 }

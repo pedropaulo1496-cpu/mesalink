@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { CheckCircle2, Loader2, Send, Sparkles, X } from "lucide-react";
 import { MARKETING_CARD_THEMES, type MarketingCardTheme } from "@/lib/marketing-card-themes";
 
-export default function RecoveryOfferButton({ restaurantId, label = "Configurar recuperação", mode = "recovery" }: { restaurantId: string; label?: string; mode?: "recovery" | "birthday" }) {
+export default function RecoveryOfferButton({ restaurantId, label = "Configurar recuperação", mode = "recovery", compact = false }: { restaurantId: string; label?: string; mode?: "recovery" | "birthday"; compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
@@ -46,7 +46,7 @@ export default function RecoveryOfferButton({ restaurantId, label = "Configurar 
   }
 
   return <>
-    <button type="button" onClick={() => setOpen(true)} className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"><Sparkles size={14} /> {label}</button>
+    <button type="button" onClick={() => setOpen(true)} className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#16120E] font-semibold text-white transition hover:bg-[#2A2118] ${compact ? "h-10 px-4 text-xs" : "h-11 px-5 text-sm"}`}><Sparkles size={14} /> {label}</button>
     {open && <div className="fixed inset-0 z-[130] flex items-end justify-center bg-[#17120D]/55 p-0 backdrop-blur-sm sm:items-center sm:p-5" onMouseDown={(event) => { if (event.target === event.currentTarget && !sending) setOpen(false); }}>
       <form onSubmit={send} className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-[30px] border border-[#E1D0B8] bg-[#FFF9F0] shadow-2xl sm:rounded-[30px]">
         <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#E1D0B8] bg-white/95 p-5 backdrop-blur"><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#9B6F3B]">{birthday ? "Aniversários" : "Recuperação de clientes"}</p><h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em]">{birthday ? "Escolhe a recompensa de aniversário" : "Escolhe o incentivo antes de enviar"}</h3><p className="mt-1 text-xs text-[#75695D]">{birthday ? "Cada aniversariante recebe um cartão digital único com a recompensa escolhida." : "Cada cliente inativo recebe o seu próprio cartão digital."}</p></div><button type="button" onClick={() => setOpen(false)} disabled={sending} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0]"><X size={15} /></button></header>
