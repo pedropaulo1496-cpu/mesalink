@@ -90,8 +90,14 @@ export default function RevenueActivityFeed({
 
   if (actions.length === 0) {
     return (
-      <div className="mt-6 rounded-[24px] border border-dashed border-[#D6C3A5] bg-white/60 p-8 text-center text-sm text-[#6B6258]">
-        {t("empty")}
+      <div className="mt-4 flex flex-col gap-4 rounded-[20px] border border-[#E2D2BB] bg-white px-5 py-4 sm:flex-row sm:items-center">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-[#F1E6D5] text-[#8A6130]">
+          <MessageCircleMore size={19} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">{t("emptyTitle")}</p>
+          <p className="mt-1 text-xs leading-5 text-[#74695D]">{t("empty")}</p>
+        </div>
       </div>
     );
   }

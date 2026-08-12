@@ -17,6 +17,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     where: { id, userId: user.id },
     include: {
       revenueConversations: {
+        where: { opportunityType: { in: ["CANCELLED_RESERVATION", "NO_SHOW", "MISSED_CALL", "WHATSAPP_INBOUND"] } },
         orderBy: { lastMessageAt: "desc" },
         take: 200,
         include: { messages: { orderBy: { createdAt: "asc" }, take: 30 }, customer: { select: { marketingOptIn: true } } },

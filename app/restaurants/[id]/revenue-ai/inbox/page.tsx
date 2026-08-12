@@ -18,6 +18,7 @@ export default async function RevenueInboxPage({ params }: { params: Promise<{ i
     where: { id, userId: user.id },
     include: {
       revenueConversations: {
+        where: { opportunityType: { in: ["CANCELLED_RESERVATION", "NO_SHOW", "MISSED_CALL", "WHATSAPP_INBOUND"] } },
         orderBy: { lastMessageAt: "desc" },
         take: 200,
         include: {

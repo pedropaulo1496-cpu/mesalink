@@ -1,40 +1,42 @@
 {
   "eyebrow": "Revenue AI",
   "live": "Scanning",
-  "title": "Recover revenue before it disappears.",
-  "subtitle": "MesaLink finds cancellations, no-shows, inactive customers and contacts without a booking — then turns every signal into a recovery action.",
+  "title": "Recover lost bookings automatically.",
+  "subtitle": "MesaLink sends rebooking emails after cancellations and no-shows. For missed calls, it replies by WhatsApp with the booking link.",
   "rulesCta": "Rules and offers",
   "hero": {
     "recoveredLabel": "Revenue recovered this month",
     "recoveredHint": "{count} conversions attributed to MesaLink actions",
     "atRisk": "Revenue at risk",
     "pipeline": "In recovery",
-    "opportunities": "Opportunities",
+    "opportunities": "Situations detected",
     "activeFollowups": "Active follow-ups"
   },
   "opportunities": {
-    "eyebrow": "Opportunity inbox",
-    "title": "Sales you can still recover",
-    "updated": "Calculated from real restaurant data",
+    "eyebrow": "Booking recovery",
+    "title": "Cancellations and no-shows",
+    "updated": "Emails sent automatically",
     "items": "{count} cases",
+    "monitoring": "Monitoring",
+    "processing": "In progress",
     "cancelled": {
       "title": "Cancelled reservations",
-      "description": "Recent reservations that can be rebooked before the guest chooses another restaurant.",
+      "description": "The guest automatically receives an email asking if they would like to rebook.",
       "cta": "View reservations"
     },
     "inactive": {
       "title": "Inactive customers",
-      "description": "Customers with consent and email who have not returned in more than 60 days.",
+      "description": "AI follows up with opted-in customers who have not returned in over 60 days.",
       "cta": "View customers"
     },
     "leads": {
       "title": "Contacts without a booking",
-      "description": "Contacts created more than 48 hours ago who have not booked or visited yet.",
+      "description": "After 48 hours without a booking, AI follows up and handles the reply.",
       "cta": "Create follow-up"
     },
     "noShows": {
       "title": "No-shows to recover",
-      "description": "Guests who missed a booking and can be offered a second chance to reschedule.",
+      "description": "The guest automatically receives a considerate email asking if they would like to rebook.",
       "cta": "Open customers"
     }
   },
@@ -45,11 +47,12 @@
   },
   "channels": {
     "eyebrow": "Channels",
-    "title": "Everything connected in one place",
+    "title": "Two simple flows, with no manual work.",
     "email": "MesaLink email",
     "website": "Website leads",
     "whatsapp": "WhatsApp",
     "calls": "Missed calls",
+    "missedCallWhatsapp": "Missed call → WhatsApp",
     "ready": "Active",
     "connected": "Connected",
     "configure": "Configure",
@@ -63,7 +66,8 @@
     "title": "Latest conversations and results",
     "viewAll": "Open all conversations",
     "unknownCustomer": "Customer",
-    "empty": "Conversations appear here automatically after a missed call or a WhatsApp reply.",
+    "emptyTitle": "Your inbox is ready",
+    "empty": "Email rebookings and conversations started after missed calls appear here automatically.",
     "tapHint": "Tap to see details",
     "showAll": "View all {count} attempts",
     "showLess": "Show recent attempts only",
@@ -125,8 +129,8 @@
     "title": "Find lost sales. Recover them automatically.",
     "description": "Activate Revenue AI to turn scattered signals into follow-ups and measure the only outcome that matters: recovered revenue.",
     "feature1": "Cancellations and no-shows",
-    "feature2": "Inactive customers and leads",
-    "feature3": "Automated follow-ups",
+    "feature2": "Automatic rebooking emails",
+    "feature3": "Missed calls recovered through WhatsApp",
     "feature4": "Attributed recovered revenue",
     "cta": "Activate MesaLink Growth"
   }

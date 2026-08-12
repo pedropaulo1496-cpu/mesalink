@@ -7,14 +7,11 @@ import {
   ArrowUpRight,
   ChevronRight,
   CalendarX2,
-  CheckCircle2,
   CircleDollarSign,
   Mail,
-  MessageCircleMore,
   PhoneMissed,
   Sparkles,
   UserRoundX,
-  UsersRound,
   Workflow,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
@@ -61,18 +58,18 @@ export default async function RevenueAiPage({
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const ninetyDaysAgo = new Date(now);
-  ninetyDaysAgo.setDate(now.getDate() - 90);
-  const sixtyDaysAgo = new Date(now);
-  sixtyDaysAgo.setDate(now.getDate() - 60);
-  const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+  const cancelledCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const noShowCutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-  const [reservations, customers, marketingActions] = await Promise.all([
+  const [reservations, marketingActions] = await Promise.all([
     prisma.reservation.findMany({
       where: {
         restaurantId: id,
-        date: { gte: ninetyDaysAgo },
-        status: { in: ["CANCELLED", "REJECTED", "NO_SHOW"] },
+        email: { not: null },
+        OR: [
+          { status: { in: ["CANCELLED", "REJECTED"] }, date: { gte: cancelledCutoff } },
+          { status: "NO_SHOW", date: { gte: noShowCutoff, lte: now } },
+        ],
       },
       orderBy: { date: "desc" },
       select: {
@@ -83,28 +80,6 @@ export default async function RevenueAiPage({
         date: true,
         guests: true,
         status: true,
-      },
-    }),
-    prisma.customer.findMany({
-      where: { restaurantId: id },
-      orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        marketingOptIn: true,
-        lastVisitAt: true,
-        lastReservationAt: true,
-        visitCount: true,
-        totalVisits: true,
-        source: true,
-        createdAt: true,
-        reservations: {
-          where: { restaurantId: id },
-          select: { id: true, date: true, status: true },
-          orderBy: { date: "desc" },
-        },
       },
     }),
     prisma.marketingAction.findMany({
@@ -135,7 +110,7 @@ export default async function RevenueAiPage({
       currency: "EUR",
       maximumFractionDigits: 0,
     }).format(value);
-  const revenueActions = marketingActions.filter((action) => ["INACTIVE_RECOVERY", "FOLLOW_UP"].includes(action.type));
+  const revenueActions = marketingActions.filter((action) => action.type === "FOLLOW_UP");
   const activityActions = revenueActions.map((action) => ({
     id: action.id,
     customerId: action.customer?.id ?? action.customerId,
@@ -163,22 +138,6 @@ export default async function RevenueAiPage({
     ["CANCELLED", "REJECTED"].includes(item.status),
   );
   const noShows = reservations.filter((item) => item.status === "NO_SHOW");
-  const inactiveCustomers = customers.filter((customer) => {
-    if (!customer.marketingOptIn || !customer.email) return false;
-    const lastContact =
-      customer.lastVisitAt ||
-      customer.lastReservationAt ||
-      customer.reservations[0]?.date;
-    return Boolean(lastContact && lastContact < sixtyDaysAgo);
-  });
-  const abandonedLeads = customers.filter(
-    (customer) =>
-      customer.createdAt < fortyEightHoursAgo &&
-      customer.totalVisits === 0 &&
-      customer.visitCount === 0 &&
-      customer.reservations.length === 0 &&
-      Boolean(customer.email || customer.phone),
-  );
 
   const recoveredActions = revenueActions.filter(
     (action) =>
@@ -204,14 +163,10 @@ export default async function RevenueAiPage({
     (total, reservation) => total + reservation.guests * averageTicket,
     0,
   );
-  const inactiveValue = inactiveCustomers.length * averageTicket * 2;
-  const abandonedValue = abandonedLeads.length * averageTicket * 2;
-  const revenueAtRisk = cancellationValue + noShowValue + inactiveValue + abandonedValue;
+  const revenueAtRisk = cancellationValue + noShowValue;
   const openOpportunityCount = [
     cancelledReservations.length,
     noShows.length,
-    inactiveCustomers.length,
-    abandonedLeads.length,
   ].filter((count) => count > 0).length;
 
   const opportunities = [
@@ -221,29 +176,7 @@ export default async function RevenueAiPage({
       description: t("opportunities.cancelled.description"),
       count: cancelledReservations.length,
       amount: cancellationValue,
-      href: `/restaurants/${id}/revenue-ai/inbox`,
-      cta: t("opportunities.cancelled.cta"),
       tone: "red" as const,
-    },
-    {
-      icon: <UserRoundX size={20} />,
-      title: t("opportunities.inactive.title"),
-      description: t("opportunities.inactive.description"),
-      count: inactiveCustomers.length,
-      amount: inactiveValue,
-      href: `/restaurants/${id}/revenue-ai/inbox`,
-      cta: t("opportunities.inactive.cta"),
-      tone: "gold" as const,
-    },
-    {
-      icon: <UsersRound size={20} />,
-      title: t("opportunities.leads.title"),
-      description: t("opportunities.leads.description"),
-      count: abandonedLeads.length,
-      amount: abandonedValue,
-      href: `/restaurants/${id}/revenue-ai/inbox`,
-      cta: t("opportunities.leads.cta"),
-      tone: "blue" as const,
     },
     {
       icon: <PhoneMissed size={20} />,
@@ -251,8 +184,6 @@ export default async function RevenueAiPage({
       description: t("opportunities.noShows.description"),
       count: noShows.length,
       amount: noShowValue,
-      href: `/restaurants/${id}/revenue-ai/inbox`,
-      cta: t("opportunities.noShows.cta"),
       tone: "red" as const,
     },
   ];
@@ -292,23 +223,14 @@ export default async function RevenueAiPage({
         <RestaurantSidebar id={id} restaurantName={restaurant.name} active="revenueAi" />
 
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-          <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <header>
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-3">
                 <p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">{t("eyebrow")}</p>
                 <span className="rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-[#3F6A4D]">{t("live")}</span>
               </div>
               <h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">{t("title")}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-5 text-[#6B6258]">Encontra vendas perdidas, prepara o contacto e mostra o valor recuperado.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link href={`/restaurants/${id}/revenue-ai/inbox`} className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full bg-[#17120D] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
-                <MessageCircleMore size={16} /> Inbox de oportunidades
-              </Link>
-              <Link href={`/restaurants/${id}/revenue-ai/integrations`} className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full border border-[#D8C6A9] bg-white px-5 text-sm font-semibold transition hover:bg-[#FFF9F0]">
-                <Workflow size={16} />
-                {t("rulesCta")}
-              </Link>
+              <p className="mt-2 max-w-2xl text-sm leading-5 text-[#6B6258]">{t("subtitle")}</p>
             </div>
           </header>
 
@@ -338,7 +260,7 @@ export default async function RevenueAiPage({
             </div>
             <div className="mt-4 grid gap-3 xl:grid-cols-2">
               {opportunities.map((opportunity) => (
-                <OpportunityCard key={opportunity.title} {...opportunity} amountLabel={formatMoney(opportunity.amount)} countLabel={t("opportunities.items", { count: opportunity.count })} />
+                <OpportunityCard key={opportunity.title} {...opportunity} amountLabel={formatMoney(opportunity.amount)} countLabel={t("opportunities.items", { count: opportunity.count })} automationLabel={opportunity.count > 0 ? t("opportunities.processing") : t("opportunities.monitoring")} />
               ))}
             </div>
           </section>
@@ -347,11 +269,9 @@ export default async function RevenueAiPage({
             <div className="rounded-[26px] border border-[#2C2117] bg-[#17120D] p-5 text-white">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D7B267]">{t("channels.eyebrow")}</p>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><h2 className="mt-1 text-2xl font-semibold tracking-[-0.045em]">{t("channels.title")}</h2><Link href={`/restaurants/${id}/revenue-ai/integrations`} className="text-xs font-bold text-[#E8C985]">Gerir canais →</Link></div>
-              <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-4 grid gap-2 md:grid-cols-2">
                 <ChannelRow href={`/restaurants/${id}/revenue-ai/inbox`} icon={<Mail size={18} />} name={t("channels.email")} status={process.env.RESEND_API_KEY ? t("channels.ready") : t("channels.configure")} active={Boolean(process.env.RESEND_API_KEY)} />
-                <ChannelRow href={`/restaurants/${id}/website`} icon={<CheckCircle2 size={18} />} name={t("channels.website")} status={restaurant.websiteEnabled ? t("channels.connected") : t("channels.configure")} active={restaurant.websiteEnabled} />
-                <ChannelRow href={`/restaurants/${id}/revenue-ai/integrations`} icon={<MessageCircleMore size={18} />} name={t("channels.whatsapp")} status={revenueChannelStatus.whatsappReady ? revenueChannelStatus.whatsappProactiveReady ? t("channels.ready") : t("channels.receiveOnly") : revenueChannelStatus.whatsappConfigured ? t("channels.waitingProvider") : t("channels.configure")} active={revenueChannelStatus.whatsappReady} />
-                <ChannelRow href={`/restaurants/${id}/revenue-ai/integrations`} icon={<PhoneMissed size={18} />} name={t("channels.calls")} status={revenueChannelStatus.voiceReady ? t("channels.ready") : revenueChannelStatus.voiceConfigured ? restaurant.revenueChannelsLastError ? t("channels.paused") : t("channels.waitingProvider") : t("channels.configure")} active={revenueChannelStatus.voiceReady} />
+                <ChannelRow href={`/restaurants/${id}/revenue-ai/integrations`} icon={<PhoneMissed size={18} />} name={t("channels.missedCallWhatsapp")} status={revenueChannelStatus.voiceReady && revenueChannelStatus.whatsappReady ? t("channels.ready") : revenueChannelStatus.voiceConfigured || revenueChannelStatus.whatsappConfigured ? restaurant.revenueChannelsLastError ? t("channels.paused") : t("channels.waitingProvider") : t("channels.configure")} active={revenueChannelStatus.voiceReady && revenueChannelStatus.whatsappReady} />
               </div>
             </div>
           </section>
@@ -381,7 +301,7 @@ function HeroMetric({ label, value }: { label: string; value: string }) {
   return <div className="bg-[#17120D] p-5 sm:p-6"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/40">{label}</p><p className="mt-3 text-2xl font-semibold tracking-[-0.045em] sm:text-3xl">{value}</p></div>;
 }
 
-function OpportunityCard({ icon, title, description, count, amountLabel, countLabel, href, cta, tone }: { icon: ReactNode; title: string; description: string; count: number; amountLabel: string; countLabel: string; href: string; cta: string; tone: "red" | "gold" | "blue" }) {
+function OpportunityCard({ icon, title, description, amountLabel, countLabel, automationLabel, tone }: { icon: ReactNode; title: string; description: string; amountLabel: string; countLabel: string; automationLabel: string; tone: "red" | "gold" | "blue" }) {
   const tones = {
     red: "border-[#EDC7BB] bg-[#FFF5F0] text-[#A14E36]",
     gold: "border-[#E6D0A8] bg-[#FFF9ED] text-[#8A6130]",
@@ -392,7 +312,7 @@ function OpportunityCard({ icon, title, description, count, amountLabel, countLa
       <div className="flex items-start justify-between gap-4"><div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/80">{icon}</div><p className="text-2xl font-semibold tracking-[-0.045em]">{amountLabel}</p></div>
       <h3 className="mt-3 text-base font-semibold text-[#16120E]">{title}</h3>
       <p className="mt-1 text-xs leading-5 text-[#6B6258]">{description}</p>
-      <div className="mt-3 flex items-center justify-between gap-4"><span className="text-[10px] font-black uppercase tracking-[0.13em]">{countLabel}</span><Link href={href} aria-disabled={count === 0} className={`inline-flex items-center gap-1 text-xs font-semibold ${count === 0 ? "pointer-events-none opacity-40" : ""}`}>{cta}<ArrowUpRight size={14} /></Link></div>
+      <div className="mt-3 flex items-center justify-between gap-4"><span className="text-[10px] font-black uppercase tracking-[0.13em]">{countLabel}</span><span className="inline-flex items-center gap-1.5 rounded-full border border-[#B8D7BA] bg-[#EEF8EE] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.08em] text-[#3F6A4D]"><Sparkles size={11} />{automationLabel}</span></div>
     </div>
   );
 }

@@ -12,13 +12,19 @@ import { completeWhatsAppSend, InsufficientWhatsAppAllowanceError, refundWhatsAp
 
 export async function POST(request: Request, { params }: { params: Promise<{ conversationId: string }> }) {
   const { conversationId } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const cronSecret = process.env.CRON_SECRET;
+  const internalUserId = request.headers.get("x-mesalink-user-id");
+  const internalRequest = Boolean(cronSecret && internalUserId && request.headers.get("authorization") === `Bearer ${cronSecret}`);
+  const session = internalRequest ? null : await getServerSession(authOptions);
+  if (!internalRequest && !session?.user?.email) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   const body = await request.json().catch(() => null);
   const content = typeof body?.content === "string" ? body.content.trim().slice(0, 1500) : "";
   if (!content) return NextResponse.json({ error: "Mensagem vazia." }, { status: 400 });
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
+  const user = await prisma.user.findUnique({
+    where: internalRequest ? { id: internalUserId! } : { email: session!.user!.email! },
+    include: { subscription: true },
+  });
   if (!user) return NextResponse.json({ error: "Utilizador não encontrado." }, { status: 404 });
   if (!hasGrowthAccess(user.subscription)) return NextResponse.json({ error: "O Revenue AI está disponível no plano Growth." }, { status: 403 });
 
@@ -95,7 +101,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
 
   if (conversation.channel !== "EMAIL" || !conversation.contactEmail) return NextResponse.json({ error: "Esta conversa precisa de WhatsApp ativo ou de um email válido." }, { status: 409 });
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: "Canal de email não configurado." }, { status: 503 });
-  if (!conversation.customer?.marketingOptIn) return NextResponse.json({ error: "O cliente não tem consentimento de marketing registado; a mensagem ficou apenas como rascunho." }, { status: 403 });
+  const reservationFollowUp = ["CANCELLED_RESERVATION", "NO_SHOW"].includes(conversation.opportunityType);
+  if (!reservationFollowUp && !conversation.customer?.marketingOptIn) return NextResponse.json({ error: "O cliente não tem consentimento de marketing registado; a mensagem ficou apenas como rascunho." }, { status: 403 });
 
   const emailReference = `email:revenue_follow_up:${conversation.id}:${crypto.randomUUID()}`;
   let creditsRemaining = user.subscription?.aiCredits || 0;
@@ -140,8 +147,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
     const delivery = await resend.emails.send({
       from: `${conversation.restaurant.name} via MesaLink <noreply@mesalink.pt>`,
       to: conversation.contactEmail,
-      subject: `${conversation.restaurant.name}: podemos ajudar?`,
-      html: `<div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px"><div style="max-width:560px;margin:auto;background:white;border:1px solid #E1D0B8;border-radius:24px;padding:30px"><p style="white-space:pre-wrap;line-height:1.65;color:#29221B">${escapeHtml(content)}</p><a href="${clickUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700">Reservar mesa</a><p style="margin-top:28px;font-size:12px;color:#817365">Mensagem enviada por ${escapeHtml(conversation.restaurant.name)} através do MesaLink porque aceitou receber comunicações deste restaurante.</p>${marketingTrackingPixel(openUrl)}</div></div>`,
+      subject: reservationFollowUp ? `${conversation.restaurant.name}: quer remarcar a sua reserva?` : `${conversation.restaurant.name}: podemos ajudar?`,
+      html: `<div style="font-family:Arial,sans-serif;background:#F5EFE6;padding:32px"><div style="max-width:560px;margin:auto;background:white;border:1px solid #E1D0B8;border-radius:24px;padding:30px"><p style="white-space:pre-wrap;line-height:1.65;color:#29221B">${escapeHtml(content)}</p><a href="${clickUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700">${reservationFollowUp ? "Escolher nova data" : "Reservar mesa"}</a><p style="margin-top:28px;font-size:12px;color:#817365">${reservationFollowUp ? `Mensagem de acompanhamento da sua reserva em ${escapeHtml(conversation.restaurant.name)}, enviada através do MesaLink.` : `Mensagem enviada por ${escapeHtml(conversation.restaurant.name)} através do MesaLink porque aceitou receber comunicações deste restaurante.`}</p>${marketingTrackingPixel(openUrl)}</div></div>`,
     });
     const deliveryId = requireAcceptedEmail(delivery);
     await completeEmailSend(emailReference);
