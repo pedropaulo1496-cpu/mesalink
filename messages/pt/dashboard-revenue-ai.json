@@ -19,6 +19,8 @@
     "items": "{count} casos",
     "monitoring": "A vigiar",
     "processing": "Em tratamento",
+    "pending": "Envio pendente",
+    "sent": "{count, plural, one {Email enviado} other {# emails enviados}}",
     "cancelled": {
       "title": "Reservas canceladas",
       "description": "O cliente recebe automaticamente um email a perguntar se quer remarcar para outra data.",

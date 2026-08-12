@@ -3,6 +3,13 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
+  REFERRAL_ACCESSIBILITY_TAGS,
+  REFERRAL_DIETARY_TAGS,
+  REFERRAL_OCCASION_TAGS,
+  REFERRAL_REQUIREMENT_TAGS,
+  isReferralCuisineTag,
+} from "@/lib/referral-tags";
+import {
   MESALINK_REFERRAL_FEE_PERCENT,
   createReferralCode,
   isCommissionType,
@@ -39,6 +46,16 @@ export async function POST(request: Request) {
     const customerName = typeof body?.customerName === "string" ? body.customerName.trim().slice(0, 100) : "";
     const customerPhone = typeof body?.customerPhone === "string" ? body.customerPhone.trim().slice(0, 30) : "";
     const customerEmail = typeof body?.customerEmail === "string" ? body.customerEmail.trim().toLowerCase().slice(0, 160) : "";
+    const city = typeof body?.city === "string" ? body.city.trim().slice(0, 100) : "";
+    const cuisineTypes: string[] = Array.isArray(body?.cuisineTypes)
+      ? Array.from(new Set<string>((body.cuisineTypes as unknown[]).flatMap((item) => isReferralCuisineTag(item) ? [item] : []))).slice(0, 3)
+      : [];
+    const requirements = Array.isArray(body?.requirements)
+      ? Array.from(new Set(body.requirements.filter(
+          (item: unknown): item is string => typeof item === "string"
+            && (REFERRAL_REQUIREMENT_TAGS as readonly string[]).includes(item),
+        ))).slice(0, 5)
+      : [];
 
     if (
       (targetMode === "SELECTED" && submittedRestaurantIds.length === 0) ||
@@ -56,10 +73,12 @@ export async function POST(request: Request) {
       commissionAmount <= 0 ||
       commissionAmount > 1000
       || !customerName
+      || !city
+      || cuisineTypes.length === 0
       || customerPhone.replace(/\D/g, "").length < 7
       || (customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail))
     ) {
-      return NextResponse.json({ error: "Revê a data, o grupo, a comissão e os restaurantes." }, { status: 400 });
+      return NextResponse.json({ error: "Revê a data, o grupo, a cidade, o tipo de cozinha, a comissão e os restaurantes." }, { status: 400 });
     }
 
     const user = await prisma.user.findUnique({
@@ -114,25 +133,12 @@ export async function POST(request: Request) {
 
     const publicCode = createReferralCode();
     const expiresAt = new Date(Math.min(desiredDate.getTime() - 2 * 60 * 60 * 1000, Date.now() + 29 * 24 * 60 * 60 * 1000));
-    const occasionLabels: Record<string, string> = {
-      BIRTHDAY: "Ocasião: aniversário.",
-      BUSINESS: "Ocasião: jantar de empresa.",
-      CELEBRATION: "Ocasião: celebração.",
-    };
-    const accessibilityLabels: Record<string, string> = {
-      STEP_FREE: "Acessibilidade: acesso sem degraus.",
-      WHEELCHAIR: "Acessibilidade: espaço para cadeira de rodas.",
-    };
-    const dietaryLabels: Record<string, string> = {
-      VEGETARIAN: "Alimentação: opções vegetarianas.",
-      VEGAN: "Alimentação: opções vegan.",
-      GLUTEN_FREE: "Alimentação: opções sem glúten.",
-      MIXED: "Alimentação: necessidades variadas.",
-    };
+    const tagNote = (tags: readonly { value: string; note: string | null }[], value: unknown) => tags.find((tag) => tag.value === value)?.note;
     const notes = [
-      occasionLabels[String(body?.occasion || "")],
-      accessibilityLabels[String(body?.accessibility || "")],
-      dietaryLabels[String(body?.dietary || "")],
+      tagNote(REFERRAL_OCCASION_TAGS, body?.occasion),
+      tagNote(REFERRAL_ACCESSIBILITY_TAGS, body?.accessibility),
+      tagNote(REFERRAL_DIETARY_TAGS, body?.dietary),
+      requirements.length ? `Pedidos: ${requirements.join(", ")}.` : null,
     ].filter(Boolean).join(" ") || null;
 
     const group = await prisma.referralGroup.create({
@@ -149,10 +155,8 @@ export async function POST(request: Request) {
         customerEmail: customerEmail || null,
         targetMode,
         targetSummary: targetMode === "ALL" ? "Todos os restaurantes MesaLink" : targetMode === "FILTERED" ? `${restaurantCuisine || "Todas as cozinhas"}${restaurantQuery ? ` · ${restaurantQuery}` : ""}` : `${restaurantIds.length} restaurantes selecionados`,
-        cuisineTypes: Array.isArray(body?.cuisineTypes)
-          ? body.cuisineTypes.filter((item: unknown): item is string => typeof item === "string").map((item: string) => item.slice(0, 60)).slice(0, 6)
-          : [],
-        city: typeof body?.city === "string" ? body.city.trim().slice(0, 100) || null : null,
+        cuisineTypes,
+        city,
         area: typeof body?.area === "string" ? body.area.trim().slice(0, 120) || null : null,
         budgetPerPerson: Number.isFinite(budgetPerPerson) && Number(budgetPerPerson) > 0 ? Number(budgetPerPerson) : null,
         notes,

@@ -19,6 +19,8 @@
     "items": "{count} cases",
     "monitoring": "Monitoring",
     "processing": "In progress",
+    "pending": "Send pending",
+    "sent": "{count, plural, one {Email sent} other {# emails sent}}",
     "cancelled": {
       "title": "Cancelled reservations",
       "description": "The guest automatically receives an email asking if they would like to rebook.",

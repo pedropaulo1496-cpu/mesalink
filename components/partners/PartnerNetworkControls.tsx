@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { FileUploadField } from "@/components/FileUploadField";
 import { ImageUploadField } from "@/components/ImageUploadField";
+import { REFERRAL_CUISINE_TAGS, isReferralCuisineTag } from "@/lib/referral-tags";
 
 export function ReferralOfferFilterForm({
   restaurantId,
@@ -95,7 +96,7 @@ export function PartnerProfileSettingsForm({
   highlights: string[];
   menuUrl: string;
 }) {
-  const [profileCuisine, setProfileCuisine] = useState(cuisine);
+  const [profileCuisine, setProfileCuisine] = useState(isReferralCuisineTag(cuisine) ? cuisine : "");
   const [profileDescription, setProfileDescription] = useState(description);
   const [profileHeroImage, setProfileHeroImage] = useState(heroImage);
   const [profileGallery, setProfileGallery] = useState(gallery.slice(0, 6));
@@ -124,7 +125,7 @@ export function PartnerProfileSettingsForm({
   return (
     <form onSubmit={submit} className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="space-y-4">
-        <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Categoria / cozinha</span><input name="cuisine" value={profileCuisine} onChange={(event) => setProfileCuisine(event.target.value)} maxLength={80} className="input-premium h-12" /></label>
+        <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Tipo de cozinha *</span><select name="cuisine" value={profileCuisine} onChange={(event) => setProfileCuisine(event.target.value)} required className="input-premium h-12"><option value="" disabled>Escolher categoria</option>{REFERRAL_CUISINE_TAGS.map((tag) => <option key={tag} value={tag}>{tag}</option>)}</select><span className="mt-1.5 block text-[10px] text-[#827566]">Categoria uniforme usada na pesquisa e nos filtros dos parceiros.</span></label>
         <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Descrição para hotéis e parceiros</span><textarea name="description" value={profileDescription} onChange={(event) => setProfileDescription(event.target.value)} maxLength={700} rows={4} className="input-premium min-h-28 py-3" /></label>
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_240px]">
           <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Destaques · um por linha</span><textarea name="highlights" value={profileHighlights} onChange={(event) => setProfileHighlights(event.target.value)} rows={4} className="input-premium min-h-28 py-3" /></label>

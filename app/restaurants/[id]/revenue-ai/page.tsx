@@ -61,7 +61,7 @@ export default async function RevenueAiPage({
   const cancelledCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const noShowCutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-  const [reservations, marketingActions] = await Promise.all([
+  const [reservations, marketingActions, recoveryConversations] = await Promise.all([
     prisma.reservation.findMany({
       where: {
         restaurantId: id,
@@ -88,6 +88,24 @@ export default async function RevenueAiPage({
       take: 100,
       include: {
         customer: { select: { id: true, name: true } },
+      },
+    }),
+    prisma.revenueConversation.findMany({
+      where: {
+        restaurantId: id,
+        opportunityType: { in: ["CANCELLED_RESERVATION", "NO_SHOW"] },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+      select: {
+        sourceId: true,
+        opportunityType: true,
+        messages: {
+          where: { direction: "OUTBOUND" },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true },
+        },
       },
     }),
   ]);
@@ -138,6 +156,18 @@ export default async function RevenueAiPage({
     ["CANCELLED", "REJECTED"].includes(item.status),
   );
   const noShows = reservations.filter((item) => item.status === "NO_SHOW");
+  const automationLabel = (type: "CANCELLED_RESERVATION" | "NO_SHOW", sourceIds: string[]) => {
+    if (sourceIds.length === 0) return t("opportunities.monitoring");
+    const relevantIds = new Set(sourceIds);
+    const sent = recoveryConversations.filter((conversation) =>
+      conversation.opportunityType === type
+      && relevantIds.has(conversation.sourceId)
+      && conversation.messages.some((message) => ["QUEUED", "SENT", "DELIVERED", "READ"].includes(message.status)),
+    ).length;
+    return sent > 0
+      ? t("opportunities.sent", { count: sent })
+      : t("opportunities.pending");
+  };
 
   const recoveredActions = revenueActions.filter(
     (action) =>
@@ -177,6 +207,7 @@ export default async function RevenueAiPage({
       count: cancelledReservations.length,
       amount: cancellationValue,
       tone: "red" as const,
+      automationLabel: automationLabel("CANCELLED_RESERVATION", cancelledReservations.map((item) => item.id)),
     },
     {
       icon: <PhoneMissed size={20} />,
@@ -185,6 +216,7 @@ export default async function RevenueAiPage({
       count: noShows.length,
       amount: noShowValue,
       tone: "red" as const,
+      automationLabel: automationLabel("NO_SHOW", noShows.map((item) => item.id)),
     },
   ];
 
@@ -260,7 +292,7 @@ export default async function RevenueAiPage({
             </div>
             <div className="mt-4 grid gap-3 xl:grid-cols-2">
               {opportunities.map((opportunity) => (
-                <OpportunityCard key={opportunity.title} {...opportunity} amountLabel={formatMoney(opportunity.amount)} countLabel={t("opportunities.items", { count: opportunity.count })} automationLabel={opportunity.count > 0 ? t("opportunities.processing") : t("opportunities.monitoring")} />
+                <OpportunityCard key={opportunity.title} {...opportunity} amountLabel={formatMoney(opportunity.amount)} countLabel={t("opportunities.items", { count: opportunity.count })} />
               ))}
             </div>
           </section>

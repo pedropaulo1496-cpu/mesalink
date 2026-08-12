@@ -1,3 +1,5 @@
+import { normalizeReferralCuisine } from "@/lib/referral-tags";
+
 type MenuProduct = {
   name: string;
   imageUrl?: string | null;
@@ -71,9 +73,12 @@ export function buildPartnerProfile(source: PartnerProfileSource) {
     ...menuSections.map((section) => section.title),
   ]).slice(0, 6);
   const explicitHighlights = unique(source.referralProfileHighlights || []);
+  const cuisine = normalizeReferralCuisine(source.referralProfileCuisine)
+    || normalizeReferralCuisine(source.websiteCuisine)
+    || "Internacional";
 
   return {
-    cuisine: clean(source.referralProfileCuisine) || clean(source.websiteCuisine) || "Restaurante",
+    cuisine,
     description: clean(source.referralProfileDescription)
       || clean(source.websiteDescription)
       || clean(source.websiteAboutText)

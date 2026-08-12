@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request, { params }: { params: Promise<{ conversationId: string }> }) {
   const { conversationId } = await params;
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = process.env.CRON_SECRET || process.env.NEXTAUTH_SECRET;
   const internalUserId = request.headers.get("x-mesalink-user-id");
   const internalRequest = Boolean(cronSecret && internalUserId && request.headers.get("authorization") === `Bearer ${cronSecret}`);
   const session = internalRequest ? null : await getServerSession(authOptions);

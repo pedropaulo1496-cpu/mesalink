@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { Check, ExternalLink, ImageIcon, MapPin, Search, ShieldCheck, UtensilsCrossed } from "lucide-react";
+import { REFERRAL_ACCESSIBILITY_TAGS, REFERRAL_CUISINE_TAGS, REFERRAL_DIETARY_TAGS, REFERRAL_OCCASION_TAGS, REFERRAL_REQUIREMENT_TAGS } from "@/lib/referral-tags";
 
 export type PartnerRestaurant = {
   id: string;
@@ -32,7 +33,9 @@ export default function NewReferralGroupForm({
   const [selected, setSelected] = useState<string[]>([]);
   const [targetMode, setTargetMode] = useState<"ALL" | "FILTERED" | "SELECTED">("SELECTED");
   const [query, setQuery] = useState("");
-  const [cuisine, setCuisine] = useState("ALL");
+  const [restaurantCuisineFilter, setRestaurantCuisineFilter] = useState("ALL");
+  const [requestedCuisines, setRequestedCuisines] = useState<string[]>([]);
+  const [requirements, setRequirements] = useState<string[]>([]);
   const [adults, setAdults] = useState(6);
   const [children, setChildren] = useState(0);
   const [commissionType, setCommissionType] = useState(defaultCommissionType);
@@ -50,11 +53,11 @@ export default function NewReferralGroupForm({
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return restaurants.filter((restaurant) => {
-      const matchesCuisine = cuisine === "ALL" || restaurant.cuisine === cuisine;
+      const matchesCuisine = restaurantCuisineFilter === "ALL" || restaurant.cuisine === restaurantCuisineFilter;
       const matchesQuery = !normalized || `${restaurant.name} ${restaurant.cuisine} ${restaurant.address} ${restaurant.description} ${restaurant.highlights.join(" ")}`.toLowerCase().includes(normalized);
       return matchesCuisine && matchesQuery;
     });
-  }, [restaurants, query, cuisine]);
+  }, [restaurants, query, restaurantCuisineFilter]);
 
   const guests = adults + children;
   const gross = commissionType === "PER_PERSON" ? guests * commissionAmount : commissionAmount;
@@ -64,6 +67,11 @@ export default function NewReferralGroupForm({
 
   function toggle(id: string) {
     setSelected((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
+  }
+
+  function toggleTag(value: string, values: string[], setValues: (next: string[]) => void, maximum: number) {
+    if (values.includes(value)) setValues(values.filter((item) => item !== value));
+    else if (values.length < maximum) setValues([...values, value]);
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -81,6 +89,11 @@ export default function NewReferralGroupForm({
       return;
     }
 
+    if (requestedCuisines.length === 0) {
+      setMessage("Escolhe pelo menos um tipo de cozinha para o grupo.");
+      return;
+    }
+
     const form = new FormData(event.currentTarget);
     setLoading(true);
 
@@ -92,7 +105,7 @@ export default function NewReferralGroupForm({
           restaurantIds: selected,
           targetMode,
           restaurantQuery: query,
-          restaurantCuisine: cuisine,
+          restaurantCuisine: restaurantCuisineFilter,
           desiredDate: form.get("desiredDate"),
           alternativeDate: form.get("alternativeDate") || null,
           adults,
@@ -104,7 +117,8 @@ export default function NewReferralGroupForm({
           occasion: form.get("occasion"),
           accessibility: form.get("accessibility"),
           dietary: form.get("dietary"),
-          cuisineTypes: cuisine === "ALL" ? [] : [cuisine],
+          cuisineTypes: requestedCuisines,
+          requirements,
           commissionType,
           commissionAmount,
           customerName: form.get("customerName"),
@@ -146,14 +160,19 @@ export default function NewReferralGroupForm({
             <Field label="Data alternativa"><input name="alternativeDate" type="datetime-local" className="input-premium h-12" /></Field>
             <div className="grid grid-cols-2 gap-3"><Field label="Adultos"><input value={adults} onChange={(event) => setAdults(Math.max(1, Number(event.target.value)))} type="number" min="1" max="200" required className="input-premium h-12" /></Field><Field label="Crianças"><input value={children} onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))} type="number" min="0" max="199" required className="input-premium h-12" /></Field></div>
             <Field label="Budget por pessoa"><input name="budgetPerPerson" type="number" min="1" step="0.01" placeholder="35" className="input-premium h-12" /></Field>
-            <Field label="Cidade"><input name="city" placeholder="Lisboa" className="input-premium h-12" /></Field>
+            <Field label="Cidade *"><input name="city" required maxLength={100} placeholder="Lisboa" className="input-premium h-12" /></Field>
             <Field label="Zona preferida"><input name="area" placeholder="Chiado, centro…" className="input-premium h-12" /></Field>
           </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <Field label="Ocasião"><select name="occasion" className="input-premium h-12"><option value="NONE">Não indicada</option><option value="BIRTHDAY">Aniversário</option><option value="BUSINESS">Jantar de empresa</option><option value="CELEBRATION">Celebração</option></select></Field>
-            <Field label="Acessibilidade"><select name="accessibility" className="input-premium h-12"><option value="NONE">Sem pedido</option><option value="STEP_FREE">Acesso sem degraus</option><option value="WHEELCHAIR">Espaço para cadeira de rodas</option></select></Field>
-            <Field label="Alimentação"><select name="dietary" className="input-premium h-12"><option value="NONE">Sem pedido</option><option value="VEGETARIAN">Opções vegetarianas</option><option value="VEGAN">Opções vegan</option><option value="GLUTEN_FREE">Opções sem glúten</option><option value="MIXED">Necessidades variadas</option></select></Field>
+          <div className="mt-4">
+            <div className="flex items-center justify-between gap-3"><p className="text-xs font-bold text-[#655A4E]">Tipo de cozinha * <span className="font-normal text-[#8A7D70]">· até 3</span></p><span className="text-[10px] font-bold text-[#8A6130]">{requestedCuisines.length}/3</span></div>
+            <div className="mt-2 flex flex-wrap gap-1.5">{REFERRAL_CUISINE_TAGS.map((tag) => { const active = requestedCuisines.includes(tag); return <button key={tag} type="button" aria-pressed={active} onClick={() => toggleTag(tag, requestedCuisines, setRequestedCuisines, 3)} className={`rounded-full border px-3 py-1.5 text-[10px] font-bold transition ${active ? "border-[#8A6130] bg-[#17120D] text-white" : "border-[#DCC9AC] bg-[#FFF9F0] text-[#6E563A] hover:border-[#B9853E]"}`}>{active && <Check size={10} className="mr-1 inline" />}{tag}</button>; })}</div>
           </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <Field label="Ocasião"><select name="occasion" className="input-premium h-12">{REFERRAL_OCCASION_TAGS.map((tag) => <option key={tag.value} value={tag.value}>{tag.label}</option>)}</select></Field>
+            <Field label="Acessibilidade"><select name="accessibility" className="input-premium h-12">{REFERRAL_ACCESSIBILITY_TAGS.map((tag) => <option key={tag.value} value={tag.value}>{tag.label}</option>)}</select></Field>
+            <Field label="Alimentação"><select name="dietary" className="input-premium h-12">{REFERRAL_DIETARY_TAGS.map((tag) => <option key={tag.value} value={tag.value}>{tag.label}</option>)}</select></Field>
+          </div>
+          <div className="mt-4"><p className="text-xs font-bold text-[#655A4E]">Outros pedidos <span className="font-normal text-[#8A7D70]">· opcional</span></p><div className="mt-2 flex flex-wrap gap-1.5">{REFERRAL_REQUIREMENT_TAGS.map((tag) => { const active = requirements.includes(tag); return <button key={tag} type="button" aria-pressed={active} onClick={() => toggleTag(tag, requirements, setRequirements, 5)} className={`rounded-full border px-3 py-1.5 text-[10px] font-bold transition ${active ? "border-[#8A6130] bg-[#FFF0D3] text-[#69491F]" : "border-[#DCC9AC] bg-white text-[#6E563A]"}`}>{active && <Check size={10} className="mr-1 inline" />}{tag}</button>; })}</div></div>
           <p className="mt-4 rounded-2xl border border-[#D7E4D4] bg-[#F3FAF2] p-4 text-xs leading-5 text-[#4F6C4D]">Enquanto o grupo está aberto, os restaurantes veem apenas os detalhes do pedido. Nome, telefone e email permanecem protegidos até existir uma reserva confirmada.</p>
         </div>
 
@@ -162,7 +181,7 @@ export default function NewReferralGroupForm({
           <div className="mt-5 grid gap-2 sm:grid-cols-3">{([{"value":"ALL","label":"Todos","note":`${restaurants.length} restaurantes`},{"value":"FILTERED","label":"Resultados do filtro","note":`${filtered.length} restaurantes`},{"value":"SELECTED","label":"Escolher manualmente","note":`${selected.length} selecionados`}] as const).map((option) => <button key={option.value} type="button" onClick={() => setTargetMode(option.value)} className={`rounded-[20px] border p-4 text-left ${targetMode === option.value ? "border-[#8A6130] bg-[#FFF3DF] ring-2 ring-[#C8A56A]/20" : "border-[#E1D0B8] bg-white"}`}><span className="block text-sm font-black">{option.label}</span><span className="mt-1 block text-xs text-[#74685B]">{option.note}</span></button>)}</div>
           <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_220px]">
             <label className="relative"><Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8C7E6E]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome, cozinha ou zona" className="input-premium h-12 pl-11" /></label>
-            <select value={cuisine} onChange={(event) => setCuisine(event.target.value)} className="input-premium h-12"><option value="ALL">Todas as cozinhas</option>{cuisines.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+            <select value={restaurantCuisineFilter} onChange={(event) => setRestaurantCuisineFilter(event.target.value)} className="input-premium h-12"><option value="ALL">Todas as cozinhas</option>{cuisines.map((item) => <option key={item} value={item}>{item}</option>)}</select>
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             {filtered.map((restaurant) => {
@@ -206,7 +225,7 @@ export default function NewReferralGroupForm({
             <input value={commissionAmount} onChange={(event) => setCommissionAmount(Number(event.target.value))} type="number" min="1" max="1000" step="0.01" className="h-12 rounded-2xl border border-white/15 bg-white/10 px-4 text-sm" />
           </div>
           <div className="mt-6 border-t border-white/10 pt-5 text-sm"><MoneyRow label="Recebes · 85%" value={money(partnerNet)} strong /></div>
-          <p className="mt-4 text-[11px] leading-5 text-white/40">Um acordo pré-definido com o restaurante substitui esta proposta para esse restaurante.</p>
+          <p className="mt-4 text-[11px] leading-5 text-white/40">O restaurante vê a comissão equivalente por pessoa e o valor total.</p>
         </div>
         {message && <div className={`rounded-[22px] border p-4 text-sm font-semibold ${success ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{message}</div>}
         <button disabled={!publishingEnabled || loading || (targetMode === "SELECTED" && selected.length === 0) || (targetMode === "FILTERED" && filtered.length === 0)} className="h-14 w-full rounded-full bg-[#C8A56A] px-6 text-sm font-black text-[#17120D] shadow-[0_18px_45px_rgba(156,112,51,0.22)] disabled:cursor-not-allowed disabled:opacity-45">{!publishingEnabled ? "Valida o IBAN para publicar" : loading ? "A publicar…" : `Publicar para ${targetMode === "ALL" ? restaurants.length : targetMode === "FILTERED" ? filtered.length : selected.length} restaurante(s)`}</button>

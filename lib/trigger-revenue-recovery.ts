@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 export async function triggerRevenueRecovery(restaurantId: string) {
-  const secret = process.env.CRON_SECRET;
+  const secret = process.env.CRON_SECRET || process.env.NEXTAUTH_SECRET;
   if (!secret || !restaurantId) return false;
 
   const restaurant = await prisma.restaurant.findUnique({

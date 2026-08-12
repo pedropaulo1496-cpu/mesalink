@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isReferralCuisineTag } from "@/lib/referral-tags";
 
 export async function POST(
   request: Request,
@@ -33,6 +34,10 @@ export async function POST(
   const gallery = lines(body.gallery, 6, 1000).map(safeUrl).filter(Boolean);
   const highlights = lines(body.highlights, 6, 80);
 
+  if (!isReferralCuisineTag(cuisine)) {
+    return NextResponse.json({ error: "Escolhe um tipo de cozinha da lista." }, { status: 400 });
+  }
+
   if ((body.heroImage && !heroImage) || (body.menuUrl && !menuUrl)) {
     return NextResponse.json({ error: "Confirma os links da imagem e do menu." }, { status: 400 });
   }
@@ -40,7 +45,7 @@ export async function POST(
   await prisma.restaurant.update({
     where: { id },
     data: {
-      referralProfileCuisine: cuisine || null,
+      referralProfileCuisine: cuisine,
       referralProfileDescription: description || null,
       referralProfileHeroImage: heroImage || null,
       referralProfileGallery: gallery,
