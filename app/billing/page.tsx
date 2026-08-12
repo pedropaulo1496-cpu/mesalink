@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 type TFunc = (key: string, values?: Record<string, string | number>) => string;
 
@@ -21,6 +21,9 @@ type BillingPageProps = {
 
 export default async function BillingPage({ searchParams }: BillingPageProps) {
   const t = await getTranslations("dashboardBilling.main");
+  const locale = await getLocale();
+  const formatNumber = new Intl.NumberFormat(locale);
+  const formatEuro = new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" });
 
   const session = await getServerSession(authOptions);
 
@@ -123,7 +126,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 {t("hero.description")}
               </p>
 
-              <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+              <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <Info label={t("stats.currentPlan.label")} value={currentPlan} />
                 <Info
                   label={t("stats.trial.label")}
@@ -156,7 +159,10 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                   </p>
                 </div>
 
-                <TrialRing percentage={trialActive ? trialProgress : hasActiveSubscription ? 100 : 0} />
+                <TrialRing
+                  percentage={trialActive ? trialProgress : hasActiveSubscription ? 100 : 0}
+                  label={trialActive ? `${trialDaysLeft}d` : undefined}
+                />
               </div>
 
               {trialActive && (
@@ -289,24 +295,38 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
         </section>
 
         <section className="mt-7 overflow-hidden rounded-[36px] border border-[#2C2117] bg-[#17120D] p-6 text-white shadow-[0_30px_90px_rgba(44,31,18,0.2)] sm:p-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="grid gap-7 xl:grid-cols-[0.72fr_1.28fr] xl:items-start">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.28em] text-[#D7B267]">{t("credits.kicker")}</p>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">{t("credits.title", { credits: subscription.aiCredits })}</h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65">{t("credits.description")}</p>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs text-white/70 sm:grid-cols-5">
-              <CreditCost value="10" label={t("credits.costs.visibility")} />
-              <CreditCost value="5" label={t("credits.costs.website")} />
-              <CreditCost value="1" label={t("credits.costs.draft")} />
-              <CreditCost value="75" label={t("credits.costs.email")} />
-              <CreditCost value="8" label={t("credits.costs.whatsapp")} />
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[#D7B267]">{t("credits.usageTitle")}</p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <CreditUsageGroup
+                  title={t("credits.aiActions")}
+                  rows={[
+                    { label: `1 ${t("credits.costs.visibility")}`, value: `10 ${t("credits.unitPlural")}` },
+                    { label: `1 ${t("credits.costs.website")}`, value: `5 ${t("credits.unitPlural")}` },
+                    { label: `1 ${t("credits.costs.draft")}`, value: `1 ${t("credits.unitSingular")}` },
+                  ]}
+                />
+                <CreditUsageGroup
+                  title={t("credits.communications")}
+                  rows={[
+                    { label: `1 ${t("credits.unitSingular")}`, value: `75 ${t("credits.costs.email")}` },
+                    { label: `1 ${t("credits.unitSingular")}`, value: `8 ${t("credits.costs.whatsapp")}` },
+                  ]}
+                  note={t("credits.freeIncoming")}
+                />
+              </div>
             </div>
           </div>
           <div className="mt-7 grid gap-3 md:grid-cols-3">
-            <CreditPack credits="100" price="29€" unit="0,29€/crédito" action={<AiCreditCheckoutButton packId="STARTER" label={t("credits.buy")} />} />
-            <CreditPack credits="300" price="69€" unit="0,23€/crédito" featured action={<AiCreditCheckoutButton packId="GROWTH" label={t("credits.buy")} featured />} />
-            <CreditPack credits="1.000" price="179€" unit="0,18€/crédito" action={<AiCreditCheckoutButton packId="SCALE" label={t("credits.buy")} />} />
+            <CreditPack credits={formatNumber.format(100)} creditsLabel={t("credits.unitPlural")} price="29€" unit={`${formatEuro.format(0.29)}/${t("credits.unitSingular")}`} capacityLabel={t("credits.packCapacity")} capacity={`${formatNumber.format(7_500)} ${t("credits.costs.email")} ${t("credits.or")} ${formatNumber.format(800)} ${t("credits.costs.whatsapp")}`} action={<AiCreditCheckoutButton packId="STARTER" label={t("credits.buy")} />} />
+            <CreditPack credits={formatNumber.format(300)} creditsLabel={t("credits.unitPlural")} price="69€" unit={`${formatEuro.format(0.23)}/${t("credits.unitSingular")}`} capacityLabel={t("credits.packCapacity")} capacity={`${formatNumber.format(22_500)} ${t("credits.costs.email")} ${t("credits.or")} ${formatNumber.format(2_400)} ${t("credits.costs.whatsapp")}`} featured action={<AiCreditCheckoutButton packId="GROWTH" label={t("credits.buy")} featured />} />
+            <CreditPack credits={formatNumber.format(1_000)} creditsLabel={t("credits.unitPlural")} price="179€" unit={`${formatEuro.format(0.18)}/${t("credits.unitSingular")}`} capacityLabel={t("credits.packCapacity")} capacity={`${formatNumber.format(75_000)} ${t("credits.costs.email")} ${t("credits.or")} ${formatNumber.format(8_000)} ${t("credits.costs.whatsapp")}`} action={<AiCreditCheckoutButton packId="SCALE" label={t("credits.buy")} />} />
           </div>
           <p className="mt-4 text-xs leading-5 text-white/45">{t("credits.taxNote")}</p>
         </section>
@@ -345,14 +365,14 @@ function Info({ label, value }: { label: string; value: string }) {
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">
         {label}
       </p>
-      <p className="mt-2 break-words text-xl font-semibold tracking-[-0.04em] text-[#16120E]">
+      <p className="mt-2 text-lg font-semibold leading-6 tracking-[-0.035em] text-[#16120E] sm:text-xl">
         {value}
       </p>
     </div>
   );
 }
 
-function TrialRing({ percentage }: { percentage: number }) {
+function TrialRing({ percentage, label }: { percentage: number; label?: string }) {
   const safePercentage = Math.max(0, Math.min(100, percentage));
   const circle = 2 * Math.PI * 22;
   const offset = circle - (safePercentage / 100) * circle;
@@ -382,7 +402,7 @@ function TrialRing({ percentage }: { percentage: number }) {
       </svg>
 
       <div className="absolute inset-0 flex items-center justify-center text-xs font-black text-[#D8C5A5]">
-        {safePercentage}%
+        {label ?? `${safePercentage}%`}
       </div>
     </div>
   );
@@ -538,10 +558,23 @@ function MiniFeature({ title, text }: { title: string; text: string }) {
   );
 }
 
-function CreditCost({ value, label }: { value: string; label: string }) {
-  return <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3"><p className="text-xl font-semibold text-[#E7C98D]">{value}</p><p className="mt-1 text-[10px] uppercase tracking-[0.1em]">{label}</p></div>;
+function CreditUsageGroup({ title, rows, note }: { title: string; rows: Array<{ label: string; value: string }>; note?: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/10 bg-white/[0.055] p-4">
+      <p className="text-xs font-bold text-white/75">{title}</p>
+      <div className="mt-3 space-y-2">
+        {rows.map((row) => (
+          <div key={`${row.label}-${row.value}`} className="flex items-center justify-between gap-4 rounded-xl bg-black/15 px-3 py-2.5 text-xs">
+            <span className="text-white/62">{row.label}</span>
+            <strong className="text-right text-[#E7C98D]">= {row.value}</strong>
+          </div>
+        ))}
+      </div>
+      {note && <p className="mt-3 text-[10px] leading-4 text-white/42">{note}</p>}
+    </div>
+  );
 }
 
-function CreditPack({ credits, price, unit, action, featured = false }: { credits: string; price: string; unit: string; action: React.ReactNode; featured?: boolean }) {
-  return <div className={`rounded-[28px] border p-5 ${featured ? "border-[#D7B267] bg-[#D7B267]/10" : "border-white/10 bg-white/[0.045]"}`}><div className="flex items-end justify-between gap-3"><div><p className="text-3xl font-semibold tracking-[-0.05em]">{credits}</p><p className="mt-1 text-xs uppercase tracking-[0.13em] text-white/50">créditos</p></div><div className="text-right"><p className="text-2xl font-semibold text-[#E7C98D]">{price}</p><p className="text-[10px] text-white/45">{unit}</p></div></div><div className="mt-5">{action}</div></div>;
+function CreditPack({ credits, creditsLabel, price, unit, capacityLabel, capacity, action, featured = false }: { credits: string; creditsLabel: string; price: string; unit: string; capacityLabel: string; capacity: string; action: React.ReactNode; featured?: boolean }) {
+  return <div className={`flex h-full flex-col rounded-[28px] border p-5 ${featured ? "border-[#D7B267] bg-[#D7B267]/10" : "border-white/10 bg-white/[0.045]"}`}><div className="flex items-end justify-between gap-3"><div><p className="text-3xl font-semibold tracking-[-0.05em]">{credits}</p><p className="mt-1 text-xs uppercase tracking-[0.13em] text-white/50">{creditsLabel}</p></div><div className="text-right"><p className="text-2xl font-semibold text-[#E7C98D]">{price}</p><p className="text-[10px] text-white/45">{unit}</p></div></div><div className="mt-5 rounded-2xl border border-white/8 bg-black/15 p-3"><p className="text-[9px] font-black uppercase tracking-[0.13em] text-white/42">{capacityLabel}</p><p className="mt-1.5 text-xs leading-5 text-white/72">{capacity}</p></div><div className="mt-auto pt-5">{action}</div></div>;
 }

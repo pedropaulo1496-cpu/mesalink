@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { Check, Search, ShieldCheck } from "lucide-react";
+import { Check, ExternalLink, ImageIcon, Search, ShieldCheck, UtensilsCrossed } from "lucide-react";
 
 export type PartnerRestaurant = {
   id: string;
@@ -10,6 +10,10 @@ export type PartnerRestaurant = {
   address: string;
   description: string;
   heroImage: string;
+  galleryImages: string[];
+  highlights: string[];
+  menuUrl: string;
+  menuSections: Array<{ title: string; items: string[] }>;
   averageTicket: number;
   commissionType: string;
   commissionAmount: number;
@@ -28,7 +32,8 @@ export default function NewReferralGroupForm({
   const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [cuisine, setCuisine] = useState("ALL");
-  const [guests, setGuests] = useState(6);
+  const [adults, setAdults] = useState(6);
+  const [children, setChildren] = useState(0);
   const [commissionType, setCommissionType] = useState(defaultCommissionType);
   const [commissionAmount, setCommissionAmount] = useState(defaultCommissionAmount);
   const [loading, setLoading] = useState(false);
@@ -43,11 +48,12 @@ export default function NewReferralGroupForm({
     const normalized = query.trim().toLowerCase();
     return restaurants.filter((restaurant) => {
       const matchesCuisine = cuisine === "ALL" || restaurant.cuisine === cuisine;
-      const matchesQuery = !normalized || `${restaurant.name} ${restaurant.cuisine} ${restaurant.address}`.toLowerCase().includes(normalized);
+      const matchesQuery = !normalized || `${restaurant.name} ${restaurant.cuisine} ${restaurant.address} ${restaurant.description} ${restaurant.highlights.join(" ")}`.toLowerCase().includes(normalized);
       return matchesCuisine && matchesQuery;
     });
   }, [restaurants, query, cuisine]);
 
+  const guests = adults + children;
   const gross = commissionType === "PER_PERSON" ? guests * commissionAmount : commissionAmount;
   const mesaLinkFee = Math.round(gross * 15) / 100;
   const partnerNet = gross - mesaLinkFee;
@@ -78,6 +84,8 @@ export default function NewReferralGroupForm({
           restaurantIds: selected,
           desiredDate: form.get("desiredDate"),
           alternativeDate: form.get("alternativeDate") || null,
+          adults,
+          children,
           guests,
           city: form.get("city"),
           area: form.get("area"),
@@ -116,7 +124,7 @@ export default function NewReferralGroupForm({
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <Field label="Data e hora preferida"><input name="desiredDate" type="datetime-local" required className="input-premium h-12" /></Field>
             <Field label="Data alternativa"><input name="alternativeDate" type="datetime-local" className="input-premium h-12" /></Field>
-            <Field label="Número de pessoas"><input value={guests} onChange={(event) => setGuests(Number(event.target.value))} type="number" min="1" max="200" required className="input-premium h-12" /></Field>
+            <div className="grid grid-cols-2 gap-3"><Field label="Adultos"><input value={adults} onChange={(event) => setAdults(Math.max(1, Number(event.target.value)))} type="number" min="1" max="200" required className="input-premium h-12" /></Field><Field label="Crianças"><input value={children} onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))} type="number" min="0" max="199" required className="input-premium h-12" /></Field></div>
             <Field label="Budget por pessoa"><input name="budgetPerPerson" type="number" min="1" step="0.01" placeholder="35" className="input-premium h-12" /></Field>
             <Field label="Cidade"><input name="city" placeholder="Lisboa" className="input-premium h-12" /></Field>
             <Field label="Zona preferida"><input name="area" placeholder="Chiado, centro…" className="input-premium h-12" /></Field>
@@ -138,10 +146,27 @@ export default function NewReferralGroupForm({
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             {filtered.map((restaurant) => {
               const isSelected = selected.includes(restaurant.id);
-              return <button key={restaurant.id} type="button" onClick={() => toggle(restaurant.id)} className={`overflow-hidden rounded-[24px] border text-left transition ${isSelected ? "border-[#9E733D] bg-[#FFF7E9] ring-2 ring-[#C8A56A]/25" : "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A]"}`}>
-                {restaurant.heroImage && <div className="h-28 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.heroImage})` }} />}
-                <div className="p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-semibold">{restaurant.name}</p><p className="mt-1 text-xs text-[#776B5E]">{restaurant.cuisine || "Restaurante"} · {restaurant.address || "Portugal"}</p></div><span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border ${isSelected ? "border-[#8A6130] bg-[#8A6130] text-white" : "border-[#D9CAB3]"}`}>{isSelected && <Check size={15} />}</span></div><p className="mt-3 text-xs font-bold text-[#8A6130]">{restaurant.hasAgreement ? "Acordo ativo: " : "Comissão base: "}{restaurant.commissionType === "PER_PERSON" ? `${money(restaurant.commissionAmount)} / pessoa` : `${money(restaurant.commissionAmount)} total`}</p></div>
-              </button>;
+              return <article key={restaurant.id} className={`overflow-hidden rounded-[24px] border transition ${isSelected ? "border-[#9E733D] bg-[#FFF7E9] ring-2 ring-[#C8A56A]/25" : "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A]"}`}>
+                <div className="relative">
+                  {restaurant.heroImage ? <div className="h-32 bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.heroImage})` }} /> : <div className="grid h-32 place-items-center bg-[#EADCC7] text-[#9B7D57]"><ImageIcon size={24} /></div>}
+                  <button type="button" aria-pressed={isSelected} onClick={() => toggle(restaurant.id)} className={`absolute right-3 top-3 inline-flex h-9 items-center gap-2 rounded-full px-3 text-xs font-black shadow-sm ${isSelected ? "bg-[#17120D] text-white" : "border border-white/80 bg-white/95 text-[#4E3B28]"}`}><span className={`grid h-5 w-5 place-items-center rounded-full border ${isSelected ? "border-white/40 bg-white/15" : "border-[#D3BE9C]"}`}>{isSelected && <Check size={12} />}</span>{isSelected ? "Selecionado" : "Escolher"}</button>
+                </div>
+                <div className="p-4">
+                  <div><p className="text-lg font-semibold tracking-[-0.025em]">{restaurant.name}</p><p className="mt-1 text-xs font-bold text-[#80613D]">{restaurant.cuisine || "Restaurante"} · {restaurant.address || "Portugal"}</p></div>
+                  <p className="mt-3 line-clamp-2 text-xs leading-5 text-[#6B6258]">{restaurant.description}</p>
+                  {restaurant.highlights.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{restaurant.highlights.slice(0, 3).map((item) => <span key={item} className="rounded-full bg-[#F1E6D5] px-2.5 py-1 text-[9px] font-bold text-[#795D38]">{item}</span>)}</div>}
+                  <details className="group mt-4 rounded-2xl border border-[#E7DAC7] bg-white px-3.5 py-3">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><UtensilsCrossed size={14} /> Ver perfil, imagens e menu</span><span className="transition group-open:rotate-180">⌄</span></summary>
+                    <div className="mt-3 border-t border-[#EEE3D3] pt-3">
+                      {restaurant.galleryImages.length > 0 && <div className="grid grid-cols-3 gap-2">{restaurant.galleryImages.slice(0, 3).map((image) => <div key={image} className="h-16 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />)}</div>}
+                      {restaurant.menuSections.length > 0 && <div className="mt-3 space-y-2">{restaurant.menuSections.slice(0, 3).map((section) => <div key={section.title}><p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#8A6130]">{section.title}</p><p className="mt-1 text-[11px] leading-4 text-[#6B6258]">{section.items.join(" · ")}</p></div>)}</div>}
+                      {restaurant.menuUrl && <a href={restaurant.menuUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Abrir menu completo <ExternalLink size={13} /></a>}
+                      {!restaurant.menuUrl && restaurant.menuSections.length === 0 && <p className="text-xs text-[#7A6D60]">O restaurante ainda não publicou o menu.</p>}
+                    </div>
+                  </details>
+                  <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#E9DECE] pt-3"><p className="text-xs font-bold text-[#8A6130]">{restaurant.hasAgreement ? "Acordo ativo" : "Comissão base"}</p><p className="text-sm font-black text-[#5E4326]">{restaurant.commissionType === "PER_PERSON" ? `${money(restaurant.commissionAmount)} / pessoa` : `${money(restaurant.commissionAmount)} total`}</p></div>
+                </div>
+              </article>;
             })}
             {filtered.length === 0 && <div className="md:col-span-2 rounded-[24px] border border-dashed border-[#D6C3A5] p-8 text-center text-sm text-[#6B6258]">Ainda não existem restaurantes disponíveis com estes filtros.</div>}
           </div>

@@ -101,7 +101,15 @@
       "success": "Paiement confirmé. Les crédits seront disponibles après traitement par Stripe.",
       "buy": "Acheter avec Stripe",
       "taxNote": "Prix hors TVA. Stripe calcule la taxe applicable lors du paiement.",
-      "costs": { "visibility": "audit GEO", "website": "contenu du site", "draft": "brouillon Revenue AI", "email": "e-mails par crédit", "whatsapp": "messages WhatsApp" }
+      "usageTitle": "Équivalences du solde",
+      "aiActions": "Actions IA",
+      "communications": "Communications",
+      "unitSingular": "crédit",
+      "unitPlural": "crédits",
+      "freeIncoming": "Les messages WhatsApp reçus ne consomment pas de solde.",
+      "packCapacity": "Si utilisé uniquement en communications",
+      "or": "ou",
+      "costs": { "visibility": "audit GEO", "website": "contenu du site", "draft": "brouillon Revenue AI", "email": "e-mails envoyés", "whatsapp": "messages WhatsApp envoyés" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

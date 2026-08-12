@@ -23,7 +23,12 @@ export async function POST(request: Request) {
           ),
         ).slice(0, 10)
       : [];
-    const guests = Number(body?.guests);
+    const legacyGuests = Number(body?.guests);
+    const requestedAdults = Number(body?.adults);
+    const requestedChildren = Number(body?.children);
+    const adults = Number.isInteger(requestedAdults) ? requestedAdults : legacyGuests;
+    const children = Number.isInteger(requestedChildren) ? requestedChildren : 0;
+    const guests = adults + children;
     const desiredDate = new Date(body?.desiredDate);
     const commissionType = isCommissionType(body?.commissionType) ? body.commissionType : null;
     const commissionAmount = Number(body?.commissionAmount);
@@ -31,6 +36,10 @@ export async function POST(request: Request) {
 
     if (
       restaurantIds.length === 0 ||
+      !Number.isInteger(adults) ||
+      adults < 1 ||
+      !Number.isInteger(children) ||
+      children < 0 ||
       !Number.isInteger(guests) ||
       guests < 1 ||
       guests > 200 ||
@@ -107,6 +116,8 @@ export async function POST(request: Request) {
         desiredDate,
         alternativeDate: body?.alternativeDate ? new Date(body.alternativeDate) : null,
         guests,
+        adults,
+        children,
         cuisineTypes: Array.isArray(body?.cuisineTypes)
           ? body.cuisineTypes.filter((item: unknown): item is string => typeof item === "string").map((item: string) => item.slice(0, 60)).slice(0, 6)
           : [],

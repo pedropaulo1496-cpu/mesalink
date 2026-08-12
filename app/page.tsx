@@ -715,7 +715,7 @@ function PricingSection() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-5 lg:grid-cols-2">
+        <div className="mt-12 grid items-stretch gap-6 lg:grid-cols-2">
           <PricingCard
             name={t("pricing.essentialsName")}
             price="55€"
@@ -787,13 +787,13 @@ function PricingCard({
   return (
     <div
       data-plan-card={name.toLowerCase()}
-      className={`relative overflow-hidden rounded-[32px] p-5 shadow-[0_35px_120px_rgba(24,21,18,0.16)] sm:rounded-[44px] sm:p-8 ${
+      className={`relative flex h-full flex-col overflow-hidden rounded-[32px] p-5 shadow-[0_35px_120px_rgba(24,21,18,0.14)] sm:rounded-[44px] sm:p-8 lg:p-10 ${
         featured
-          ? "bg-[#211912] text-white"
+          ? "bg-[#211912] text-white ring-1 ring-[#211912]"
           : "border border-[#D8C5A5] bg-[#FFF9F0] text-[#17130F]"
       }`}
     >
-      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-h-10 flex-row items-center justify-between gap-3">
         <p
           className={`text-sm font-semibold uppercase tracking-[0.22em] ${
             featured ? "text-[#D8C5A5]" : "text-[#9B6F3B]"
@@ -809,17 +809,17 @@ function PricingCard({
         )}
       </div>
 
-      <div className="mt-6 flex items-end gap-2">
-        <span className="text-6xl font-semibold tracking-[-0.08em] sm:text-7xl">
+      <div className="mt-7 flex min-h-[76px] items-end gap-2">
+        <span className="text-6xl font-semibold leading-none tracking-[-0.08em] sm:text-7xl">
           {price}
         </span>
-        <span className={featured ? "mb-3 text-white/65" : "mb-3 text-[#6B6258]"}>
+        <span className={featured ? "mb-2 text-white/65" : "mb-2 text-[#6B6258]"}>
           {t("pricingCard.perMonth")}
         </span>
       </div>
 
       <div
-        className={`mt-4 rounded-2xl px-4 py-3 text-sm ${
+        className={`mt-5 flex min-h-[88px] flex-col justify-center rounded-[22px] px-5 py-4 text-sm ${
           featured
             ? "border border-white/10 bg-white/[0.07] text-white/76"
             : "border border-[#D8C5A5] bg-white text-[#6B6258]"
@@ -837,7 +837,7 @@ function PricingCard({
       </div>
 
       <p
-        className={`mt-5 max-w-xl text-sm leading-6 ${
+        className={`mt-6 max-w-xl text-sm leading-6 sm:min-h-12 ${
           featured ? "text-white/68" : "text-[#6B6258]"
         }`}
       >
@@ -845,7 +845,7 @@ function PricingCard({
       </p>
 
       <div
-        className={`mt-7 rounded-3xl p-5 ${
+        className={`mt-6 flex min-h-[78px] items-center rounded-[26px] p-5 ${
           featured
             ? "border border-white/10 bg-white/[0.07]"
             : "border border-[#D8C5A5] bg-white"
@@ -858,20 +858,30 @@ function PricingCard({
         </p>
       </div>
 
-      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+      <div className="mt-8 grid flex-1 content-start gap-x-7 gap-y-4 sm:grid-cols-2">
         {features.map((feature) => (
-          <p
+          <div
             key={feature}
-            className={`text-sm ${featured ? "text-white/84" : "text-[#4F463B]"}`}
+            className={`grid grid-cols-[20px_1fr] items-start gap-2.5 text-sm leading-5 ${featured ? "text-white/84" : "text-[#4F463B]"}`}
           >
-            ✓ {feature}
-          </p>
+            <span
+              aria-hidden="true"
+              className={`mt-0.5 grid h-5 w-5 place-items-center rounded-full text-[11px] font-black ${
+                featured
+                  ? "bg-[#D8C5A5] text-[#211912]"
+                  : "bg-[#EAD9BC] text-[#765126]"
+              }`}
+            >
+              ✓
+            </span>
+            <span>{feature}</span>
+          </div>
         ))}
       </div>
 
       <Button
         asChild
-        className={`mt-8 min-h-14 h-auto w-full whitespace-normal rounded-full px-5 py-3 text-center text-base font-semibold leading-tight ${
+        className={`mt-10 h-auto min-h-14 w-full whitespace-normal rounded-full px-5 py-3 text-center text-base font-semibold leading-tight shadow-[0_16px_34px_rgba(0,0,0,0.12)] transition-transform hover:-translate-y-0.5 ${
           featured
             ? "bg-[#D8C5A5] text-[#17130F] hover:bg-[#E8D6B8]"
             : "bg-[#17130F] text-white hover:bg-[#2A2118]"

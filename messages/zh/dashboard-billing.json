@@ -101,7 +101,15 @@
       "success": "付款已确认。Stripe 完成处理后点数即可使用。",
       "buy": "通过 Stripe 购买",
       "taxNote": "价格不含增值税。Stripe 会在结账时计算适用税费。",
-      "costs": { "visibility": "GEO 审计", "website": "网站内容", "draft": "Revenue AI 草稿", "email": "每点邮件数", "whatsapp": "WhatsApp 消息" }
+      "usageTitle": "余额换算",
+      "aiActions": "AI 操作",
+      "communications": "通信",
+      "unitSingular": "点",
+      "unitPlural": "点",
+      "freeIncoming": "收到的 WhatsApp 消息不消耗余额。",
+      "packCapacity": "如果仅用于通信",
+      "or": "或",
+      "costs": { "visibility": "GEO 审计", "website": "网站内容", "draft": "Revenue AI 草稿", "email": "封已发送邮件", "whatsapp": "条已发送 WhatsApp 消息" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

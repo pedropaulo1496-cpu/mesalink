@@ -111,12 +111,20 @@
       "success": "Pagamento confirmado. Os créditos ficam disponíveis assim que o Stripe concluir o processamento.",
       "buy": "Comprar com Stripe",
       "taxNote": "Preços sem IVA. O imposto aplicável é calculado pelo Stripe no checkout. Créditos não expiram enquanto a conta estiver ativa.",
+      "usageTitle": "Equivalências do saldo",
+      "aiActions": "Ações com IA",
+      "communications": "Comunicações",
+      "unitSingular": "crédito",
+      "unitPlural": "créditos",
+      "freeIncoming": "Mensagens WhatsApp recebidas não gastam saldo.",
+      "packCapacity": "Se usar apenas em comunicações",
+      "or": "ou",
       "costs": {
         "visibility": "auditoria GEO",
-        "website": "conteúdo website",
+        "website": "conteúdo para website",
         "draft": "rascunho Revenue AI",
-        "email": "emails por crédito",
-        "whatsapp": "mensagens WhatsApp"
+        "email": "emails enviados",
+        "whatsapp": "mensagens WhatsApp enviadas"
       }
     },
     "platformSection": {

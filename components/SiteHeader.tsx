@@ -18,19 +18,17 @@ export default function SiteHeader({
 
   if (variant === "compact") {
     return (
-      <header className="sticky top-0 z-50 border-b border-[#DECDB4] bg-[#F4ECDF]/90 px-5 py-4 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-[#DECDB4] bg-[#F4ECDF]/90 px-5 py-3.5 backdrop-blur-xl">
         <nav className="mx-auto flex max-w-md items-center justify-between">
-          <Link href="/" className="text-3xl font-semibold tracking-[-0.06em]">
+          <Link href="/" className="shrink-0 text-[27px] font-semibold tracking-[-0.06em]">
             <span style={{ color: brand.mesa }}>Mesa</span>
             <span style={{ color: brand.link }}>Link</span>
           </Link>
 
           <div className="flex items-center gap-2">
-            <LanguageSwitcher className="h-8 px-2.5 text-[10px]" />
-
             <Link
               href="/login"
-              className="rounded-full border border-[#D8C5A5] bg-[#FFF9F0] px-4 py-2 text-xs font-semibold"
+              className="px-1.5 py-2 text-xs font-semibold text-[#5C5348]"
             >
               {t("compact.login")}
             </Link>
@@ -41,6 +39,11 @@ export default function SiteHeader({
             >
               {t("compact.cta")}
             </Link>
+
+            <LanguageSwitcher
+              showLabel={false}
+              className="h-9 w-9 shrink-0 justify-center px-0"
+            />
           </div>
         </nav>
       </header>
@@ -65,7 +68,10 @@ export default function SiteHeader({
         </div>
 
         <div className="flex items-center gap-3">
-          <LanguageSwitcher />
+          <LanguageSwitcher
+            className="w-9 justify-center px-0 sm:w-auto sm:px-3.5"
+            labelClassName="hidden sm:inline"
+          />
 
           <Link
             href="/register"

@@ -60,6 +60,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ off
           source: "PARTNER_NETWORK",
           notes: [
             `Referência anónima ${offer.group.publicCode}.`,
+            `${offer.group.adults ?? Math.max(1, offer.group.guests - (offer.group.children || 0))} adultos${offer.group.children > 0 ? ` e ${offer.group.children} crianças` : ""}.`,
             offer.group.area ? `Zona pedida: ${offer.group.area}.` : "",
             offer.group.notes || "",
           ].filter(Boolean).join(" "),

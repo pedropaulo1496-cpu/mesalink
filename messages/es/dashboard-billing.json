@@ -101,7 +101,15 @@
       "success": "Pago confirmado. Los créditos estarán disponibles cuando Stripe termine el procesamiento.",
       "buy": "Comprar con Stripe",
       "taxNote": "Precios sin IVA. Stripe calcula el impuesto aplicable en el checkout.",
-      "costs": { "visibility": "auditoría GEO", "website": "contenido web", "draft": "borrador Revenue AI", "email": "emails por crédito", "whatsapp": "mensajes WhatsApp" }
+      "usageTitle": "Equivalencias del saldo",
+      "aiActions": "Acciones con IA",
+      "communications": "Comunicaciones",
+      "unitSingular": "crédito",
+      "unitPlural": "créditos",
+      "freeIncoming": "Los mensajes WhatsApp recibidos no consumen saldo.",
+      "packCapacity": "Si se usa solo en comunicaciones",
+      "or": "o",
+      "costs": { "visibility": "auditoría GEO", "website": "contenido web", "draft": "borrador Revenue AI", "email": "emails enviados", "whatsapp": "mensajes WhatsApp enviados" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

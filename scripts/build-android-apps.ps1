@@ -7,6 +7,17 @@ $keystoreFile = Join-Path $projectRoot ".android-signing\mesalink-release.keysto
 $publicRoot = Join-Path $projectRoot "public"
 $downloadsRoot = Join-Path $publicRoot "downloads"
 $restaurantManifest = Join-Path $androidRoot "twa-manifest.json"
+$gradleWrapper = Join-Path $androidRoot "gradlew.bat"
+
+function Stop-AndroidGradle {
+  if (Test-Path -LiteralPath $gradleWrapper) {
+    & $gradleWrapper --stop | Out-Null
+    Start-Sleep -Milliseconds 500
+  }
+}
+
+& node (Join-Path $PSScriptRoot "generate-app-icons.mjs")
+if ($LASTEXITCODE -ne 0) { throw "MesaLink app icon generation failed." }
 
 if (-not (Test-Path -LiteralPath $signingFile)) {
   throw "Missing Android signing credentials: $signingFile"
@@ -23,9 +34,9 @@ if (-not (Test-Path -LiteralPath $keystoreFile)) {
 }
 
 $variants = @(
-  @{ Manifest = $restaurantManifest; Output = "MesaLink-Restaurantes-v1.1.0.apk" },
-  @{ Manifest = (Join-Path $androidRoot "partners-manifest.json"); Output = "MesaLink-Parceiros-v1.0.0.apk" },
-  @{ Manifest = (Join-Path $androidRoot "backoffice-manifest.json"); Output = "MesaLink-Backoffice-v1.0.0.apk" }
+  @{ Manifest = $restaurantManifest; Output = "MesaLink-Restaurantes-v1.1.1.apk" },
+  @{ Manifest = (Join-Path $androidRoot "partners-manifest.json"); Output = "MesaLink-Parceiros-v1.0.1.apk" },
+  @{ Manifest = (Join-Path $androidRoot "backoffice-manifest.json"); Output = "MesaLink-Backoffice-v1.0.1.apk" }
 )
 
 $iconServer = Start-Process python -ArgumentList @(
@@ -37,6 +48,7 @@ try {
   Push-Location $androidRoot
   try {
     foreach ($variant in $variants) {
+      Stop-AndroidGradle
       & npx bubblewrap update --skipVersionUpgrade --manifest $variant.Manifest
       if ($LASTEXITCODE -ne 0) { throw "Bubblewrap update failed for $($variant.Output)." }
 
@@ -51,6 +63,7 @@ try {
     }
   }
   finally {
+    Stop-AndroidGradle
     & npx bubblewrap update --skipVersionUpgrade --manifest $restaurantManifest
     if ($LASTEXITCODE -eq 0) {
       & node (Join-Path $PSScriptRoot "generate-android-splash.mjs") $androidRoot

@@ -111,12 +111,20 @@
       "success": "Payment confirmed. Credits become available as soon as Stripe completes processing.",
       "buy": "Buy with Stripe",
       "taxNote": "Prices exclude VAT. Applicable tax is calculated by Stripe at checkout. Credits do not expire while the account is active.",
+      "usageTitle": "Balance equivalents",
+      "aiActions": "AI actions",
+      "communications": "Communications",
+      "unitSingular": "credit",
+      "unitPlural": "credits",
+      "freeIncoming": "Incoming WhatsApp messages do not use balance.",
+      "packCapacity": "If used only for communications",
+      "or": "or",
       "costs": {
         "visibility": "GEO audit",
         "website": "website copy",
         "draft": "Revenue AI draft",
-        "email": "emails per credit",
-        "whatsapp": "WhatsApp messages"
+        "email": "emails sent",
+        "whatsapp": "WhatsApp messages sent"
       }
     },
     "platformSection": {

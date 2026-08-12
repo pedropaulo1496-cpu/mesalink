@@ -19,7 +19,6 @@ export default function MobilePage() {
       <AppDownloads compact />
       <PricingMini />
       <FinalCTA />
-      <StickyCTA />
       <Footer />
     </main>
   );
@@ -599,32 +598,6 @@ function Glow() {
       <div className="absolute left-1/2 top-[-160px] h-[330px] w-[330px] -translate-x-1/2 rounded-full bg-[#D8C5A5]/45 blur-[90px]" />
       <div className="absolute right-[-120px] top-[260px] h-[260px] w-[260px] rounded-full bg-[#C8A56A]/20 blur-[80px]" />
       <div className="absolute left-[-120px] top-[420px] h-[260px] w-[260px] rounded-full bg-white/70 blur-[80px]" />
-    </div>
-  );
-}
-
-function StickyCTA() {
-  return (
-    <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-      <a
-        href="#downloads"
-        className="pointer-events-auto mx-auto flex max-w-md items-center gap-3 rounded-[22px] border border-white/10 bg-[#17130F] p-2 pr-4 text-white shadow-[0_22px_65px_rgba(23,19,15,0.38)] transition hover:-translate-y-0.5 hover:bg-[#241D17]"
-      >
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#C8A56A] text-xl font-bold text-[#17130F]">
-          ↓
-        </span>
-        <span className="min-w-0 flex-1 text-left">
-          <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#C8A56A]">
-            Apps MesaLink para Android
-          </span>
-          <span className="mt-0.5 block text-sm font-semibold">
-            Escolher uma das 3 aplicações
-          </span>
-        </span>
-        <span className="rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold tracking-[0.12em] text-white/80">
-          3 APK
-        </span>
-      </a>
     </div>
   );
 }

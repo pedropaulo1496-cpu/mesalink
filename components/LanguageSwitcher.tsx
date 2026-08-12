@@ -16,9 +16,13 @@ import {
 export default function LanguageSwitcher({
   className,
   contentClassName,
+  labelClassName,
+  showLabel = true,
 }: {
   className?: string;
   contentClassName?: string;
+  labelClassName?: string;
+  showLabel?: boolean;
 }) {
   const locale = useLocale() as Locale;
   const t = useTranslations("common.languageSwitcher");
@@ -44,7 +48,7 @@ export default function LanguageSwitcher({
           )}
         >
           <Globe className="size-3.5" strokeWidth={2.25} />
-          <span>{locale}</span>
+          {showLabel && <span className={labelClassName}>{locale}</span>}
         </button>
       </DropdownMenuTrigger>
 

@@ -101,7 +101,15 @@
       "success": "Zahlung bestätigt. Die Credits werden nach Abschluss der Stripe-Verarbeitung verfügbar.",
       "buy": "Mit Stripe kaufen",
       "taxNote": "Preise ohne MwSt. Stripe berechnet die anwendbare Steuer beim Checkout.",
-      "costs": { "visibility": "GEO-Audit", "website": "Website-Inhalte", "draft": "Revenue-AI-Entwurf", "email": "E-Mails pro Credit", "whatsapp": "WhatsApp-Nachrichten" }
+      "usageTitle": "Guthaben-Entsprechungen",
+      "aiActions": "AI-Aktionen",
+      "communications": "Kommunikation",
+      "unitSingular": "Credit",
+      "unitPlural": "Credits",
+      "freeIncoming": "Eingehende WhatsApp-Nachrichten verbrauchen kein Guthaben.",
+      "packCapacity": "Bei ausschließlicher Nutzung für Kommunikation",
+      "or": "oder",
+      "costs": { "visibility": "GEO-Audit", "website": "Website-Inhalte", "draft": "Revenue-AI-Entwurf", "email": "gesendete E-Mails", "whatsapp": "gesendete WhatsApp-Nachrichten" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

@@ -355,9 +355,15 @@ model Restaurant {
 
   plan String @default("FREE")
 
-  referralNetworkEnabled          Boolean @default(false)
-  referralDefaultCommissionType   String  @default("PER_PERSON")
-  referralDefaultCommissionAmount Decimal @default(5) @db.Decimal(10, 2)
+  referralNetworkEnabled          Boolean  @default(false)
+  referralDefaultCommissionType   String   @default("PER_PERSON")
+  referralDefaultCommissionAmount Decimal  @default(5) @db.Decimal(10, 2)
+  referralProfileCuisine          String?
+  referralProfileDescription      String?
+  referralProfileHeroImage        String?
+  referralProfileGallery          String[] @default([])
+  referralProfileHighlights       String[] @default([])
+  referralProfileMenuUrl          String?
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
@@ -1000,6 +1006,8 @@ model ReferralGroup {
   desiredDate     DateTime
   alternativeDate DateTime?
   guests          Int
+  adults          Int?
+  children        Int       @default(0)
   cuisineTypes    String[]  @default([])
   city            String?
   area            String?

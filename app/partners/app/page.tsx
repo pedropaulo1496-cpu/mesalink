@@ -5,6 +5,7 @@ import { ArrowUpRight, Clock3, Euro, ShieldCheck, UsersRound } from "lucide-reac
 import NewReferralGroupForm from "@/components/partners/NewReferralGroupForm";
 import PartnerOnboardingForm from "@/components/partners/PartnerOnboardingForm";
 import { authOptions } from "@/lib/auth";
+import { buildPartnerProfile } from "@/lib/partner-profile";
 import { calculateReferralCommission, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
 
@@ -66,23 +67,61 @@ export default async function PartnerAppPage({
       address: true,
       websiteCuisine: true,
       websiteDescription: true,
+      websiteAboutText: true,
       websiteHeroImage: true,
+      websiteLogoImage: true,
+      websiteGalleryImage1: true,
+      websiteGalleryImage2: true,
+      websiteGalleryImage3: true,
+      websiteGalleryImage4: true,
+      websiteSpecialties: true,
+      websiteMenuPdf: true,
+      referralProfileCuisine: true,
+      referralProfileDescription: true,
+      referralProfileHeroImage: true,
+      referralProfileGallery: true,
+      referralProfileHighlights: true,
+      referralProfileMenuUrl: true,
       averageTicket: true,
       referralDefaultCommissionType: true,
       referralDefaultCommissionAmount: true,
+      websiteMenus: {
+        orderBy: { sortOrder: "asc" },
+        take: 6,
+        select: { title: true, pdf: true },
+      },
+      orderingCategories: {
+        where: { activeInPOS: true },
+        orderBy: { position: "asc" },
+        take: 6,
+        select: {
+          name: true,
+          products: {
+            where: { active: true, activeOnWebsite: true },
+            orderBy: { sortOrder: "asc" },
+            take: 5,
+            select: { name: true, imageUrl: true },
+          },
+        },
+      },
     },
   });
 
   const agreementByRestaurant = new Map(partner.agreements.map((agreement) => [agreement.restaurantId, agreement]));
   const restaurantOptions = restaurants.map((restaurant) => {
     const agreement = agreementByRestaurant.get(restaurant.id);
+    const profile = buildPartnerProfile(restaurant);
     return {
       id: restaurant.id,
       name: restaurant.name,
-      cuisine: restaurant.websiteCuisine || "",
+      cuisine: profile.cuisine,
       address: restaurant.address || "",
-      description: restaurant.websiteDescription || "",
-      heroImage: restaurant.websiteHeroImage || "",
+      description: profile.description,
+      heroImage: profile.heroImage,
+      galleryImages: profile.galleryImages,
+      highlights: profile.highlights,
+      menuUrl: profile.menuUrl,
+      menuSections: profile.menuSections,
       averageTicket: Number(restaurant.averageTicket || 0),
       commissionType: agreement?.commissionType || restaurant.referralDefaultCommissionType,
       commissionAmount: Number(agreement?.commissionAmount || restaurant.referralDefaultCommissionAmount),
@@ -145,7 +184,7 @@ export default async function PartnerAppPage({
               const amounts = calculateReferralCommission({ guests: group.guests, commissionType: type, commissionAmount: Number(group.commissionAmount) });
               const accepted = group.acceptedRestaurant?.name;
               return <div key={group.id} className="grid gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} /></div><p className="mt-2 text-sm text-[#6B6258]">{group.guests} pessoas · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short" }).format(group.desiredDate)} · {accepted || `${group.offers.filter((offer) => offer.status === "PENDING").length} respostas pendentes`}</p></div>
+                <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} /></div><p className="mt-2 text-sm text-[#6B6258]">{groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short" }).format(group.desiredDate)} · {accepted || `${group.offers.filter((offer) => offer.status === "PENDING").length} respostas pendentes`}</p></div>
                 <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">Recebes</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(Number(group.payment?.partnerNet || amounts.partnerNet))}</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
               </div>;
             })}
@@ -168,4 +207,10 @@ function Status({ status }: { status: string }) {
 
 function formatMoney(value: number) {
   return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value || 0);
+}
+
+function groupPeople(group: { guests: number; adults: number | null; children: number }) {
+  const children = Math.max(0, group.children || 0);
+  const adults = group.adults ?? Math.max(1, group.guests - children);
+  return `${adults} ${adults === 1 ? "adulto" : "adultos"}${children > 0 ? ` · ${children} ${children === 1 ? "criança" : "crianças"}` : ""}`;
 }

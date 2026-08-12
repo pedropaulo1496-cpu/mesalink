@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
+import Image from "next/image";
 import {
   ArrowDownToLine,
   Bot,
-  Building2,
   Check,
   Globe2,
   Hotel,
@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Sparkles,
   TrendingUp,
-  UsersRound,
 } from "lucide-react";
 
 const copy = {
@@ -41,9 +40,9 @@ const copy = {
     version: "Android 7 ou superior",
     installNote: "Ao instalar por APK, o Android pode pedir autorização para instalar aplicações deste browser. Os ficheiros abaixo são assinados oficialmente pela MesaLink.",
     apps: [
-      { name: "MesaLink Restaurantes", audience: "Para restaurantes", text: "Reservas, serviço do dia, clientes, marketing, Revenue AI, website, visibilidade e operação diária.", version: "v1.1.0", href: "/downloads/MesaLink-Restaurantes-v1.1.0.apk" },
-      { name: "MesaLink Parceiros", audience: "Para hotéis e adquirentes", text: "Enviar grupos anónimos, escolher restaurantes, acompanhar respostas, cartões e comissões.", version: "v1.0.0", href: "/downloads/MesaLink-Parceiros-v1.0.0.apk" },
-      { name: "MesaLink Backoffice", audience: "Para administração e comerciais", text: "Clientes atribuídos, risco, custos, comissões, pedidos, promoções e chat interno.", version: "v1.0.0", href: "/downloads/MesaLink-Backoffice-v1.0.0.apk" },
+      { name: "MesaLink Restaurantes", audience: "Para restaurantes", text: "Reservas, serviço do dia, clientes, marketing, Revenue AI, website, visibilidade e operação diária.", version: "v1.1.1", href: "/downloads/MesaLink-Restaurantes-v1.1.1.apk", icon: "/icons/apps/restaurant-192.png" },
+      { name: "MesaLink Parceiros", audience: "Para hotéis e adquirentes", text: "Enviar grupos anónimos, escolher restaurantes, acompanhar respostas, cartões e comissões.", version: "v1.0.1", href: "/downloads/MesaLink-Parceiros-v1.0.1.apk", icon: "/icons/apps/partners-192.png" },
+      { name: "MesaLink Backoffice", audience: "Para administração e comerciais", text: "Clientes atribuídos, risco, custos, comissões, pedidos, promoções e chat interno.", version: "v1.0.1", href: "/downloads/MesaLink-Backoffice-v1.0.1.apk", icon: "/icons/apps/backoffice-192.png" },
     ],
   },
   en: {
@@ -69,9 +68,9 @@ const copy = {
     version: "Android 7 or newer",
     installNote: "Android may ask permission to install apps from this browser. Every file below is officially signed by MesaLink.",
     apps: [
-      { name: "MesaLink Restaurants", audience: "For restaurants", text: "Bookings, daily service, customers, marketing, Revenue AI, website, visibility and daily operations.", version: "v1.1.0", href: "/downloads/MesaLink-Restaurantes-v1.1.0.apk" },
-      { name: "MesaLink Partners", audience: "For hotels and partners", text: "Send anonymous groups, choose restaurants, track replies, cards and commissions.", version: "v1.0.0", href: "/downloads/MesaLink-Parceiros-v1.0.0.apk" },
-      { name: "MesaLink Backoffice", audience: "For admin and sales", text: "Assigned clients, risk, costs, commissions, requests, promotions and internal chat.", version: "v1.0.0", href: "/downloads/MesaLink-Backoffice-v1.0.0.apk" },
+      { name: "MesaLink Restaurants", audience: "For restaurants", text: "Bookings, daily service, customers, marketing, Revenue AI, website, visibility and daily operations.", version: "v1.1.1", href: "/downloads/MesaLink-Restaurantes-v1.1.1.apk", icon: "/icons/apps/restaurant-192.png" },
+      { name: "MesaLink Partners", audience: "For hotels and partners", text: "Send anonymous groups, choose restaurants, track replies, cards and commissions.", version: "v1.0.1", href: "/downloads/MesaLink-Parceiros-v1.0.1.apk", icon: "/icons/apps/partners-192.png" },
+      { name: "MesaLink Backoffice", audience: "For admin and sales", text: "Assigned clients, risk, costs, commissions, requests, promotions and internal chat.", version: "v1.0.1", href: "/downloads/MesaLink-Backoffice-v1.0.1.apk", icon: "/icons/apps/backoffice-192.png" },
     ],
   },
 } as const;
@@ -123,7 +122,6 @@ export function LaunchHighlights({ compact = false }: { compact?: boolean }) {
 export function AppDownloads({ compact = false }: { compact?: boolean }) {
   const locale = useLocale();
   const t = locale === "pt" ? copy.pt : copy.en;
-  const icons = [Building2, Hotel, UsersRound];
   const tones = ["bg-[#17130F] text-white", "bg-[#E8D7BB] text-[#17130F]", "bg-[#315C4A] text-white"];
 
   return (
@@ -139,12 +137,11 @@ export function AppDownloads({ compact = false }: { compact?: boolean }) {
 
         <div className={`mt-8 grid gap-4 ${compact ? "" : "lg:grid-cols-3"}`}>
           {t.apps.map((app, index) => {
-            const Icon = icons[index];
             const dark = index !== 1;
             return (
               <article key={app.name} className={`relative overflow-hidden rounded-[34px] border border-[#D8C5A5] p-6 shadow-[0_24px_70px_rgba(80,55,30,0.10)] ${tones[index]}`}>
                 <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[#D7B267]/20 blur-[55px]" />
-                <div className="relative"><div className="flex items-center justify-between gap-3"><span className={`grid h-12 w-12 place-items-center rounded-2xl ${dark ? "bg-[#D7B267] text-[#17130F]" : "bg-[#17130F] text-white"}`}><Icon size={21} /></span><span className={`rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-wider ${dark ? "bg-white/10 text-white/65" : "bg-white/50 text-[#6B4A24]"}`}>{app.version}</span></div>
+                <div className="relative"><div className="flex items-center justify-between gap-3"><Image src={app.icon} alt="" width={56} height={56} className="h-14 w-14 rounded-[18px] shadow-[0_12px_30px_rgba(0,0,0,0.18)]" /><span className={`rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-wider ${dark ? "bg-white/10 text-white/65" : "bg-white/50 text-[#6B4A24]"}`}>{app.version}</span></div>
                   <p className={`mt-6 text-[9px] font-black uppercase tracking-[0.2em] ${dark ? "text-[#D7B267]" : "text-[#8A6130]"}`}>{app.audience}</p>
                   <h3 className="mt-2 text-3xl font-semibold leading-none tracking-[-0.055em]">{app.name}</h3>
                   <p className={`mt-4 min-h-20 text-sm leading-6 ${dark ? "text-white/60" : "text-[#5C5348]"}`}>{app.text}</p>
