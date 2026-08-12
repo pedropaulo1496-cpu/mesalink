@@ -10,5 +10,29 @@
         "60:71:72:F9:24:AB:D1:48:3D:EE:28:D9:19:5D:ED:14:CC:05:7B:DC:36:E3:43:C2:5B:BE:0D:E3:A3:02:CE:1F"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "pt.mesalink.partners",
+      "sha256_cert_fingerprints": [
+        "60:71:72:F9:24:AB:D1:48:3D:EE:28:D9:19:5D:ED:14:CC:05:7B:DC:36:E3:43:C2:5B:BE:0D:E3:A3:02:CE:1F"
+      ]
+    }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "pt.mesalink.backoffice",
+      "sha256_cert_fingerprints": [
+        "60:71:72:F9:24:AB:D1:48:3D:EE:28:D9:19:5D:ED:14:CC:05:7B:DC:36:E3:43:C2:5B:BE:0D:E3:A3:02:CE:1F"
+      ]
+    }
   }
 ]

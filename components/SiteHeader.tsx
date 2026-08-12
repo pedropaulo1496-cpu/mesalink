@@ -59,6 +59,7 @@ export default function SiteHeader({
           <Link href="/software-para-restaurantes">{t("full.software")}</Link>
           <Link href="/#growth">{t("full.growth")}</Link>
           <Link href="/#platform">{t("full.platform")}</Link>
+          <Link href="/#downloads">Apps</Link>
           <Link href="/#pricing">{t("full.pricing")}</Link>
           <Link href="/login">{t("full.login")}</Link>
         </div>

@@ -1,10 +1,10 @@
 {
   "home": {
     "hero": {
-      "badge": "Restaurant Essentials by MesaLink",
-      "titleLine1": "Software para restaurantes.",
-      "titleLine2": "Tudo ligado.",
-      "subtitle": "Gestão de reservas, QR Ordering, website, CRM e marketing — numa plataforma criada para aumentar receita, recuperar clientes e reduzir trabalho manual.",
+      "badge": "Growth + AI para restaurantes",
+      "titleLine1": "Mais reservas.",
+      "titleLine2": "Menos receita perdida.",
+      "subtitle": "Revenue AI, pesquisas por IA, website inteligente, reservas, CRM e marketing — tudo ligado para encontrar clientes, recuperar vendas e reduzir trabalho manual.",
       "ctaPrimary": "Começar teste gratuito",
       "ctaSecondary": "Pedir demonstração",
       "ctaAndroid": "Descarregar para Android",
@@ -67,9 +67,9 @@
       "controlValue": "Control",
       "controlLabel": "Melhor gestão",
       "controlText": "Reservas, CRM, QR Ordering, marketing e dados integrados num único sistema para controlar melhor a operação.",
-      "futureValue": "Future",
-      "futureLabel": "Sempre a evoluir",
-      "futureText": "Novas ferramentas essenciais para restaurantes serão lançadas em breve dentro do ecossistema MesaLink.",
+      "futureValue": "AI",
+      "futureLabel": "Automação ativa",
+      "futureText": "Revenue AI, marketing autónomo, Website Builder com IA e visibilidade em motores de pesquisa trabalham em conjunto.",
       "driver1Title": "QR Ordering + Marketing",
       "driver1Text": "Pedidos mais rápidos, menos atrito no serviço e campanhas para trazer clientes de volta.",
       "driver2Title": "Website + Reviews",
@@ -148,10 +148,10 @@
   },
   "mobileHome": {
     "hero": {
-      "badge": "Restaurant Growth System",
-      "titleLine1": "O restaurante já mudou.",
-      "titleLine2": "O software também.",
-      "subtitle": "MesaLink liga reservas, QR Ordering, website, CRM e marketing num sistema vivo que trabalha por si todos os dias.",
+      "badge": "Growth + AI para restaurantes",
+      "titleLine1": "Clientes encontram.",
+      "titleLine2": "MesaLink recupera.",
+      "subtitle": "Revenue AI, visibilidade em pesquisas por IA, website, reservas e marketing num sistema que trabalha todos os dias para o restaurante.",
       "ctaPrimary": "Começar teste gratuito →",
       "ctaSecondary": "Pedir demonstração",
       "phone": {

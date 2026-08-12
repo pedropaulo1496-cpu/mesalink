@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "MesaLink",
     short_name: "MesaLink",
-    description: "Reservas online, QR Ordering, website e marketing para restaurantes.",
+    description: "Revenue AI, reservas, website, marketing e crescimento para restaurantes.",
     id: "/",
     start_url: "/dashboard",
     scope: "/",

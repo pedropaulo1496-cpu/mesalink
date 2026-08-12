@@ -2,18 +2,21 @@
 
 import Footer from "@/components/Footer";
 import SiteHeader from "@/components/SiteHeader";
+import { AppDownloads, LaunchHighlights } from "@/components/marketing/LaunchHighlights";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 export default function MobilePage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#F4ECDF] text-[#17130F]">
       <SiteHeader variant="compact" />
       <Hero />
+      <LaunchHighlights compact />
       <FeatureCards />
       <QRSection />
+      <AppDownloads compact />
       <PricingMini />
       <FinalCTA />
       <StickyCTA />
@@ -31,7 +34,7 @@ function Hero() {
 
       <div className="relative mx-auto max-w-md">
         <motion.div
-          initial={{ opacity: 0, y: 18 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
           className="text-center"
@@ -601,19 +604,10 @@ function Glow() {
 }
 
 function StickyCTA() {
-  const [isAndroid, setIsAndroid] = useState(false);
-
-  useEffect(() => {
-    setIsAndroid(/Android/i.test(navigator.userAgent));
-  }, []);
-
-  if (!isAndroid) return null;
-
   return (
     <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
       <a
-        href="/downloads/MesaLink-Android-v1.0.2.apk"
-        download
+        href="#downloads"
         className="pointer-events-auto mx-auto flex max-w-md items-center gap-3 rounded-[22px] border border-white/10 bg-[#17130F] p-2 pr-4 text-white shadow-[0_22px_65px_rgba(23,19,15,0.38)] transition hover:-translate-y-0.5 hover:bg-[#241D17]"
       >
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#C8A56A] text-xl font-bold text-[#17130F]">
@@ -621,14 +615,14 @@ function StickyCTA() {
         </span>
         <span className="min-w-0 flex-1 text-left">
           <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#C8A56A]">
-            MesaLink para Android
+            Apps MesaLink para Android
           </span>
           <span className="mt-0.5 block text-sm font-semibold">
-            Descarregar aplicação
+            Escolher uma das 3 aplicações
           </span>
         </span>
         <span className="rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold tracking-[0.12em] text-white/80">
-          APK
+          3 APK
         </span>
       </a>
     </div>

@@ -2,6 +2,7 @@
 
 import Footer from "@/components/Footer";
 import SiteHeader from "@/components/SiteHeader";
+import { AppDownloads, LaunchHighlights } from "@/components/marketing/LaunchHighlights";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
@@ -64,12 +65,14 @@ export default function HomePage() {
 
       <GrowthLoop />
 
+      <LaunchHighlights />
+
       <ProductShowcase />
 
       <RestaurantEssentials />
 
 
-      <UpcomingEssentialsNote />
+      <AppDownloads />
 
       <PricingSection />
 
@@ -89,7 +92,7 @@ function Hero() {
 
       <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.84fr_1.16fr] lg:items-center">
         <motion.div
-          initial={{ opacity: 0, y: 26 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.72 }}
         >
@@ -152,7 +155,7 @@ function HeroCommandCenter() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 34, scale: 0.97 }}
+      initial={false}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.82, delay: 0.1, ease: "easeOut" }}
       className="relative"
@@ -692,23 +695,6 @@ function ResultsSection() {
   );
 }
 
-
-function UpcomingEssentialsNote() {
-  const t = useTranslations("marketing.home");
-
-  return (
-    <section className="px-5 pb-6 lg:px-8">
-      <div className="mx-auto max-w-7xl rounded-[32px] border border-[#D8C5A5] bg-[#FFF9F0] p-6 text-center shadow-[0_20px_70px_rgba(80,55,30,0.08)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#9B6F3B]">
-          {t("upcomingNote.eyebrow")}
-        </p>
-        <p className="mx-auto mt-3 max-w-3xl text-base leading-7 text-[#6B6258]">
-          {t("upcomingNote.text")}
-        </p>
-      </div>
-    </section>
-  );
-}
 
 function PricingSection() {
   const t = useTranslations("marketing.home");

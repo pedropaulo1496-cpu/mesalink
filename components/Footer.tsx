@@ -30,6 +30,7 @@ export default function Footer() {
               <FooterLink href="/software-para-restaurantes">{t("software")}</FooterLink>
               <FooterLink href="/pricing">{t("pricing")}</FooterLink>
               <FooterLink href="/contact">{t("contact")}</FooterLink>
+              <FooterLink href="/#downloads">Apps Android</FooterLink>
               <FooterLink href="/login">{t("login")}</FooterLink>
             </div>
           </div>
