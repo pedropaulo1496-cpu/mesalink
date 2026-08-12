@@ -16,6 +16,7 @@ export default async function DashboardPage() {
     },
     include: {
       subscription: true,
+      salesProfile: { select: { id: true, active: true } },
       restaurants: {
         select: {
           id: true,
@@ -27,6 +28,10 @@ export default async function DashboardPage() {
 
   if (!user) {
     redirect("/login");
+  }
+
+  if (user.isAdmin || user.salesProfile?.active) {
+    redirect("/backoffice");
   }
 
   const restaurant = user.restaurants[0];

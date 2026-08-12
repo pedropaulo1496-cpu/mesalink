@@ -47,6 +47,12 @@ export const authOptions: AuthOptions = {
           return null;
         }
 
+        const activityAt = new Date();
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: activityAt, lastActiveAt: activityAt },
+        });
+
         return {
           id: user.id,
           name: user.name,
@@ -64,6 +70,16 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+      }
+
+      const activityAt = Date.now();
+      const previouslyTrackedAt = Number(token.activityTrackedAt || 0);
+      if (token.id && activityAt - previouslyTrackedAt >= 6 * 60 * 60 * 1000) {
+        await prisma.user.updateMany({
+          where: { id: String(token.id) },
+          data: { lastActiveAt: new Date(activityAt) },
+        });
+        token.activityTrackedAt = activityAt;
       }
 
       return token;

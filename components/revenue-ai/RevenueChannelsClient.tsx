@@ -28,9 +28,11 @@ type Props = {
   };
   initialStatus: ChannelStatus;
   webhookBaseUrl: string;
+  whatsappBalance: number;
+  aiCredits: number;
 };
 
-export default function RevenueChannelsClient({ restaurantId, restaurantName, initial, initialStatus, webhookBaseUrl }: Props) {
+export default function RevenueChannelsClient({ restaurantId, restaurantName, initial, initialStatus, webhookBaseUrl, whatsappBalance, aiCredits }: Props) {
   const [form, setForm] = useState(initial);
   const [status, setStatus] = useState(initialStatus);
   const [saving, setSaving] = useState(false);
@@ -81,7 +83,7 @@ export default function RevenueChannelsClient({ restaurantId, restaurantName, in
         <Toggle checked={form.whatsappAutoReply} onChange={(value) => setValue("whatsappAutoReply", value)} label="Responder automaticamente com o agente AI" />
         <Webhook label="Webhook de mensagens recebidas" value={whatsappWebhook} copied={copied === "whatsapp"} onCopy={() => copy(whatsappWebhook, "whatsapp")} />
         <div className="rounded-2xl bg-[#F8F0E3] p-4 text-xs leading-5 text-[#685B4B]"><strong>Modelo sugerido:</strong> “Olá {'{{1}}'}, mensagem de {'{{3}}'}: {'{{2}}'}”. Submete-o no Twilio Content Template Builder; a categoria final é decidida pelo WhatsApp.</div>
-        <p className="text-[11px] font-semibold text-[#806D56]">Preço MesaLink: 1 crédito por mensagem enviada. Mensagens recebidas entram automaticamente na caixa de entrada.</p>
+        <p className="text-[11px] font-semibold text-[#806D56]">Saldo: {whatsappBalance} mensagens · {aiCredits} créditos. Cada crédito disponibiliza 8 mensagens WhatsApp (cerca de 0,03€ por envio). Mensagens recebidas são gratuitas.</p>
       </ChannelCard>
 
       <ChannelCard icon={<PhoneCall size={22} />} title="Chamadas não atendidas" subtitle="Toca no restaurante; se ninguém atender, cria a oportunidade" ready={status.voiceReady}>

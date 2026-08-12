@@ -28,6 +28,9 @@
       "emailBalance": {
         "label": "Emails available"
       },
+      "whatsappBalance": {
+        "label": "WhatsApp messages"
+      },
       "yearlyPayment": {
         "label": "Annual payment",
         "value": "1 month free"
@@ -104,7 +107,7 @@
     "credits": {
       "kicker": "Prepaid usage",
       "title": "Balance: {credits} AI credits",
-      "description": "Every account receives 1,000 emails. After that, 1 AI credit automatically adds 75 emails. This includes booking confirmations, reviews, campaigns and all other restaurant emails.",
+      "description": "Every account receives 1,000 emails. After that, 1 AI credit automatically adds 75 emails or 8 WhatsApp messages. Each outgoing WhatsApp message costs about €0.03; incoming messages are free.",
       "success": "Payment confirmed. Credits become available as soon as Stripe completes processing.",
       "buy": "Buy with Stripe",
       "taxNote": "Prices exclude VAT. Applicable tax is calculated by Stripe at checkout. Credits do not expire while the account is active.",
@@ -112,7 +115,8 @@
         "visibility": "GEO audit",
         "website": "website copy",
         "draft": "Revenue AI draft",
-        "email": "emails per credit"
+        "email": "emails per credit",
+        "whatsapp": "WhatsApp messages"
       }
     },
     "platformSection": {

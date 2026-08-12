@@ -1,7 +1,6 @@
 import twilio from "twilio";
 
 export const REVENUE_CHANNEL_CREDIT_COSTS = {
-  WHATSAPP_MESSAGE: 1,
   VOICE_STARTED_MINUTES: 2,
 } as const;
 

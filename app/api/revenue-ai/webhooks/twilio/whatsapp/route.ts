@@ -1,14 +1,13 @@
-import { InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 import {
   emptyTwimlResponse,
   InvalidTwilioWebhookError,
   normalizeE164,
   readValidatedTwilioForm,
-  REVENUE_CHANNEL_CREDIT_COSTS,
   sendRevenueWhatsapp,
 } from "@/lib/revenue-twilio";
 import { generateInboundWhatsappReply } from "@/lib/revenue-whatsapp-agent";
+import { completeWhatsAppSend, InsufficientWhatsAppAllowanceError, refundWhatsAppSend, reserveWhatsAppSend } from "@/lib/whatsapp-billing";
 
 export async function POST(request: Request) {
   try {
@@ -70,11 +69,10 @@ export async function POST(request: Request) {
     if (!restaurant.revenueWhatsappAutoReply || !restaurant.userId) return emptyTwimlResponse();
     const chargeReference = `revenue_whatsapp_autoreply:${externalId}`;
     try {
-      const charge = await spendAiCredits({
+      await reserveWhatsAppSend({
         userId: restaurant.userId,
-        amount: REVENUE_CHANNEL_CREDIT_COSTS.WHATSAPP_MESSAGE,
-        feature: "REVENUE_WHATSAPP",
-        description: `Resposta automática WhatsApp para ${contactName}`,
+        restaurantId: restaurant.id,
+        category: "REVENUE_WHATSAPP_AUTOREPLY",
         reference: chargeReference,
       });
       const reply = await generateInboundWhatsappReply({
@@ -95,19 +93,19 @@ export async function POST(request: Request) {
         allowFreeform: true,
       });
       const sentAt = new Date();
+      await completeWhatsAppSend(chargeReference, delivery.sid);
       await prisma.$transaction([
         prisma.revenueMessage.create({ data: { conversationId: conversation.id, direction: "OUTBOUND", sender: "AI", channel: "WHATSAPP", content: reply, status: String(delivery.status || "QUEUED").toUpperCase(), externalId: delivery.sid, sentAt } }),
         prisma.revenueConversation.update({ where: { id: conversation.id }, data: { status: "WAITING_CUSTOMER", lastMessagePreview: reply, lastMessageAt: sentAt, nextFollowUpAt: new Date(sentAt.getTime() + 24 * 60 * 60 * 1000) } }),
         prisma.marketingAction.create({ data: { restaurantId: restaurant.id, customerId: customer?.id, type: "FOLLOW_UP", status: "SENT", channel: "WHATSAPP", sentAt, estimatedRevenue: conversation.estimatedRevenue, deliveryId: delivery.sid, nextFollowUpAt: new Date(sentAt.getTime() + 24 * 60 * 60 * 1000) } }),
       ]);
-      void charge.balance;
     } catch (error) {
-      if (!(error instanceof InsufficientAiCreditsError)) {
-        await refundAiCredits({ userId: restaurant.userId, amount: REVENUE_CHANNEL_CREDIT_COSTS.WHATSAPP_MESSAGE, feature: "REVENUE_WHATSAPP", description: `Reembolso de resposta WhatsApp para ${contactName}`, reference: chargeReference }).catch(() => null);
+      if (!(error instanceof InsufficientWhatsAppAllowanceError)) {
+        await refundWhatsAppSend(chargeReference).catch(() => null);
       }
       await prisma.revenueConversation.update({
         where: { id: conversation.id },
-        data: { status: "NEEDS_HUMAN", handoffReason: error instanceof InsufficientAiCreditsError ? "Saldo insuficiente para a resposta automática." : "A resposta automática WhatsApp falhou." },
+        data: { status: "NEEDS_HUMAN", handoffReason: error instanceof InsufficientWhatsAppAllowanceError ? "Saldo insuficiente: cada crédito disponibiliza 8 mensagens WhatsApp." : "A resposta automática WhatsApp falhou." },
       });
     }
     return emptyTwimlResponse();

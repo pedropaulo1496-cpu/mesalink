@@ -61,7 +61,7 @@ export default async function RevenueInboxPage({ params }: { params: Promise<{ i
   return <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
     <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
       <RestaurantSidebar id={id} restaurantName={restaurant.name} active="revenueAi" />
-      <RevenueInboxClient restaurantId={id} restaurantName={restaurant.name} initialCredits={user.subscription?.aiCredits || 0} initialEmails={user.subscription?.emailBalance || 0} initialConversations={conversations} />
+      <RevenueInboxClient restaurantId={id} restaurantName={restaurant.name} initialCredits={user.subscription?.aiCredits || 0} initialEmails={user.subscription?.emailBalance || 0} initialWhatsapp={user.subscription?.whatsappMessageBalance || 0} initialConversations={conversations} />
     </div>
     <BottomNav id={id} />
   </main>;

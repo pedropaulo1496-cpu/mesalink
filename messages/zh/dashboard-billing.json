@@ -24,6 +24,7 @@
       },
       "aiCredits": { "label": "AI 点数" },
       "emailBalance": { "label": "可用邮件" },
+      "whatsappBalance": { "label": "WhatsApp 消息" },
       "yearlyPayment": {
         "label": "年付",
         "value": "赠送 1 个月"
@@ -96,11 +97,11 @@
     "credits": {
       "kicker": "预付费使用",
       "title": "余额：{credits} AI 点数",
-      "description": "每个账户包含 1,000 封邮件。用完后，1 个 AI 点数会自动增加 75 封邮件，包括预订确认、评价和营销活动邮件。",
+      "description": "每个账户包含 1,000 封邮件。用完后，1 个 AI 点数会自动增加 75 封邮件或 8 条 WhatsApp 消息。每条外发消息约 0.03 欧元，收到的消息免费。",
       "success": "付款已确认。Stripe 完成处理后点数即可使用。",
       "buy": "通过 Stripe 购买",
       "taxNote": "价格不含增值税。Stripe 会在结账时计算适用税费。",
-      "costs": { "visibility": "GEO 审计", "website": "网站内容", "draft": "Revenue AI 草稿", "email": "每点邮件数" }
+      "costs": { "visibility": "GEO 审计", "website": "网站内容", "draft": "Revenue AI 草稿", "email": "每点邮件数", "whatsapp": "WhatsApp 消息" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

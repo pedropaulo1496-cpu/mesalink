@@ -10,6 +10,7 @@ import {
   twilio,
   twimlResponse,
 } from "@/lib/revenue-twilio";
+import { completeWhatsAppSend, refundWhatsAppSend, reserveWhatsAppSend } from "@/lib/whatsapp-billing";
 
 const MISSED_STATUSES = new Set(["busy", "no-answer", "failed", "canceled"]);
 
@@ -97,7 +98,9 @@ export async function POST(request: Request) {
     });
 
     if (canWhatsapp && restaurant.revenueMissedCallAutoReply && restaurant.revenueWhatsappNumber && restaurant.revenueWhatsappContentSid && from) {
+      const whatsappReference = `revenue_whatsapp_missed_call:${callSid}`;
       try {
+        await reserveWhatsAppSend({ userId: restaurant.userId!, restaurantId, category: "MISSED_CALL_FOLLOW_UP", reference: whatsappReference });
         const reply = `Tentou contactar-nos há pouco e não conseguimos atender. Diga-nos como podemos ajudar; se preferir, uma pessoa da equipa responde assim que possível.`;
         const delivery = await sendRevenueWhatsapp({
           from: restaurant.revenueWhatsappNumber,
@@ -109,6 +112,7 @@ export async function POST(request: Request) {
           allowFreeform: false,
         });
         const sentAt = new Date();
+        await completeWhatsAppSend(whatsappReference, delivery.sid);
         await prisma.$transaction([
           prisma.revenueMessage.create({ data: { conversationId: conversation.id, direction: "OUTBOUND", sender: "AI", channel: "WHATSAPP", content: reply, status: String(delivery.status || "QUEUED").toUpperCase(), externalId: delivery.sid, sentAt } }),
           prisma.revenueConversation.update({ where: { id: conversation.id }, data: { status: "WAITING_CUSTOMER", lastMessagePreview: reply, lastMessageAt: sentAt, nextFollowUpAt: new Date(sentAt.getTime() + 24 * 60 * 60 * 1000) } }),
@@ -116,6 +120,7 @@ export async function POST(request: Request) {
         ]);
         response.say({ language: "pt-PT" }, "Não conseguimos atender. Enviámos uma mensagem para podermos ajudar.");
       } catch (error) {
+        await refundWhatsAppSend(whatsappReference).catch(() => null);
         console.error("Missed call WhatsApp follow-up failed", error);
         await prisma.revenueConversation.update({ where: { id: conversation.id }, data: { status: "NEEDS_HUMAN", handoffReason: "A chamada foi registada, mas a resposta WhatsApp falhou." } });
         response.say({ language: "pt-PT" }, "Não conseguimos atender. A nossa equipa recebeu o seu pedido e responderá assim que possível.");

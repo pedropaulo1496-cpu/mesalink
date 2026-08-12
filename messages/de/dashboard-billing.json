@@ -24,6 +24,7 @@
       },
       "aiCredits": { "label": "AI-Credits" },
       "emailBalance": { "label": "Verfügbare E-Mails" },
+      "whatsappBalance": { "label": "WhatsApp-Nachrichten" },
       "yearlyPayment": {
         "label": "Jährliche Zahlung",
         "value": "1 Monat gratis"
@@ -96,11 +97,11 @@
     "credits": {
       "kicker": "Vorausbezahlte Nutzung",
       "title": "Guthaben: {credits} AI-Credits",
-      "description": "Jedes Konto erhält 1.000 E-Mails. Danach fügt 1 AI-Credit automatisch 75 E-Mails hinzu, einschließlich Reservierungsbestätigungen, Bewertungen und Kampagnen.",
+      "description": "Jedes Konto erhält 1.000 E-Mails. Danach fügt 1 AI-Credit automatisch 75 E-Mails oder 8 WhatsApp-Nachrichten hinzu. Jede gesendete Nachricht kostet etwa 0,03€; eingehende Nachrichten sind kostenlos.",
       "success": "Zahlung bestätigt. Die Credits werden nach Abschluss der Stripe-Verarbeitung verfügbar.",
       "buy": "Mit Stripe kaufen",
       "taxNote": "Preise ohne MwSt. Stripe berechnet die anwendbare Steuer beim Checkout.",
-      "costs": { "visibility": "GEO-Audit", "website": "Website-Inhalte", "draft": "Revenue-AI-Entwurf", "email": "E-Mails pro Credit" }
+      "costs": { "visibility": "GEO-Audit", "website": "Website-Inhalte", "draft": "Revenue-AI-Entwurf", "email": "E-Mails pro Credit", "whatsapp": "WhatsApp-Nachrichten" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

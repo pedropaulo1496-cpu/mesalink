@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { getAiCreditPack, grantPurchasedAiCredits, revokeRefundedAiCredits, type AiCreditPackId } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { recordSalesCommission } from "@/lib/sales-commissions";
 import {
   handleDomainChargeDispute,
   handleDomainChargeRefund,
@@ -59,6 +60,49 @@ async function settleAiCreditSession(session: Stripe.Checkout.Session) {
       data: { stripeCustomerId: session.customer.toString() },
     });
   }
+
+  await recordSalesCommission({
+    userId,
+    sourceType: "AI_CREDITS",
+    sourceId: session.id,
+    description: `Créditos IA · ${pack.label}`,
+    grossCents: session.amount_total || pack.priceCents,
+    currency: session.currency || "eur",
+  });
+}
+
+async function settlePlanInvoiceCommission(invoice: Stripe.Invoice) {
+  if (invoice.amount_paid <= 0) return;
+  const subscriptionDetails = invoice.parent?.subscription_details;
+  const metadataUserId = subscriptionDetails?.metadata?.userId;
+  const stripeSubscriptionId = typeof subscriptionDetails?.subscription === "string"
+    ? subscriptionDetails.subscription
+    : subscriptionDetails?.subscription?.id;
+  const stripeCustomerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+
+  const subscription = metadataUserId
+    ? await prisma.subscription.findUnique({ where: { userId: metadataUserId }, select: { userId: true, plan: true } })
+    : await prisma.subscription.findFirst({
+        where: {
+          OR: [
+            ...(stripeSubscriptionId ? [{ stripeSubscriptionId }] : []),
+            ...(stripeCustomerId ? [{ stripeCustomerId }] : []),
+          ],
+        },
+        select: { userId: true, plan: true },
+      });
+  const userId = metadataUserId || subscription?.userId;
+  if (!userId) return;
+
+  await recordSalesCommission({
+    userId,
+    sourceType: "PLAN",
+    sourceId: invoice.id,
+    description: `Plano MesaLink ${subscription?.plan || ""}`.trim(),
+    grossCents: invoice.amount_paid,
+    currency: invoice.currency,
+    earnedAt: new Date(invoice.created * 1000),
+  });
 }
 
 async function transferReferralPayment(paymentId: string) {
@@ -303,6 +347,16 @@ export async function POST(req: Request) {
             data: { stripeCustomerId: session.customer.toString() },
           });
         }
+        if (session.metadata.userId && session.amount_total) {
+          await recordSalesCommission({
+            userId: session.metadata.userId,
+            sourceType: "CUSTOM_DOMAIN",
+            sourceId: session.id,
+            description: `Domínio próprio · ${session.metadata.domain || "MesaLink"}`,
+            grossCents: session.amount_total,
+            currency: session.currency || "eur",
+          });
+        }
         return new Response("OK");
       }
 
@@ -334,6 +388,10 @@ export async function POST(req: Request) {
           },
         });
       }
+    }
+
+    if (event.type === "invoice.paid") {
+      await settlePlanInvoiceCommission(event.data.object as Stripe.Invoice);
     }
 
     if (event.type === "checkout.session.async_payment_failed") {

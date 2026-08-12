@@ -25,8 +25,8 @@ async function audit(input: {
 }
 
 function done(action: string) {
-  revalidatePath("/admin");
-  redirect(`/admin?done=${action}`);
+  revalidatePath("/backoffice", "layout");
+  redirect(`/backoffice/clients?done=${action}`);
 }
 
 export async function extendTrial(formData: FormData) {
@@ -205,5 +205,6 @@ export async function updateCostSettings(formData: FormData) {
     }),
   ]);
 
-  done("costs");
+  revalidatePath("/backoffice", "layout");
+  redirect("/backoffice/team?done=costs");
 }

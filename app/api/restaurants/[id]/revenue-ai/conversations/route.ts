@@ -53,5 +53,5 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       createdAt: message.createdAt.toISOString(),
     })),
   }));
-  return NextResponse.json({ conversations, creditsRemaining: user.subscription?.aiCredits || 0, emailsRemaining: user.subscription?.emailBalance || 0 });
+  return NextResponse.json({ conversations, creditsRemaining: user.subscription?.aiCredits || 0, emailsRemaining: user.subscription?.emailBalance || 0, whatsappRemaining: user.subscription?.whatsappMessageBalance || 0 });
 }

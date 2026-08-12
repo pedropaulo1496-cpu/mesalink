@@ -41,6 +41,8 @@ export default async function RevenueIntegrationsPage({ params }: { params: Prom
             lastError: restaurant.revenueChannelsLastError || "",
           }}
           initialStatus={getRevenueChannelStatus(restaurant)}
+          whatsappBalance={user.subscription?.whatsappMessageBalance || 0}
+          aiCredits={user.subscription?.aiCredits || 0}
         />
       </section>
     </div>

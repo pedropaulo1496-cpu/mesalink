@@ -123,7 +123,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 {t("hero.description")}
               </p>
 
-              <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+              <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
                 <Info label={t("stats.currentPlan.label")} value={currentPlan} />
                 <Info
                   label={t("stats.trial.label")}
@@ -131,6 +131,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 />
                 <Info label={t("stats.aiCredits.label")} value={String(subscription.aiCredits)} />
                 <Info label={t("stats.emailBalance.label")} value={String(subscription.emailBalance)} />
+                <Info label={t("stats.whatsappBalance.label")} value={String(subscription.whatsappMessageBalance)} />
                 <Info label={t("stats.yearlyPayment.label")} value={t("stats.yearlyPayment.value")} />
               </div>
             </div>
@@ -294,11 +295,12 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">{t("credits.title", { credits: subscription.aiCredits })}</h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65">{t("credits.description")}</p>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs text-white/70 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 text-xs text-white/70 sm:grid-cols-5">
               <CreditCost value="10" label={t("credits.costs.visibility")} />
               <CreditCost value="5" label={t("credits.costs.website")} />
               <CreditCost value="1" label={t("credits.costs.draft")} />
               <CreditCost value="75" label={t("credits.costs.email")} />
+              <CreditCost value="8" label={t("credits.costs.whatsapp")} />
             </div>
           </div>
           <div className="mt-7 grid gap-3 md:grid-cols-3">

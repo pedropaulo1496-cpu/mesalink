@@ -2,12 +2,13 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { authOptions } from "@/lib/auth";
-import { hasGrowthAccess, InsufficientAiCreditsError, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
+import { hasGrowthAccess } from "@/lib/ai-billing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 import { prisma } from "@/lib/prisma";
-import { getRevenueChannelStatus, normalizeE164, REVENUE_CHANNEL_CREDIT_COSTS, sendRevenueWhatsapp } from "@/lib/revenue-twilio";
+import { getRevenueChannelStatus, normalizeE164, sendRevenueWhatsapp } from "@/lib/revenue-twilio";
+import { completeWhatsAppSend, InsufficientWhatsAppAllowanceError, refundWhatsAppSend, reserveWhatsAppSend } from "@/lib/whatsapp-billing";
 
 export async function POST(request: Request, { params }: { params: Promise<{ conversationId: string }> }) {
   const { conversationId } = await params;
@@ -50,13 +51,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
       return NextResponse.json({ error: "Falta um modelo WhatsApp aprovado para iniciar esta conversa fora da janela de 24 horas." }, { status: 409 });
     }
 
-    const creditReference = `revenue_whatsapp:${conversation.id}:${crypto.randomUUID()}`;
+    const whatsappReference = `revenue_whatsapp:${conversation.id}:${crypto.randomUUID()}`;
     let creditsRemaining = user.subscription?.aiCredits || 0;
+    let whatsappRemaining = user.subscription?.whatsappMessageBalance || 0;
     try {
-      const charge = await spendAiCredits({ userId: user.id, amount: REVENUE_CHANNEL_CREDIT_COSTS.WHATSAPP_MESSAGE, feature: "REVENUE_WHATSAPP", description: `Mensagem WhatsApp para ${conversation.contactName}`, reference: creditReference });
-      creditsRemaining = charge.balance;
+      const allowance = await reserveWhatsAppSend({
+        userId: user.id,
+        restaurantId: conversation.restaurantId,
+        category: "REVENUE_WHATSAPP",
+        reference: whatsappReference,
+      });
+      if (!allowance.canSend) return NextResponse.json({ error: "Esta mensagem já foi processada." }, { status: 409 });
+      creditsRemaining = allowance.aiCredits;
+      whatsappRemaining = allowance.messageBalance;
     } catch (error) {
-      if (error instanceof InsufficientAiCreditsError) return NextResponse.json({ error: "Saldo insuficiente. Cada mensagem WhatsApp custa 1 crédito.", code: "INSUFFICIENT_AI_CREDITS", required: error.required, available: error.available }, { status: 402 });
+      if (error instanceof InsufficientWhatsAppAllowanceError) return NextResponse.json({ error: "Saldo insuficiente. Cada crédito disponibiliza 8 mensagens WhatsApp.", code: "INSUFFICIENT_WHATSAPP_ALLOWANCE", messagesRemaining: error.messageBalance, aiCredits: error.aiCredits }, { status: 402 });
       throw error;
     }
 
@@ -72,13 +81,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
       });
       const now = new Date();
       const message = await prisma.revenueMessage.create({ data: { conversationId, direction: "OUTBOUND", sender: "AI_REVIEWED", channel: "WHATSAPP", content, status: String(delivery.status || "QUEUED").toUpperCase(), externalId: delivery.sid, sentAt: now } });
+      await completeWhatsAppSend(whatsappReference, delivery.sid);
       await prisma.$transaction([
         prisma.revenueConversation.update({ where: { id: conversationId }, data: { status: "WAITING_CUSTOMER", lastMessagePreview: content, lastMessageAt: now, nextFollowUpAt: new Date(now.getTime() + 24 * 60 * 60 * 1000) } }),
         prisma.marketingAction.create({ data: { restaurantId: conversation.restaurantId, customerId: conversation.customerId, type: "FOLLOW_UP", status: "SENT", channel: "WHATSAPP", sentAt: now, estimatedRevenue: conversation.estimatedRevenue, deliveryId: delivery.sid, nextFollowUpAt: new Date(now.getTime() + 24 * 60 * 60 * 1000) } }),
       ]);
-      return NextResponse.json({ success: true, message, creditsRemaining, emailsRemaining: user.subscription?.emailBalance || 0, channel: "WHATSAPP" });
+      return NextResponse.json({ success: true, message, creditsRemaining, whatsappRemaining, emailsRemaining: user.subscription?.emailBalance || 0, channel: "WHATSAPP" });
     } catch (error) {
-      await refundAiCredits({ userId: user.id, amount: REVENUE_CHANNEL_CREDIT_COSTS.WHATSAPP_MESSAGE, feature: "REVENUE_WHATSAPP", description: `Reembolso de mensagem WhatsApp para ${conversation.contactName}`, reference: creditReference }).catch(() => null);
+      await refundWhatsAppSend(whatsappReference).catch(() => null);
       return NextResponse.json({ error: error instanceof Error ? error.message : "Falha no envio WhatsApp." }, { status: 502 });
     }
   }

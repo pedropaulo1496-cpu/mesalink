@@ -404,7 +404,7 @@ const isGrowthPlan =
             <div className="flex flex-wrap items-center gap-2">
               {billingUser?.isAdmin && (
                 <Link
-                  href="/admin"
+            href="/backoffice"
                   className="rounded-full border border-[#C8A56A] bg-[#FFF7E8] px-4 py-3 text-xs font-bold text-[#7B5528] transition hover:bg-white"
                 >
                   MesaLink Admin

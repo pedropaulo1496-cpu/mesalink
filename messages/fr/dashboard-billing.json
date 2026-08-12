@@ -24,6 +24,7 @@
       },
       "aiCredits": { "label": "Crédits AI" },
       "emailBalance": { "label": "E-mails disponibles" },
+      "whatsappBalance": { "label": "Messages WhatsApp" },
       "yearlyPayment": {
         "label": "Paiement annuel",
         "value": "1 mois offert"
@@ -96,11 +97,11 @@
     "credits": {
       "kicker": "Utilisation prépayée",
       "title": "Solde : {credits} crédits AI",
-      "description": "Chaque compte reçoit 1 000 e-mails. Ensuite, 1 crédit AI ajoute automatiquement 75 e-mails, y compris les confirmations, avis et campagnes.",
+      "description": "Chaque compte reçoit 1 000 e-mails. Ensuite, 1 crédit AI ajoute automatiquement 75 e-mails ou 8 messages WhatsApp. Chaque envoi coûte environ 0,03€; les messages reçus sont gratuits.",
       "success": "Paiement confirmé. Les crédits seront disponibles après traitement par Stripe.",
       "buy": "Acheter avec Stripe",
       "taxNote": "Prix hors TVA. Stripe calcule la taxe applicable lors du paiement.",
-      "costs": { "visibility": "audit GEO", "website": "contenu du site", "draft": "brouillon Revenue AI", "email": "e-mails par crédit" }
+      "costs": { "visibility": "audit GEO", "website": "contenu du site", "draft": "brouillon Revenue AI", "email": "e-mails par crédit", "whatsapp": "messages WhatsApp" }
     },
     "platformSection": {
       "kicker": "Restaurant Essentials",

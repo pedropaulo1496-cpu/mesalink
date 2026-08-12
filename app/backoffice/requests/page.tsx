@@ -1,0 +1,60 @@
+import { DoneNotice, PageHeading, StatCard, buttonClass, dateTime, inputClass } from "@/components/backoffice/BackofficeUI";
+import { prisma } from "@/lib/prisma";
+import { requireStaff } from "@/lib/staff-auth";
+import { createCommercialRequest, decideCommercialRequest } from "../actions";
+
+export const dynamic = "force-dynamic";
+
+export default async function RequestsPage({ searchParams }: { searchParams: Promise<{ done?: string; client?: string }> }) {
+  const staff = await requireStaff();
+  const { done, client } = await searchParams;
+  const where = staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId! } : {};
+  const [requests, clients] = await Promise.all([
+    prisma.commercialRequest.findMany({
+      where,
+      include: {
+        salesRepresentative: { select: { name: true } },
+        targetUser: { select: { name: true, email: true, restaurants: { select: { name: true }, take: 1 } } },
+        promotion: { select: { code: true, status: true } },
+      },
+      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      take: 150,
+    }),
+    staff.role === "SALES" ? prisma.user.findMany({
+      where: { salesRepresentativeId: staff.salesRepresentativeId! },
+      select: { id: true, name: true, email: true, restaurants: { select: { name: true }, take: 1 } },
+      orderBy: { name: "asc" },
+    }) : Promise.resolve([]),
+  ]);
+  const pending = requests.filter((item) => item.status === "PENDING").length;
+  const approved = requests.filter((item) => item.status === "APPROVED").length;
+  const rejected = requests.filter((item) => item.status === "REJECTED").length;
+  const discounts = requests.filter((item) => item.type === "DISCOUNT").length;
+
+  return (
+    <>
+      <DoneNotice done={done} />
+      <PageHeading eyebrow="Aprovações" title="Pedidos comerciais" description={staff.role === "ADMIN" ? "Controla descontos, extensões de trial, créditos e emails pedidos pela equipa para clientes concretos." : "Pede benefícios para os teus clientes. A administração aprova e o sistema executa e regista tudo."} />
+      <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><StatCard label="Pendentes" value={pending.toString()} note="aguardam decisão" tone={pending ? "red" : "green"} /><StatCard label="Aprovados" value={approved.toString()} note="executados" tone="green" /><StatCard label="Recusados" value={rejected.toString()} note="com justificação" /><StatCard label="Descontos" value={discounts.toString()} note="pedidos totais" tone="gold" /></section>
+
+      {staff.role === "SALES" && (
+        <form action={createCommercialRequest} className="mt-6 rounded-[30px] border border-[#D7B267] bg-[#FFF6E5] p-5 sm:p-6">
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Novo pedido</p><h2 className="mt-2 text-2xl font-semibold">Propor benefício ao cliente</h2><p className="mt-2 text-sm text-[#6B6258]">Para descontos, o valor é a percentagem. Para os restantes tipos, são dias, créditos ou emails.</p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5"><select name="userId" defaultValue={client || ""} required className={inputClass}><option value="">Escolher cliente</option>{clients.map((item) => <option key={item.id} value={item.id}>{item.restaurants[0]?.name || item.name || item.email}</option>)}</select><select name="type" defaultValue="DISCOUNT" className={inputClass}><option value="DISCOUNT">Desconto no plano (%)</option><option value="TRIAL">Dias adicionais de trial</option><option value="AI_CREDITS">Créditos IA</option><option value="EMAILS">Emails</option></select><input name="amount" type="number" min="1" defaultValue="10" placeholder="Valor" className={inputClass} required /><select name="duration" defaultValue="ONCE" className={inputClass}><option value="ONCE">Desconto: 1 cobrança</option><option value="REPEATING">Desconto: vários meses</option><option value="FOREVER">Desconto: sempre</option></select><input name="durationMonths" type="number" min="1" max="24" defaultValue="3" placeholder="Meses" className={inputClass} /></div>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row"><textarea name="reason" rows={3} placeholder="Porque é que este benefício ajuda a fechar ou reter o cliente?" className={`${inputClass} min-h-24 flex-1 py-3`} required /><button className={`${buttonClass} sm:self-end`}>Enviar para aprovação</button></div>
+        </form>
+      )}
+
+      <section className="mt-6 space-y-4">
+        {requests.map((request) => {
+          const clientName = request.targetUser.restaurants[0]?.name || request.targetUser.name || request.targetUser.email;
+          return <article key={request.id} className={`rounded-[28px] border p-5 ${request.status === "PENDING" ? "border-[#D7B267] bg-white" : "border-[#DCC9AA] bg-white/75"}`}><div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="text-lg font-bold">{requestLabel(request.type, Number(request.amount || 0), request.durationMonths)}</h2><RequestStatus status={request.status} /></div><p className="mt-1 text-sm text-[#6B6258]">{clientName} · {request.salesRepresentative.name} · {dateTime(request.createdAt)}</p><p className="mt-3 max-w-3xl text-sm leading-6">{request.reason}</p>{request.adminNote && <p className="mt-2 rounded-xl bg-[#F7F0E5] px-3 py-2 text-xs text-[#6B6258]"><strong>Administração:</strong> {request.adminNote}</p>}{request.promotion && <p className="mt-2 text-xs font-bold text-[#35603A]">Código enviado: {request.promotion.code} · {request.promotion.status}</p>}</div>{staff.role === "ADMIN" && request.status === "PENDING" && <form action={decideCommercialRequest} className="w-full shrink-0 rounded-2xl border border-[#E2D3BC] bg-[#FFF9F0] p-3 lg:w-80"><input type="hidden" name="requestId" value={request.id} /><textarea name="adminNote" rows={2} placeholder="Nota opcional" className={`${inputClass} min-h-20 py-2`} /><div className="mt-2 grid grid-cols-2 gap-2"><button name="decision" value="REJECT" className="h-10 rounded-xl border border-[#E7B7A8] text-xs font-bold text-[#9C412B]">Recusar</button><button name="decision" value="APPROVE" className="h-10 rounded-xl bg-[#315C36] text-xs font-bold text-white">Aprovar e executar</button></div></form>}</div></article>;
+        })}
+        {!requests.length && <div className="rounded-[28px] border border-[#DCC9AA] bg-white p-8 text-center text-sm text-[#6B6258]">Ainda não existem pedidos.</div>}
+      </section>
+    </>
+  );
+}
+
+function RequestStatus({ status }: { status: string }) { const styles = status === "APPROVED" ? "bg-[#E3F1E2] text-[#35603A]" : status === "PENDING" ? "bg-[#FFF0CA] text-[#80601E]" : status === "REJECTED" ? "bg-[#FFE2D8] text-[#9C412B]" : "bg-[#EEE8DF] text-[#655B50]"; return <span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider ${styles}`}>{status}</span>; }
+function requestLabel(type: string, amount: number, months: number | null) { if (type === "DISCOUNT") return `${amount}% de desconto${months ? ` durante ${months} meses` : ""}`; if (type === "TRIAL") return `Adicionar ${amount} dias de trial`; if (type === "AI_CREDITS") return `Oferecer ${amount} créditos IA`; if (type === "EMAILS") return `Oferecer ${amount} emails`; return type; }

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { emptyTwimlResponse, InvalidTwilioWebhookError, readValidatedTwilioForm } from "@/lib/revenue-twilio";
+import { refundWhatsAppSend } from "@/lib/whatsapp-billing";
 
 export async function POST(request: Request) {
   try {
@@ -28,6 +29,10 @@ export async function POST(request: Request) {
       }),
       ...(failed ? [prisma.revenueConversation.update({ where: { id: message.conversationId }, data: { status: "NEEDS_HUMAN", handoffReason: "A mensagem WhatsApp não foi entregue." } })] : []),
     ]);
+    if (failed) {
+      const usage = await prisma.whatsAppUsage.findUnique({ where: { externalId }, select: { reference: true } });
+      if (usage) await refundWhatsAppSend(usage.reference);
+    }
     return emptyTwimlResponse();
   } catch (error) {
     if (error instanceof InvalidTwilioWebhookError) return new Response("Invalid signature", { status: 403 });
