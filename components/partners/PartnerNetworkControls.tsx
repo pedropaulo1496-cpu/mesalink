@@ -6,16 +6,13 @@ import { ImageUploadField } from "@/components/ImageUploadField";
 
 export function ReferralNetworkSettingsForm({
   restaurantId,
-  initialEnabled,
   initialCommissionType,
   initialCommissionAmount,
 }: {
   restaurantId: string;
-  initialEnabled: boolean;
   initialCommissionType: string;
   initialCommissionAmount: number;
 }) {
-  const [enabled, setEnabled] = useState(initialEnabled);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -28,7 +25,7 @@ export function ReferralNetworkSettingsForm({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        enabled,
+        enabled: true,
         commissionType: data.get("commissionType"),
         commissionAmount: data.get("commissionAmount"),
       }),
@@ -40,16 +37,13 @@ export function ReferralNetworkSettingsForm({
 
   return (
     <form onSubmit={submit} className="mt-5 space-y-4">
-      <label className="flex cursor-pointer items-start gap-4 rounded-[22px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-        <input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} className="mt-1 h-5 w-5 accent-[#17120D]" />
-        <span><span className="block text-sm font-semibold">Disponível na app dos parceiros</span><span className="mt-1 block text-xs leading-5 text-[#70665B]">Só os restaurantes que ativarem esta opção podem receber propostas de grupos.</span></span>
-      </label>
+      <div className="rounded-[22px] border border-[#BFD7BB] bg-[#F1F9F0] p-4"><span className="block text-sm font-semibold text-[#3F6A4D]">Publicado automaticamente na app Partners</span><span className="mt-1 block text-xs leading-5 text-[#60705E]">Todos os restaurantes MesaLink aparecem na pesquisa. Define aqui a comissão sugerida para novos grupos.</span></div>
       <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
         <select name="commissionType" defaultValue={initialCommissionType} className="input-premium h-12"><option value="PER_PERSON">Comissão por pessoa</option><option value="TOTAL">Comissão total</option></select>
         <input name="commissionAmount" type="number" min="1" max="1000" step="0.01" defaultValue={initialCommissionAmount} className="input-premium h-12" />
       </div>
       {message && <p className="text-xs font-semibold text-[#6F573A]">{message}</p>}
-      <button disabled={loading} className="h-12 rounded-full bg-[#17120D] px-6 text-sm font-bold text-white disabled:opacity-50">{loading ? "A guardar…" : "Guardar rede e comissão"}</button>
+      <button disabled={loading} className="h-12 rounded-full bg-[#17120D] px-6 text-sm font-bold text-white disabled:opacity-50">{loading ? "A guardar…" : "Guardar comissão base"}</button>
     </form>
   );
 }

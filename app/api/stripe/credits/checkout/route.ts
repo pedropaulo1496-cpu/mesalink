@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     const checkout = await stripe.checkout.sessions.create({
       mode: "payment",
       ...(subscription.stripeCustomerId
-        ? { customer: subscription.stripeCustomerId }
+        ? { customer: subscription.stripeCustomerId, customer_update: { address: "auto" as const, name: "auto" as const } }
         : { customer_email: user.email, customer_creation: "always" as const }),
       line_items: [{
         quantity: 1,
@@ -54,6 +54,7 @@ export async function POST(request: Request) {
         },
       }],
       billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
       automatic_tax: { enabled: true },
       invoice_creation: { enabled: true },
       metadata: { kind: "AI_CREDITS", userId: user.id, packId: pack.id },

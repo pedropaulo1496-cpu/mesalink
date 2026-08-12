@@ -191,7 +191,9 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
               )}
 
               {hasActiveSubscription && (
-                <div className="mt-8">
+                <div className="mt-8 rounded-[24px] border border-white/10 bg-white/[0.05] p-4">
+                  <p className="text-sm font-semibold text-[#D8C5A5]">Faturas MesaLink</p>
+                  <p className="mb-4 mt-1 text-xs leading-5 text-white/55">Consulta, descarrega e atualiza os dados fiscais das faturas emitidas automaticamente pelo Stripe.</p>
                   <ManageSubscriptionButton />
                 </div>
               )}

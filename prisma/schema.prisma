@@ -295,6 +295,19 @@ model Restaurant {
   phone   String?
   address String?
 
+  // Ficha fiscal sincronizada do Stripe Checkout (fonte oficial)
+  billingLegalName       String?
+  billingTaxId           String?
+  billingTaxIdType       String?
+  billingEmail           String?
+  billingAddressLine1    String?
+  billingAddressLine2    String?
+  billingPostalCode      String?
+  billingCity            String?
+  billingState           String?
+  billingCountry         String?
+  billingDetailsSyncedAt DateTime?
+
   // Mini-site — estado/base
   websiteEnabled      Boolean @default(false)
   websiteTemplate     String  @default("PREMIUM")
@@ -1003,16 +1016,23 @@ model ReferralGroup {
   acceptedRestaurant Restaurant?     @relation("AcceptedReferralRestaurant", fields: [acceptedRestaurantId], references: [id])
   reservation        Reservation?    @relation(fields: [reservationId], references: [id])
 
-  desiredDate     DateTime
-  alternativeDate DateTime?
-  guests          Int
-  adults          Int?
-  children        Int       @default(0)
-  cuisineTypes    String[]  @default([])
-  city            String?
-  area            String?
-  budgetPerPerson Decimal?  @db.Decimal(10, 2)
-  notes           String?
+  desiredDate       DateTime
+  alternativeDate   DateTime?
+  guests            Int
+  adults            Int?
+  children          Int       @default(0)
+  actualGuests      Int?
+  customerName      String?
+  customerPhone     String?
+  customerEmail     String?
+  contactRevealedAt DateTime?
+  targetMode        String    @default("SELECTED")
+  targetSummary     String?
+  cuisineTypes      String[]  @default([])
+  city              String?
+  area              String?
+  budgetPerPerson   Decimal?  @db.Decimal(10, 2)
+  notes             String?
 
   commissionType     String  @default("PER_PERSON")
   commissionAmount   Decimal @db.Decimal(10, 2)
@@ -1075,20 +1095,37 @@ model ReferralPayment {
   stripePaymentIntentId   String? @unique
   stripeChargeId          String? @unique
   stripeTransferId        String? @unique
+  stripeInvoiceId         String? @unique
+  stripeInvoiceUrl        String?
+  stripeInvoicePdfUrl     String?
 
   checkoutAttempt Int     @default(0)
   refundedAmount  Decimal @default(0) @db.Decimal(10, 2)
   reversedAmount  Decimal @default(0) @db.Decimal(10, 2)
   lastError       String?
 
-  paidAt        DateTime?
-  transferredAt DateTime?
-  failedAt      DateTime?
-  refundedAt    DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  paidAt                        DateTime?
+  authorizedAt                  DateTime?
+  authorizationExpiresAt        DateTime?
+  capturedAt                    DateTime?
+  payoutDueAt                   DateTime?
+  payoutConfirmedAt             DateTime?
+  partnerInvoiceUrl             String?
+  partnerInvoiceNumber          String?
+  partnerInvoiceUploadedAt      DateTime?
+  partnerInvoiceStatus          String    @default("MISSING")
+  partnerInvoiceVerifiedAt      DateTime?
+  partnerInvoiceVerifiedBy      String?
+  partnerInvoiceRejectedAt      DateTime?
+  partnerInvoiceRejectionReason String?
+  transferredAt                 DateTime?
+  failedAt                      DateTime?
+  refundedAt                    DateTime?
+  createdAt                     DateTime  @default(now())
+  updatedAt                     DateTime  @updatedAt
 
   @@index([partnerId, status])
+  @@index([partnerInvoiceStatus, payoutDueAt])
 }
 
 model AiCreditTransaction {

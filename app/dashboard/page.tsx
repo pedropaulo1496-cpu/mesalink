@@ -17,6 +17,7 @@ export default async function DashboardPage() {
     include: {
       subscription: true,
       salesProfile: { select: { id: true, active: true } },
+      referralPartner: { select: { id: true } },
       restaurants: {
         select: {
           id: true,
@@ -32,6 +33,10 @@ export default async function DashboardPage() {
 
   if (user.isAdmin || user.salesProfile?.active) {
     redirect("/backoffice");
+  }
+
+  if (user.referralPartner) {
+    redirect("/partners/app");
   }
 
   const restaurant = user.restaurants[0];

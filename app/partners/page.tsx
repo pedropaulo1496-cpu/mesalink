@@ -5,16 +5,14 @@ import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "MesaLink Partners — Envie grupos para restaurantes",
-  description: "Rede profissional para hotéis, concierges, guias e empresas enviarem grupos anónimos para restaurantes e receberem comissão.",
+  description: "Rede profissional para hotéis, concierges, guias e empresas enviarem grupos a restaurantes e receberem comissões semanais verificadas.",
   robots: { index: true, follow: true },
 };
 
 export const dynamic = "force-dynamic";
 
 export default async function PartnersLandingPage() {
-  const restaurantCount = await prisma.restaurant.count({
-    where: { referralNetworkEnabled: true },
-  });
+  const restaurantCount = await prisma.restaurant.count();
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
@@ -33,7 +31,7 @@ export default async function PartnersLandingPage() {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Hotel → restaurante → comissão</p>
             <h1 className="mt-5 max-w-4xl text-5xl font-semibold leading-[0.92] tracking-[-0.075em] sm:text-7xl">Transforma recomendações em receita.</h1>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-[#62594F]">Publica um grupo sem expor o cliente, escolhe restaurantes por cozinha e localização e acompanha a aceitação e comissão numa única app.</p>
+            <p className="mt-6 max-w-2xl text-base leading-7 text-[#62594F]">Publica um grupo, escolhe restaurantes por cozinha e localização e acompanha a reserva, a fatura e a comissão numa única app. O contacto só é revelado ao restaurante que aceitar.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/partners/register" className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-[#17120D] px-7 text-sm font-black text-white">Começar como parceiro <ArrowRight size={17} /></Link>
               <Link href="/login?callbackUrl=/partners/app" className="inline-flex h-13 items-center justify-center rounded-full border border-[#D6C3A5] bg-white px-7 text-sm font-bold">Já tenho conta</Link>
@@ -57,7 +55,7 @@ export default async function PartnersLandingPage() {
       <section className="border-y border-[#E1D0B8] bg-white px-5 py-12">
         <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-3">
           <Feature icon={<UtensilsCrossed size={21} />} title={`${restaurantCount} restaurantes disponíveis`} text="Pesquisa por tipo de cozinha, localização, preço e capacidade do grupo." />
-          <Feature icon={<ShieldCheck size={21} />} title="Cliente protegido" text="A oferta leva apenas código, data, pessoas e preferências. Sem nome, telefone ou email." />
+          <Feature icon={<ShieldCheck size={21} />} title="Contacto protegido" text="Antes da aceitação, a oferta mostra apenas código, data, pessoas e preferências. O contacto é revelado apenas ao restaurante que garante a reserva." />
           <Feature icon={<Building2 size={21} />} title="Acordos recorrentes" text="Hotel e restaurante podem deixar uma comissão total ou por pessoa pré-definida." />
         </div>
       </section>
@@ -66,7 +64,7 @@ export default async function PartnersLandingPage() {
         <div className="mx-auto max-w-4xl rounded-[40px] bg-[#D7B267] p-8 text-[#17120D] sm:p-12">
           <p className="text-xs font-black uppercase tracking-[0.28em]">Regra simples</p>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">85% para o parceiro. 15% para o MesaLink.</h2>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-[#4A3822]">O pagamento é processado pela plataforma depois do serviço. O parceiro recebe através de uma conta verificada e toda a reconciliação fica associada ao código do grupo.</p>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-[#4A3822]">O cartão do restaurante garante a comissão. Depois do serviço, o parceiro anexa a fatura ao grupo; o MesaLink verifica-a e só então inclui os 85% no pagamento semanal.</p>
         </div>
       </section>
     </main>

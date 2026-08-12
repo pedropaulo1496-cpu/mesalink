@@ -1,95 +1,109 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import type Stripe from "stripe";
 import { authOptions } from "@/lib/auth";
 import { calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
 
 export async function POST(request: Request, { params }: { params: Promise<{ offerId: string }> }) {
   const { offerId } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.redirect(new URL("/login", request.url), 303);
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
-  const offer = user
-    ? await prisma.referralOffer.findFirst({
-        where: { id: offerId, restaurant: { userId: user.id } },
-        include: { group: true },
-      })
-    : null;
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, subscription: { select: { stripeCustomerId: true } } },
+  });
+  const offer = user ? await prisma.referralOffer.findFirst({
+    where: { id: offerId, restaurant: { userId: user.id } },
+    include: { group: true, restaurant: { select: { id: true, name: true, email: true } } },
+  }) : null;
 
   if (!offer) return NextResponse.json({ error: "Oferta não encontrada." }, { status: 404 });
-  const backUrl = new URL(`/restaurants/${offer.restaurantId}/partner-network`, request.url);
-
-  if (offer.status !== "PENDING" || offer.group.status !== "OPEN" || offer.group.desiredDate <= new Date() || (offer.group.expiresAt && offer.group.expiresAt <= new Date())) {
-    backUrl.searchParams.set("result", "unavailable");
-    return NextResponse.redirect(backUrl, 303);
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/$/, "");
+  const backUrl = `${baseUrl}/restaurants/${offer.restaurantId}/partner-network`;
+  if (offer.status !== "PENDING" || offer.group.status !== "OPEN" || offer.group.desiredDate <= new Date()) {
+    return NextResponse.redirect(`${backUrl}?result=unavailable`, 303);
   }
 
-  const commissionType = isCommissionType(offer.commissionType) ? offer.commissionType : "TOTAL";
+  const type = isCommissionType(offer.commissionType) ? offer.commissionType : "TOTAL";
   const amounts = calculateReferralCommission({
     guests: offer.group.guests,
-    commissionType,
+    commissionType: type,
     commissionAmount: Number(offer.commissionAmount),
     platformFeePercent: Number(offer.platformFeePercent),
   });
-
-  try {
-    await prisma.$transaction(async (tx) => {
-      const claim = await tx.referralGroup.updateMany({
-        where: { id: offer.groupId, status: "OPEN", acceptedRestaurantId: null },
-        data: {
-          status: "ACCEPTED",
-          acceptedRestaurantId: offer.restaurantId,
-          commissionType: offer.commissionType,
-          commissionAmount: offer.commissionAmount,
-          platformFeePercent: offer.platformFeePercent,
-        },
-      });
-
-      if (claim.count !== 1) throw new Error("GROUP_ALREADY_ACCEPTED");
-
-      const reservation = await tx.reservation.create({
-        data: {
-          restaurantId: offer.restaurantId,
-          customerName: `Grupo ${offer.group.publicCode}`,
-          phone: "PRIVATE",
-          email: null,
-          date: offer.group.desiredDate,
-          guests: offer.group.guests,
-          status: "CONFIRMED",
-          source: "PARTNER_NETWORK",
-          notes: [
-            `Referência anónima ${offer.group.publicCode}.`,
-            `${offer.group.adults ?? Math.max(1, offer.group.guests - (offer.group.children || 0))} adultos${offer.group.children > 0 ? ` e ${offer.group.children} crianças` : ""}.`,
-            offer.group.area ? `Zona pedida: ${offer.group.area}.` : "",
-            offer.group.notes || "",
-          ].filter(Boolean).join(" "),
-        },
-      });
-
-      await Promise.all([
-        tx.referralGroup.update({ where: { id: offer.groupId }, data: { reservationId: reservation.id, status: "BOOKED" } }),
-        tx.referralOffer.update({ where: { id: offer.id }, data: { status: "ACCEPTED", respondedAt: new Date() } }),
-        tx.referralOffer.updateMany({ where: { groupId: offer.groupId, id: { not: offer.id }, status: "PENDING" }, data: { status: "CLOSED", respondedAt: new Date() } }),
-        tx.referralPayment.create({
-          data: {
-            groupId: offer.groupId,
-            partnerId: offer.group.partnerId,
-            grossCommission: amounts.gross,
-            platformFee: amounts.platformFee,
-            partnerNet: amounts.partnerNet,
-            serviceFee: calculateReferralServiceFee(amounts.gross),
-            status: "PENDING",
+  const serviceFee = calculateReferralServiceFee(amounts.gross);
+  const checkoutParams: Stripe.Checkout.SessionCreateParams = {
+    mode: "payment",
+    payment_method_types: ["card"],
+    ...(user?.subscription?.stripeCustomerId
+      ? { customer: user.subscription.stripeCustomerId, customer_update: { address: "auto" as const, name: "auto" as const } }
+      : { customer_email: offer.restaurant.email || session.user.email, customer_creation: "always" as const }),
+    billing_address_collection: "required",
+    tax_id_collection: { enabled: true },
+    success_url: `${baseUrl}/api/referral-offers/${offer.id}/accept/return?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${backUrl}?result=authorization-cancelled`,
+    locale: "auto",
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "eur",
+          unit_amount: Math.round(amounts.gross * 100),
+          product_data: {
+            name: `Garantia do grupo ${offer.group.publicCode}`,
+            description: `${offer.group.guests} pessoas · comissão protegida até confirmar a presença`,
           },
-        }),
-      ]);
-    });
-
-    backUrl.searchParams.set("result", "accepted");
-    return NextResponse.redirect(backUrl, 303);
+        },
+      },
+      ...(serviceFee > 0 ? [{
+        quantity: 1,
+        price_data: {
+          currency: "eur",
+          unit_amount: Math.round(serviceFee * 100),
+          product_data: {
+            name: "Proteção e processamento MesaLink",
+            description: "Autorização do cartão, reserva e processamento do pagamento.",
+          },
+        },
+      }] : []),
+    ],
+    metadata: {
+      kind: "REFERRAL_AUTHORIZATION",
+      offerId: offer.id,
+      referralGroupId: offer.groupId,
+      restaurantId: offer.restaurantId,
+    },
+    payment_intent_data: {
+      capture_method: "manual",
+      transfer_group: `REFERRAL_${offer.groupId}`,
+      metadata: {
+        kind: "REFERRAL_AUTHORIZATION",
+        offerId: offer.id,
+        referralGroupId: offer.groupId,
+        restaurantId: offer.restaurantId,
+      },
+    },
+    payment_method_options: {
+      card: {
+        request_extended_authorization: "if_available",
+      },
+    },
+  };
+  const attemptKey = `referral_authorization_${offer.id}_${Math.floor(Date.now() / 60000)}`;
+  let checkout: Stripe.Checkout.Session;
+  try {
+    checkout = await stripe.checkout.sessions.create(checkoutParams, { idempotencyKey: attemptKey });
   } catch (error) {
-    console.error("Accept referral offer error:", error);
-    backUrl.searchParams.set("result", "unavailable");
-    return NextResponse.redirect(backUrl, 303);
+    const stripeError = error as { code?: string; message?: string };
+    if (stripeError.code !== "payment_intent_invalid_parameter" || !stripeError.message?.includes("not eligible")) throw error;
+    const standardAuthorizationParams = { ...checkoutParams };
+    delete standardAuthorizationParams.payment_method_options;
+    checkout = await stripe.checkout.sessions.create(standardAuthorizationParams, { idempotencyKey: `${attemptKey}_standard` });
   }
+
+  if (!checkout.url) return NextResponse.redirect(`${backUrl}?result=payment-error`, 303);
+  return NextResponse.redirect(checkout.url, 303);
 }

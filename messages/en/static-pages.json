@@ -128,7 +128,7 @@
       },
       "partnerNetwork": {
         "title": "3-A. Partner Network and commissions",
-        "text": "In the Partner Network, professional partners may submit group requests without the final guest's name, phone number or email. Partners agree not to enter identifiers in requests and must be authorised to represent the group. Restaurants freely choose whether to accept. After the service, the restaurant pays the agreed commission to MesaLink; 15% of the gross commission belongs to MesaLink and 85% is transferred to the partner through a verified payments account. A MesaLink service and payment fee of 5% of the gross commission + €0.35 is added to the restaurant's payment and shown before checkout. Cancellations, no-shows, refunds, invoicing and taxes follow the applicable agreement and law."
+        "text": "In the Partner Network, professional partners can submit group requests with the contact details needed for the booking. Before acceptance, restaurants see only the code, date, party size and preferences; the contact is revealed only to the restaurant that authorises the card and secures the booking. After the service, 15% of the gross commission belongs to MesaLink and 85% is payable to the partner. The partner must invoice the restaurant and attach the PDF to the group. Weekly payment is processed only after MesaLink verifies that invoice. Service and processing fees are shown before checkout. Cancellations, no-shows, refunds, invoicing and taxes follow the applicable agreement and law."
       },
       "cancellation": {
         "title": "4. Cancellation",
@@ -168,7 +168,7 @@
       },
       "partnerNetwork": {
         "title": "4-A. Partner Network data",
-        "text": "Group requests and benefit cards use a code and minimal data such as date, party size, area, budget and structured preferences. MesaLink does not request the final guest's name, phone number or email in this flow. Public cards contain no identifiers and are excluded from indexing. Because the partner may keep additional information that links the code to a guest, this data is treated as pseudonymised and protected under the GDPR. Partners' professional, tax and payment data may be processed by Stripe for verification, charges and transfers."
+        "text": "Group requests use a code plus the date, party size, area, budget, preferences and contact details needed for the booking. Access controls hide the name, phone number and email from restaurants before acceptance; they become available only to the restaurant that secures the booking. Stripe processes restaurant and partner tax and payment data for verification, charges, invoicing and transfers. Partner invoices remain attached to the group history and are available only to the partner, the recipient restaurant and authorised MesaLink staff."
       },
       "rights": {
         "title": "5. Rights",

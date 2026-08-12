@@ -128,7 +128,7 @@
       },
       "partnerNetwork": {
         "title": "3-A. Partner Network y comisiones",
-        "text": "En la Partner Network, los socios profesionales pueden enviar solicitudes de grupos sin el nombre, teléfono o correo del cliente final. El socio se compromete a no introducir identificadores y a estar autorizado para representar al grupo. El restaurante decide libremente si acepta. Tras el servicio, el restaurante paga la comisión acordada a MesaLink; el 15 % de la comisión bruta corresponde a MesaLink y el 85 % se transfiere al socio mediante una cuenta de pagos verificada. Cancelaciones, reembolsos, facturación e impuestos se rigen por el acuerdo y la legislación aplicable."
+        "text": "En la Partner Network, los socios profesionales pueden enviar grupos con el contacto necesario para la reserva. Antes de la aceptación, el restaurante solo ve el código, fecha, número de personas y preferencias; el contacto se revela únicamente al restaurante que autoriza la tarjeta y confirma la reserva. Tras el servicio, MesaLink retiene el 15 % de la comisión bruta y el 85 % queda a pagar al socio. El socio debe emitir su factura al restaurante y adjuntarla al grupo. El pago semanal solo se procesa después de que MesaLink verifique la factura."
       },
       "cancellation": {
         "title": "4. Cancelación",
@@ -168,7 +168,7 @@
       },
       "partnerNetwork": {
         "title": "4-A. Datos de la Partner Network",
-        "text": "Las solicitudes y tarjetas de beneficios usan un código y datos mínimos como fecha, número de personas, zona, presupuesto y preferencias estructuradas. MesaLink no solicita el nombre, teléfono o correo del cliente final en este flujo. Las tarjetas públicas no contienen identificadores y se excluyen de la indexación. Como el socio puede conservar información adicional que vincule el código al cliente, estos datos se tratan como seudonimizados y protegidos por el RGPD. Stripe puede tratar datos profesionales, fiscales y de pago para la verificación, los cobros y las transferencias."
+        "text": "Las solicitudes de grupo usan un código, fecha, número de personas, zona, presupuesto, preferencias y el contacto necesario para la reserva. El nombre, teléfono y correo quedan ocultos por control de acceso hasta que un restaurante confirma la reserva. Stripe trata los datos fiscales y de pago para verificación, cobros, facturación y transferencias. Las facturas quedan vinculadas al historial del grupo y solo pueden consultarlas el socio, el restaurante destinatario y el equipo autorizado de MesaLink."
       },
       "rights": {
         "title": "5. Derechos",

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BadgeEuro, BriefcaseBusiness, Building2, LayoutDashboard, MessageCircle, UsersRound } from "lucide-react";
+import { BadgeEuro, BriefcaseBusiness, Building2, LayoutDashboard, MessageCircle, UsersRound, WalletCards } from "lucide-react";
 
 const links = [
   { href: "/backoffice", label: "Visão geral", icon: LayoutDashboard },
@@ -15,7 +15,7 @@ const links = [
 export default function BackofficeNavigation({ role, variant }: { role: "ADMIN" | "SALES"; variant: "desktop" | "mobile" }) {
   const pathname = usePathname();
   const items = role === "ADMIN"
-    ? [...links, { href: "/backoffice/team", label: "Equipa", icon: UsersRound }]
+    ? [...links, { href: "/backoffice/partner-payouts", label: "Pagamentos Partner", icon: WalletCards }, { href: "/backoffice/team", label: "Equipa", icon: UsersRound }]
     : links;
 
   if (variant === "desktop") {
@@ -36,7 +36,7 @@ export default function BackofficeNavigation({ role, variant }: { role: "ADMIN" 
 
   return (
       <nav className="fixed inset-x-2 bottom-2 z-50 grid grid-cols-5 rounded-[22px] border border-white/10 bg-[#17130F]/95 p-1.5 shadow-2xl backdrop-blur lg:hidden">
-        {links.map(({ href, label, icon: Icon }) => {
+        {(role === "ADMIN" ? [links[0], links[1], { href: "/backoffice/partner-payouts", label: "Parceiros", icon: WalletCards }, links[3], { href: "/backoffice/team", label: "Equipa", icon: UsersRound }] : links).map(({ href, label, icon: Icon }) => {
           const active = href === "/backoffice" ? pathname === href : pathname.startsWith(href);
           return (
             <Link key={href} href={href} className={`flex min-w-0 flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[9px] font-bold ${active ? "bg-[#D7B267] text-[#17130F]" : "text-white/55"}`}>

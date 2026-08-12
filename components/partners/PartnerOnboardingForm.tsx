@@ -49,7 +49,7 @@ export default function PartnerOnboardingForm() {
         <input name="commissionAmount" type="number" min="1" max="1000" step="0.01" defaultValue="5" required className="h-14 rounded-2xl border border-[#DED1BD] bg-[#FFF9F0] px-4 text-sm outline-none" />
       </div>
       <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedTerms" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Aceito os Termos e Condições do MesaLink Partners.</span></label>
-      <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedPrivacy" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Li a Política de Privacidade e não vou inserir dados identificáveis dos clientes.</span></label>
+      <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedPrivacy" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Li a Política de Privacidade e tenho autorização para fornecer o contacto necessário às reservas.</span></label>
       {error && <p className="rounded-2xl bg-[#FFF0EA] px-4 py-3 text-sm font-semibold text-[#A14E36]">{error}</p>}
       <button disabled={loading} className="h-13 w-full rounded-full bg-[#17120D] px-6 text-sm font-black text-white disabled:opacity-50">{loading ? "A preparar…" : "Ativar perfil Partner"}</button>
     </form>

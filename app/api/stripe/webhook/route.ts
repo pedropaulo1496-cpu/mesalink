@@ -4,6 +4,8 @@ import { getAiCreditPack, grantPurchasedAiCredits, revokeRefundedAiCredits, type
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { recordSalesCommission } from "@/lib/sales-commissions";
+import { finalizeReferralAuthorization } from "@/lib/referral-authorization";
+import { syncRestaurantBillingDetails, syncUserRestaurantBillingDetails } from "@/lib/stripe-billing-details";
 import {
   handleDomainChargeDispute,
   handleDomainChargeRefund,
@@ -105,63 +107,41 @@ async function settlePlanInvoiceCommission(invoice: Stripe.Invoice) {
   });
 }
 
+async function settleReferralInvoice(invoice: Stripe.Invoice) {
+  if (invoice.metadata?.kind !== "REFERRAL_AUTHORIZATION" || !invoice.metadata.referralGroupId) return;
+  await prisma.referralPayment.updateMany({
+    where: { groupId: invoice.metadata.referralGroupId },
+    data: {
+      stripeInvoiceId: invoice.id,
+      stripeInvoiceUrl: invoice.hosted_invoice_url || null,
+      stripeInvoicePdfUrl: invoice.invoice_pdf || null,
+    },
+  });
+}
+
 async function transferReferralPayment(paymentId: string) {
   const payment = await prisma.referralPayment.findUnique({
     where: { id: paymentId },
-    include: { partner: true },
   });
 
-  if (!payment || payment.stripeTransferId || payment.status === "REFUNDED") return;
-  if (!payment.stripeChargeId || !payment.partner.stripeAccountId || !payment.partner.stripeOnboardingComplete) {
-    await prisma.referralPayment.update({
-      where: { id: paymentId },
-      data: { status: "PAID_TRANSFER_PENDING" },
-    });
-    return;
-  }
+  if (!payment || payment.stripeTransferId || ["REFUNDED", "TRANSFERRED", "PAID"].includes(payment.status)) return;
+  await prisma.referralPayment.update({
+    where: { id: paymentId },
+    data: {
+      status: "CAPTURED_AWAITING_PAYOUT",
+      capturedAt: payment.capturedAt || new Date(),
+      payoutDueAt: payment.payoutDueAt || nextWeeklyPayout(),
+      lastError: null,
+    },
+  });
+}
 
-  try {
-    const transfer = await stripe.transfers.create(
-      {
-        amount: Math.round(Number(payment.partnerNet) * 100),
-        currency: payment.currency.toLowerCase(),
-        destination: payment.partner.stripeAccountId,
-        transfer_group: `REFERRAL_${payment.groupId}`,
-        source_transaction: payment.stripeChargeId,
-        metadata: {
-          referralPaymentId: payment.id,
-          referralGroupId: payment.groupId,
-        },
-      },
-      { idempotencyKey: `referral_transfer_${payment.id}` },
-    );
-
-    await prisma.$transaction([
-      prisma.referralPayment.update({
-        where: { id: payment.id },
-        data: {
-          status: "TRANSFERRED",
-          stripeTransferId: transfer.id,
-          transferredAt: new Date(),
-          lastError: null,
-        },
-      }),
-      prisma.referralGroup.update({
-        where: { id: payment.groupId },
-        data: { status: "PAID" },
-      }),
-    ]);
-  } catch (error) {
-    await prisma.referralPayment.update({
-      where: { id: payment.id },
-      data: {
-        status: "TRANSFER_FAILED",
-        lastError: error instanceof Error ? error.message.slice(0, 500) : "Transfer failed",
-        failedAt: new Date(),
-      },
-    });
-    throw error;
-  }
+function nextWeeklyPayout() {
+  const date = new Date();
+  const days = ((8 - date.getUTCDay()) % 7) || 7;
+  date.setUTCDate(date.getUTCDate() + days);
+  date.setUTCHours(9, 0, 0, 0);
+  return date;
 }
 
 async function settleReferralSession(session: Stripe.Checkout.Session) {
@@ -331,7 +311,12 @@ export async function POST(req: Request) {
   try {
     if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       const session = event.data.object as Stripe.Checkout.Session;
+      if (session.metadata?.kind === "REFERRAL_AUTHORIZATION") {
+        await finalizeReferralAuthorization(session.id);
+        return new Response("OK");
+      }
       if (session.metadata?.kind === "AI_CREDITS") {
+        if (session.metadata.userId) await syncUserRestaurantBillingDetails(session, session.metadata.userId);
         await settleAiCreditSession(session);
         return new Response("OK");
       }
@@ -340,6 +325,7 @@ export async function POST(req: Request) {
         return new Response("OK");
       }
       if (session.metadata?.kind === "CUSTOM_DOMAIN") {
+        if (session.metadata.restaurantId) await syncRestaurantBillingDetails(session, session.metadata.restaurantId);
         await settleDomainCheckout(session);
         if (session.customer && session.metadata.userId) {
           await prisma.subscription.updateMany({
@@ -364,6 +350,8 @@ export async function POST(req: Request) {
         const userId = session.metadata?.userId;
         const product = session.metadata?.product as Product | undefined;
         if (!userId || !product) return new Response("Missing metadata", { status: 400 });
+
+        if (session.metadata?.restaurantId) await syncRestaurantBillingDetails(session, session.metadata.restaurantId);
 
         await prisma.subscription.upsert({
           where: { userId },
@@ -391,7 +379,9 @@ export async function POST(req: Request) {
     }
 
     if (event.type === "invoice.paid") {
-      await settlePlanInvoiceCommission(event.data.object as Stripe.Invoice);
+      const invoice = event.data.object as Stripe.Invoice;
+      await settleReferralInvoice(invoice);
+      await settlePlanInvoiceCommission(invoice);
     }
 
     if (event.type === "checkout.session.async_payment_failed") {

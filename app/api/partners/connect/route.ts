@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       country: "PT",
       email: partner.email,
       capabilities: { transfers: { requested: true } },
-      business_type: "company",
+      business_type: ["HOTEL", "AGENCY", "COMPANY"].includes(partner.partnerType) ? "company" : "individual",
       business_profile: {
         name: partner.businessName,
         product_description: "Referências profissionais de grupos para restaurantes",

@@ -128,7 +128,7 @@
       },
       "partnerNetwork": {
         "title": "3-A. Partner Network und Provisionen",
-        "text": "Im Partner Network können professionelle Partner Gruppenanfragen ohne Namen, Telefonnummer oder E-Mail des Endkunden übermitteln. Partner dürfen keine Identifikatoren eingeben und müssen zur Vertretung der Gruppe berechtigt sein. Restaurants entscheiden frei über die Annahme. Nach der Leistung zahlt das Restaurant die vereinbarte Provision an MesaLink; 15 % der Bruttoprovision verbleiben bei MesaLink und 85 % werden über ein verifiziertes Zahlungskonto an den Partner übertragen. Stornierungen, Erstattungen, Rechnungen und Steuern richten sich nach Vereinbarung und Gesetz."
+        "text": "Im Partner Network können professionelle Partner Gruppen mit den für die Reservierung nötigen Kontaktdaten einstellen. Vor der Annahme sieht das Restaurant nur Code, Datum, Gruppengröße und Wünsche; der Kontakt wird nur dem Restaurant angezeigt, das die Karte autorisiert und die Reservierung übernimmt. Nach dem Service behält MesaLink 15 % der Bruttoprovision, 85 % stehen dem Partner zu. Der Partner muss dem Restaurant eine Rechnung stellen und das PDF an die Gruppe anhängen. Die wöchentliche Auszahlung erfolgt erst nach Prüfung der Rechnung durch MesaLink."
       },
       "cancellation": {
         "title": "4. Kündigung",
@@ -168,7 +168,7 @@
       },
       "partnerNetwork": {
         "title": "4-A. Daten des Partner Network",
-        "text": "Gruppenanfragen und Vorteilskarten verwenden einen Code und minimale Angaben wie Datum, Gruppengröße, Gebiet, Budget und strukturierte Wünsche. MesaLink fragt in diesem Ablauf nicht nach Name, Telefonnummer oder E-Mail des Endkunden. Öffentliche Karten enthalten keine Identifikatoren und werden von der Indexierung ausgeschlossen. Da der Partner zusätzliche Informationen behalten kann, die den Code einer Person zuordnen, werden die Daten als pseudonymisiert und gemäß DSGVO geschützt behandelt. Stripe kann Geschäfts-, Steuer- und Zahlungsdaten zur Verifizierung und Auszahlung verarbeiten."
+        "text": "Gruppenanfragen verwenden einen Code sowie Datum, Gruppengröße, Gebiet, Budget, Wünsche und die für die Reservierung nötigen Kontaktdaten. Name, Telefonnummer und E-Mail bleiben durch Zugriffskontrollen verborgen, bis ein Restaurant die Reservierung übernimmt. Stripe verarbeitet Steuer- und Zahlungsdaten zur Verifizierung, Abrechnung, Rechnungsstellung und Überweisung. Rechnungen bleiben mit dem Gruppenverlauf verknüpft und sind nur für Partner, Empfängerrestaurant und autorisierte MesaLink-Mitarbeiter sichtbar."
       },
       "rights": {
         "title": "5. Rechte",

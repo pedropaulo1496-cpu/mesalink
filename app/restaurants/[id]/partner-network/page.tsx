@@ -90,11 +90,11 @@ export default async function PartnerNetworkPage({
 
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
           <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div><div className="flex flex-wrap items-center gap-3"><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">MesaLink Partner Network</p><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] ${restaurant.referralNetworkEnabled ? "border border-[#9CCB9B] bg-[#ECF7EC] text-[#3F6A4D]" : "border border-[#D8C6A9] bg-[#FFF9F0] text-[#806D56]"}`}>{restaurant.referralNetworkEnabled ? "Na rede" : "Pausado"}</span></div><h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">Recebe grupos de parceiros locais.</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">Hotéis, concierges, guias e empresas enviam pedidos anónimos. Tu escolhes quais aceitar e a comissão fica clara antes da reserva.</p></div>
-            <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Sem contacto do cliente</div>
+            <div><div className="flex flex-wrap items-center gap-3"><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">MesaLink Partner Network</p><span className="rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#3F6A4D]">Na rede</span></div><h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">Recebe grupos de parceiros locais.</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">Hotéis, concierges, guias e empresas enviam pedidos com o contacto protegido. Tu escolhes quais aceitar e a comissão fica clara antes da reserva.</p></div>
+            <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Contacto oculto até aceitar</div>
           </header>
 
-          <nav className="mt-6 inline-flex rounded-full border border-[#D9C7AA] bg-white p-1"><Link href={`/restaurants/${id}/partner-network`} className="rounded-full bg-[#17120D] px-5 py-2.5 text-xs font-bold text-white">Grupos e comissões</Link><Link href={`/restaurants/${id}/partner-network/benefits`} className="rounded-full px-5 py-2.5 text-xs font-bold text-[#6B6258]">Cartões e benefícios</Link></nav>
+          <nav className="mt-6 inline-flex rounded-full border border-[#D9C7AA] bg-white p-1"><Link href={`/restaurants/${id}/partner-network`} className="rounded-full bg-[#17120D] px-5 py-2.5 text-xs font-bold text-white">Grupos e pagamentos</Link></nav>
 
           {result && <div className={`mt-5 rounded-[22px] border px-5 py-4 text-sm font-semibold ${["accepted", "completed", "payment-success", "already-paid"].includes(result) ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : result === "declined" || result === "payment-cancelled" ? "border-[#DCCCAD] bg-[#FFF9ED] text-[#795D38]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{resultMessage(result)}</div>}
 
@@ -102,7 +102,7 @@ export default async function PartnerNetworkPage({
             <Kpi icon={<UsersRound size={18} />} label="Pedidos novos" value={String(restaurant.referralOffers.length)} />
             <Kpi icon={<CircleDollarSign size={18} />} label="Comissão em pedidos" value={formatMoney(pendingValue)} />
             <Kpi icon={<CheckCircle2 size={18} />} label="Grupos concluídos" value={String(completedGroups.length)} />
-            <Kpi icon={<Building2 size={18} />} label="Acordos ativos" value={String(restaurant.referralAgreements.length)} detail={`${formatMoney(paidCommission)} pago`} />
+            <Kpi icon={<Building2 size={18} />} label="Acordos ativos" value={String(restaurant.referralAgreements.length)} detail={`${formatMoney(paidCommission)} em comissões`} />
           </section>
 
           <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-5 shadow-[0_24px_75px_rgba(80,55,30,0.07)] sm:p-8">
@@ -128,7 +128,7 @@ export default async function PartnerNetworkPage({
                     <div className="rounded-[20px] bg-[#17120D] p-4 text-white lg:text-right"><p className="text-[9px] font-black uppercase tracking-[0.16em] text-white/45">Comissão proposta</p><p className="mt-1 text-xl font-semibold text-[#E8C985]">{commissionLabel}</p><p className="mt-1 text-xs text-white/50">{formatMoney(amounts.gross)} no total</p></div>
                   </div>
                   <details className="group mt-4 rounded-[18px] border border-[#E8DCCB] bg-white px-4 py-3"><summary className="cursor-pointer list-none text-xs font-bold text-[#755B3B]">Ver condições e valores <span className="ml-1 inline-block transition group-open:rotate-180">⌄</span></summary><div className="mt-3 grid gap-3 border-t border-[#EEE3D3] pt-3 text-xs sm:grid-cols-3"><div><p className="text-[#8B7D6D]">Parceiro recebe 85%</p><p className="mt-1 font-bold">{formatMoney(amounts.partnerNet)}</p></div><div><p className="text-[#8B7D6D]">MesaLink retém 15%</p><p className="mt-1 font-bold">{formatMoney(amounts.platformFee)}</p></div><div><p className="text-[#8B7D6D]">Serviço e pagamento</p><p className="mt-1 font-bold">{formatMoney(calculateReferralServiceFee(amounts.gross))}</p></div>{group.notes && <p className="sm:col-span-3 leading-5 text-[#665B50]">{group.notes}</p>}</div></details>
-                  <div className="mt-4 grid grid-cols-2 gap-2 sm:ml-auto sm:max-w-sm"><form action={`/api/referral-offers/${offer.id}/decline`} method="POST"><button className="h-11 w-full rounded-full border border-[#D8C6A9] bg-white text-sm font-bold hover:bg-[#FFF7ED]">Rejeitar</button></form><form action={`/api/referral-offers/${offer.id}/accept`} method="POST"><button className="h-11 w-full rounded-full bg-[#17120D] text-sm font-bold text-white hover:bg-[#34271C]">Aceitar</button></form></div>
+                  <div className="mt-4 grid gap-2 sm:ml-auto sm:max-w-lg sm:grid-cols-[130px_1fr]"><form action={`/api/referral-offers/${offer.id}/decline`} method="POST"><button className="h-11 w-full rounded-full border border-[#D8C6A9] bg-white text-sm font-bold hover:bg-[#FFF7ED]">Rejeitar</button></form><form action={`/api/referral-offers/${offer.id}/accept`} method="POST"><button className="h-11 w-full rounded-full bg-[#17120D] px-4 text-sm font-bold text-white hover:bg-[#34271C]">Autorizar cartão e aceitar</button></form></div>
                 </article>;
               })}
               {restaurant.referralOffers.length === 0 && <div className="rounded-[28px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-10 text-center"><CalendarClock className="mx-auto text-[#9B6F3B]" /><p className="mt-4 font-semibold">Não há grupos pendentes.</p><p className="mt-2 text-sm text-[#6B6258]">Quando um parceiro selecionar o restaurante, aparece aqui em tempo real.</p></div>}
@@ -139,15 +139,16 @@ export default async function PartnerNetworkPage({
             <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 sm:p-8">
               <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Serviço e pagamento</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Grupos aceites</h2>
-              <p className="mt-2 text-sm leading-6 text-[#6B6258]">Depois da refeição, confirma o serviço e paga a comissão. O Stripe transfere 85% para o parceiro; o MesaLink retém 15% e cobra 5% + 0,35€ pelo serviço e processamento.</p>
+              <p className="mt-2 text-sm leading-6 text-[#6B6258]">O cartão já está autorizado. Depois da refeição, confirma quantas pessoas vieram ou marca no-show. Só então o valor é cobrado; 85% fica a pagar semanalmente ao parceiro e o MesaLink retém 15%.</p>
               <div className="mt-6 space-y-3">
                 {restaurant.acceptedReferralGroups.map((group) => (
                   <div key={group.id} className="grid gap-4 rounded-[24px] border border-[#E1D0B8] bg-white p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                    <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><span className="rounded-full border border-[#DCCCAD] bg-[#FFF9ED] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-[#795D38]">{groupStatus(group.status)}</span></div><p className="mt-2 text-sm text-[#6B6258]">{groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · comissão {formatMoney(Number(group.payment?.grossCommission || 0))}{group.payment && Number(group.payment.serviceFee) > 0 ? ` + ${formatMoney(Number(group.payment.serviceFee))} serviço` : ""}</p></div>
+                    <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><span className="rounded-full border border-[#DCCCAD] bg-[#FFF9ED] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-[#795D38]">{groupStatus(group.status)}</span></div><p className="mt-2 text-sm text-[#6B6258]">{groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · comissão {formatMoney(Number(group.payment?.grossCommission || 0))}{group.payment && Number(group.payment.serviceFee) > 0 ? ` + ${formatMoney(Number(group.payment.serviceFee))} serviço` : ""}</p>{group.customerName && <div className="mt-3 rounded-2xl border border-[#CFE0CC] bg-[#F3FAF2] p-3 text-xs leading-5 text-[#405C42]"><p className="font-black uppercase tracking-[0.12em]">Contacto desbloqueado</p><p className="mt-1 font-semibold">{group.customerName} · <a href={`tel:${group.customerPhone}`} className="underline">{group.customerPhone}</a>{group.customerEmail ? <> · <a href={`mailto:${group.customerEmail}`} className="underline">{group.customerEmail}</a></> : null}</p></div>}<ReferralInvoices payment={group.payment} /></div>
                     <div>
-                      {group.status === "BOOKED" && group.desiredDate <= new Date() && <form action={`/api/referral-groups/${group.id}/complete`} method="POST"><button className="h-11 rounded-full border border-[#CBB795] bg-[#FFF9F0] px-5 text-sm font-bold">Confirmar refeição</button></form>}
+                      {group.status === "BOOKED" && group.desiredDate <= new Date() && <div className="grid gap-2"><form action={`/api/referral-groups/${group.id}/complete`} method="POST" className="flex gap-2"><input type="hidden" name="outcome" value="ATTENDED" /><input name="actualGuests" type="number" min="1" max={group.guests} defaultValue={group.guests} aria-label="Pessoas que compareceram" className="h-11 w-20 rounded-full border border-[#CBB795] bg-white px-3 text-center text-sm font-bold" /><button className="h-11 rounded-full bg-[#17120D] px-5 text-sm font-bold text-white">Confirmar presença e cobrar</button></form><form action={`/api/referral-groups/${group.id}/complete`} method="POST"><input type="hidden" name="outcome" value="NO_SHOW" /><button className="h-10 w-full rounded-full border border-[#E0B7A8] bg-[#FFF0EA] px-5 text-xs font-bold text-[#934A35]">Cliente não compareceu · libertar valor</button></form></div>}
                       {group.status === "BOOKED" && group.desiredDate > new Date() && <span className="text-xs font-semibold text-[#806F5C]">Pagamento após a refeição</span>}
-                      {group.status === "COMPLETED" && <form action={`/api/referral-groups/${group.id}/checkout`} method="POST"><button className="h-11 rounded-full bg-[#17120D] px-5 text-sm font-bold text-white">Pagar {formatMoney(Number(group.payment?.grossCommission || 0) + Number(group.payment?.serviceFee || 0))}</button></form>}
+                      {group.status === "COMPLETED" && <span className="inline-flex items-center gap-2 text-xs font-bold text-[#795D38]"><Clock3 size={16} /> Cobrado · pagamento semanal pendente</span>}
+                      {group.status === "NO_SHOW" && <span className="inline-flex items-center gap-2 text-xs font-bold text-[#934A35]">No-show · valor libertado</span>}
                       {group.status === "PAID" && <span className="inline-flex items-center gap-2 text-xs font-bold text-[#3F6A4D]"><CheckCircle2 size={16} /> Comissão paga</span>}
                     </div>
                   </div>
@@ -162,7 +163,7 @@ export default async function PartnerNetworkPage({
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-2">
-            <div className="rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-7"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Disponibilidade</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Rede e comissão base</h2><ReferralNetworkSettingsForm restaurantId={id} initialEnabled={restaurant.referralNetworkEnabled} initialCommissionType={restaurant.referralDefaultCommissionType} initialCommissionAmount={Number(restaurant.referralDefaultCommissionAmount)} /></div>
+            <div className="rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-7"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Comissão sugerida</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Valor base para novos grupos</h2><ReferralNetworkSettingsForm restaurantId={id} initialCommissionType={restaurant.referralDefaultCommissionType} initialCommissionAmount={Number(restaurant.referralDefaultCommissionAmount)} /></div>
             <div className="rounded-[34px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 sm:p-7"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Acordo direto</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Define uma comissão recorrente</h2><p className="mt-2 text-sm leading-6 text-[#6B6258]">Usa o email profissional do hotel ou parceiro. O acordo substitui a comissão base em todos os grupos futuros.</p><ReferralAgreementForm restaurantId={id} /></div>
           </section>
 
@@ -176,6 +177,22 @@ export default async function PartnerNetworkPage({
 
 function Kpi({ icon, label, value, detail }: { icon: ReactNode; label: string; value: string; detail?: string }) {
   return <div className="rounded-[26px] border border-[#E1D0B8] bg-white p-4 sm:p-5"><div className="text-[#9B6F3B]">{icon}</div><p className="mt-4 text-2xl font-semibold tracking-[-0.04em]">{value}</p><p className="mt-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#8B7D6D]">{label}</p>{detail && <p className="mt-2 text-xs text-[#7B6D5D]">{detail}</p>}</div>;
+}
+
+function ReferralInvoices({ payment }: { payment: null | {
+  stripeInvoiceUrl: string | null;
+  stripeInvoicePdfUrl: string | null;
+  partnerInvoiceUrl: string | null;
+  partnerInvoiceNumber: string | null;
+  partnerInvoiceStatus: string;
+} }) {
+  if (!payment) return null;
+  const mesaLinkInvoice = payment.stripeInvoicePdfUrl || payment.stripeInvoiceUrl;
+  if (!mesaLinkInvoice && !payment.partnerInvoiceUrl) return null;
+  return <div className="mt-3 flex flex-wrap gap-2">
+    {mesaLinkInvoice && <a href={mesaLinkInvoice} target="_blank" rel="noreferrer" className="rounded-full border border-[#C9DCC6] bg-[#F2FAF1] px-3 py-1.5 text-[10px] font-black text-[#3F6A4D] underline">Fatura MesaLink / Stripe</a>}
+    {payment.partnerInvoiceUrl && <a href={payment.partnerInvoiceUrl} target="_blank" rel="noreferrer" className="rounded-full border border-[#D8C6A9] bg-[#FFF9F0] px-3 py-1.5 text-[10px] font-black text-[#795D38] underline">Fatura do parceiro {payment.partnerInvoiceNumber || ""} · {payment.partnerInvoiceStatus === "VERIFIED" ? "verificada" : "em validação"}</a>}
+  </div>;
 }
 
 function formatMoney(value: number) {
@@ -200,6 +217,7 @@ function groupStatus(value: string) {
   if (value === "BOOKED") return "Reservado";
   if (value === "COMPLETED") return "Por pagar";
   if (value === "PAID") return "Pago";
+  if (value === "NO_SHOW") return "Não compareceu";
   if (value === "REFUNDED") return "Reembolsado";
   if (value === "PARTIALLY_REFUNDED") return "Reembolso parcial";
   if (value === "DISPUTED") return "Pagamento contestado";
@@ -207,9 +225,15 @@ function groupStatus(value: string) {
 }
 
 function resultMessage(value: string) {
-  if (value === "accepted") return "Grupo aceite e reserva anónima criada no calendário.";
+  if (value === "accepted") return "Cartão autorizado. A reserva entrou no calendário e o contacto do cliente foi desbloqueado.";
   if (value === "declined") return "Proposta recusada.";
-  if (value === "completed") return "Refeição confirmada. A comissão está pronta para pagamento.";
+  if (value === "captured") return "Presença confirmada e valor cobrado. O pagamento ao parceiro entra no processamento semanal.";
+  if (value === "no-show") return "No-show confirmado. A autorização do cartão foi libertada sem cobrar a comissão.";
+  if (value === "authorization-cancelled") return "A autorização do cartão foi cancelada; o grupo continua disponível.";
+  if (value === "authorization-expired") return "A autorização já não pode ser cobrada. Contacta o suporte MesaLink para regularizar.";
+  if (value === "fiscal-required") return "Faltaram o nome legal, a morada ou o NIF no Stripe. Tenta aceitar novamente e assinala que estás a comprar como empresa para preencher os dados fiscais.";
+  if (value === "authorization-too-short") return "Este cartão não permite manter a autorização até à data da refeição. O valor foi libertado e o grupo continua disponível; tenta outro cartão ou aceita mais perto da data.";
+  if (value === "invalid-attendance") return "Confirma um número válido de pessoas que compareceram.";
   if (value === "payment-success") return "Pagamento recebido. A transferência para o parceiro será confirmada automaticamente.";
   if (value === "payment-processing") return "Pagamento em validação pelo Stripe. O estado será atualizado automaticamente antes da transferência.";
   if (value === "payment-error") return "Não foi possível abrir o pagamento. Tenta novamente ou contacta o suporte.";

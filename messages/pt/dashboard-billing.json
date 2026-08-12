@@ -7,7 +7,7 @@
     "hero": {
       "kicker": "Growth. Visibility. Control.",
       "title": "Escolha o plano certo para fazer crescer o restaurante.",
-      "description": "Todos os planos incluem Website, Reservas, QR Ordering, CRM, Reviews e operação integrada. O Growth desbloqueia Revenue AI, AI Visibility e cartões de parceiros; o consumo variável é pré-pago."
+      "description": "Todos os planos incluem Website, Reservas, QR Ordering, CRM, Reviews e operação integrada. O Growth desbloqueia Revenue AI, AI Visibility e a Partner Network; o consumo variável é pré-pago."
     },
     "stats": {
       "currentPlan": {
@@ -94,7 +94,7 @@
           "Mais visitas recorrentes",
           "Revenue AI e caixa de oportunidades",
           "AI Visibility / GEO",
-          "Cartões e promoções de parceiros",
+          "Partner Network e comissões verificadas",
           "Consumo AI com créditos pré-pagos"
         ],
         "upgrade": {

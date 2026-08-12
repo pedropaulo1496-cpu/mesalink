@@ -35,6 +35,29 @@ async function stripeMetrics(customerId: string | null): Promise<StripeMetrics> 
   }
 }
 
+async function stripeMetricsForCustomers(customerIds: string[]) {
+  const metrics = new Map<string, StripeMetrics>();
+  const wanted = new Set(customerIds.filter(Boolean));
+  if (!wanted.size || !process.env.STRIPE_SECRET_KEY) return metrics;
+  for (const customerId of wanted) metrics.set(customerId, { revenueCents: 0, stripeFeeCents: 0, payments: 0, connected: true });
+  try {
+    const charges = await stripe.charges.list({ limit: 100, expand: ["data.balance_transaction"] }).autoPagingToArray({ limit: 1000 });
+    for (const charge of charges) {
+      const customerId = typeof charge.customer === "string" ? charge.customer : charge.customer?.id;
+      if (!customerId || !wanted.has(customerId) || !charge.paid) continue;
+      const current = metrics.get(customerId)!;
+      const balance = charge.balance_transaction as Stripe.BalanceTransaction | null;
+      current.revenueCents += Math.max(0, charge.amount_captured - charge.amount_refunded);
+      current.stripeFeeCents += balance && typeof balance !== "string" ? balance.fee : 0;
+      current.payments += 1;
+    }
+  } catch (error) {
+    console.error("Backoffice bulk Stripe metrics failed", error);
+    for (const customerId of wanted) metrics.set(customerId, { revenueCents: 0, stripeFeeCents: 0, payments: 0, connected: false });
+  }
+  return metrics;
+}
+
 export async function getBackofficeClients(staff: StaffIdentity, query = "") {
   const settings = (await prisma.adminSettings.findUnique({ where: { id: "global" } })) || {
     emailCostMicros: 400,
@@ -46,6 +69,7 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
     where: {
       isAdmin: false,
       salesProfile: null,
+      referralPartner: null,
       ...(staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId } : {}),
       ...(normalizedQuery ? {
         OR: [
@@ -77,14 +101,22 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
       },
     },
     orderBy: { createdAt: "desc" },
-    take: 100,
+    take: normalizedQuery ? 40 : 30,
   });
+
+  const bulkPayments = normalizedQuery
+    ? null
+    : await stripeMetricsForCustomers(users.flatMap((user) => user.subscription?.stripeCustomerId ? [user.subscription.stripeCustomerId] : []));
 
   const now = new Date();
   return Promise.all(users.map(async (user) => {
     const restaurant = user.restaurants[0];
     const [payments, sentEmails, usedAi, whatsappMessages, domainCosts, commissions, promoEmails] = await Promise.all([
-      stripeMetrics(user.subscription?.stripeCustomerId || null),
+      normalizedQuery
+        ? stripeMetrics(user.subscription?.stripeCustomerId || null)
+        : Promise.resolve(user.subscription?.stripeCustomerId
+          ? bulkPayments?.get(user.subscription.stripeCustomerId) || { revenueCents: 0, stripeFeeCents: 0, payments: 0, connected: true }
+          : { revenueCents: 0, stripeFeeCents: 0, payments: 0, connected: false }),
       prisma.emailUsage.count({ where: { userId: user.id, status: "SENT" } }),
       prisma.aiCreditTransaction.aggregate({
         where: { userId: user.id, kind: "USAGE", feature: { notIn: ["EMAIL_BUNDLE", "WHATSAPP_BUNDLE"] }, amount: { lt: 0 } },

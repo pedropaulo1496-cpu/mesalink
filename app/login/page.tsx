@@ -50,7 +50,11 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      const requestedPath = new URLSearchParams(window.location.search).get("callbackUrl");
+      const destination = requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
+        ? requestedPath
+        : "/dashboard";
+      router.push(destination);
       router.refresh();
     } catch {
       setError(t("errors.generic"));

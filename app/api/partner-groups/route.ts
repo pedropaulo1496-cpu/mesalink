@@ -14,15 +14,18 @@ export async function POST(request: Request) {
     if (!session?.user?.email) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
     const body = await request.json().catch(() => null);
-    const restaurantIds: string[] = Array.isArray(body?.restaurantIds)
+    const submittedRestaurantIds: string[] = Array.isArray(body?.restaurantIds)
       ? Array.from(
           new Set<string>(
             (body.restaurantIds as unknown[]).flatMap((value) =>
               typeof value === "string" ? [value] : [],
             ),
           ),
-        ).slice(0, 10)
+        )
       : [];
+    const targetMode = ["ALL", "FILTERED", "SELECTED"].includes(body?.targetMode) ? body.targetMode : "SELECTED";
+    const restaurantQuery = typeof body?.restaurantQuery === "string" ? body.restaurantQuery.trim().slice(0, 100) : "";
+    const restaurantCuisine = typeof body?.restaurantCuisine === "string" && body.restaurantCuisine !== "ALL" ? body.restaurantCuisine.trim().slice(0, 80) : "";
     const legacyGuests = Number(body?.guests);
     const requestedAdults = Number(body?.adults);
     const requestedChildren = Number(body?.children);
@@ -33,9 +36,12 @@ export async function POST(request: Request) {
     const commissionType = isCommissionType(body?.commissionType) ? body.commissionType : null;
     const commissionAmount = Number(body?.commissionAmount);
     const budgetPerPerson = body?.budgetPerPerson ? Number(body.budgetPerPerson) : null;
+    const customerName = typeof body?.customerName === "string" ? body.customerName.trim().slice(0, 100) : "";
+    const customerPhone = typeof body?.customerPhone === "string" ? body.customerPhone.trim().slice(0, 30) : "";
+    const customerEmail = typeof body?.customerEmail === "string" ? body.customerEmail.trim().toLowerCase().slice(0, 160) : "";
 
     if (
-      restaurantIds.length === 0 ||
+      (targetMode === "SELECTED" && submittedRestaurantIds.length === 0) ||
       !Number.isInteger(adults) ||
       adults < 1 ||
       !Number.isInteger(children) ||
@@ -49,6 +55,9 @@ export async function POST(request: Request) {
       !Number.isFinite(commissionAmount) ||
       commissionAmount <= 0 ||
       commissionAmount > 1000
+      || !customerName
+      || customerPhone.replace(/\D/g, "").length < 7
+      || (customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail))
     ) {
       return NextResponse.json({ error: "Revê a data, o grupo, a comissão e os restaurantes." }, { status: 400 });
     }
@@ -63,31 +72,55 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "A conta Partner não está disponível." }, { status: 403 });
     }
 
+    if (!partner.stripeOnboardingComplete || !partner.stripeAccountId) {
+      return NextResponse.json({ error: "Adiciona e valida primeiro o teu IBAN para poderes publicar grupos." }, { status: 403 });
+    }
+
     const openGroups = await prisma.referralGroup.count({ where: { partnerId: partner.id, status: "OPEN" } });
     if (openGroups >= 20) return NextResponse.json({ error: "Conclui ou cancela pedidos em aberto antes de publicar novos grupos." }, { status: 429 });
 
-    const [restaurants, agreements] = await Promise.all([
-      prisma.restaurant.findMany({
-        where: { id: { in: restaurantIds }, referralNetworkEnabled: true },
-        select: { id: true },
-      }),
-      prisma.referralAgreement.findMany({
+    const restaurantWhere = targetMode === "SELECTED"
+      ? { id: { in: submittedRestaurantIds } }
+      : {
+          AND: [
+            ...(restaurantCuisine ? [{ OR: [
+              { websiteCuisine: { contains: restaurantCuisine, mode: "insensitive" as const } },
+              { referralProfileCuisine: { contains: restaurantCuisine, mode: "insensitive" as const } },
+            ] }] : []),
+            ...(targetMode === "FILTERED" && restaurantQuery ? [{ OR: [
+              { name: { contains: restaurantQuery, mode: "insensitive" as const } },
+              { websiteCuisine: { contains: restaurantQuery, mode: "insensitive" as const } },
+              { referralProfileCuisine: { contains: restaurantQuery, mode: "insensitive" as const } },
+              { address: { contains: restaurantQuery, mode: "insensitive" as const } },
+            ] }] : []),
+          ],
+        };
+    const restaurants = await prisma.restaurant.findMany({
+      where: restaurantWhere,
+      orderBy: { name: "asc" },
+      select: { id: true },
+    });
+    const restaurantIds = restaurants.map((restaurant) => restaurant.id);
+    if (restaurantIds.length === 0) {
+      return NextResponse.json({ error: "Não existem restaurantes para esta seleção." }, { status: 400 });
+    }
+
+    const agreements = await prisma.referralAgreement.findMany({
         where: {
           partnerId: partner.id,
           restaurantId: { in: restaurantIds },
           active: true,
           OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }],
         },
-      }),
-    ]);
+    });
 
-    if (restaurants.length !== restaurantIds.length) {
-      return NextResponse.json({ error: "Um dos restaurantes já não está disponível na rede." }, { status: 409 });
+    if (targetMode === "SELECTED" && restaurants.length !== submittedRestaurantIds.length) {
+      return NextResponse.json({ error: "Um dos restaurantes selecionados já não está disponível." }, { status: 409 });
     }
 
     const agreementByRestaurant = new Map(agreements.map((item) => [item.restaurantId, item]));
     const publicCode = createReferralCode();
-    const expiresAt = new Date(Math.min(desiredDate.getTime() - 2 * 60 * 60 * 1000, Date.now() + 48 * 60 * 60 * 1000));
+    const expiresAt = new Date(Math.min(desiredDate.getTime() - 2 * 60 * 60 * 1000, Date.now() + 29 * 24 * 60 * 60 * 1000));
     const occasionLabels: Record<string, string> = {
       BIRTHDAY: "Ocasião: aniversário.",
       BUSINESS: "Ocasião: jantar de empresa.",
@@ -118,6 +151,11 @@ export async function POST(request: Request) {
         guests,
         adults,
         children,
+        customerName,
+        customerPhone,
+        customerEmail: customerEmail || null,
+        targetMode,
+        targetSummary: targetMode === "ALL" ? "Todos os restaurantes MesaLink" : targetMode === "FILTERED" ? `${restaurantCuisine || "Todas as cozinhas"}${restaurantQuery ? ` · ${restaurantQuery}` : ""}` : `${restaurantIds.length} restaurantes selecionados`,
         cuisineTypes: Array.isArray(body?.cuisineTypes)
           ? body.cuisineTypes.filter((item: unknown): item is string => typeof item === "string").map((item: string) => item.slice(0, 60)).slice(0, 6)
           : [],
@@ -143,7 +181,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, id: group.id, publicCode: group.publicCode });
+    return NextResponse.json({ success: true, id: group.id, publicCode: group.publicCode, restaurantCount: restaurantIds.length });
   } catch (error) {
     console.error("Create referral group error:", error);
     return NextResponse.json({ error: "Não foi possível publicar o grupo." }, { status: 500 });

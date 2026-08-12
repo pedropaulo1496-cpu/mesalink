@@ -5,7 +5,7 @@ export function GET() {
     {
       name: "MesaLink Partners",
       short_name: "ML Partners",
-      description: "Envie grupos anónimos para restaurantes e acompanhe as suas comissões.",
+      description: "Envie grupos para restaurantes e acompanhe reservas, faturas e comissões.",
       id: "/partners/",
       start_url: "/partners/app",
       scope: "/partners/",

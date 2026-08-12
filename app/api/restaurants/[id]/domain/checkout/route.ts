@@ -83,7 +83,7 @@ export async function POST(
       mode: "payment",
       payment_method_types: ["card"],
       ...(subscription?.stripeCustomerId
-        ? { customer: subscription.stripeCustomerId }
+        ? { customer: subscription.stripeCustomerId, customer_update: { address: "auto" as const, name: "auto" as const } }
         : { customer_email: user.email, customer_creation: "always" as const }),
       line_items: [{
         quantity: 1,
@@ -97,6 +97,7 @@ export async function POST(
         },
       }],
       billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
       automatic_tax: { enabled: true },
       invoice_creation: { enabled: true },
       metadata: {

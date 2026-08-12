@@ -128,7 +128,7 @@
       },
       "partnerNetwork": {
         "title": "3-A. Partner Network e comissões",
-        "text": "Na Partner Network, parceiros profissionais podem enviar pedidos de grupos sem o nome, telefone ou email do cliente final. O parceiro compromete-se a não introduzir identificadores nos pedidos e a ter legitimidade para representar o grupo. O restaurante escolhe livremente aceitar ou recusar. Após o serviço, o restaurante paga a comissão acordada ao MesaLink; 15% da comissão bruta pertence ao MesaLink e 85% é transferido para o parceiro através de uma conta de pagamentos verificada. Ao total pago pelo restaurante acresce uma taxa MesaLink de serviço e processamento de 5% da comissão bruta + 0,35€, apresentada antes do checkout. Cancelamentos, no-shows, reembolsos, faturação e impostos seguem o acordo aplicável e a legislação em vigor."
+        "text": "Na Partner Network, parceiros profissionais podem enviar pedidos de grupos com o contacto necessário à reserva. Antes da aceitação, o restaurante vê apenas o código, data, número de pessoas e preferências; o nome, telefone e email só são revelados ao restaurante que autorizar o cartão e ficar com a reserva. O parceiro confirma que tem legitimidade para representar o grupo e fornecer esses dados. Após o serviço, o valor autorizado é cobrado: 15% da comissão bruta pertence ao MesaLink e 85% fica a pagar ao parceiro. O parceiro deve emitir a sua fatura ao restaurante e anexá-la ao histórico do grupo. O pagamento semanal só é processado após verificação da fatura pelo MesaLink. Ao total cobrado ao restaurante acresce a taxa de serviço e processamento apresentada antes do checkout. Cancelamentos, no-shows, reembolsos, faturação e impostos seguem o acordo aplicável e a legislação em vigor."
       },
       "cancellation": {
         "title": "4. Cancelamento",
@@ -168,7 +168,7 @@
       },
       "partnerNetwork": {
         "title": "4-A. Dados da Partner Network",
-        "text": "Os pedidos de grupo e cartões de benefícios usam um código e dados mínimos como data, número de pessoas, zona, orçamento e preferências estruturadas. O MesaLink não solicita o nome, telefone ou email do cliente final neste fluxo. Os cartões públicos não contêm identificadores e são excluídos da indexação. Como o parceiro pode conservar informação adicional que permita associar o código ao cliente, estes dados são tratados como pseudonimizados e protegidos ao abrigo do RGPD. Dados profissionais, fiscais e de pagamento dos parceiros podem ser tratados pelo Stripe para verificação, cobrança e transferências."
+        "text": "Os pedidos de grupo usam um código e dados como data, número de pessoas, zona, orçamento, preferências e o contacto necessário à reserva. O nome, telefone e email são protegidos por controlo de acesso e não são apresentados aos restaurantes antes da aceitação; ficam disponíveis apenas ao restaurante que garante a reserva. Os dados fiscais e de pagamento dos restaurantes e parceiros são tratados pelo Stripe para verificação, cobrança, faturação e transferências. As faturas dos parceiros ficam associadas ao histórico do grupo e são consultáveis pelo parceiro, restaurante destinatário e equipa MesaLink autorizada."
       },
       "rights": {
         "title": "5. Direitos",

@@ -23,6 +23,7 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "Utilizador não encontrado." }, { status: 404 });
     }
+    const restaurant = await prisma.restaurant.findFirst({ where: { userId: user.id }, orderBy: { createdAt: "asc" }, select: { id: true } });
 
     const body = await request.json().catch(() => ({}));
     const product: Product = body.product === "GROWTH" ? "GROWTH" : "ESSENTIALS";
@@ -63,10 +64,14 @@ export async function POST(request: Request) {
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
-      ...(subscription.stripeCustomerId ? { customer: subscription.stripeCustomerId } : { customer_email: user.email }),
+      ...(subscription.stripeCustomerId
+        ? { customer: subscription.stripeCustomerId, customer_update: { address: "auto" as const, name: "auto" as const } }
+        : { customer_email: user.email, customer_creation: "always" as const }),
+      billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
-      metadata: { userId: user.id, subscriptionId: subscription.id, product, billing },
+      metadata: { userId: user.id, subscriptionId: subscription.id, product, billing, restaurantId: restaurant?.id || "" },
       subscription_data: { metadata: { userId: user.id, subscriptionId: subscription.id, product, billing } },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success?product=${product}&billing=${billing}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing`,

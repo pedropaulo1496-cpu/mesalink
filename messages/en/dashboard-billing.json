@@ -7,7 +7,7 @@
     "hero": {
       "kicker": "Growth. Visibility. Control.",
       "title": "Choose the right plan to grow your restaurant.",
-      "description": "All plans include Website, Reservations, QR Ordering, CRM, Reviews and integrated operations. Growth unlocks Revenue AI, AI Visibility and partner cards; variable usage is prepaid."
+      "description": "All plans include Website, Reservations, QR Ordering, CRM, Reviews and integrated operations. Growth unlocks Revenue AI, AI Visibility and the Partner Network; variable usage is prepaid."
     },
     "stats": {
       "currentPlan": {
@@ -94,7 +94,7 @@
           "More repeat visits",
           "Revenue AI opportunity inbox",
           "AI Visibility / GEO",
-          "Partner cards and promotions",
+          "Partner Network and verified commissions",
           "Prepaid credits for AI usage"
         ],
         "upgrade": {
