@@ -20,7 +20,8 @@ export async function POST(request: Request) {
     const restaurantId = new URL(request.url).searchParams.get("restaurantId");
     const callSid = payload.CallSid?.trim();
     const from = normalizeE164(payload.From);
-    const dialStatus = String(payload.DialCallStatus || "failed").toLowerCase();
+    const forwardedAfterNoAnswer = new URL(request.url).searchParams.get("forwarded") === "1";
+    const dialStatus = forwardedAfterNoAnswer ? "no-answer" : String(payload.DialCallStatus || "failed").toLowerCase();
     const durationSeconds = Number.parseInt(payload.DialCallDuration || "0", 10) || 0;
     const response = new twilio.twiml.VoiceResponse();
     if (!restaurantId || !callSid) {
@@ -87,7 +88,7 @@ export async function POST(request: Request) {
         contactPhone: from,
         estimatedRevenue: Number(restaurant.averageTicket || 25) * 2,
         lastMessagePreview: "Chamada não atendida — oportunidade criada automaticamente.",
-        aiSummary: `Chamada ${dialStatus}; contactar rapidamente e perceber o motivo do pedido.`,
+        aiSummary: "O telefone público do restaurante não atendeu. Foi enviado um contacto WhatsApp com acesso direto à reserva.",
         handoffReason: charged ? null : "Saldo insuficiente; chamadas pausadas e resposta automática não enviada.",
         lastMessageAt: now,
       },
@@ -101,7 +102,8 @@ export async function POST(request: Request) {
       const whatsappReference = `revenue_whatsapp_missed_call:${callSid}`;
       try {
         await reserveWhatsAppSend({ userId: restaurant.userId!, restaurantId, category: "MISSED_CALL_FOLLOW_UP", reference: whatsappReference });
-        const reply = `Tentou contactar-nos há pouco e não conseguimos atender. Diga-nos como podemos ajudar; se preferir, uma pessoa da equipa responde assim que possível.`;
+        const bookingUrl = `${(process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/+$/, "")}/reserve/${restaurant.slug}`;
+        const reply = `Olá${customer?.name ? ` ${customer.name.split(/\s+/)[0]}` : ""}! Tentou ligar para o ${restaurant.name} e não conseguimos atender. Se quiser reservar, pode fazê-lo aqui: ${bookingUrl}\n\nSe for outro assunto, responda a esta mensagem e encaminhamos para a equipa.`;
         const delivery = await sendRevenueWhatsapp({
           from: restaurant.revenueWhatsappNumber,
           to: from,

@@ -25,7 +25,7 @@ export default async function RevenueIntegrationsPage({ params }: { params: Prom
     <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
       <RestaurantSidebar id={id} restaurantName={restaurant.name} active="revenueAi" />
       <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-        <header><Link href={`/restaurants/${id}/revenue-ai`} className="inline-flex items-center gap-2 text-xs font-bold text-[#806D56]"><ArrowLeft size={14} /> Revenue AI</Link><h1 className="mt-3 max-w-4xl text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">Canais do Revenue AI</h1><p className="mt-2 max-w-3xl text-sm leading-5 text-[#6B6258]">Vê o que está ligado. O número do restaurante é usado para alertas; o cliente recebe mensagens do número MesaLink atribuído.</p></header>
+        <header><Link href={`/restaurants/${id}/revenue-ai`} className="inline-flex items-center gap-2 text-xs font-bold text-[#806D56]"><ArrowLeft size={14} /> Revenue AI</Link><h1 className="mt-3 max-w-4xl text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">Canais do Revenue AI</h1><p className="mt-2 max-w-3xl text-sm leading-5 text-[#6B6258]">O telefone público continua igual. Quando não atende, o MesaLink contacta o cliente pelo WhatsApp atribuído ao restaurante.</p></header>
         <div className="mt-5">
         <RevenueChannelsClient
           restaurantId={id}

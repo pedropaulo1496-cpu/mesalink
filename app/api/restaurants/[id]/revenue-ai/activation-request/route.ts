@@ -23,7 +23,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const wantsCalls = body?.wantsCalls === true;
   const contactPhone = normalizeE164(typeof body?.contactPhone === "string" ? body.contactPhone : "");
   if (!wantsWhatsapp && !wantsCalls) return NextResponse.json({ error: "Escolhe WhatsApp, chamadas não atendidas ou ambos." }, { status: 400 });
-  if (!contactPhone) return NextResponse.json({ error: "Indica um contacto com indicativo, por exemplo +351912345678." }, { status: 400 });
+  if (!contactPhone) return NextResponse.json({ error: "Indica o telefone público do restaurante com indicativo, por exemplo +351213000000." }, { status: 400 });
 
   const channels = [wantsWhatsapp ? "WHATSAPP" : "", wantsCalls ? "VOICE" : ""].filter(Boolean).join("+");
   const details = JSON.stringify({ contactPhone, requestedBy: session.user.email, channels });

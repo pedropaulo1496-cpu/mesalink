@@ -42,7 +42,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (rawForwardNumber && !forwardNumber) return NextResponse.json({ error: "O telefone do restaurante deve incluir o indicativo, por exemplo +351912345678." }, { status: 400 });
   if (rawContentSid && !contentSid) return NextResponse.json({ error: "O identificador do modelo deve começar por HX e conter 34 caracteres." }, { status: 400 });
   if (whatsappEnabled && !whatsappNumber) return NextResponse.json({ error: "Indica o número WhatsApp antes de ativar o canal." }, { status: 400 });
-  if (voiceEnabled && (!voiceNumber || !forwardNumber)) return NextResponse.json({ error: "Indica o número MesaLink e o telefone que deve tocar antes de ativar as chamadas." }, { status: 400 });
+  if (voiceEnabled && (!voiceNumber || !forwardNumber)) return NextResponse.json({ error: "Indica o número de deteção MesaLink e o telefone público do restaurante antes de ativar as chamadas." }, { status: 400 });
 
   const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/+$/, "");
   let providerWarning: string | null = null;

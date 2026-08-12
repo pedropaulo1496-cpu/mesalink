@@ -1,5 +1,33 @@
 import OpenAI from "openai";
 
+export type RevenueWhatsappIntent = "RESERVATION" | "OTHER";
+
+export async function classifyInboundWhatsappIntent(message: string): Promise<RevenueWhatsappIntent> {
+  const normalized = message.toLocaleLowerCase("pt-PT").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const humanTopics = /reclam|fatura|fornecedor|emprego|trabalh|curricul|alerg|intoler|pagamento|reembolso|evento|imprensa|parceria|objeto perdido|perdi|esqueci/;
+  const bookingTopics = /reserv|marcar|mesa|disponibilidade|lugar|jantar|almoco|almoçar|grupo|pessoa|horario|hora|cancelar.*reserv|alterar.*reserv/;
+  if (humanTopics.test(normalized)) return "OTHER";
+  if (bookingTopics.test(normalized)) return "RESERVATION";
+  if (!process.env.OPENAI_API_KEY) return "OTHER";
+
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const response = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: "Classifica a mensagem recebida por um restaurante. Responde apenas RESERVATION se o assunto for reservar, alterar ou cancelar uma reserva. Para qualquer outro assunto responde OTHER." },
+        { role: "user", content: message.slice(0, 1200) },
+      ],
+      max_tokens: 8,
+      temperature: 0,
+    });
+    return response.choices[0]?.message.content?.trim() === "RESERVATION" ? "RESERVATION" : "OTHER";
+  } catch (error) {
+    console.warn("Revenue WhatsApp intent fallback", error);
+    return "OTHER";
+  }
+}
+
 export async function generateInboundWhatsappReply(input: {
   restaurantName: string;
   contactName: string;

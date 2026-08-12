@@ -19,17 +19,16 @@ export async function POST(request: Request) {
     }
 
     const restaurant = await prisma.restaurant.findUnique({ where: { revenueVoiceNumber: to } });
-    const forward = normalizeE164(restaurant?.revenueVoiceForwardNumber);
-    if (!restaurant?.revenueVoiceEnabled || !forward) {
+    const publicRestaurantNumber = normalizeE164(restaurant?.revenueVoiceForwardNumber);
+    if (!restaurant?.revenueVoiceEnabled || !publicRestaurantNumber) {
       response.say({ language: "pt-PT" }, "Este canal encontra-se temporariamente indisponível. Por favor, tente novamente mais tarde.");
       response.hangup();
       return twimlResponse(response.toString());
     }
 
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/+$/, "");
-    const action = `${baseUrl}/api/revenue-ai/webhooks/twilio/voice/status?restaurantId=${encodeURIComponent(restaurant.id)}`;
-    const dial = response.dial({ answerOnBridge: true, timeout: 20, action, method: "POST" });
-    dial.number(forward);
+    const action = `${baseUrl}/api/revenue-ai/webhooks/twilio/voice/status?restaurantId=${encodeURIComponent(restaurant.id)}&forwarded=1`;
+    response.redirect({ method: "POST" }, action);
     return twimlResponse(response.toString());
   } catch (error) {
     if (error instanceof InvalidTwilioWebhookError) return new Response("Invalid signature", { status: 403 });

@@ -334,7 +334,7 @@ export async function updateRevenueActivationRequest(formData: FormData) {
     const wantsVoice = request.channel.includes("VOICE");
     if (!getTwilioCredentials().configured) throw new Error("Configure primeiro TWILIO_ACCOUNT_SID e TWILIO_AUTH_TOKEN no Vercel.");
     if (wantsWhatsapp && (!whatsappNumber || !contentSid)) throw new Error("Para ativar WhatsApp são necessários o número aprovado e o Content SID.");
-    if (wantsVoice && (!voiceNumber || !forwardNumber)) throw new Error("Para ativar chamadas são necessários o número Twilio e o telefone de encaminhamento.");
+    if (wantsVoice && (!voiceNumber || !forwardNumber)) throw new Error("Para ativar chamadas são necessários o número de deteção MesaLink e o telefone público do restaurante.");
 
     const client = getTwilioClient();
     await client.api.accounts(getTwilioCredentials().accountSid).fetch();
