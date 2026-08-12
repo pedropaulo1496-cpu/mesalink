@@ -9,6 +9,7 @@ import { BenefitToggleButton, CreatePartnerBenefitForm, RedeemBenefitCardForm } 
 import SendCardToCustomersButton from "@/components/marketing/SendCardToCustomersButton";
 import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
+import { getMarketingCardTheme, marketingBenefitValue } from "@/lib/marketing-card-themes";
 import { prisma } from "@/lib/prisma";
 
 export default async function RestaurantBenefitsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -90,17 +91,30 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
             </div>
           </section>
 
-          <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Biblioteca</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Os teus cartões</h2><p className="mt-2 text-sm text-[#6B6258]">Modelos privados. Escolhe um cartão e envia-o a um ou vários clientes do sistema.</p>
-            <div className="mt-6 grid gap-4 xl:grid-cols-2">
+          <section className="mt-6 rounded-[30px] border border-[#E1D0B8] bg-white p-5 sm:p-6">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">Biblioteca</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">Os teus cartões</h2></div><p className="max-w-md text-xs leading-5 text-[#6B6258]">Escolhe o cartão e envia-o aos clientes. Cada pessoa recebe um código exclusivo.</p></div>
+            <div className="mt-5 grid gap-4 2xl:grid-cols-2">
               {restaurant.referralBenefits.map((benefit) => {
                 const directCards = restaurant.marketingPromoCards.filter((card) => card.campaignId === benefit.id);
                 const issued = benefit.cards.length + directCards.length;
                 const used = benefit.cards.filter((card) => card.status === "REDEEMED").length + directCards.filter((card) => card.status === "REDEEMED").length;
                 const expired = benefit.validUntil != null && benefit.validUntil <= new Date();
-                return <article key={benefit.id} className="rounded-[28px] border border-[#E1D0B8] bg-[#FFFDFC] p-5"><div className="flex items-start justify-between gap-4"><div><div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${benefit.active && !expired ? "bg-[#EFF9EF] text-[#3F6A4D]" : "bg-[#EFE7DA] text-[#806D56]"}`}>{expired ? "Expirado" : benefit.active ? "Ativo" : "Pausado"}</span><span className="text-xs text-[#8A7863]">{benefitTypeLabel(benefit.benefitType)}</span></div><h3 className="mt-3 text-xl font-semibold">{benefit.title}</h3></div><p className="text-xl font-semibold text-[#704E27]">{benefitValue(benefit.benefitType, Number(benefit.value || 0))}</p></div>{benefit.description && <p className="mt-3 text-sm leading-6 text-[#6B6258]">{benefit.description}</p>}<div className="mt-4 grid grid-cols-3 gap-2"><MiniStat label="Emitidos" value={String(issued)} /><MiniStat label="Utilizados" value={String(used)} /><MiniStat label="Limite" value={benefit.maxRedemptions == null ? "∞" : String(benefit.maxRedemptions)} /></div>{benefit.active && !expired && <div className="mt-4 rounded-[18px] border border-[#E5D6C0] bg-[#FFF9F0] p-3"><p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-[#8A6130]">Oferecer este cartão</p><SendCardToCustomersButton benefitId={benefit.id} customers={customerOptions} /></div>}<div className="mt-4 flex items-center justify-between gap-3"><p className="text-xs text-[#75695C]">{benefit.validUntil ? `Até ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium" }).format(benefit.validUntil)}` : "Sem data de fim"}</p><BenefitToggleButton benefitId={benefit.id} active={benefit.active} /></div></article>;
+                const theme = getMarketingCardTheme(benefit.template);
+                const previewValue = marketingBenefitValue(benefit.benefitType === "PERK" ? "GIFT" : benefit.benefitType, benefit.value == null ? null : Number(benefit.value));
+                return <article key={benefit.id} className="grid gap-4 rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-3 sm:grid-cols-[minmax(0,310px)_minmax(190px,1fr)] sm:items-center">
+                  <div className="relative aspect-[1.58/1] min-h-[176px] overflow-hidden rounded-[21px] border border-white/20 p-4 shadow-[0_16px_36px_rgba(55,37,20,0.18)]" style={{ background: theme.background, color: theme.foreground }}>
+                    <span className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full border border-white/15" />
+                    <div className="relative flex h-full flex-col"><div className="flex items-center justify-between gap-3"><div className="min-w-0"><p className="truncate text-[10px] font-bold">{restaurant.name}</p><p className="mt-0.5 text-[7px] font-black uppercase tracking-[0.16em]" style={{ color: theme.muted }}>Cartão digital</p></div><Gift size={15} style={{ color: theme.accent }} /></div><div className="my-auto py-2"><p className="line-clamp-2 text-xl font-bold leading-[0.98] tracking-[-0.04em]">{benefit.title}</p>{benefit.description && <p className="mt-2 line-clamp-2 text-[9px] leading-4" style={{ color: theme.muted }}>{benefit.description}</p>}</div><div className="flex items-end justify-between gap-3 border-t border-white/15 pt-2"><p className="font-mono text-[8px] font-bold tracking-[0.08em]">MLC-••••••••••</p><p className="text-xl font-black" style={{ color: theme.accent }}>{previewValue}</p></div></div>
+                  </div>
+                  <div className="min-w-0 px-1 pb-1 sm:py-1">
+                    <div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.1em] ${benefit.active && !expired ? "bg-[#EAF6EA] text-[#3F6A4D]" : "bg-[#EFE7DA] text-[#806D56]"}`}>{expired ? "Expirado" : benefit.active ? "Ativo" : "Pausado"}</span><span className="text-[10px] text-[#786A5B]">{benefit.validUntil ? `até ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "short" }).format(benefit.validUntil)}` : "sem validade"}</span></div>
+                    <p className="mt-3 text-xs leading-5 text-[#6B6258]"><strong className="text-[#17120D]">{issued}</strong> enviado{issued === 1 ? "" : "s"} · <strong className="text-[#17120D]">{used}</strong> utilizado{used === 1 ? "" : "s"}</p>
+                    {benefit.active && !expired ? <div className="mt-3"><SendCardToCustomersButton benefitId={benefit.id} customers={customerOptions} /></div> : <p className="mt-3 rounded-xl bg-[#F1E9DE] px-3 py-2 text-center text-[10px] font-bold text-[#786A5B]">Ativa o cartão para o enviar.</p>}
+                    <div className="mt-3 flex items-center justify-end"><BenefitToggleButton benefitId={benefit.id} active={benefit.active} /></div>
+                  </div>
+                </article>;
               })}
-              {restaurant.referralBenefits.length === 0 && <div className="rounded-[28px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-10 text-center xl:col-span-2"><Gift className="mx-auto text-[#9B6F3B]" /><p className="mt-4 font-semibold">Ainda não criaste cartões.</p><p className="mt-2 text-sm text-[#6B6258]">Cria o primeiro modelo e escolhe os clientes que o vão receber.</p></div>}
+              {restaurant.referralBenefits.length === 0 && <div className="rounded-[24px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-8 text-center 2xl:col-span-2"><Gift className="mx-auto text-[#9B6F3B]" /><p className="mt-3 font-semibold">Ainda não criaste cartões.</p><p className="mt-1 text-xs text-[#6B6258]">Cria o primeiro modelo e escolhe os clientes que o vão receber.</p></div>}
             </div>
           </section>
 
@@ -117,6 +131,3 @@ function MarketingLoyaltyTabs({ id }: { id: string }) {
 }
 
 function Kpi({ icon, label, value }: { icon: ReactNode; label: string; value: string }) { return <div className="rounded-[26px] border border-[#E1D0B8] bg-white p-4 sm:p-5"><div className="text-[#9B6F3B]">{icon}</div><p className="mt-4 text-2xl font-semibold tracking-[-0.04em]">{value}</p><p className="mt-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#8B7D6D]">{label}</p></div>; }
-function MiniStat({ label, value }: { label: string; value: string }) { return <div className="rounded-[16px] bg-[#FFF4E2] p-3 text-center"><p className="text-lg font-semibold">{value}</p><p className="text-[9px] font-black uppercase tracking-[0.12em] text-[#8A7863]">{label}</p></div>; }
-function benefitTypeLabel(value: string) { if (value === "PERCENT") return "Desconto percentual"; if (value === "FIXED") return "Desconto em euros"; return "Oferta / vantagem"; }
-function benefitValue(type: string, value: number) { if (type === "PERCENT") return `${new Intl.NumberFormat("pt-PT").format(value)}%`; if (type === "FIXED") return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value); return "Oferta"; }
