@@ -6,6 +6,7 @@ import { Check, ExternalLink, ImageIcon, MapPin, Search, ShieldCheck, UtensilsCr
 export type PartnerRestaurant = {
   id: string;
   name: string;
+  isDemo: boolean;
   cuisine: string;
   address: string;
   description: string;
@@ -24,10 +25,12 @@ export default function NewReferralGroupForm({
   restaurants,
   defaultCommissionType,
   defaultCommissionAmount,
+  publishingEnabled = true,
 }: {
   restaurants: PartnerRestaurant[];
   defaultCommissionType: string;
   defaultCommissionAmount: number;
+  publishingEnabled?: boolean;
 }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [targetMode, setTargetMode] = useState<"ALL" | "FILTERED" | "SELECTED">("SELECTED");
@@ -45,6 +48,8 @@ export default function NewReferralGroupForm({
     () => [...new Set(restaurants.map((restaurant) => restaurant.cuisine).filter(Boolean))].sort(),
     [restaurants],
   );
+  const demoCount = restaurants.filter((restaurant) => restaurant.isDemo).length;
+  const realCount = restaurants.length - demoCount;
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return restaurants.filter((restaurant) => {
@@ -68,6 +73,11 @@ export default function NewReferralGroupForm({
     event.preventDefault();
     setMessage("");
     setSuccess(false);
+
+    if (!publishingEnabled) {
+      setMessage("Adiciona e valida primeiro o IBAN para publicares este grupo.");
+      return;
+    }
 
     if (targetMode === "SELECTED" && selected.length === 0) {
       setMessage("Escolhe pelo menos um restaurante.");
@@ -124,6 +134,7 @@ export default function NewReferralGroupForm({
 
   return (
     <form onSubmit={submit} className="mt-6 grid gap-6 xl:grid-cols-[1fr_370px]">
+      {!publishingEnabled && <div className="rounded-[24px] border border-[#D8C29E] bg-[#FFF7E8] px-5 py-4 text-sm font-semibold text-[#795D38] xl:col-span-2">Podes explorar todos os restaurantes reais e DEMO. Para publicares um grupo, falta apenas validar o IBAN no Stripe.</div>}
       <div className="space-y-5">
         <div className="rounded-[30px] border border-[#E1D0B8] bg-white p-5 sm:p-7">
           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.24em] text-[#9B6F3B]"><ShieldCheck size={16} /> Contacto protegido</div>
@@ -150,7 +161,7 @@ export default function NewReferralGroupForm({
         </div>
 
         <div className="rounded-[30px] border border-[#E1D0B8] bg-white p-5 sm:p-7">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Restaurantes</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Envia para todos, por filtro ou manualmente</h2></div><span className="rounded-full bg-[#F1E6D5] px-3 py-1 text-xs font-bold text-[#795D38]">{restaurants.length} restaurantes MesaLink</span></div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Restaurantes</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Envia para todos, por filtro ou manualmente</h2></div><span className="rounded-full bg-[#F1E6D5] px-3 py-1 text-xs font-bold text-[#795D38]">{realCount} reais{demoCount > 0 ? ` · ${demoCount} DEMO` : ""}</span></div>
           <div className="mt-5 grid gap-2 sm:grid-cols-3">{([{"value":"ALL","label":"Todos","note":`${restaurants.length} restaurantes`},{"value":"FILTERED","label":"Resultados do filtro","note":`${filtered.length} restaurantes`},{"value":"SELECTED","label":"Escolher manualmente","note":`${selected.length} selecionados`}] as const).map((option) => <button key={option.value} type="button" onClick={() => setTargetMode(option.value)} className={`rounded-[20px] border p-4 text-left ${targetMode === option.value ? "border-[#8A6130] bg-[#FFF3DF] ring-2 ring-[#C8A56A]/20" : "border-[#E1D0B8] bg-white"}`}><span className="block text-sm font-black">{option.label}</span><span className="mt-1 block text-xs text-[#74685B]">{option.note}</span></button>)}</div>
           <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_220px]">
             <label className="relative"><Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8C7E6E]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome, cozinha ou zona" className="input-premium h-12 pl-11" /></label>
@@ -166,7 +177,7 @@ export default function NewReferralGroupForm({
                 </div>
                 <div className="p-4">
                   <div>
-                    <p className="text-lg font-semibold tracking-[-0.025em]">{restaurant.name}</p>
+                    <div className="flex flex-wrap items-center gap-2"><p className="text-lg font-semibold tracking-[-0.025em]">{restaurant.name}</p>{restaurant.isDemo && <span className="rounded-full border border-[#D7B267] bg-[#FFF2D5] px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-[#805D2B]">DEMO</span>}</div>
                     <p className="mt-1 text-xs font-bold text-[#80613D]">{restaurant.cuisine || "Restaurante"}</p>
                     <p className="mt-2 flex items-start gap-1.5 text-xs leading-5 text-[#6B6258]"><MapPin size={14} className="mt-0.5 shrink-0 text-[#9B6F3B]" /><span><span className="font-black text-[#5E4326]">Localização:</span> {restaurant.address || "Portugal"}</span></p>
                   </div>
@@ -202,7 +213,7 @@ export default function NewReferralGroupForm({
           <p className="mt-4 text-[11px] leading-5 text-white/40">Um acordo pré-definido com o restaurante substitui esta proposta para esse restaurante.</p>
         </div>
         {message && <div className={`rounded-[22px] border p-4 text-sm font-semibold ${success ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{message}</div>}
-        <button disabled={loading || (targetMode === "SELECTED" && selected.length === 0) || (targetMode === "FILTERED" && filtered.length === 0)} className="h-14 w-full rounded-full bg-[#C8A56A] px-6 text-sm font-black text-[#17120D] shadow-[0_18px_45px_rgba(156,112,51,0.22)] disabled:cursor-not-allowed disabled:opacity-45">{loading ? "A publicar…" : `Publicar para ${targetMode === "ALL" ? restaurants.length : targetMode === "FILTERED" ? filtered.length : selected.length} restaurante(s)`}</button>
+        <button disabled={!publishingEnabled || loading || (targetMode === "SELECTED" && selected.length === 0) || (targetMode === "FILTERED" && filtered.length === 0)} className="h-14 w-full rounded-full bg-[#C8A56A] px-6 text-sm font-black text-[#17120D] shadow-[0_18px_45px_rgba(156,112,51,0.22)] disabled:cursor-not-allowed disabled:opacity-45">{!publishingEnabled ? "Valida o IBAN para publicar" : loading ? "A publicar…" : `Publicar para ${targetMode === "ALL" ? restaurants.length : targetMode === "FILTERED" ? filtered.length : selected.length} restaurante(s)`}</button>
       </aside>
     </form>
   );

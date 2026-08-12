@@ -63,6 +63,7 @@ export default async function PartnerAppPage({
     select: {
       id: true,
       name: true,
+      slug: true,
       address: true,
       websiteCuisine: true,
       websiteDescription: true,
@@ -113,6 +114,7 @@ export default async function PartnerAppPage({
     return {
       id: restaurant.id,
       name: restaurant.name,
+      isDemo: restaurant.slug.includes("demo"),
       cuisine: profile.cuisine,
       address: restaurant.address || "",
       description: profile.description,
@@ -161,6 +163,8 @@ export default async function PartnerAppPage({
         {partner.stripeOnboardingComplete && connect === "complete" && (
           <div className="mb-6 rounded-[22px] border border-[#A8D3A6] bg-[#EFF9EF] px-5 py-4 text-sm font-semibold text-[#3F6A4D]">Pagamentos verificados. A conta está pronta para receber comissões.</div>
         )}
+        {connect === "platform-not-enabled" && <div className="mb-6 rounded-[22px] border border-[#E8C8B9] bg-[#FFF0EA] px-5 py-4 text-sm font-semibold text-[#934A35]">O Stripe Connect do MesaLink está a terminar a ativação. O teu perfil e os restaurantes continuam disponíveis; volta a tentar quando a plataforma confirmar a ativação.</div>}
+        {connect === "unavailable" && <div className="mb-6 rounded-[22px] border border-[#E8C8B9] bg-[#FFF0EA] px-5 py-4 text-sm font-semibold text-[#934A35]">Não foi possível abrir agora a verificação bancária Stripe. Nenhum dado foi perdido; tenta novamente dentro de alguns minutos.</div>}
 
         <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div><p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">Partner app</p><h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">Encontra o restaurante certo para cada grupo.</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">Sem partilhar a identidade do cliente. O restaurante vê apenas o que precisa para aceitar e preparar o serviço.</p></div>
@@ -174,9 +178,7 @@ export default async function PartnerAppPage({
           <Kpi icon={<Clock3 size={18} />} label="A aguardar" value={String(pendingGroups.length)} />
         </section>
 
-        {partner.stripeOnboardingComplete
-          ? <NewReferralGroupForm restaurants={restaurantOptions} defaultCommissionType={partner.defaultCommissionType} defaultCommissionAmount={Number(partner.defaultCommissionAmount)} />
-          : <section className="mt-6 rounded-[32px] border border-[#D8C29E] bg-[#FFF7E8] p-7 text-center"><ShieldCheck className="mx-auto text-[#9B6F3B]" /><h2 className="mt-3 text-2xl font-semibold">Adiciona o IBAN antes de publicar grupos.</h2><p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[#6B6258]">A verificação protege os restaurantes e garante que conseguimos enviar-te os 85% das comissões no ciclo semanal.</p><form action="/api/partners/connect" method="POST" className="mt-5"><button className="h-12 rounded-full bg-[#17120D] px-6 text-sm font-black text-white">Adicionar IBAN no Stripe</button></form></section>}
+        <NewReferralGroupForm restaurants={restaurantOptions} defaultCommissionType={partner.defaultCommissionType} defaultCommissionAmount={Number(partner.defaultCommissionAmount)} publishingEnabled={partner.stripeOnboardingComplete} />
 
         <section className="mt-7 rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8">
           <div className="flex items-end justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Histórico</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Grupos publicados</h2></div></div>

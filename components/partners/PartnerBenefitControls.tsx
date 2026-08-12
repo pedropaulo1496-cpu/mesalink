@@ -21,7 +21,7 @@ export function CreatePartnerBenefitForm({ restaurantId }: { restaurantId: strin
     const result = await response.json();
     setLoading(false);
     if (!response.ok) return setMessage(result.error || "Não foi possível criar o benefício.");
-    setMessage("Benefício publicado na app dos parceiros.");
+    setMessage("Oferta publicada. Já podes emitir e partilhar cartões digitais.");
     setTimeout(() => window.location.reload(), 900);
   }
 

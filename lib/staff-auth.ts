@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { getServerSession } from "next-auth";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -55,7 +55,7 @@ export async function requireStaff() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
   const staff = await getStaffIdentity();
-  if (!staff) notFound();
+  if (!staff) redirect("/backoffice-access");
   return staff;
 }
 
