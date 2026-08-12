@@ -24,3 +24,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ be
   if (!result.count) return NextResponse.json({ error: "Benefício não encontrado." }, { status: 404 });
   return NextResponse.json({ success: true });
 }
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ benefitId: string }> }) {
+  const { benefitId } = await params;
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
+  if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  if (!hasGrowthAccess(user.subscription)) return NextResponse.json({ error: "Os cartões e promoções estão disponíveis no plano Growth." }, { status: 403 });
+
+  const benefit = await prisma.referralBenefit.findFirst({ where: { id: benefitId, restaurant: { userId: user.id } }, select: { id: true } });
+  if (!benefit) return NextResponse.json({ error: "Cartão não encontrado." }, { status: 404 });
+
+  await prisma.referralBenefit.delete({ where: { id: benefit.id } });
+  return NextResponse.json({ success: true });
+}

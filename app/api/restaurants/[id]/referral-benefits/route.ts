@@ -17,6 +17,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const description = cleanOptional(body?.description, 240);
   const terms = cleanOptional(body?.terms, 400);
   const benefitType = benefitTypes.has(body?.benefitType) ? body.benefitType : null;
+  const benefitLabel = cleanOptional(body?.benefitLabel, 40);
   const value = body?.value === "" || body?.value == null ? null : Number(body.value);
   const minSpend = body?.minSpend === "" || body?.minSpend == null ? null : Number(body.minSpend);
   const maxRedemptions = body?.maxRedemptions === "" || body?.maxRedemptions == null ? null : Number(body.maxRedemptions);
@@ -33,6 +34,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (
     title.length < 3 ||
     !benefitType ||
+    (benefitType === "PERK" && (!benefitLabel || benefitLabel.length < 2)) ||
     invalidValue ||
     (minSpend != null && (!Number.isFinite(minSpend) || minSpend < 0 || minSpend > 100000)) ||
     (maxRedemptions != null && (!Number.isInteger(maxRedemptions) || maxRedemptions < 1 || maxRedemptions > 100000)) ||
@@ -55,6 +57,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       description,
       terms,
       benefitType,
+      benefitLabel: benefitType === "PERK" ? benefitLabel : null,
       value,
       minSpend,
       maxRedemptions,

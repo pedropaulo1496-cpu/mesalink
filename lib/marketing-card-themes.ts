@@ -35,14 +35,15 @@ export function getMarketingCardTheme(value: string) {
   return MARKETING_CARD_THEMES[value as MarketingCardTheme] || MARKETING_CARD_THEMES.GOLD;
 }
 
-export function marketingBenefitValue(type: string, value: number | null) {
+export function marketingBenefitValue(type: string, value: number | null, customLabel?: string | null) {
   if (type === "PERCENT") return `${new Intl.NumberFormat("pt-PT").format(value || 0)}% OFF`;
   if (type === "FIXED") return `${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value || 0)} OFF`;
-  return "OFERTA";
+  return customLabel?.trim() || "OFERTA";
 }
 
-export function marketingBenefitSentence(type: string, value: number | null) {
+export function marketingBenefitSentence(type: string, value: number | null, customLabel?: string | null) {
   if (type === "PERCENT") return `Preparámos para si ${new Intl.NumberFormat("pt-PT").format(value || 0)}% de desconto na próxima visita.`;
   if (type === "FIXED") return `Preparámos para si ${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value || 0)} de desconto na próxima visita.`;
+  if (customLabel?.trim()) return `Na próxima visita, oferecemos-lhe ${customLabel.trim().toLowerCase()}.`;
   return "Preparámos para si a oferta especial indicada neste cartão.";
 }

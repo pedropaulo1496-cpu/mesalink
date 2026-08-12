@@ -60,7 +60,7 @@ export default async function MarketingOfferCardPage({ params, searchParams }: {
 
             <div className="flex items-end justify-between gap-5 border-t border-white/15 pt-4">
               <div><p className="text-[8px] font-black uppercase tracking-[0.18em]" style={{ color: theme.muted }}>Número do cartão</p><p className="mt-1 font-mono text-sm font-bold tracking-[0.12em] sm:text-base">{card.publicCode}</p></div>
-              <p className="text-3xl font-black tracking-[-0.04em]" style={{ color: theme.accent }}>{marketingBenefitValue(card.benefitType, card.value == null ? null : Number(card.value))}</p>
+              <p className="max-w-[48%] text-right text-2xl font-black leading-none tracking-[-0.04em] sm:text-3xl" style={{ color: theme.accent }}>{marketingBenefitValue(card.benefitType, card.value == null ? null : Number(card.value), card.benefitLabel)}</p>
             </div>
           </div>
         </section>

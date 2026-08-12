@@ -271,7 +271,7 @@ function ReservationRow({
           <p className="font-semibold text-[#16120E]">{t("row.emailLabel")}</p>
           <p className="mt-1 break-all">{reservation.email || t("row.noEmail")}</p>
         </div>
-        {reservation.marketingPromoCard && <div className="rounded-xl border border-[#E2C58D] bg-[#FFF6E5] p-3 sm:col-span-2"><p className="font-bold text-[#6F4D26]">{t("row.offerApplied")}: {reservation.marketingPromoCard.title} · {marketingBenefitValue(reservation.marketingPromoCard.benefitType, reservation.marketingPromoCard.value == null ? null : Number(reservation.marketingPromoCard.value))}</p><p className="mt-1 font-mono text-[10px]">{reservation.marketingPromoCard.publicCode} · {t("row.offerSingleUse")}</p></div>}
+        {reservation.marketingPromoCard && <div className="rounded-xl border border-[#E2C58D] bg-[#FFF6E5] p-3 sm:col-span-2"><p className="font-bold text-[#6F4D26]">{t("row.offerApplied")}: {reservation.marketingPromoCard.title} · {marketingBenefitValue(reservation.marketingPromoCard.benefitType, reservation.marketingPromoCard.value == null ? null : Number(reservation.marketingPromoCard.value), reservation.marketingPromoCard.benefitLabel)}</p><p className="mt-1 font-mono text-[10px]">{reservation.marketingPromoCard.publicCode} · {t("row.offerSingleUse")}</p></div>}
       </div>
     </details>
   );

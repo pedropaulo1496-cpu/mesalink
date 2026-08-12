@@ -410,7 +410,7 @@ export default async function DayPage({
   {reservation.notes ? ` · ${reservation.notes}` : ""}
 </p>
 
-{reservation.marketingPromoCard && <div className="mt-2 rounded-2xl border border-[#E2C58D] bg-[#FFF6E5] px-3 py-2 text-xs"><p className="font-bold text-[#6F4D26]">{t("row.offerApplied")}: {reservation.marketingPromoCard.title} · {marketingBenefitValue(reservation.marketingPromoCard.benefitType, reservation.marketingPromoCard.value == null ? null : Number(reservation.marketingPromoCard.value))}</p><p className="mt-1 font-mono text-[10px] text-[#806D56]">{reservation.marketingPromoCard.publicCode} · {t("row.offerSingleUse")}</p></div>}
+{reservation.marketingPromoCard && <div className="mt-2 rounded-2xl border border-[#E2C58D] bg-[#FFF6E5] px-3 py-2 text-xs"><p className="font-bold text-[#6F4D26]">{t("row.offerApplied")}: {reservation.marketingPromoCard.title} · {marketingBenefitValue(reservation.marketingPromoCard.benefitType, reservation.marketingPromoCard.value == null ? null : Number(reservation.marketingPromoCard.value), reservation.marketingPromoCard.benefitLabel)}</p><p className="mt-1 font-mono text-[10px] text-[#806D56]">{reservation.marketingPromoCard.publicCode} · {t("row.offerSingleUse")}</p></div>}
 
 <details className="group mt-2">
   <summary className="cursor-pointer list-none text-xs font-semibold text-[#9B6F3B] transition hover:text-[#16120E]">

@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Check, ChevronDown, Copy, Gift, Loader2, Share2, Sparkles } from "lucide-react";
+import { Check, ChevronDown, Copy, Gift, Loader2, Share2, Sparkles, Trash2 } from "lucide-react";
 import { MARKETING_CARD_THEMES, marketingBenefitValue, type MarketingCardTheme } from "@/lib/marketing-card-themes";
 
 type BenefitPreset = {
@@ -10,6 +10,7 @@ type BenefitPreset = {
   description: string;
   benefitType: "PERCENT" | "FIXED" | "PERK";
   value: string;
+  benefitLabel: string;
   template: MarketingCardTheme;
   terms: string;
 };
@@ -21,6 +22,7 @@ const benefitPresets: BenefitPreset[] = [
     description: "Gostávamos de voltar a recebê-lo. Aproveite 15% de desconto na sua próxima visita.",
     benefitType: "PERCENT",
     value: "15",
+    benefitLabel: "",
     template: "GOLD",
     terms: "Não acumulável com outras promoções.",
   },
@@ -30,6 +32,7 @@ const benefitPresets: BenefitPreset[] = [
     description: "Temos 10€ de desconto reservados para tornar a sua próxima experiência ainda melhor.",
     benefitType: "FIXED",
     value: "10",
+    benefitLabel: "",
     template: "FOREST",
     terms: "Não acumulável com outras promoções.",
   },
@@ -39,6 +42,7 @@ const benefitPresets: BenefitPreset[] = [
     description: "Na sua próxima reserva, escolha uma sobremesa da casa e deixe o resto connosco.",
     benefitType: "PERK",
     value: "",
+    benefitLabel: "Sobremesa grátis",
     template: "TERRACOTTA",
     terms: "Uma sobremesa por mesa. Não acumulável com outras promoções.",
   },
@@ -59,6 +63,7 @@ export function CreatePartnerBenefitForm({ restaurantId, restaurantName }: { res
   const [description, setDescription] = useState(benefitPresets[0].description);
   const [benefitType, setBenefitType] = useState<BenefitPreset["benefitType"]>("PERCENT");
   const [value, setValue] = useState("15");
+  const [benefitLabel, setBenefitLabel] = useState("");
   const [terms, setTerms] = useState(benefitPresets[0].terms);
   const [validUntil] = useState(() => futureDateTimeLocal(30));
   const [template, setTemplate] = useState<MarketingCardTheme>("GOLD");
@@ -68,6 +73,7 @@ export function CreatePartnerBenefitForm({ restaurantId, restaurantName }: { res
     setDescription(preset.description);
     setBenefitType(preset.benefitType);
     setValue(preset.value);
+    setBenefitLabel(preset.benefitLabel);
     setTemplate(preset.template);
     setTerms(preset.terms);
   }
@@ -93,6 +99,7 @@ export function CreatePartnerBenefitForm({ restaurantId, restaurantName }: { res
   const previewBenefit = marketingBenefitValue(
     benefitType === "PERK" ? "GIFT" : benefitType,
     benefitType === "PERK" ? null : Number(value || 0),
+    benefitLabel,
   );
 
   return (
@@ -105,9 +112,9 @@ export function CreatePartnerBenefitForm({ restaurantId, restaurantName }: { res
         <div className="space-y-3">
           <label className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#806D56]">Título<input name="title" value={title} onChange={(event) => setTitle(event.target.value)} required minLength={3} maxLength={80} className="input-premium mt-1.5 h-11" /></label>
           <label className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#806D56]">Mensagem<textarea name="description" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={240} rows={2} className="input-premium mt-1.5 min-h-20 resize-none py-3 text-sm" /></label>
-          <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-2">
-            <label className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#806D56]">Oferta<select name="benefitType" value={benefitType} onChange={(event) => { const next = event.target.value as BenefitPreset["benefitType"]; setBenefitType(next); if (next === "PERK") setValue(""); else if (!value) setValue(next === "PERCENT" ? "15" : "10"); }} className="input-premium mt-1.5 h-11"><option value="PERCENT">Desconto percentual</option><option value="FIXED">Desconto em euros</option><option value="PERK">Oferta / vantagem</option></select></label>
-            <label className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#806D56]">Valor<input name="value" value={value} onChange={(event) => setValue(event.target.value)} type="number" min="0" max={benefitType === "PERCENT" ? 100 : 10000} step="0.01" required={benefitType !== "PERK"} disabled={benefitType === "PERK"} className="input-premium mt-1.5 h-11 disabled:bg-[#EEE6DB]" /></label>
+          <div className={`grid gap-2 ${benefitType === "PERK" ? "sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]" : "grid-cols-[minmax(0,1fr)_110px]"}`}>
+            <label className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#806D56]">Oferta<select name="benefitType" value={benefitType} onChange={(event) => { const next = event.target.value as BenefitPreset["benefitType"]; setBenefitType(next); if (next === "PERK") { setValue(""); if (!benefitLabel) setBenefitLabel("Oferta especial"); } else if (!value) setValue(next === "PERCENT" ? "15" : "10"); }} className="input-premium mt-1.5 h-11"><option value="PERCENT">Desconto percentual</option><option value="FIXED">Desconto em euros</option><option value="PERK">Oferta / vantagem</option></select></label>
+            {benefitType === "PERK" ? <label className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#806D56]">Qual é a oferta?<input name="benefitLabel" value={benefitLabel} onChange={(event) => setBenefitLabel(event.target.value)} required minLength={2} maxLength={40} placeholder="Ex.: Sobremesa grátis" className="input-premium mt-1.5 h-11" /></label> : <label className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#806D56]">Valor<input name="value" value={value} onChange={(event) => setValue(event.target.value)} type="number" min="0" max={benefitType === "PERCENT" ? 100 : 10000} step="0.01" required className="input-premium mt-1.5 h-11" /></label>}
           </div>
 
           <details className="group rounded-[18px] border border-[#E5D6C0] bg-[#FFF9F0]">
@@ -132,7 +139,7 @@ export function CreatePartnerBenefitForm({ restaurantId, restaurantName }: { res
             <span className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full border border-white/15" />
             <div className="relative flex h-full flex-col"><div className="flex items-center justify-between gap-3"><div className="min-w-0"><p className="truncate text-[10px] font-bold">{restaurantName}</p><p className="mt-0.5 text-[7px] font-black uppercase tracking-[0.16em]" style={{ color: theme.muted }}>Cartão digital</p></div><Sparkles size={15} style={{ color: theme.accent }} /></div><div className="my-auto py-2"><p className="line-clamp-2 text-lg font-bold leading-[0.98] tracking-[-0.035em]">{title || "Título da oferta"}</p><p className="mt-2 line-clamp-2 text-[9px] leading-4" style={{ color: theme.muted }}>{description || "A mensagem aparece aqui."}</p></div><div className="flex items-end justify-between gap-3 border-t border-white/15 pt-2"><p className="font-mono text-[8px] font-bold tracking-[0.08em]">MLC-••••••••••</p><p className="text-xl font-black" style={{ color: theme.accent }}>{previewBenefit}</p></div></div>
           </div>
-          <p className="mt-2 text-[10px] leading-4 text-[#7B6E60]">Cada cliente recebe um código exclusivo. O desconto aparece automaticamente na reserva.</p>
+          <p className="mt-2 text-[10px] leading-4 text-[#7B6E60]">Cada cliente recebe um código exclusivo. O benefício aparece automaticamente na reserva.</p>
           <div className="mt-3 flex flex-wrap gap-2">{(Object.keys(MARKETING_CARD_THEMES) as MarketingCardTheme[]).map((key) => { const option = MARKETING_CARD_THEMES[key]; return <button key={key} type="button" title={option.name} aria-label={`Usar design ${option.name}`} onClick={() => setTemplate(key)} className={`h-8 w-8 rounded-full border-2 transition ${template === key ? "border-[#17120D] ring-2 ring-[#C8A56A]/30" : "border-white"}`} style={{ background: option.background }} />; })}</div>
           <input type="hidden" name="template" value={template} />
         </div>
@@ -156,6 +163,24 @@ export function BenefitToggleButton({ benefitId, active }: { benefitId: string; 
   }
 
   return <button onClick={toggle} disabled={loading} className="h-10 rounded-full border border-[#D5C19F] bg-white px-4 text-xs font-bold disabled:opacity-50">{loading ? "A guardar…" : active ? "Pausar" : "Reativar"}</button>;
+}
+
+export function DeleteBenefitButton({ benefitId }: { benefitId: string }) {
+  const [loading, setLoading] = useState(false);
+
+  async function remove() {
+    if (!window.confirm("Eliminar este modelo de cartão? Os cartões já enviados continuam guardados no histórico.")) return;
+    setLoading(true);
+    const response = await fetch(`/api/referral-benefits/${benefitId}`, { method: "DELETE" });
+    if (response.ok) window.location.reload();
+    else {
+      const result = await response.json().catch(() => null);
+      window.alert(result?.error || "Não foi possível eliminar o cartão.");
+      setLoading(false);
+    }
+  }
+
+  return <button type="button" onClick={remove} disabled={loading} className="inline-flex h-10 items-center gap-1.5 rounded-full px-3 text-[10px] font-bold text-[#A04735] transition hover:bg-[#FFF0EC] disabled:opacity-50"><Trash2 size={13} /> {loading ? "A eliminar…" : "Eliminar"}</button>;
 }
 
 export function IssueBenefitCardButton({ benefitId }: { benefitId: string }) {

@@ -412,7 +412,7 @@ async function createPublicReservation(formData: FormData) {
                   })}</p>
                   <p><strong>${emailT("labelGuests")}</strong> ${guests}</p>
                   <p><strong>${emailT("labelStatus")}</strong> ${statusText}</p>
-                  ${offerCard ? `<p><strong>${emailT("labelOffer")}</strong> ${offerCard.title} · ${marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value))}</p>` : ""}
+                  ${offerCard ? `<p><strong>${emailT("labelOffer")}</strong> ${offerCard.title} · ${marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value), offerCard.benefitLabel)}</p>` : ""}
                 </div>
                 <p style="margin:0 0 12px;font-size:13px;color:#6B6258;">${emailT("manageIntro")}</p>
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
@@ -439,7 +439,7 @@ async function createPublicReservation(formData: FormData) {
       customerName,
     )}&guests=${finalReservation.guests}&date=${encodeURIComponent(
       date.toISOString(),
-    )}&status=${finalReservation.status}${alreadyBooked ? "&already=1" : ""}${offerCard ? `&offer=${encodeURIComponent(`${offerCard.title} · ${marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value))}`)}` : ""}`,
+    )}&status=${finalReservation.status}${alreadyBooked ? "&already=1" : ""}${offerCard ? `&offer=${encodeURIComponent(`${offerCard.title} · ${marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value), offerCard.benefitLabel)}`)}` : ""}`,
   );
 }
 
@@ -486,7 +486,7 @@ export default async function PublicReservePage({
     code: offerCard.publicCode,
     title: offerCard.title,
     description: offerCard.description,
-    benefit: marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value)),
+    benefit: marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value), offerCard.benefitLabel),
     customerName: offerCard.customer?.name || null,
     customerEmail: offerCard.customer?.email || null,
     customerPhone: offerCard.customer?.phone || null,

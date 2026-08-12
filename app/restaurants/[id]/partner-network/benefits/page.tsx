@@ -5,7 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { BadgePercent, CheckCircle2, Gift, ScanLine, ShieldCheck, TicketCheck, UserRound } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
-import { BenefitToggleButton, CreatePartnerBenefitForm, RedeemBenefitCardForm } from "@/components/partners/PartnerBenefitControls";
+import { BenefitToggleButton, CreatePartnerBenefitForm, DeleteBenefitButton, RedeemBenefitCardForm } from "@/components/partners/PartnerBenefitControls";
 import SendCardToCustomersButton from "@/components/marketing/SendCardToCustomersButton";
 import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
@@ -100,7 +100,7 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
                 const used = benefit.cards.filter((card) => card.status === "REDEEMED").length + directCards.filter((card) => card.status === "REDEEMED").length;
                 const expired = benefit.validUntil != null && benefit.validUntil <= new Date();
                 const theme = getMarketingCardTheme(benefit.template);
-                const previewValue = marketingBenefitValue(benefit.benefitType === "PERK" ? "GIFT" : benefit.benefitType, benefit.value == null ? null : Number(benefit.value));
+                const previewValue = marketingBenefitValue(benefit.benefitType === "PERK" ? "GIFT" : benefit.benefitType, benefit.value == null ? null : Number(benefit.value), benefit.benefitLabel);
                 return <article key={benefit.id} className="grid gap-4 rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-3 sm:grid-cols-[minmax(0,310px)_minmax(190px,1fr)] sm:items-center">
                   <div className="relative aspect-[1.58/1] min-h-[176px] overflow-hidden rounded-[21px] border border-white/20 p-4 shadow-[0_16px_36px_rgba(55,37,20,0.18)]" style={{ background: theme.background, color: theme.foreground }}>
                     <span className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full border border-white/15" />
@@ -110,7 +110,7 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
                     <div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.1em] ${benefit.active && !expired ? "bg-[#EAF6EA] text-[#3F6A4D]" : "bg-[#EFE7DA] text-[#806D56]"}`}>{expired ? "Expirado" : benefit.active ? "Ativo" : "Pausado"}</span><span className="text-[10px] text-[#786A5B]">{benefit.validUntil ? `até ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "short" }).format(benefit.validUntil)}` : "sem validade"}</span></div>
                     <p className="mt-3 text-xs leading-5 text-[#6B6258]"><strong className="text-[#17120D]">{issued}</strong> enviado{issued === 1 ? "" : "s"} · <strong className="text-[#17120D]">{used}</strong> utilizado{used === 1 ? "" : "s"}</p>
                     {benefit.active && !expired ? <div className="mt-3"><SendCardToCustomersButton benefitId={benefit.id} customers={customerOptions} /></div> : <p className="mt-3 rounded-xl bg-[#F1E9DE] px-3 py-2 text-center text-[10px] font-bold text-[#786A5B]">Ativa o cartão para o enviar.</p>}
-                    <div className="mt-3 flex items-center justify-end"><BenefitToggleButton benefitId={benefit.id} active={benefit.active} /></div>
+                    <div className="mt-3 flex items-center justify-between gap-2"><DeleteBenefitButton benefitId={benefit.id} /><BenefitToggleButton benefitId={benefit.id} active={benefit.active} /></div>
                   </div>
                 </article>;
               })}

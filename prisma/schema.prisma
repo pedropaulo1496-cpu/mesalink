@@ -965,6 +965,7 @@ model MarketingPromoCard {
   title       String
   description String?
   benefitType String   @default("PERCENT")
+  benefitLabel String?
   value       Decimal? @db.Decimal(10, 2)
   minSpend    Decimal? @db.Decimal(10, 2)
   terms       String?
@@ -1332,6 +1333,7 @@ model ReferralBenefit {
   title       String
   description String?
   benefitType String   @default("PERCENT")
+  benefitLabel String?
   value       Decimal? @db.Decimal(10, 2)
   minSpend    Decimal? @db.Decimal(10, 2)
   terms       String?
