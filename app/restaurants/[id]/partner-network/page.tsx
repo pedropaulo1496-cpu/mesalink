@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
 import { getServerSession } from "next-auth";
+import { getLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import { Building2, CalendarClock, CheckCircle2, CircleDollarSign, Clock3, MapPin, ShieldCheck, UsersRound } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import { PartnerProfileSettingsForm, ReferralAgreementForm, ReferralNetworkSettingsForm } from "@/components/partners/PartnerNetworkControls";
 import { authOptions } from "@/lib/auth";
 import { buildPartnerProfile } from "@/lib/partner-profile";
@@ -19,6 +21,7 @@ export default async function PartnerNetworkPage({
 }) {
   const { id } = await params;
   const { result } = await searchParams;
+  const locale = await getLocale();
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
 
@@ -88,24 +91,24 @@ export default async function PartnerNetworkPage({
         <RestaurantSidebar id={id} restaurantName={restaurant.name} active="partnerNetwork" />
 
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-          <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div><div className="flex flex-wrap items-center gap-3"><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">MesaLink Partner Network</p><span className="rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#3F6A4D]">Na rede</span></div><h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">Recebe grupos de parceiros locais.</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">Hotéis, concierges, guias e empresas enviam pedidos com o contacto protegido. Tu escolhes quais aceitar e a comissão fica clara antes da reserva.</p></div>
+          <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div><div className="flex flex-wrap items-center gap-3"><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Rede de Parceiros</p><span className="rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#3F6A4D]">Ativa</span></div><h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">Grupos enviados por hotéis e parceiros.</h1><p className="mt-2 max-w-2xl text-sm leading-5 text-[#6B6258]">Aceita os grupos que interessam. A comissão e o pagamento ficam tratados no MesaLink.</p></div>
             <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Contacto oculto até aceitar</div>
           </header>
 
-          <div className="mt-6 inline-flex rounded-full border border-[#D9C7AA] bg-white px-5 py-3 text-xs font-bold text-[#6B6258]">Grupos, comissões e pagamentos</div>
+          <GrowthWorkspaceSwitcher restaurantId={id} active="partners" locale={locale} />
 
           {result && <div className={`mt-5 rounded-[22px] border px-5 py-4 text-sm font-semibold ${["accepted", "completed", "payment-success", "already-paid"].includes(result) ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : result === "declined" || result === "payment-cancelled" ? "border-[#DCCCAD] bg-[#FFF9ED] text-[#795D38]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{resultMessage(result)}</div>}
 
-          <section className="mt-7 grid grid-cols-2 gap-3 xl:grid-cols-4">
+          <section className="mt-5 grid grid-cols-2 gap-2 xl:grid-cols-4">
             <Kpi icon={<UsersRound size={18} />} label="Pedidos novos" value={String(restaurant.referralOffers.length)} />
             <Kpi icon={<CircleDollarSign size={18} />} label="Comissão em pedidos" value={formatMoney(pendingValue)} />
             <Kpi icon={<CheckCircle2 size={18} />} label="Grupos concluídos" value={String(completedGroups.length)} />
             <Kpi icon={<Building2 size={18} />} label="Acordos ativos" value={String(restaurant.referralAgreements.length)} detail={`${formatMoney(paidCommission)} em comissões`} />
           </section>
 
-          <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-5 shadow-[0_24px_75px_rgba(80,55,30,0.07)] sm:p-8">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Ofertas de grupos</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Aceitar ou rejeitar. Sem complicações.</h2><p className="mt-2 text-sm text-[#6B6258]">Vês logo o tamanho do grupo, hora e comissão. O primeiro restaurante a aceitar fica com a reserva.</p></div><span className="w-fit rounded-full bg-[#F1E6D5] px-3 py-1.5 text-xs font-black text-[#795D38]">{restaurant.referralOffers.length} por responder</span></div>
+          <section className="mt-5 rounded-[26px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_50px_rgba(80,55,30,0.05)]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Ofertas de grupos</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.045em]">Por responder</h2></div><span className="w-fit rounded-full bg-[#F1E6D5] px-3 py-1.5 text-xs font-black text-[#795D38]">{restaurant.referralOffers.length}</span></div>
             <div className="mt-6 space-y-3">
               {restaurant.referralOffers.map((offer) => {
                 const group = offer.group;
@@ -156,17 +159,22 @@ export default async function PartnerNetworkPage({
             </section>
           )}
 
-          <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8">
+          <details className="group mt-5 rounded-[24px] border border-[#E1D0B8] bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-bold"><span>Perfil e regras da parceria</span><span className="text-xs text-[#9B6F3B] group-open:hidden">Configurar ↓</span><span className="hidden text-xs text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
+            <div className="border-t border-[#E8DCCB] p-5">
+          <section className="rounded-[24px] border border-[#E1D0B8] bg-white p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Perfil para parceiros</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">O teu mini-perfil na app dos hotéis.</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-[#6B6258]">Já o preenchemos com a cozinha, descrição, fotografias e menu do Website Builder. Podes ajustar este perfil sem alterar o teu website público.</p></div><span className="w-fit rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.13em] text-[#3F6A4D]">Preenchido automaticamente</span></div>
             <PartnerProfileSettingsForm restaurantId={id} restaurantName={restaurant.name} cuisine={partnerProfile.cuisine} description={partnerProfile.description} heroImage={partnerProfile.heroImage} gallery={partnerProfile.galleryImages} highlights={partnerProfile.highlights} menuUrl={partnerProfile.menuUrl} />
           </section>
 
-          <section className="mt-6 grid gap-6 xl:grid-cols-2">
+          <section className="mt-5 grid gap-4 xl:grid-cols-2">
             <div className="rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-7"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Comissão sugerida</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Valor base para novos grupos</h2><ReferralNetworkSettingsForm restaurantId={id} initialCommissionType={restaurant.referralDefaultCommissionType} initialCommissionAmount={Number(restaurant.referralDefaultCommissionAmount)} /></div>
             <div className="rounded-[34px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 sm:p-7"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Acordo direto</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Define uma comissão recorrente</h2><p className="mt-2 text-sm leading-6 text-[#6B6258]">Usa o email profissional do hotel ou parceiro. O acordo substitui a comissão base em todos os grupos futuros.</p><ReferralAgreementForm restaurantId={id} /></div>
           </section>
 
-          {restaurant.referralAgreements.length > 0 && <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Parceiros recorrentes</p><div className="mt-5 grid gap-3 md:grid-cols-2">{restaurant.referralAgreements.map((agreement) => <div key={agreement.id} className="rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-4"><p className="font-semibold">{agreement.partner.businessName}</p><p className="mt-1 text-xs text-[#75695C]">{partnerType(agreement.partner.partnerType)} · {agreement.partner.email}</p><p className="mt-3 text-sm font-bold text-[#795D38]">{agreement.commissionType === "PER_PERSON" ? `${formatMoney(Number(agreement.commissionAmount))} por pessoa` : `${formatMoney(Number(agreement.commissionAmount))} total`} · MesaLink 15%</p></div>)}</div></section>}
+          {restaurant.referralAgreements.length > 0 && <section className="mt-5 rounded-[24px] border border-[#E1D0B8] bg-white p-5"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Parceiros recorrentes</p><div className="mt-4 grid gap-3 md:grid-cols-2">{restaurant.referralAgreements.map((agreement) => <div key={agreement.id} className="rounded-[20px] border border-[#E1D0B8] bg-[#FFFDFC] p-4"><p className="font-semibold">{agreement.partner.businessName}</p><p className="mt-1 text-xs text-[#75695C]">{partnerType(agreement.partner.partnerType)} · {agreement.partner.email}</p><p className="mt-3 text-sm font-bold text-[#795D38]">{agreement.commissionType === "PER_PERSON" ? `${formatMoney(Number(agreement.commissionAmount))} por pessoa` : `${formatMoney(Number(agreement.commissionAmount))} total`} · MesaLink 15%</p></div>)}</div></section>}
+            </div>
+          </details>
         </section>
       </div>
       <BottomNav id={id} />
@@ -175,7 +183,7 @@ export default async function PartnerNetworkPage({
 }
 
 function Kpi({ icon, label, value, detail }: { icon: ReactNode; label: string; value: string; detail?: string }) {
-  return <div className="rounded-[26px] border border-[#E1D0B8] bg-white p-4 sm:p-5"><div className="text-[#9B6F3B]">{icon}</div><p className="mt-4 text-2xl font-semibold tracking-[-0.04em]">{value}</p><p className="mt-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#8B7D6D]">{label}</p>{detail && <p className="mt-2 text-xs text-[#7B6D5D]">{detail}</p>}</div>;
+  return <div className="rounded-[20px] border border-[#E1D0B8] bg-white p-3.5"><div className="flex items-center gap-2 text-[#9B6F3B]">{icon}<p className="text-[9px] font-black uppercase tracking-[0.12em] text-[#8B7D6D]">{label}</p></div><p className="mt-2 text-xl font-semibold tracking-[-0.04em]">{value}</p>{detail && <p className="mt-1 text-[10px] text-[#7B6D5D]">{detail}</p>}</div>;
 }
 
 function ReferralInvoices({ payment }: { payment: null | {

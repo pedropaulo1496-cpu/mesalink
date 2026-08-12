@@ -1,51 +1,52 @@
 import Link from "next/link";
-import { ArrowRight, Megaphone, MessageCircleMore } from "lucide-react";
+import { Globe2, Handshake, Megaphone, MessageCircleMore, Sparkles } from "lucide-react";
+
+type GrowthArea = "marketing" | "revenue" | "partners" | "website" | "visibility";
 
 const copy = {
   pt: {
-    eyebrow: "Dois motores, uma só estratégia",
-    marketingTitle: "Marketing & Fidelização",
-    marketingRule: "Um público → uma campanha",
-    marketingText: "Campanhas, aniversários, reviews, clientes VIP e cartões promocionais.",
-    revenueTitle: "Revenue AI",
-    revenueRule: "Uma oportunidade → uma conversa",
-    revenueText: "Leads, chamadas perdidas, cancelamentos, no-shows e clientes inativos.",
-    active: "Estás aqui",
-    open: "Abrir",
+    label: "Crescimento",
+    marketing: "Marketing",
+    revenue: "Revenue AI",
+    partners: "Parceiros",
+    website: "Website",
+    visibility: "Visibilidade IA",
   },
   en: {
-    eyebrow: "Two engines, one growth strategy",
-    marketingTitle: "Marketing & Loyalty",
-    marketingRule: "One audience → one campaign",
-    marketingText: "Campaigns, birthdays, reviews, VIP customers and promotional cards.",
-    revenueTitle: "Revenue AI",
-    revenueRule: "One opportunity → one conversation",
-    revenueText: "Leads, missed calls, cancellations, no-shows and inactive customers.",
-    active: "You are here",
-    open: "Open",
+    label: "Growth",
+    marketing: "Marketing",
+    revenue: "Revenue AI",
+    partners: "Partners",
+    website: "Website",
+    visibility: "AI Visibility",
   },
 } as const;
 
-export default function GrowthWorkspaceSwitcher({ restaurantId, active, locale }: { restaurantId: string; active: "marketing" | "revenue"; locale: string }) {
+export default function GrowthWorkspaceSwitcher({ restaurantId, active, locale }: { restaurantId: string; active: GrowthArea; locale: string }) {
   const t = locale === "pt" ? copy.pt : copy.en;
-  return (
-    <section className="mt-6 rounded-[30px] border border-[#DCC9AA] bg-[#EDE0CD] p-3">
-      <p className="px-2 pb-3 pt-1 text-[9px] font-black uppercase tracking-[0.24em] text-[#8A6130]">{t.eyebrow}</p>
-      <div className="grid gap-3 lg:grid-cols-2">
-        <WorkspaceCard href={`/restaurants/${restaurantId}/marketing`} icon={<Megaphone size={19} />} title={t.marketingTitle} rule={t.marketingRule} text={t.marketingText} active={active === "marketing"} activeLabel={t.active} openLabel={t.open} />
-        <WorkspaceCard href={`/restaurants/${restaurantId}/revenue-ai`} icon={<MessageCircleMore size={19} />} title={t.revenueTitle} rule={t.revenueRule} text={t.revenueText} active={active === "revenue"} activeLabel={t.active} openLabel={t.open} />
-      </div>
-    </section>
-  );
-}
+  const items = [
+    { key: "marketing" as const, href: `/restaurants/${restaurantId}/marketing`, label: t.marketing, icon: <Megaphone size={15} /> },
+    { key: "revenue" as const, href: `/restaurants/${restaurantId}/revenue-ai`, label: t.revenue, icon: <MessageCircleMore size={15} /> },
+    { key: "partners" as const, href: `/restaurants/${restaurantId}/partner-network`, label: t.partners, icon: <Handshake size={15} /> },
+    { key: "website" as const, href: `/restaurants/${restaurantId}/website`, label: t.website, icon: <Globe2 size={15} /> },
+    { key: "visibility" as const, href: `/restaurants/${restaurantId}/ai-visibility`, label: t.visibility, icon: <Sparkles size={15} /> },
+  ];
 
-function WorkspaceCard({ href, icon, title, rule, text, active, activeLabel, openLabel }: { href: string; icon: React.ReactNode; title: string; rule: string; text: string; active: boolean; activeLabel: string; openLabel: string }) {
   return (
-    <Link href={href} aria-current={active ? "page" : undefined} className={`group rounded-[24px] border p-5 transition ${active ? "border-[#17120D] bg-[#17120D] text-white shadow-[0_16px_40px_rgba(48,32,18,0.16)]" : "border-[#DCC9AA] bg-[#FFF9F0] text-[#17120D] hover:border-[#B88B4A] hover:bg-white"}`}>
-      <div className="flex items-start justify-between gap-4"><span className={`grid h-10 w-10 place-items-center rounded-2xl ${active ? "bg-[#D7B267] text-[#17120D]" : "bg-[#EFE1CA] text-[#8A6130]"}`}>{icon}</span><span className={`rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${active ? "bg-white/10 text-[#F1DCA8]" : "bg-[#EFE1CA] text-[#7A552A]"}`}>{active ? activeLabel : <span className="inline-flex items-center gap-1">{openLabel}<ArrowRight size={11} /></span>}</span></div>
-      <h2 className="mt-4 text-xl font-semibold tracking-[-0.035em]">{title}</h2>
-      <p className={`mt-1 text-[10px] font-black uppercase tracking-[0.15em] ${active ? "text-[#D7B267]" : "text-[#9B6F3B]"}`}>{rule}</p>
-      <p className={`mt-3 text-xs leading-5 ${active ? "text-white/60" : "text-[#6B6258]"}`}>{text}</p>
-    </Link>
+    <nav aria-label={t.label} className="mt-5 overflow-x-auto rounded-2xl border border-[#DCC9AA] bg-white p-1.5 shadow-[0_10px_30px_rgba(80,55,30,0.04)]">
+      <div className="flex min-w-max gap-1">
+        <span className="hidden items-center px-3 text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B] xl:flex">{t.label}</span>
+        {items.map((item) => (
+          <Link
+            key={item.key}
+            href={item.href}
+            aria-current={active === item.key ? "page" : undefined}
+            className={`inline-flex h-10 items-center gap-2 rounded-xl px-3.5 text-xs font-bold transition ${active === item.key ? "bg-[#17120D] text-white shadow-sm" : "text-[#6B6258] hover:bg-[#FFF6E9] hover:text-[#17120D]"}`}
+          >
+            {item.icon}{item.label}
+          </Link>
+        ))}
+      </div>
+    </nav>
   );
 }

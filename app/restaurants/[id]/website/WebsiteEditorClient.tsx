@@ -3,9 +3,10 @@
 import { FileUploadField } from "@/components/FileUploadField";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import { CheckCircle2, Database, Image as ImageIcon, LoaderCircle, Search, Sparkles, WandSparkles } from "lucide-react";
 import { CustomDomainManager, type PublicDomainOrder } from "./CustomDomainManager";
 
@@ -83,6 +84,7 @@ export function WebsiteEditorClient({
   domainServiceConfigured: boolean;
 }) {
   const t = useTranslations("dashboardSettings.website");
+  const locale = useLocale();
   const [enabled, setEnabled] = useState(restaurant.websiteEnabled);
   const [template, setTemplate] = useState(
     restaurant.websiteTemplate || "PREMIUM",
@@ -499,6 +501,8 @@ export function WebsiteEditorClient({
             </button>
           </div>
         </header>
+
+        <GrowthWorkspaceSwitcher restaurantId={restaurant.id} active="website" locale={locale} />
 
         <form
           id="website-editor-form"
@@ -1352,27 +1356,29 @@ function EditorBlock({
   const surface = surfaces[number] ?? "bg-white";
 
   return (
-    <section className="overflow-hidden rounded-[34px] border border-[#E1D0B8] bg-white shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
-      <div className={`border-b border-[#E8DCCB] px-6 py-5 ${surface}`}>
+    <details open={number === "01" || number === "02"} className="group overflow-hidden rounded-[24px] border border-[#E1D0B8] bg-white shadow-[0_14px_40px_rgba(80,55,30,0.04)]">
+      <summary className={`cursor-pointer list-none px-5 py-4 ${surface}`}>
         <div className="flex items-start gap-4">
-          <div className="rounded-full border border-[#D6C3A5] bg-white px-4 py-1.5 text-xs font-semibold tracking-[0.22em] text-[#9B6F3B] shadow-[0_10px_24px_rgba(80,55,30,0.04)]">
+          <div className="rounded-full border border-[#D6C3A5] bg-white px-3 py-1 text-[10px] font-semibold tracking-[0.18em] text-[#9B6F3B]">
             {number}
           </div>
 
           <div className="min-w-0">
-            <h2 className="text-2xl font-semibold tracking-[-0.045em]">
+            <h2 className="text-lg font-semibold tracking-[-0.035em] sm:text-xl">
               {title}
             </h2>
 
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-[#6B6258]">
+            <p className="mt-1 max-w-2xl text-xs leading-5 text-[#6B6258]">
               {description}
             </p>
           </div>
+          <span className="ml-auto text-xs font-bold text-[#9B6F3B] group-open:hidden">Abrir ↓</span>
+          <span className="ml-auto hidden text-xs font-bold text-[#9B6F3B] group-open:block">Fechar ↑</span>
         </div>
-      </div>
+      </summary>
 
-      <div className="space-y-5 p-6">{children}</div>
-    </section>
+      <div className="space-y-4 border-t border-[#E8DCCB] p-5">{children}</div>
+    </details>
   );
 }
 

@@ -264,19 +264,19 @@ export default async function RevenueAiPage({
         <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
           <RestaurantSidebar id={id} restaurantName={restaurant.name} active="revenueAi" />
           <section className="flex items-center justify-center px-4 pb-28 pt-8 sm:px-6 lg:px-8">
-            <div className="w-full max-w-4xl overflow-hidden rounded-[42px] border border-[#E1D0B8] bg-white shadow-[0_28px_90px_rgba(80,55,30,0.1)]">
-              <div className="bg-[#17120D] p-8 text-white sm:p-10">
+            <div className="w-full max-w-3xl overflow-hidden rounded-[28px] border border-[#E1D0B8] bg-white shadow-[0_20px_60px_rgba(80,55,30,0.08)]">
+              <div className="bg-[#17120D] p-6 text-white">
                 <p className="text-xs font-black uppercase tracking-[0.34em] text-[#D7B267]">{t("upsell.eyebrow")}</p>
-                <h1 className="mt-5 max-w-2xl text-4xl font-semibold leading-[0.95] tracking-[-0.065em] sm:text-6xl">{t("upsell.title")}</h1>
-                <p className="mt-5 max-w-2xl text-sm leading-6 text-[#EADBC5]">{t("upsell.description")}</p>
+                <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">{t("upsell.title")}</h1>
+                <p className="mt-3 max-w-2xl text-sm leading-5 text-[#EADBC5]">{t("upsell.description")}</p>
               </div>
-              <div className="grid gap-3 p-6 sm:grid-cols-2 sm:p-8">
+              <div className="grid gap-3 p-5 sm:grid-cols-2">
                 <LockedFeature icon={<CalendarX2 size={20} />} text={t("upsell.feature1")} />
                 <LockedFeature icon={<UserRoundX size={20} />} text={t("upsell.feature2")} />
                 <LockedFeature icon={<Workflow size={20} />} text={t("upsell.feature3")} />
                 <LockedFeature icon={<CircleDollarSign size={20} />} text={t("upsell.feature4")} />
               </div>
-              <div className="border-t border-[#E1D0B8] bg-[#FFF9F0] p-6 sm:p-8">
+              <div className="border-t border-[#E1D0B8] bg-[#FFF9F0] p-5">
                 <Link href={`/billing?restaurantId=${id}`} className="inline-flex h-12 items-center justify-center rounded-full bg-[#16120E] px-6 text-sm font-semibold text-white">{t("upsell.cta")}</Link>
               </div>
             </div>
@@ -293,14 +293,14 @@ export default async function RevenueAiPage({
         <RestaurantSidebar id={id} restaurantName={restaurant.name} active="revenueAi" />
 
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-          <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-3">
                 <p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">{t("eyebrow")}</p>
                 <span className="rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-[#3F6A4D]">{t("live")}</span>
               </div>
-              <h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">{t("title")}</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">{t("subtitle")}</p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">{t("title")}</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-5 text-[#6B6258]">Encontra vendas perdidas, prepara o contacto e mostra o valor recuperado.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link href={`/restaurants/${id}/revenue-ai/inbox`} className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full bg-[#17120D] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
@@ -315,18 +315,12 @@ export default async function RevenueAiPage({
 
           <GrowthWorkspaceSwitcher restaurantId={id} active="revenue" locale={locale} />
 
-          <section className="mt-6 grid gap-3 md:grid-cols-3">
-            <RevenueExample title="Uma reserva foi cancelada" action="A IA pergunta se o cliente quer escolher outra data." result="Possível reserva recuperada" />
-            <RevenueExample title="Um contacto não reservou" action="A IA retoma a conversa enquanto o interesse ainda está quente." result="Lead transformado em reserva" />
-            <RevenueExample title="Ninguém atendeu o telefone" action="O MesaLink regista a oportunidade e pode responder por WhatsApp." result="Venda que deixa de ficar esquecida" />
-          </section>
-
-          <section className="mt-7 overflow-hidden rounded-[38px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_35px_100px_rgba(44,31,18,0.24)]">
-            <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
-              <div className="border-b border-white/10 p-7 sm:p-9 lg:border-b-0 lg:border-r">
+          <section className="mt-5 overflow-hidden rounded-[26px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_20px_55px_rgba(44,31,18,0.16)]">
+            <div className="grid lg:grid-cols-[1fr_1.2fr]">
+              <div className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
                 <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.27em] text-[#D7B267]"><Sparkles size={15} />{t("hero.recoveredLabel")}</div>
-                <p className="mt-5 text-6xl font-semibold tracking-[-0.08em] sm:text-7xl">{formatMoney(recoveredRevenue)}</p>
-                <p className="mt-3 text-sm text-white/55">{t("hero.recoveredHint", { count: recoveredActions.length })}</p>
+                <p className="mt-3 text-4xl font-semibold tracking-[-0.065em]">{formatMoney(recoveredRevenue)}</p>
+                <p className="mt-1 text-xs text-white/50">{t("hero.recoveredHint", { count: recoveredActions.length })}</p>
               </div>
               <div className="grid grid-cols-2 gap-px bg-white/10">
                 <HeroMetric label={t("hero.atRisk")} value={formatMoney(revenueAtRisk)} />
@@ -337,38 +331,26 @@ export default async function RevenueAiPage({
             </div>
           </section>
 
-          <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-5 shadow-[0_24px_75px_rgba(80,55,30,0.07)] sm:p-8">
+          <section className="mt-5 rounded-[26px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_50px_rgba(80,55,30,0.05)]">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B58A45]">{t("opportunities.eyebrow")}</p>
-                <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("opportunities.title")}</h2>
+                <h2 className="mt-1 text-2xl font-semibold tracking-[-0.045em]">{t("opportunities.title")}</h2>
               </div>
               <p className="text-sm text-[#6B6258]">{t("opportunities.updated")}</p>
             </div>
-            <div className="mt-6 grid gap-3 xl:grid-cols-2">
+            <div className="mt-4 grid gap-3 xl:grid-cols-2">
               {opportunities.map((opportunity) => (
                 <OpportunityCard key={opportunity.title} {...opportunity} amountLabel={formatMoney(opportunity.amount)} countLabel={t("opportunities.items", { count: opportunity.count })} />
               ))}
             </div>
           </section>
 
-          <section className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-            <div className="rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B58A45]">Fluxo Revenue AI</p>
-              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Uma oportunidade, uma conversa.</h2>
-              <p className="mt-2 text-sm leading-6 text-[#6B6258]">Aqui não se criam campanhas, cartões ou descontos. A IA acompanha cada venda perdida individualmente até haver resposta ou resultado.</p>
-              <div className="mt-6 space-y-3">
-                <RevenueStep number="1" title="A oportunidade entra" text="Cancelamento, no-show, lead sem reserva ou chamada perdida." />
-                <RevenueStep number="2" title="A IA faz follow-up" text="Retoma a conversa no canal disponível e respeita as regras do restaurante." />
-                <RevenueStep number="3" title="Vês o resultado" text="Resposta, nova reserva e receita recuperada ficam associados ao caso." />
-              </div>
-              <Link href={`/restaurants/${id}/revenue-ai/inbox`} className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#17120D] px-5 text-sm font-semibold text-white">Abrir oportunidades <ArrowUpRight size={15} /></Link>
-            </div>
-
-            <div className="rounded-[34px] border border-[#2C2117] bg-[#17120D] p-5 text-white sm:p-8">
+          <section className="mt-5">
+            <div className="rounded-[26px] border border-[#2C2117] bg-[#17120D] p-5 text-white">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D7B267]">{t("channels.eyebrow")}</p>
-              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("channels.title")}</h2>
-              <div className="mt-6 space-y-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><h2 className="mt-1 text-2xl font-semibold tracking-[-0.045em]">{t("channels.title")}</h2><Link href={`/restaurants/${id}/revenue-ai/integrations`} className="text-xs font-bold text-[#E8C985]">Gerir canais →</Link></div>
+              <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
                 <ChannelRow href={`/restaurants/${id}/revenue-ai/inbox`} icon={<Mail size={18} />} name={t("channels.email")} status={process.env.RESEND_API_KEY ? t("channels.ready") : t("channels.configure")} active={Boolean(process.env.RESEND_API_KEY)} />
                 <ChannelRow href={`/restaurants/${id}/website`} icon={<CheckCircle2 size={18} />} name={t("channels.website")} status={restaurant.websiteEnabled ? t("channels.connected") : t("channels.configure")} active={restaurant.websiteEnabled} />
                 <ChannelRow href={`/restaurants/${id}/revenue-ai/integrations`} icon={<MessageCircleMore size={18} />} name={t("channels.whatsapp")} status={revenueChannelStatus.whatsappReady ? revenueChannelStatus.whatsappProactiveReady ? t("channels.ready") : t("channels.receiveOnly") : revenueChannelStatus.whatsappConfigured ? t("channels.waitingProvider") : t("channels.configure")} active={revenueChannelStatus.whatsappReady} />
@@ -377,11 +359,11 @@ export default async function RevenueAiPage({
             </div>
           </section>
 
-          <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 sm:p-8">
+          <section className="mt-5 rounded-[26px] border border-[#E1D0B8] bg-[#FFF9F0] p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B58A45]">{t("activity.eyebrow")}</p>
-                <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("activity.title")}</h2>
+                <h2 className="mt-1 text-2xl font-semibold tracking-[-0.045em]">{t("activity.title")}</h2>
               </div>
               <Link href={`/restaurants/${id}/revenue-ai/inbox`} className="hidden items-center gap-1 text-sm font-semibold text-[#7A542A] sm:flex">{t("activity.viewAll")}<ArrowUpRight size={16} /></Link>
             </div>
@@ -402,14 +384,6 @@ function HeroMetric({ label, value }: { label: string; value: string }) {
   return <div className="bg-[#17120D] p-5 sm:p-6"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/40">{label}</p><p className="mt-3 text-2xl font-semibold tracking-[-0.045em] sm:text-3xl">{value}</p></div>;
 }
 
-function RevenueExample({ title, action, result }: { title: string; action: string; result: string }) {
-  return <article className="rounded-[26px] border border-[#E1D0B8] bg-white p-5"><p className="text-sm font-black">{title}</p><p className="mt-2 text-xs leading-5 text-[#6B6258]">{action}</p><p className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-[#3F6A4D]"><CheckCircle2 size={14} /> {result}</p></article>;
-}
-
-function RevenueStep({ number, title, text }: { number: string; title: string; text: string }) {
-  return <div className="flex gap-3 rounded-[22px] border border-[#E8DCCB] bg-[#FFF9F0] p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#17120D] text-xs font-black text-[#D7B267]">{number}</span><div><p className="text-sm font-semibold">{title}</p><p className="mt-1 text-xs leading-5 text-[#6B6258]">{text}</p></div></div>;
-}
-
 function OpportunityCard({ icon, title, description, count, amountLabel, countLabel, href, cta, tone }: { icon: ReactNode; title: string; description: string; count: number; amountLabel: string; countLabel: string; href: string; cta: string; tone: "red" | "gold" | "blue" }) {
   const tones = {
     red: "border-[#EDC7BB] bg-[#FFF5F0] text-[#A14E36]",
@@ -417,17 +391,17 @@ function OpportunityCard({ icon, title, description, count, amountLabel, countLa
     blue: "border-[#C9DCE8] bg-[#F3F9FC] text-[#3C6B82]",
   };
   return (
-    <div className={`rounded-[28px] border p-5 ${tones[tone]}`}>
+    <div className={`rounded-[20px] border p-4 ${tones[tone]}`}>
       <div className="flex items-start justify-between gap-4"><div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/80">{icon}</div><p className="text-2xl font-semibold tracking-[-0.045em]">{amountLabel}</p></div>
-      <h3 className="mt-5 text-lg font-semibold text-[#16120E]">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-[#6B6258]">{description}</p>
-      <div className="mt-5 flex items-center justify-between gap-4"><span className="text-xs font-black uppercase tracking-[0.13em]">{countLabel}</span><Link href={href} aria-disabled={count === 0} className={`inline-flex items-center gap-1 text-sm font-semibold ${count === 0 ? "pointer-events-none opacity-40" : ""}`}>{cta}<ArrowUpRight size={15} /></Link></div>
+      <h3 className="mt-3 text-base font-semibold text-[#16120E]">{title}</h3>
+      <p className="mt-1 text-xs leading-5 text-[#6B6258]">{description}</p>
+      <div className="mt-3 flex items-center justify-between gap-4"><span className="text-[10px] font-black uppercase tracking-[0.13em]">{countLabel}</span><Link href={href} aria-disabled={count === 0} className={`inline-flex items-center gap-1 text-xs font-semibold ${count === 0 ? "pointer-events-none opacity-40" : ""}`}>{cta}<ArrowUpRight size={14} /></Link></div>
     </div>
   );
 }
 
 function ChannelRow({ href, icon, name, status, active = false }: { href: string; icon: ReactNode; name: string; status: string; active?: boolean }) {
-  return <Link href={href} className="group flex items-center gap-3 rounded-[22px] border border-white/10 bg-white/[0.045] p-4 transition hover:border-white/20 hover:bg-white/[0.075]"><div className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-[#D7B267]">{icon}</div><p className="flex-1 text-sm font-semibold">{name}</p><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.13em] ${active ? "bg-[#9CCB9B]/15 text-[#AEE0AD]" : "bg-white/8 text-white/45"}`}>{status}</span><ChevronRight size={15} className="text-white/35 transition group-hover:translate-x-0.5 group-hover:text-white/70" /></Link>;
+  return <Link href={href} className="group flex items-center gap-2 rounded-[16px] border border-white/10 bg-white/[0.045] p-3 transition hover:border-white/20 hover:bg-white/[0.075]"><div className="grid h-8 w-8 place-items-center rounded-xl bg-white/10 text-[#D7B267]">{icon}</div><p className="flex-1 text-xs font-semibold">{name}</p><span className={`rounded-full px-2 py-1 text-[8px] font-black uppercase tracking-[0.1em] ${active ? "bg-[#9CCB9B]/15 text-[#AEE0AD]" : "bg-white/8 text-white/45"}`}>{status}</span><ChevronRight size={13} className="text-white/35" /></Link>;
 }
 
 function LockedFeature({ icon, text }: { icon: ReactNode; text: string }) {

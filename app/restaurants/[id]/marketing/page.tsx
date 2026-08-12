@@ -69,30 +69,30 @@ export default async function MarketingPage({
             active="marketing"
           />
 
-          <section className="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-            <div className="w-full max-w-4xl overflow-hidden rounded-[44px] border border-[#E1D0B8] bg-white shadow-[0_28px_90px_rgba(80,55,30,0.08)]">
-              <div className="bg-[#17120D] p-8 text-white lg:p-10">
+          <section className="flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+            <div className="w-full max-w-3xl overflow-hidden rounded-[28px] border border-[#E1D0B8] bg-white shadow-[0_20px_60px_rgba(80,55,30,0.07)]">
+              <div className="bg-[#17120D] p-6 text-white">
                 <p className="text-xs font-black uppercase tracking-[0.34em] text-[#D7B267]">
                   {t("upsell.eyebrow")}
                 </p>
 
-                <h1 className="mt-5 text-5xl font-semibold leading-[0.92] tracking-[-0.07em]">
+                <h1 className="mt-3 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">
                   {t("upsell.title")}
                 </h1>
 
-                <p className="mt-5 max-w-2xl text-sm leading-6 text-[#EADBC5]">
+                <p className="mt-3 max-w-2xl text-sm leading-5 text-[#EADBC5]">
                   {t("upsell.description")}
                 </p>
               </div>
 
-              <div className="grid gap-4 p-6 sm:grid-cols-2 lg:p-8">
+              <div className="grid gap-3 p-5 sm:grid-cols-2">
                 <LockedFeature title={t("upsell.features.recovery.title")} text={t("upsell.features.recovery.text")} />
                 <LockedFeature title={t("upsell.features.campaigns.title")} text={t("upsell.features.campaigns.text")} />
                 <LockedFeature title={t("upsell.features.risk.title")} text={t("upsell.features.risk.text")} />
                 <LockedFeature title={t("upsell.features.roi.title")} text={t("upsell.features.roi.text")} />
               </div>
 
-              <div className="flex flex-col gap-3 border-t border-[#E1D0B8] bg-[#FFF9F0] p-6 sm:flex-row sm:items-center sm:justify-between lg:p-8">
+              <div className="flex flex-col gap-3 border-t border-[#E1D0B8] bg-[#FFF9F0] p-5 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm leading-6 text-[#6B6258]">
                   {t("upsell.footerNote")}
                 </p>
@@ -324,40 +324,21 @@ export default async function MarketingPage({
                 {t("main.eyebrow")}
               </p>
 
-              <h1 className="mt-3 text-5xl font-semibold tracking-[-0.065em]">
+              <h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">
                 {t("main.title")}
               </h1>
 
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">
-                {t("main.subtitle")}
+              <p className="mt-2 max-w-2xl text-sm leading-5 text-[#6B6258]">
+                Cria campanhas, ativa a IA e mantém os clientes a voltar.
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/restaurants/${id}/marketing/settings`}
-                className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
-              >
-                {t("main.actions.settings")}
-              </Link>
-
-              <Link
-                href={`/restaurants/${id}/marketing/loyalty`}
-                className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
-              >
-                Cartões & Ofertas
-              </Link>
-
-<Link
-  href={`/restaurants/${id}/marketing/recommendations`}
-  className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
->
-  {t("main.actions.recommendations")}
-</Link>
-
+            <div className="flex flex-wrap gap-2">
+              <Link href={`/restaurants/${id}/marketing/loyalty`} className="rounded-full border border-[#E1D0B8] bg-white px-4 py-2.5 text-xs font-semibold">Cartões & ofertas</Link>
+              <Link href={`/restaurants/${id}/marketing/recommendations`} className="rounded-full border border-[#E1D0B8] bg-white px-4 py-2.5 text-xs font-semibold">Sugestões</Link>
               <Link
                 href={`/restaurants/${id}/marketing/campaigns/new`}
-                className="rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+                className="rounded-full bg-[#16120E] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#2A2118]"
               >
                 {t("main.actions.newCampaign")}
               </Link>
@@ -366,23 +347,23 @@ export default async function MarketingPage({
 
           <GrowthWorkspaceSwitcher restaurantId={id} active="marketing" locale={locale} />
 
-          <section className="mt-8 overflow-hidden rounded-[44px] border border-[#2C2117] bg-[#17120D] p-7 text-white shadow-[0_35px_100px_rgba(44,31,18,0.28)] lg:p-10">
-            <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
+          <section className="mt-5 overflow-hidden rounded-[26px] border border-[#2C2117] bg-[#17120D] p-5 text-white shadow-[0_20px_55px_rgba(44,31,18,0.16)]">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.34em] text-[#D7B267]">
                   {t("main.hero.eyebrow")}
                 </p>
 
-                <h2 className="mt-5 text-6xl font-semibold tracking-[-0.08em] lg:text-7xl">
+                <h2 className="mt-2 text-4xl font-semibold tracking-[-0.065em]">
                   {estimatedRevenue.toFixed(0)}€
                 </h2>
 
-                <p className="mt-3 text-lg text-[#EADBC5]">
+                <p className="mt-1 text-xs text-[#EADBC5]/70">
                   {t("main.hero.subtitle")}
                 </p>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:min-w-[620px]">
+              <div className="grid gap-2 grid-cols-2 lg:grid-cols-4 xl:min-w-[580px]">
                 <HeroMetric value={`${roiGrowth}x`} label={t("main.hero.metrics.roi")} />
                 <HeroMetric value={convertedActions.length} label={t("main.hero.metrics.conversions")} />
                 <HeroMetric value={googleReviews.length} label={t("main.hero.metrics.googleReviews")} />
@@ -390,7 +371,7 @@ export default async function MarketingPage({
               </div>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-2 md:grid-cols-2">
               <DarkInsight
                 label={t("main.hero.insights.birthday.label")}
                 value={`${birthdayRevenue.toFixed(0)}€`}
@@ -405,7 +386,10 @@ export default async function MarketingPage({
             </div>
           </section>
 
-          <section className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <details className="group mt-5 rounded-[24px] border border-[#E1D0B8] bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-bold"><span>Estatísticas e desempenho</span><span className="text-xs text-[#9B6F3B] group-open:hidden">Ver detalhes ↓</span><span className="hidden text-xs text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
+            <div className="border-t border-[#E8DCCB] p-5">
+          <section className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel>
               <div className="flex items-end justify-between gap-4">
                 <div>
@@ -511,7 +495,7 @@ export default async function MarketingPage({
             </Panel>
           </section>
 
-          <section className="mt-6 grid gap-6 md:grid-cols-3">
+          <section className="mt-5 grid gap-4 md:grid-cols-3">
             <GrowthModule
               title={t("main.modules.reviews.title")}
               emoji="⭐"
@@ -597,6 +581,8 @@ export default async function MarketingPage({
     </div>
   </Panel>
 </section>
+            </div>
+          </details>
 
           <section className="mt-6">
             <MarketingAutopilotCard
@@ -609,8 +595,11 @@ export default async function MarketingPage({
             />
           </section>
 
-          <section className="mt-6">
-            <Panel>
+          <details className="group mt-5 rounded-[24px] border border-[#E1D0B8] bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-bold"><span>Clientes VIP e histórico de campanhas</span><span className="text-xs text-[#9B6F3B] group-open:hidden">Ver detalhes ↓</span><span className="hidden text-xs text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
+            <div className="border-t border-[#E8DCCB] p-5">
+          <section>
+            <Panel compact>
               <SectionLabel>{t("main.vipClub.eyebrow")}</SectionLabel>
 
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
@@ -626,8 +615,8 @@ export default async function MarketingPage({
             </Panel>
           </section>
 
-          <section className="mt-6">
-            <Panel>
+          <section className="mt-5">
+            <Panel compact>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <SectionLabel>{t("main.timeline.eyebrow")}</SectionLabel>
@@ -675,6 +664,8 @@ export default async function MarketingPage({
               </div>
             </Panel>
           </section>
+            </div>
+          </details>
 
           <section className="mt-6">
             <Panel>
@@ -751,9 +742,9 @@ function LockedFeature({ title, text }: { title: string; text: string }) {
   );
 }
 
-function Panel({ children }: { children: React.ReactNode }) {
+function Panel({ children, compact = false }: { children: React.ReactNode; compact?: boolean }) {
   return (
-    <div className="rounded-[36px] border border-[#E1D0B8] bg-white p-6 shadow-[0_24px_80px_rgba(80,55,30,0.055)]">
+    <div className={`${compact ? "rounded-[22px] p-4" : "rounded-[28px] p-5"} border border-[#E1D0B8] bg-white shadow-[0_18px_55px_rgba(80,55,30,0.045)]`}>
       {children}
     </div>
   );

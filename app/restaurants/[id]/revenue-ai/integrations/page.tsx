@@ -1,9 +1,11 @@
 import { getServerSession } from "next-auth";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { getLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import RevenueChannelsClient from "@/components/revenue-ai/RevenueChannelsClient";
 import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
@@ -12,6 +14,7 @@ import { getRevenueChannelStatus } from "@/lib/revenue-twilio";
 
 export default async function RevenueIntegrationsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const locale = await getLocale();
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
@@ -25,7 +28,9 @@ export default async function RevenueIntegrationsPage({ params }: { params: Prom
     <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
       <RestaurantSidebar id={id} restaurantName={restaurant.name} active="revenueAi" />
       <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-        <header className="mb-7"><Link href={`/restaurants/${id}/revenue-ai`} className="inline-flex items-center gap-2 text-xs font-bold text-[#806D56]"><ArrowLeft size={14} /> Revenue AI</Link><p className="mt-4 flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]"><Sparkles size={14} /> Ativação assistida</p><h1 className="mt-2 max-w-4xl text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">Escolhe onde queres recuperar clientes. O MesaLink trata da parte técnica.</h1><p className="mt-3 max-w-3xl text-sm leading-6 text-[#6B6258]">Não precisas de saber o que é Twilio, webhooks ou modelos WhatsApp. Diz-nos apenas que canais queres usar e qual é o teu contacto.</p></header>
+        <header><Link href={`/restaurants/${id}/revenue-ai`} className="inline-flex items-center gap-2 text-xs font-bold text-[#806D56]"><ArrowLeft size={14} /> Revenue AI</Link><h1 className="mt-3 max-w-4xl text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">Canais do Revenue AI</h1><p className="mt-2 max-w-3xl text-sm leading-5 text-[#6B6258]">Vê o que está ligado e pede apenas os extras de que precisas.</p></header>
+        <GrowthWorkspaceSwitcher restaurantId={id} active="revenue" locale={locale} />
+        <div className="mt-5">
         <RevenueChannelsClient
           restaurantId={id}
           restaurantName={restaurant.name}
@@ -47,6 +52,7 @@ export default async function RevenueIntegrationsPage({ params }: { params: Prom
           whatsappBalance={user.subscription?.whatsappMessageBalance || 0}
           aiCredits={user.subscription?.aiCredits || 0}
         />
+        </div>
       </section>
     </div>
     <BottomNav id={id} />

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import {
   ArrowUpRight,
@@ -18,6 +18,7 @@ import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import VisibilityScanButton from "@/components/ai-visibility/VisibilityScanButton";
 import VisibilityOptimizeButton from "@/components/ai-visibility/VisibilityOptimizeButton";
+import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import { authOptions } from "@/lib/auth";
 import { calculateAiVisibility, type VisibilityOpportunity } from "@/lib/ai-visibility";
 import { hasGrowthAccess } from "@/lib/ai-billing";
@@ -30,6 +31,7 @@ export default async function AiVisibilityPage({
 }) {
   const { id } = await params;
   const t = await getTranslations("dashboardAiVisibility");
+  const locale = await getLocale();
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) redirect("/login");
@@ -104,7 +106,7 @@ export default async function AiVisibilityPage({
         <RestaurantSidebar id={id} restaurantName={restaurant.name} active="aiVisibility" />
 
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-          <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-3">
                 <p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">
@@ -114,41 +116,43 @@ export default async function AiVisibilityPage({
                   {t("beta")}
                 </span>
               </div>
-              <h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">
+              <h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">
                 {t("title")}
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">{t("subtitle")}</p>
+              <p className="mt-2 max-w-2xl text-sm leading-5 text-[#6B6258]">Vê se o restaurante é encontrado por pesquisas com IA e corrige o que falta.</p>
             </div>
 
             <VisibilityScanButton restaurantId={id} credits={user.subscription?.aiCredits || 0} canScan={hasGrowthAccess(user.subscription)} label={`${latestScan ? t("rescan") : t("liveScan.run")} · 10 créditos`} />
           </header>
 
-          <section className="mt-7 overflow-hidden rounded-[38px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_35px_100px_rgba(44,31,18,0.24)]">
-            <div className="grid xl:grid-cols-[380px_1fr]">
-              <div className="flex flex-col items-center justify-center border-b border-white/10 p-8 text-center xl:border-b-0 xl:border-r">
+          <GrowthWorkspaceSwitcher restaurantId={id} active="visibility" locale={locale} />
+
+          <section className="mt-5 overflow-hidden rounded-[26px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_20px_55px_rgba(44,31,18,0.16)]">
+            <div className="grid xl:grid-cols-[260px_1fr]">
+              <div className="flex flex-col items-center justify-center border-b border-white/10 p-5 text-center xl:border-b-0 xl:border-r">
                 <div
-                  className="grid h-48 w-48 place-items-center rounded-full p-[11px]"
+                  className="grid h-32 w-32 place-items-center rounded-full p-[8px]"
                   style={{ background: `conic-gradient(#D7B267 ${displayedOverall}%, rgba(255,255,255,.1) 0)` }}
                 >
                   <div className="grid h-full w-full place-items-center rounded-full bg-[#17120D]">
                     <div>
-                      <p className="text-6xl font-semibold tracking-[-0.08em]">{displayedOverall}</p>
+                      <p className="text-4xl font-semibold tracking-[-0.065em]">{displayedOverall}</p>
                       <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-white/45">
                         {t("scoreOutOf")}
                       </p>
                     </div>
                   </div>
                 </div>
-                <p className="mt-5 text-xs font-black uppercase tracking-[0.28em] text-[#D7B267]">{t("scoreLabel")}</p>
+                <p className="mt-3 text-[10px] font-black uppercase tracking-[0.24em] text-[#D7B267]">{t("scoreLabel")}</p>
                 <p className="mt-2 text-sm text-[#EADBC5]">{scoreMessage}</p>
               </div>
 
-              <div className="p-6 sm:p-8 lg:p-10">
+              <div className="p-5">
                 <div className="flex items-center gap-2 text-xs font-semibold text-white/45">
                   <Sparkles size={14} className="text-[#D7B267]" />
                   {latestScan ? t("liveScan.measuredAt", { date: new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short" }).format(latestScan.completedAt || latestScan.createdAt) }) : t("lastAnalysis")}
                 </div>
-                <div className="mt-7 grid gap-x-8 gap-y-6 md:grid-cols-2">
+                <div className="mt-4 grid gap-x-6 gap-y-4 md:grid-cols-2">
                   {metrics.map((metric) => (
                     <ScoreMetric key={metric.label} {...metric} />
                   ))}
@@ -157,7 +161,9 @@ export default async function AiVisibilityPage({
             </div>
           </section>
 
-          <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-6 shadow-[0_24px_75px_rgba(80,55,30,0.07)] sm:p-8">
+          <details className="group mt-5 rounded-[24px] border border-[#E1D0B8] bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-bold"><span>Resultados dos testes reais</span><span className="text-xs text-[#9B6F3B] group-open:hidden">Ver detalhes ↓</span><span className="hidden text-xs text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
+            <div className="border-t border-[#E8DCCB] p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div><p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B58A45]">{t("liveScan.eyebrow")}</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("liveScan.title")}</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">{t("liveScan.description")}</p></div>
               {latestScan && <div className="grid grid-cols-2 gap-2 sm:flex"><LiveMetric label={t("liveScan.mentionRate")} value={`${latestScan.mentionRate || 0}%`} /><LiveMetric label={t("liveScan.sources")} value={String(latestScan.sourceCount || 0)} /></div>}
@@ -171,13 +177,14 @@ export default async function AiVisibilityPage({
                 {result.sourceUrls.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{result.sourceUrls.slice(0, 3).map((url) => <a key={url} href={url} target="_blank" rel="noreferrer" className="max-w-full truncate rounded-full border border-[#DCCCAD] bg-white px-3 py-1.5 text-[10px] font-bold text-[#795D38]">{safeHost(url)}</a>)}</div>}
               </article>)}
             </div> : <div className="mt-6 rounded-[26px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-8 text-center"><Radar className="mx-auto text-[#9B6F3B]" /><p className="mt-4 font-semibold">{t("liveScan.emptyTitle")}</p><p className="mt-2 text-sm text-[#6B6258]">{t("liveScan.emptyText")}</p></div>}
-          </section>
+            </div>
+          </details>
 
-          <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-6 shadow-[0_24px_75px_rgba(80,55,30,0.07)] sm:p-8">
+          <section className="mt-5 rounded-[26px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_50px_rgba(80,55,30,0.05)]">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B58A45]">{t("opportunitiesEyebrow")}</p>
             <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <h2 className="text-3xl font-semibold tracking-[-0.055em]">{t("opportunitiesTitle", { count: actionableCount })}</h2>
+                <h2 className="text-2xl font-semibold tracking-[-0.045em]">{t("opportunitiesTitle", { count: actionableCount })}</h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">{t("opportunitiesSubtitle")}</p>
               </div>
             </div>
@@ -189,7 +196,9 @@ export default async function AiVisibilityPage({
             </div>
           </section>
 
-          <section className="mt-6 grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+          <details className="group mt-5 rounded-[24px] border border-[#E1D0B8] bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-bold"><span>Pesquisas alvo e otimização automática</span><span className="text-xs text-[#9B6F3B] group-open:hidden">Abrir ↓</span><span className="hidden text-xs text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
+            <div className="grid gap-5 border-t border-[#E8DCCB] p-5 xl:grid-cols-[1.08fr_0.92fr]">
             <div className="overflow-hidden rounded-[34px] border border-[#E1D0B8] bg-[#FFF9F0] p-6 sm:p-8">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B58A45]">{t("queriesEyebrow")}</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("queriesTitle")}</h2>
@@ -231,7 +240,8 @@ export default async function AiVisibilityPage({
                 />
               </div>
             </div>
-          </section>
+            </div>
+          </details>
         </section>
       </div>
       <BottomNav id={id} />
