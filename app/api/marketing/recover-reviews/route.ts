@@ -98,7 +98,7 @@ export async function POST(request: Request) {
 
       const trackingToken = createMarketingTrackingToken();
       const action = await prisma.marketingAction.create({
-        data: { restaurantId, customerId: candidate.reservation.customerId, reservationId: candidate.review.reservationId, type: "REVIEW_RECOVERY", status: "QUEUED", channel: "EMAIL", trackingToken },
+        data: { restaurantId, customerId: candidate.reservation.customerId, reservationId: candidate.review.reservationId, automationId: campaignId, type: "REVIEW_RECOVERY", status: "QUEUED", channel: "EMAIL", trackingToken },
       });
       actionId = action.id;
       const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, trackingToken);

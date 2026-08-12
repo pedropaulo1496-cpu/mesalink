@@ -133,13 +133,13 @@ export function PartnerProfileSettingsForm({
       <div className="space-y-4">
         <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Categoria / cozinha</span><input name="cuisine" value={profileCuisine} onChange={(event) => setProfileCuisine(event.target.value)} maxLength={80} className="input-premium h-12" /></label>
         <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Descrição para hotéis e parceiros</span><textarea name="description" value={profileDescription} onChange={(event) => setProfileDescription(event.target.value)} maxLength={700} rows={4} className="input-premium min-h-28 py-3" /></label>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_240px]">
           <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Destaques · um por linha</span><textarea name="highlights" value={profileHighlights} onChange={(event) => setProfileHighlights(event.target.value)} rows={4} className="input-premium min-h-28 py-3" /></label>
           <div><p className="mb-2 text-xs font-bold text-[#655A4E]">Fotografia principal</p><ImageUploadField value={profileHeroImage} onChange={setProfileHeroImage} compact /><input type="hidden" name="heroImage" value={profileHeroImage} /></div>
         </div>
-        <div className="rounded-[26px] border border-[#E1D0B8] bg-[#FFF9F0] p-4 sm:p-5">
+        <div className="rounded-[20px] border border-[#E1D0B8] bg-[#FFF9F0] p-3.5 sm:p-4">
           <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold">Galeria do restaurante</p><p className="mt-1 text-xs text-[#70665B]">Carrega até 6 fotografias. Podes substituir ou remover cada uma.</p></div><span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-[#795D38]">{profileGallery.length}/6</span></div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             {profileGallery.map((image, index) => <div key={`${image}-${index}`}><p className="mb-2 text-[10px] font-black uppercase tracking-[0.13em] text-[#8A765F]">Fotografia {index + 1}</p><ImageUploadField value={image} onChange={(url) => setProfileGallery((items) => url ? items.map((item, itemIndex) => itemIndex === index ? url : item) : items.filter((_, itemIndex) => itemIndex !== index))} compact /></div>)}
             {profileGallery.length < 6 && <div><p className="mb-2 text-[10px] font-black uppercase tracking-[0.13em] text-[#8A765F]">Adicionar fotografia</p><ImageUploadField value="" onChange={(url) => url && setProfileGallery((items) => [...items, url].slice(0, 6))} compact /></div>}
           </div>

@@ -147,7 +147,7 @@ export async function POST(request: Request) {
     let emailsSent = 0;
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const cardCampaignId = includeCard ? randomUUID() : null;
+    const cardCampaignId = randomUUID();
     const cardExpiresAt = includeCard ? new Date(Date.now() + validDays * 24 * 60 * 60 * 1000) : null;
     const cardTheme = getMarketingCardTheme(cardTemplate);
     for (const customer of customers) {
@@ -155,6 +155,7 @@ export async function POST(request: Request) {
         data: {
           restaurantId,
           customerId: customer.id,
+          automationId: cardCampaignId,
           type: "MANUAL_CAMPAIGN",
           status: "QUEUED",
           sentAt: new Date(),

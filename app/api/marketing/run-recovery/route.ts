@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
@@ -93,6 +94,7 @@ async function runRecovery(restaurantId: unknown, offerInput: unknown) {
     let cardsCreated = 0;
     let emailsSent = 0;
     let skipped = 0;
+    const campaignId = randomUUID();
 
     for (const customer of customers) {
       const restaurant = customer.restaurant;
@@ -122,6 +124,7 @@ async function runRecovery(restaurantId: unknown, offerInput: unknown) {
         data: {
           restaurantId: customer.restaurantId,
           customerId: customer.id,
+          automationId: campaignId,
           type: "INACTIVE_RECOVERY",
           status: "QUEUED",
           sentAt: new Date(),
@@ -152,7 +155,7 @@ async function runRecovery(restaurantId: unknown, offerInput: unknown) {
         promoCard = offer ? await prisma.marketingPromoCard.create({
           data: {
             publicCode: createBenefitCardCode(), restaurantId: customer.restaurantId, customerId: customer.id,
-            campaignId: action.id, title: offer.title, description: offer.description,
+            campaignId, title: offer.title, description: offer.description,
             benefitType: offer.benefitType, value: offer.value, minSpend: offer.minSpend,
             terms: offer.terms, template: offer.template, expiresAt,
           },

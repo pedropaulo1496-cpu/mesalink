@@ -46,7 +46,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ ben
 
   for (const customer of customers) {
     const trackingToken = createMarketingTrackingToken();
-    const action = await prisma.marketingAction.create({ data: { restaurantId: benefit.restaurantId, customerId: customer.id, type: "CARD_GIFT", status: "QUEUED", channel: "EMAIL", trackingToken } });
+    const action = await prisma.marketingAction.create({ data: { restaurantId: benefit.restaurantId, customerId: customer.id, automationId: benefit.id, type: "CARD_GIFT", status: "QUEUED", channel: "EMAIL", trackingToken } });
     const reference = `email:loyalty_card:${action.id}`;
     let reserved = false;
     let card: { id: string; publicCode: string } | null = null;

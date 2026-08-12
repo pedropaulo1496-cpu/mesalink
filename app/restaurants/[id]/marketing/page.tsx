@@ -173,6 +173,12 @@ export default async function MarketingPage({
 
   const marketingActions = await prisma.marketingAction.findMany({
     where: { restaurantId: id },
+    include: { customer: { select: { name: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  const campaignCards = await prisma.marketingPromoCard.findMany({
+    where: { restaurantId: id, campaignId: { not: null } },
+    select: { id: true, campaignId: true, title: true, publicCode: true, status: true, sentAt: true, redeemedAt: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -219,7 +225,7 @@ export default async function MarketingPage({
   );
 
   const campaignActions = marketingActions.filter((action) =>
-    ["BIRTHDAY", "VIP_UPGRADE", "MANUAL_CAMPAIGN", "AI_CAMPAIGN", "REVIEW_REQUEST", "REVIEW_RECOVERY", "CARD_GIFT"].includes(action.type),
+    ["INACTIVE_RECOVERY", "BIRTHDAY", "VIP_UPGRADE", "MANUAL_CAMPAIGN", "AI_CAMPAIGN", "REVIEW_REQUEST", "REVIEW_RECOVERY", "CARD_GIFT"].includes(action.type),
   );
 
   const convertedActions = campaignActions.filter(
@@ -294,7 +300,24 @@ export default async function MarketingPage({
     1,
   );
 
-  const recentCampaigns = campaignActions.slice(0, 12);
+  type CampaignActionRow = (typeof campaignActions)[number];
+  type CampaignCardRow = (typeof campaignCards)[number];
+  const campaignMap = new Map<string, { id: string; type: string; sentAt: Date; actions: CampaignActionRow[]; cards: CampaignCardRow[] }>();
+  for (const action of campaignActions) {
+    const campaignId = action.automationId || action.id;
+    const key = `${action.type}:${campaignId}`;
+    const existing = campaignMap.get(key);
+    if (existing) {
+      existing.actions.push(action);
+      if (action.sentAt > existing.sentAt) existing.sentAt = action.sentAt;
+    } else {
+      campaignMap.set(key, { id: campaignId, type: action.type, sentAt: action.sentAt, actions: [action], cards: [] });
+    }
+  }
+  for (const group of campaignMap.values()) {
+    group.cards = campaignCards.filter((card) => card.campaignId === group.id);
+  }
+  const recentCampaigns = [...campaignMap.values()].sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime()).slice(0, 12);
   const latestAiCampaign = await prisma.aiMarketingCampaign.findFirst({
     where: { restaurantId: id },
     orderBy: { createdAt: "desc" },
@@ -649,10 +672,10 @@ export default async function MarketingPage({
               </div>
 
               <div className="mt-6 overflow-hidden rounded-[28px] border border-[#E8DCCB] bg-[#FFF9F0]">
-                {recentCampaigns.map((action) => (
-                  <TimelineLine
-                    key={action.id}
-                    action={action}
+                {recentCampaigns.map((campaign) => (
+                  <CampaignHistoryCard
+                    key={`${campaign.type}:${campaign.id}`}
+                    campaign={campaign}
                     intlLocale={intlLocale}
                     typeLabels={{
                       INACTIVE_RECOVERY: t("main.timeline.types.recovery"),
@@ -929,41 +952,84 @@ function ReviewBar({
   );
 }
 
-function TimelineLine({
-  action,
+function CampaignHistoryCard({
+  campaign,
   intlLocale,
   typeLabels,
   statusLabels,
 }: {
-  action: {
+  campaign: {
+    id: string;
     type: string;
-    status: string;
     sentAt: Date;
-    estimatedRevenue: unknown;
+    actions: Array<{
+      id: string;
+      status: string;
+      sentAt: Date;
+      openedAt: Date | null;
+      clickedAt: Date | null;
+      bookedAt: Date | null;
+      convertedAt: Date | null;
+      deliveryId: string | null;
+      failureReason: string | null;
+      openCount: number;
+      clickCount: number;
+      estimatedRevenue: unknown;
+      actualRevenue: unknown;
+      customer: { name: string; email: string | null } | null;
+    }>;
+    cards: Array<{ id: string; title: string; publicCode: string; status: string; sentAt: Date | null; redeemedAt: Date | null }>;
   };
   intlLocale: string;
   typeLabels: Record<string, string>;
   statusLabels: Record<string, string>;
 }) {
-  const typeLabel = typeLabels[action.type] ?? action.type;
-  const statusLabel = statusLabels[action.status] ?? statusLabels.DEFAULT;
+  const typeLabel = typeLabels[campaign.type] ?? campaign.type;
+  const sent = campaign.actions.filter((action) => action.status !== "FAILED").length;
+  const opened = campaign.actions.filter((action) => action.openedAt || action.openCount > 0).length;
+  const clicked = campaign.actions.filter((action) => action.clickedAt || action.clickCount > 0).length;
+  const converted = campaign.actions.filter((action) => action.convertedAt || action.bookedAt || ["BOOKED", "CONVERTED"].includes(action.status)).length;
+  const failed = campaign.actions.length - sent;
+  const totalOpens = campaign.actions.reduce((total, action) => total + action.openCount, 0);
+  const totalClicks = campaign.actions.reduce((total, action) => total + action.clickCount, 0);
+  const redeemed = campaign.cards.filter((card) => card.redeemedAt || card.status === "REDEEMED").length;
+  const revenue = campaign.actions.reduce((total, action) => total + Number(action.actualRevenue || ((action.convertedAt || action.bookedAt || ["BOOKED", "CONVERTED"].includes(action.status)) ? action.estimatedRevenue : 0) || 0), 0);
+  const status = converted > 0 ? "CONVERTED" : clicked > 0 ? "CLICKED" : opened > 0 ? "OPENED" : "DEFAULT";
+  const statusLabel = statusLabels[status] ?? statusLabels.DEFAULT;
+  const openRate = sent ? Math.round((opened / sent) * 100) : 0;
+  const clickRate = sent ? Math.round((clicked / sent) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b border-[#E8DCCB] px-5 py-4 last:border-b-0">
-      <div className="h-3 w-3 rounded-full bg-[#C8A56A]" />
-
-      <div>
-        <p className="font-semibold">{typeLabel}</p>
-        <p className="mt-1 text-xs text-[#6B6258]">
-          {new Date(action.sentAt).toLocaleDateString(intlLocale)} · {statusLabel}
-        </p>
+    <details className="group border-b border-[#E8DCCB] bg-[#FFFDFC] last:border-b-0">
+      <summary className="grid cursor-pointer list-none gap-4 px-4 py-4 sm:grid-cols-[minmax(210px,1fr)_repeat(3,minmax(72px,auto))_auto] sm:items-center sm:px-5">
+        <div className="min-w-0"><div className="flex items-center gap-2"><span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#C8A56A]" /><p className="truncate font-semibold">{typeLabel}</p></div><p className="ml-[18px] mt-1 text-xs text-[#6B6258]">{new Intl.DateTimeFormat(intlLocale, { dateStyle: "medium", timeStyle: "short" }).format(campaign.sentAt)} · {statusLabel}</p></div>
+        <HistorySummaryMetric label="Enviados" value={String(sent)} />
+        <HistorySummaryMetric label="Abriram" value={`${opened} · ${openRate}%`} />
+        <HistorySummaryMetric label="Cliques" value={`${clicked} · ${clickRate}%`} />
+        <span className="justify-self-start rounded-full border border-[#DCCCAD] bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.09em] text-[#805E34] sm:justify-self-end"><span className="group-open:hidden">Ver resultados ↓</span><span className="hidden group-open:inline">Fechar ↑</span></span>
+      </summary>
+      <div className="border-t border-[#E8DCCB] bg-white p-4 sm:p-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+          <CampaignMetric label="Enviados" value={String(sent)} detail={failed ? `${failed} falharam` : "Sem falhas"} />
+          <CampaignMetric label="Aberturas únicas" value={`${opened}`} detail={`${totalOpens} aberturas totais`} />
+          <CampaignMetric label="Cliques únicos" value={`${clicked}`} detail={`${totalClicks} cliques totais`} />
+          <CampaignMetric label="Reservas" value={String(converted)} detail={sent ? `${Math.round((converted / sent) * 100)}% conversão` : "0% conversão"} />
+          <CampaignMetric label="Cartões usados" value={`${redeemed}/${campaign.cards.length}`} detail={`${campaign.cards.length} emitidos`} />
+          <CampaignMetric label="Receita atribuída" value={`${revenue.toFixed(0)}€`} detail="Reservas convertidas" />
+        </div>
+        <div className="mt-4 overflow-hidden rounded-[18px] border border-[#E8DCCB]"><div className="grid grid-cols-[minmax(150px,1fr)_80px_70px_90px] gap-3 bg-[#FFF9F0] px-3 py-2 text-[9px] font-black uppercase tracking-[0.1em] text-[#806D56]"><span>Cliente</span><span>Aberturas</span><span>Cliques</span><span>Resultado</span></div>{campaign.actions.slice(0, 50).map((action) => <div key={action.id} className="grid grid-cols-[minmax(150px,1fr)_80px_70px_90px] items-center gap-3 border-t border-[#EEE3D3] px-3 py-2.5 text-xs"><div className="min-w-0"><p className="truncate font-semibold">{action.customer?.name || "Cliente"}</p><p className="truncate text-[10px] text-[#8A7C6D]">{action.customer?.email || "Sem email"}</p></div><span>{action.openCount}</span><span>{action.clickCount}</span><span className="truncate font-semibold text-[#74532C]">{statusLabels[action.status] ?? (action.status === "FAILED" ? "Falhou" : statusLabels.DEFAULT)}</span></div>)}</div>
+        {campaign.actions.length > 50 && <p className="mt-2 text-xs text-[#8A7C6D]">A mostrar os primeiros 50 de {campaign.actions.length} destinatários.</p>}
       </div>
-
-      <p className="text-sm font-semibold text-[#16120E]">
-        {Number(action.estimatedRevenue || 0).toFixed(0)}€
-      </p>
-    </div>
+    </details>
   );
+}
+
+function HistorySummaryMetric({ label, value }: { label: string; value: string }) {
+  return <div className="hidden sm:block"><p className="text-sm font-semibold">{value}</p><p className="mt-0.5 text-[9px] font-black uppercase tracking-[0.08em] text-[#8A7C6D]">{label}</p></div>;
+}
+
+function CampaignMetric({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return <div className="rounded-[17px] border border-[#E8DCCB] bg-[#FFFDFC] p-3"><p className="text-xl font-semibold tracking-[-0.04em]">{value}</p><p className="mt-1 text-[9px] font-black uppercase tracking-[0.09em] text-[#806D56]">{label}</p><p className="mt-1 text-[10px] text-[#8A7C6D]">{detail}</p></div>;
 }
 
 function AutomationCard({
