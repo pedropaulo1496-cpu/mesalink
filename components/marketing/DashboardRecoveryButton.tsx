@@ -1,64 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
+import RecoveryOfferButton from "@/components/marketing/RecoveryOfferButton";
 
-export default function DashboardRecoveryButton() {
-  const t = useTranslations("dashboardMarketing.recoveryButton");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [success, setSuccess] = useState(false);
-
-  async function runRecovery() {
-    try {
-      setLoading(true);
-      setMessage("");
-
-      const response = await fetch("/api/marketing/run-recovery", {
-        method: "POST",
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        setSuccess(false);
-        setMessage(data.error || t("error"));
-        return;
-      }
-
-      setSuccess(true);
-      setMessage(t("successMessage", { count: data.emailsSent }));
-    } catch {
-      setSuccess(false);
-      setMessage(t("error"));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={runRecovery}
-        disabled={loading}
-        className="inline-flex rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118] disabled:opacity-50"
-      >
-        {loading ? t("sending") : t("cta")}
-      </button>
-
-      {message && (
-        <div
-          className={`mt-3 rounded-2xl px-4 py-3 text-sm font-medium ${
-            success
-              ? "border border-green-200 bg-green-50 text-green-700"
-              : "border border-red-200 bg-red-50 text-red-700"
-          }`}
-        >
-          {success ? "✅ " : "❌ "}
-          {message}
-        </div>
-      )}
-    </div>
-  );
+export default function DashboardRecoveryButton({ restaurantId }: { restaurantId: string }) {
+  return <RecoveryOfferButton restaurantId={restaurantId} label="Recuperar clientes" />;
 }

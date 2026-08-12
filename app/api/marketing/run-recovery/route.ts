@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
-import { getMarketingCardTheme } from "@/lib/marketing-card-themes";
+import { getMarketingCardTheme, MARKETING_CARD_THEMES, marketingBenefitValue, type MarketingCardTheme } from "@/lib/marketing-card-themes";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 import { createBenefitCardCode } from "@/lib/referrals";
 
@@ -14,15 +14,15 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
-  return runRecovery(body?.restaurantId);
+  return runRecovery(body?.restaurantId, body?.offer);
 }
 
 export async function GET(request: Request) {
   const restaurantId = new URL(request.url).searchParams.get("restaurantId");
-  return runRecovery(restaurantId);
+  return runRecovery(restaurantId, null);
 }
 
-async function runRecovery(restaurantId: unknown) {
+async function runRecovery(restaurantId: unknown, offerInput: unknown) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -36,6 +36,10 @@ async function runRecovery(restaurantId: unknown) {
         { status: 400 },
       );
     }
+
+    const offerResult = parseRecoveryOffer(offerInput);
+    if (offerResult.error) return NextResponse.json({ success: false, error: offerResult.error }, { status: 400 });
+    const configuredOffer = offerResult.offer;
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -86,6 +90,7 @@ async function runRecovery(restaurantId: unknown) {
     });
 
     let created = 0;
+    let cardsCreated = 0;
     let emailsSent = 0;
     let skipped = 0;
 
@@ -142,15 +147,18 @@ async function runRecovery(restaurantId: unknown) {
         emailReserved = true;
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
         const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
-        promoCard = restaurant.recoveryOffer ? await prisma.marketingPromoCard.create({
+        const offer = configuredOffer || (restaurant.recoveryOffer ? { title: "Um convite especial para voltar", description: restaurant.recoveryOffer, benefitType: "GIFT", value: null, minSpend: null, validDays: 30, terms: null, template: "FOREST" as MarketingCardTheme } : null);
+        const expiresAt = offer ? new Date(Date.now() + offer.validDays * 24 * 60 * 60 * 1000) : null;
+        promoCard = offer ? await prisma.marketingPromoCard.create({
           data: {
             publicCode: createBenefitCardCode(), restaurantId: customer.restaurantId, customerId: customer.id,
-            campaignId: action.id, title: "Uma oferta para voltar", description: restaurant.recoveryOffer,
-            benefitType: "GIFT", template: "FOREST", expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            campaignId: action.id, title: offer.title, description: offer.description,
+            benefitType: offer.benefitType, value: offer.value, minSpend: offer.minSpend,
+            terms: offer.terms, template: offer.template, expiresAt,
           },
         }) : null;
         const cardUrl = promoCard ? `${clickUrl}?offer=${encodeURIComponent(promoCard.publicCode)}` : null;
-        const theme = getMarketingCardTheme("FOREST");
+        const theme = getMarketingCardTheme(offer?.template || "FOREST");
 
         const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
@@ -173,8 +181,8 @@ async function runRecovery(restaurantId: unknown) {
                 </p>
 
                 ${
-                  restaurant.recoveryOffer && promoCard && cardUrl
-                    ? `<a href="${cardUrl}" style="display:block;margin-top:22px;padding:22px;border-radius:22px;background:${theme.background};color:${theme.foreground};text-decoration:none;box-shadow:0 18px 40px rgba(48,32,18,.16)"><span style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${theme.accent};font-weight:800">Cartão digital · ${escapeHtml(restaurant.name)}</span><span style="display:block;margin-top:16px;font-size:26px;line-height:1.05;font-weight:800">Uma oferta para voltar</span><span style="display:block;margin-top:12px;font-size:15px;line-height:1.5;color:${theme.muted}">${escapeHtml(restaurant.recoveryOffer)}</span><span style="display:block;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);font-family:monospace;font-size:14px;letter-spacing:2px">${escapeHtml(promoCard.publicCode)}</span></a><p style="font-size:11px;line-height:1.6;color:#8A7C6D">Cartão individual de utilização única, válido durante 30 dias.</p>`
+                  offer && promoCard && cardUrl
+                    ? `<a href="${cardUrl}" style="display:block;margin-top:22px;padding:22px;border-radius:22px;background:${theme.background};color:${theme.foreground};text-decoration:none;box-shadow:0 18px 40px rgba(48,32,18,.16)"><span style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${theme.accent};font-weight:800">Cartão digital · ${escapeHtml(restaurant.name)}</span><span style="display:block;margin-top:16px;font-size:26px;line-height:1.05;font-weight:800">${escapeHtml(offer.title)}</span><span style="display:block;margin-top:12px;font-size:15px;line-height:1.5;color:${theme.muted}">${escapeHtml(offer.description)}</span><span style="display:block;margin-top:15px;font-size:30px;font-weight:900;color:${theme.accent}">${escapeHtml(marketingBenefitValue(offer.benefitType, offer.value))}</span><span style="display:block;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);font-family:monospace;font-size:14px;letter-spacing:2px">${escapeHtml(promoCard.publicCode)}</span></a><p style="font-size:11px;line-height:1.6;color:#8A7C6D">Cartão individual de utilização única, válido durante ${offer.validDays} dias.</p>`
                     : ""
                 }
 
@@ -198,6 +206,7 @@ async function runRecovery(restaurantId: unknown) {
           prisma.marketingAction.update({ where: { id: action.id }, data: { status: "SENT", deliveryId, failureReason: null, sentAt, nextFollowUpAt: new Date(Date.now() + 48 * 60 * 60 * 1000) } }),
           ...(promoCard ? [prisma.marketingPromoCard.update({ where: { id: promoCard.id }, data: { sentAt } })] : []),
         ]);
+        if (promoCard) cardsCreated += 1;
         emailsSent++;
       } catch (error) {
         console.error("Erro ao enviar email de recuperação:", error);
@@ -222,6 +231,7 @@ async function runRecovery(restaurantId: unknown) {
       success: true,
       customersFound: customers.length,
       created,
+      cardsCreated,
       emailsSent,
       skipped,
       emailsRemaining: finalAllowance?.emailBalance || 0,
@@ -240,6 +250,29 @@ async function runRecovery(restaurantId: unknown) {
       },
     );
   }
+}
+
+type RecoveryOffer = { title: string; description: string; benefitType: "PERCENT" | "FIXED" | "GIFT"; value: number | null; minSpend: number | null; validDays: number; terms: string | null; template: MarketingCardTheme };
+
+function parseRecoveryOffer(value: unknown): { offer: RecoveryOffer | null; error?: string } {
+  if (value == null) return { offer: null };
+  if (typeof value !== "object") return { offer: null, error: "Configuração da promoção inválida." };
+  const input = value as Record<string, unknown>;
+  const title = cleanText(input.title, 100);
+  const description = cleanText(input.description, 280);
+  const benefitType = String(input.benefitType || "PERCENT").toUpperCase();
+  const numericValue = Number(input.value || 0);
+  const minSpend = Number(input.minSpend || 0);
+  const validDays = Math.round(Number(input.validDays || 30));
+  const terms = cleanText(input.terms, 320) || null;
+  const template = String(input.template || "FOREST").toUpperCase() as MarketingCardTheme;
+  const invalid = title.length < 3 || description.length < 3 || !["PERCENT", "FIXED", "GIFT"].includes(benefitType) || !(template in MARKETING_CARD_THEMES) || !Number.isFinite(minSpend) || minSpend < 0 || minSpend > 10000 || validDays < 1 || validDays > 180 || (benefitType !== "GIFT" && (!Number.isFinite(numericValue) || numericValue <= 0)) || (benefitType === "PERCENT" && numericValue > 50) || (benefitType === "FIXED" && numericValue > 1000);
+  if (invalid) return { offer: null, error: "Revê o desconto, a validade e os dados do cartão." };
+  return { offer: { title, description, benefitType: benefitType as RecoveryOffer["benefitType"], value: benefitType === "GIFT" ? null : numericValue, minSpend: minSpend || null, validDays, terms, template } };
+}
+
+function cleanText(value: unknown, max: number) {
+  return typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, max) : "";
 }
 
 function cleanSubject(value: string) {

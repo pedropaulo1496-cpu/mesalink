@@ -833,7 +833,7 @@ function MarketingRoiCard({
         </div>
 
         <div className="mt-4">
-          <DashboardRecoveryButton />
+          <DashboardRecoveryButton restaurantId={restaurantId} />
         </div>
       </div>
     </Panel>
