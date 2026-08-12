@@ -16,9 +16,6 @@ export type PartnerRestaurant = {
   menuUrl: string;
   menuSections: Array<{ title: string; items: string[] }>;
   averageTicket: number;
-  commissionType: string;
-  commissionAmount: number;
-  hasAgreement: boolean;
 };
 
 export default function NewReferralGroupForm({
@@ -193,7 +190,6 @@ export default function NewReferralGroupForm({
                       {restaurant.address && <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address)}`} target="_blank" rel="noreferrer" className="mt-3 flex w-fit items-center gap-1.5 text-xs font-black text-[#7B572B]"><MapPin size={13} /> Ver localização no mapa <ExternalLink size={12} /></a>}
                     </div>
                   </details>
-                  <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#E9DECE] pt-3"><p className="text-xs font-bold text-[#8A6130]">{restaurant.hasAgreement ? "Acordo ativo" : "Comissão base"}</p><p className="text-sm font-black text-[#5E4326]">{restaurant.commissionType === "PER_PERSON" ? `${money(restaurant.commissionAmount)} / pessoa` : `${money(restaurant.commissionAmount)} total`}</p></div>
                 </div>
               </article>;
             })}
@@ -209,7 +205,7 @@ export default function NewReferralGroupForm({
             <select value={commissionType} onChange={(event) => setCommissionType(event.target.value)} className="h-12 rounded-2xl border border-white/15 bg-white/10 px-4 text-sm"><option className="text-black" value="PER_PERSON">Por pessoa</option><option className="text-black" value="TOTAL">Total</option></select>
             <input value={commissionAmount} onChange={(event) => setCommissionAmount(Number(event.target.value))} type="number" min="1" max="1000" step="0.01" className="h-12 rounded-2xl border border-white/15 bg-white/10 px-4 text-sm" />
           </div>
-          <div className="mt-6 space-y-3 border-t border-white/10 pt-5 text-sm"><MoneyRow label="Comissão bruta" value={money(gross)} /><MoneyRow label="MesaLink · 15%" value={money(mesaLinkFee)} muted /><MoneyRow label="Recebes · 85%" value={money(partnerNet)} strong /></div>
+          <div className="mt-6 border-t border-white/10 pt-5 text-sm"><MoneyRow label="Recebes · 85%" value={money(partnerNet)} strong /></div>
           <p className="mt-4 text-[11px] leading-5 text-white/40">Um acordo pré-definido com o restaurante substitui esta proposta para esse restaurante.</p>
         </div>
         {message && <div className={`rounded-[22px] border p-4 text-sm font-semibold ${success ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{message}</div>}

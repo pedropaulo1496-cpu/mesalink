@@ -24,7 +24,6 @@ export default async function PartnerAppPage({
     include: {
       referralPartner: {
         include: {
-          agreements: { where: { active: true } },
           groups: {
             orderBy: { createdAt: "desc" },
             take: 12,
@@ -83,8 +82,6 @@ export default async function PartnerAppPage({
       referralProfileHighlights: true,
       referralProfileMenuUrl: true,
       averageTicket: true,
-      referralDefaultCommissionType: true,
-      referralDefaultCommissionAmount: true,
       websiteMenus: {
         orderBy: { sortOrder: "asc" },
         take: 6,
@@ -107,9 +104,7 @@ export default async function PartnerAppPage({
     },
   });
 
-  const agreementByRestaurant = new Map(partner.agreements.map((agreement) => [agreement.restaurantId, agreement]));
   const restaurantOptions = restaurants.map((restaurant) => {
-    const agreement = agreementByRestaurant.get(restaurant.id);
     const profile = buildPartnerProfile(restaurant);
     return {
       id: restaurant.id,
@@ -124,9 +119,6 @@ export default async function PartnerAppPage({
       menuUrl: profile.menuUrl,
       menuSections: profile.menuSections,
       averageTicket: Number(restaurant.averageTicket || 0),
-      commissionType: agreement?.commissionType || restaurant.referralDefaultCommissionType,
-      commissionAmount: Number(agreement?.commissionAmount || restaurant.referralDefaultCommissionAmount),
-      hasAgreement: Boolean(agreement),
     };
   });
 

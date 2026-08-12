@@ -371,6 +371,7 @@ model Restaurant {
   referralNetworkEnabled          Boolean  @default(false)
   referralDefaultCommissionType   String   @default("PER_PERSON")
   referralDefaultCommissionAmount Decimal  @default(5) @db.Decimal(10, 2)
+  referralMaxCommissionPerPerson  Decimal? @db.Decimal(10, 2)
   referralProfileCuisine          String?
   referralProfileDescription      String?
   referralProfileHeroImage        String?

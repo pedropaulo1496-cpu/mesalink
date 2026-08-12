@@ -4,10 +4,10 @@ import { notFound, redirect } from "next/navigation";
 import { Building2, CalendarClock, CheckCircle2, CircleDollarSign, Clock3, MapPin, ShieldCheck, UsersRound } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
-import { PartnerProfileSettingsForm, ReferralAgreementForm, ReferralNetworkSettingsForm } from "@/components/partners/PartnerNetworkControls";
+import { PartnerProfileSettingsForm, ReferralOfferFilterForm } from "@/components/partners/PartnerNetworkControls";
 import { authOptions } from "@/lib/auth";
 import { buildPartnerProfile } from "@/lib/partner-profile";
-import { calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
+import { calculateReferralCommission, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
 
 export default async function PartnerNetworkPage({
@@ -37,11 +37,6 @@ export default async function PartnerNetworkPage({
                 },
               },
             },
-          },
-          referralAgreements: {
-            where: { active: true },
-            orderBy: { updatedAt: "desc" },
-            include: { partner: { select: { businessName: true, partnerType: true, email: true } } },
           },
           acceptedReferralGroups: {
             orderBy: { updatedAt: "desc" },
@@ -74,13 +69,18 @@ export default async function PartnerNetworkPage({
   if (!restaurant) notFound();
 
   const partnerProfile = buildPartnerProfile(restaurant);
+  const visibleReferralOffers = restaurant.referralOffers.filter((offer) => {
+    if (restaurant.referralMaxCommissionPerPerson == null) return true;
+    const type = isCommissionType(offer.commissionType) ? offer.commissionType : "TOTAL";
+    const gross = calculateReferralCommission({ guests: offer.group.guests, commissionType: type, commissionAmount: Number(offer.commissionAmount) }).gross;
+    return gross / Math.max(1, offer.group.guests) <= Number(restaurant.referralMaxCommissionPerPerson);
+  });
 
-  const pendingValue = restaurant.referralOffers.reduce((total, offer) => {
+  const pendingValue = visibleReferralOffers.reduce((total, offer) => {
     const type = isCommissionType(offer.commissionType) ? offer.commissionType : "TOTAL";
     return total + calculateReferralCommission({ guests: offer.group.guests, commissionType: type, commissionAmount: Number(offer.commissionAmount) }).gross;
   }, 0);
   const completedGroups = restaurant.acceptedReferralGroups.filter((group) => ["COMPLETED", "PAID"].includes(group.status));
-  const paidCommission = restaurant.acceptedReferralGroups.reduce((total, group) => total + Math.max(0, Number(group.payment?.grossCommission || 0) - Number(group.payment?.refundedAmount || 0)), 0);
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
@@ -96,23 +96,23 @@ export default async function PartnerNetworkPage({
           {result && <div className={`mt-5 rounded-[22px] border px-5 py-4 text-sm font-semibold ${["accepted", "completed", "payment-success", "already-paid"].includes(result) ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : result === "declined" || result === "payment-cancelled" ? "border-[#DCCCAD] bg-[#FFF9ED] text-[#795D38]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{resultMessage(result)}</div>}
 
           <section className="mt-4 grid grid-cols-2 gap-2 xl:grid-cols-4">
-            <Kpi icon={<UsersRound size={15} />} label="Pedidos novos" value={String(restaurant.referralOffers.length)} />
+            <Kpi icon={<UsersRound size={15} />} label="Pedidos novos" value={String(visibleReferralOffers.length)} />
             <Kpi icon={<CircleDollarSign size={15} />} label="Comissão em pedidos" value={formatMoney(pendingValue)} />
             <Kpi icon={<CheckCircle2 size={15} />} label="Grupos concluídos" value={String(completedGroups.length)} />
-            <Kpi icon={<Building2 size={15} />} label="Acordos ativos" value={String(restaurant.referralAgreements.length)} detail={`${formatMoney(paidCommission)} em comissões`} />
+            <Kpi icon={<Building2 size={15} />} label="Limite por pessoa" value={restaurant.referralMaxCommissionPerPerson == null ? "Sem limite" : formatMoney(Number(restaurant.referralMaxCommissionPerPerson))} />
           </section>
 
           <section className="mt-4 rounded-[24px] border border-[#E1D0B8] bg-white p-4 shadow-[0_16px_40px_rgba(80,55,30,0.045)]">
-            <div className="flex items-center justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">Ofertas de grupos</p><h2 className="mt-0.5 text-xl font-semibold tracking-[-0.04em]">Por responder</h2></div><span className="rounded-full bg-[#F1E6D5] px-2.5 py-1 text-[10px] font-black text-[#795D38]">{restaurant.referralOffers.length}</span></div>
+            <div className="flex items-center justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">Ofertas de grupos</p><h2 className="mt-0.5 text-xl font-semibold tracking-[-0.04em]">Por responder</h2></div><span className="rounded-full bg-[#F1E6D5] px-2.5 py-1 text-[10px] font-black text-[#795D38]">{visibleReferralOffers.length}</span></div>
             <div className="mt-4 space-y-2">
-              {restaurant.referralOffers.map((offer) => {
+              {visibleReferralOffers.map((offer) => {
                 const group = offer.group;
                 const isDemoGroup = group.publicCode.startsWith("DEMO-");
                 const type = isCommissionType(offer.commissionType) ? offer.commissionType : "TOTAL";
                 const amounts = calculateReferralCommission({ guests: group.guests, commissionType: type, commissionAmount: Number(offer.commissionAmount), platformFeePercent: Number(offer.platformFeePercent) });
                 const children = Math.max(0, group.children || 0);
                 const adults = group.adults ?? Math.max(1, group.guests - children);
-                const commissionLabel = type === "PER_PERSON" ? `${formatMoney(Number(offer.commissionAmount))} / pessoa` : `${formatMoney(Number(offer.commissionAmount))} total`;
+                const commissionPerPerson = amounts.gross / Math.max(1, group.guests);
                 return <article key={offer.id} className="rounded-[20px] border border-[#E1D0B8] bg-[#FFFDFC] p-3 transition hover:border-[#C9AD83]">
                   <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_170px_270px] xl:items-center">
                     <div className="flex min-w-0 items-start gap-3">
@@ -122,13 +122,13 @@ export default async function PartnerNetworkPage({
                         <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#6B6258]"><span className="inline-flex items-center gap-1"><CalendarClock size={12} className="text-[#9B6F3B]" />{new Intl.DateTimeFormat("pt-PT", { dateStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)}</span><span className="inline-flex items-center gap-1"><Clock3 size={12} className="text-[#9B6F3B]" />{new Intl.DateTimeFormat("pt-PT", { timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)}</span><span className="inline-flex items-center gap-1"><MapPin size={12} className="text-[#9B6F3B]" />{group.area || group.city || "Zona flexível"}</span>{group.cuisineTypes.slice(0, 2).map((item) => <span key={item} className="font-semibold text-[#715B43]">· {item}</span>)}{group.budgetPerPerson && <span className="font-semibold text-[#4F6C4D]">· {formatMoney(Number(group.budgetPerPerson))}/pessoa</span>}</div>
                       </div>
                     </div>
-                    <div className="rounded-[15px] border border-[#E5D6C0] bg-[#FFF7EA] px-3 py-2 xl:text-right"><p className="text-[7px] font-black uppercase tracking-[0.12em] text-[#9A7650]">Comissão</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{commissionLabel}</p><p className="text-[9px] text-[#8A7863]">{formatMoney(amounts.gross)} total</p></div>
+                    <div className="rounded-[15px] border border-[#E5D6C0] bg-[#FFF7EA] px-3 py-2 xl:text-right"><p className="text-[7px] font-black uppercase tracking-[0.12em] text-[#9A7650]">Comissão por pessoa</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{formatMoney(commissionPerPerson)} / pessoa</p></div>
                     <div className="grid grid-cols-[90px_1fr] gap-2"><form action={`/api/referral-offers/${offer.id}/decline`} method="POST"><button className="h-9 w-full rounded-full border border-[#D8C6A9] bg-white text-[11px] font-bold hover:bg-[#FFF7ED]">Rejeitar</button></form><form action={`/api/referral-offers/${offer.id}/accept`} method="POST"><button className="h-9 w-full rounded-full bg-[#17120D] px-3 text-[11px] font-bold text-white hover:bg-[#34271C]">{isDemoGroup ? "Testar · sem cobrança" : "Aceitar grupo"}</button></form></div>
                   </div>
-                  <details className="group mt-2 border-t border-[#EEE3D3] pt-2"><summary className="w-fit cursor-pointer list-none text-[10px] font-bold text-[#755B3B]">Condições e valores <span className="ml-1 inline-block transition group-open:rotate-180">⌄</span></summary><div className="mt-2 grid gap-2 rounded-xl bg-white p-3 text-[10px] sm:grid-cols-3"><div><p className="text-[#8B7D6D]">Parceiro recebe 85%</p><p className="font-bold">{formatMoney(amounts.partnerNet)}</p></div><div><p className="text-[#8B7D6D]">MesaLink retém 15%</p><p className="font-bold">{formatMoney(amounts.platformFee)}</p></div><div><p className="text-[#8B7D6D]">Serviço e pagamento</p><p className="font-bold">{formatMoney(calculateReferralServiceFee(amounts.gross))}</p></div>{group.notes && <p className="leading-4 text-[#665B50] sm:col-span-3">{group.notes}</p>}</div></details>
+                  {group.notes && <details className="group mt-2 border-t border-[#EEE3D3] pt-2"><summary className="w-fit cursor-pointer list-none text-[10px] font-bold text-[#755B3B]">Ver observações <span className="ml-1 inline-block transition group-open:rotate-180">⌄</span></summary><p className="mt-2 rounded-xl bg-white p-3 text-[10px] leading-4 text-[#665B50]">{group.notes}</p></details>}
                 </article>;
               })}
-              {restaurant.referralOffers.length === 0 && <div className="rounded-[28px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-10 text-center"><CalendarClock className="mx-auto text-[#9B6F3B]" /><p className="mt-4 font-semibold">Não há grupos pendentes.</p><p className="mt-2 text-sm text-[#6B6258]">Quando um parceiro selecionar o restaurante, aparece aqui em tempo real.</p></div>}
+              {visibleReferralOffers.length === 0 && <div className="rounded-[28px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-10 text-center"><CalendarClock className="mx-auto text-[#9B6F3B]" /><p className="mt-4 font-semibold">Não há grupos dentro do teu limite.</p><p className="mt-2 text-sm text-[#6B6258]">Novas propostas aparecem aqui quando respeitam o máximo definido por pessoa.</p></div>}
             </div>
           </section>
 
@@ -162,12 +162,7 @@ export default async function PartnerNetworkPage({
             <PartnerProfileSettingsForm restaurantId={id} restaurantName={restaurant.name} cuisine={partnerProfile.cuisine} description={partnerProfile.description} heroImage={partnerProfile.heroImage} gallery={partnerProfile.galleryImages} highlights={partnerProfile.highlights} menuUrl={partnerProfile.menuUrl} />
           </section>
 
-          <section className="mt-5 grid gap-4 xl:grid-cols-2">
-            <div className="rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-7"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Comissão sugerida</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Valor base para novos grupos</h2><ReferralNetworkSettingsForm restaurantId={id} initialCommissionType={restaurant.referralDefaultCommissionType} initialCommissionAmount={Number(restaurant.referralDefaultCommissionAmount)} /></div>
-            <div className="rounded-[34px] border border-[#E1D0B8] bg-[#FFF9F0] p-5 sm:p-7"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Acordo direto</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Define uma comissão recorrente</h2><p className="mt-2 text-sm leading-6 text-[#6B6258]">Usa o email profissional do hotel ou parceiro. O acordo substitui a comissão base em todos os grupos futuros.</p><ReferralAgreementForm restaurantId={id} /></div>
-          </section>
-
-          {restaurant.referralAgreements.length > 0 && <section className="mt-5 rounded-[24px] border border-[#E1D0B8] bg-white p-5"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Parceiros recorrentes</p><div className="mt-4 grid gap-3 md:grid-cols-2">{restaurant.referralAgreements.map((agreement) => <div key={agreement.id} className="rounded-[20px] border border-[#E1D0B8] bg-[#FFFDFC] p-4"><p className="font-semibold">{agreement.partner.businessName}</p><p className="mt-1 text-xs text-[#75695C]">{partnerType(agreement.partner.partnerType)} · {agreement.partner.email}</p><p className="mt-3 text-sm font-bold text-[#795D38]">{agreement.commissionType === "PER_PERSON" ? `${formatMoney(Number(agreement.commissionAmount))} por pessoa` : `${formatMoney(Number(agreement.commissionAmount))} total`} · MesaLink 15%</p></div>)}</div></section>}
+          <section className="mt-5 max-w-md rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-5"><p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">Filtro de propostas</p><h2 className="mt-1 text-xl font-semibold tracking-[-0.04em]">Quanto aceitas pagar por pessoa?</h2><ReferralOfferFilterForm restaurantId={id} initialMaxCommissionPerPerson={restaurant.referralMaxCommissionPerPerson == null ? null : Number(restaurant.referralMaxCommissionPerPerson)} /></section>
             </div>
           </details>
         </section>

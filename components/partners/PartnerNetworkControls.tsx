@@ -4,14 +4,12 @@ import { FormEvent, useState } from "react";
 import { FileUploadField } from "@/components/FileUploadField";
 import { ImageUploadField } from "@/components/ImageUploadField";
 
-export function ReferralNetworkSettingsForm({
+export function ReferralOfferFilterForm({
   restaurantId,
-  initialCommissionType,
-  initialCommissionAmount,
+  initialMaxCommissionPerPerson,
 }: {
   restaurantId: string;
-  initialCommissionType: string;
-  initialCommissionAmount: number;
+  initialMaxCommissionPerPerson: number | null;
 }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -25,9 +23,7 @@ export function ReferralNetworkSettingsForm({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        enabled: true,
-        commissionType: data.get("commissionType"),
-        commissionAmount: data.get("commissionAmount"),
+        maxCommissionPerPerson: data.get("maxCommissionPerPerson"),
       }),
     });
     const result = await response.json();
@@ -36,14 +32,11 @@ export function ReferralNetworkSettingsForm({
   }
 
   return (
-    <form onSubmit={submit} className="mt-5 space-y-4">
-      <div className="rounded-[22px] border border-[#BFD7BB] bg-[#F1F9F0] p-4"><span className="block text-sm font-semibold text-[#3F6A4D]">Publicado automaticamente na app Partners</span><span className="mt-1 block text-xs leading-5 text-[#60705E]">Todos os restaurantes MesaLink aparecem na pesquisa. Define aqui a comissão sugerida para novos grupos.</span></div>
-      <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
-        <select name="commissionType" defaultValue={initialCommissionType} className="input-premium h-12"><option value="PER_PERSON">Comissão por pessoa</option><option value="TOTAL">Comissão total</option></select>
-        <input name="commissionAmount" type="number" min="1" max="1000" step="0.01" defaultValue={initialCommissionAmount} className="input-premium h-12" />
-      </div>
+    <form onSubmit={submit} className="mt-4 space-y-3">
+      <label className="block text-xs font-bold text-[#75695D]">Máximo por pessoa (€)<input name="maxCommissionPerPerson" type="number" min="0.01" max="1000" step="0.01" defaultValue={initialMaxCommissionPerPerson ?? ""} placeholder="Sem limite" className="input-premium mt-2 h-11" /></label>
+      <p className="text-[11px] leading-5 text-[#75695D]">Propostas acima deste valor não aparecem. Deixa vazio para receber todas.</p>
       {message && <p className="text-xs font-semibold text-[#6F573A]">{message}</p>}
-      <button disabled={loading} className="h-12 rounded-full bg-[#17120D] px-6 text-sm font-bold text-white disabled:opacity-50">{loading ? "A guardar…" : "Guardar comissão base"}</button>
+      <button disabled={loading} className="h-10 rounded-full bg-[#17120D] px-5 text-xs font-bold text-white disabled:opacity-50">{loading ? "A guardar…" : "Guardar limite"}</button>
     </form>
   );
 }

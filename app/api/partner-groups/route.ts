@@ -95,30 +95,23 @@ export async function POST(request: Request) {
             ] }] : []),
           ],
         };
-    const restaurants = await prisma.restaurant.findMany({
+    const restaurantCandidates = await prisma.restaurant.findMany({
       where: restaurantWhere,
       orderBy: { name: "asc" },
-      select: { id: true },
+      select: { id: true, referralMaxCommissionPerPerson: true },
     });
+    const submittedGrossCommission = commissionType === "PER_PERSON" ? guests * commissionAmount : commissionAmount;
+    const submittedCommissionPerPerson = submittedGrossCommission / Math.max(1, guests);
+    const restaurants = restaurantCandidates.filter((restaurant) => restaurant.referralMaxCommissionPerPerson == null || submittedCommissionPerPerson <= Number(restaurant.referralMaxCommissionPerPerson));
     const restaurantIds = restaurants.map((restaurant) => restaurant.id);
     if (restaurantIds.length === 0) {
-      return NextResponse.json({ error: "Não existem restaurantes para esta seleção." }, { status: 400 });
+      return NextResponse.json({ error: "Os restaurantes escolhidos não recebem propostas acima deste valor por pessoa." }, { status: 400 });
     }
 
-    const agreements = await prisma.referralAgreement.findMany({
-        where: {
-          partnerId: partner.id,
-          restaurantId: { in: restaurantIds },
-          active: true,
-          OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }],
-        },
-    });
-
-    if (targetMode === "SELECTED" && restaurants.length !== submittedRestaurantIds.length) {
+    if (targetMode === "SELECTED" && restaurantCandidates.length !== submittedRestaurantIds.length) {
       return NextResponse.json({ error: "Um dos restaurantes selecionados já não está disponível." }, { status: 409 });
     }
 
-    const agreementByRestaurant = new Map(agreements.map((item) => [item.restaurantId, item]));
     const publicCode = createReferralCode();
     const expiresAt = new Date(Math.min(desiredDate.getTime() - 2 * 60 * 60 * 1000, Date.now() + 29 * 24 * 60 * 60 * 1000));
     const occasionLabels: Record<string, string> = {
@@ -169,11 +162,10 @@ export async function POST(request: Request) {
         expiresAt,
         offers: {
           create: restaurantIds.map((restaurantId) => {
-            const agreement = agreementByRestaurant.get(restaurantId);
             return {
               restaurantId,
-              commissionType: agreement?.commissionType || commissionType,
-              commissionAmount: agreement?.commissionAmount || commissionAmount,
+              commissionType,
+              commissionAmount,
               platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT,
             };
           }),
