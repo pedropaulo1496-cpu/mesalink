@@ -294,7 +294,7 @@ async function createPublicReservation(formData: FormData) {
           ? { trackingToken: marketingToken }
           : {
               type: {
-                in: ["INACTIVE_RECOVERY", "BIRTHDAY", "MANUAL_CAMPAIGN", "AI_CAMPAIGN", "REVIEW_RECOVERY", "FOLLOW_UP"],
+                in: ["INACTIVE_RECOVERY", "BIRTHDAY", "MANUAL_CAMPAIGN", "AI_CAMPAIGN", "REVIEW_RECOVERY", "CARD_GIFT", "FOLLOW_UP"],
               },
             }),
       },

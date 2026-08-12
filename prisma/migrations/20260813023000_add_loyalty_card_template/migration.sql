@@ -1,0 +1,1 @@
+ALTER TABLE "ReferralBenefit" ADD COLUMN "template" TEXT NOT NULL DEFAULT 'GOLD';

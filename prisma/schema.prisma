@@ -1330,6 +1330,7 @@ model ReferralBenefit {
   value       Decimal? @db.Decimal(10, 2)
   minSpend    Decimal? @db.Decimal(10, 2)
   terms       String?
+  template    String   @default("GOLD")
 
   active         Boolean   @default(true)
   validFrom      DateTime  @default(now())

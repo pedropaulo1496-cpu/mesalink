@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
+import { MARKETING_CARD_THEMES } from "@/lib/marketing-card-themes";
 
 const benefitTypes = new Set(["PERCENT", "FIXED", "PERK"]);
 
@@ -19,6 +20,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const value = body?.value === "" || body?.value == null ? null : Number(body.value);
   const minSpend = body?.minSpend === "" || body?.minSpend == null ? null : Number(body.minSpend);
   const maxRedemptions = body?.maxRedemptions === "" || body?.maxRedemptions == null ? null : Number(body.maxRedemptions);
+  const template = typeof body?.template === "string" && body.template in MARKETING_CARD_THEMES ? body.template : "GOLD";
   const validFrom = parseDate(body?.validFrom) || new Date();
   const validUntil = parseDate(body?.validUntil);
 
@@ -56,6 +58,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       value,
       minSpend,
       maxRedemptions,
+      template,
       validFrom,
       validUntil,
     },

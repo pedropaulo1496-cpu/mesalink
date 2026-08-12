@@ -34,10 +34,13 @@ export async function POST(request: Request) {
           if (!promoCard || promoCard.restaurantId !== restaurant.id) return { status: "NOT_FOUND" as const };
 
           const now = new Date();
-          const unavailable = promoCard.status !== "ACTIVE" || (promoCard.expiresAt != null && promoCard.expiresAt <= now);
+          const sourceBenefit = promoCard.campaignId ? await tx.referralBenefit.findUnique({ where: { id: promoCard.campaignId }, select: { id: true, active: true, validFrom: true, validUntil: true, maxRedemptions: true, redemptions: true } }) : null;
+          const sourceUnavailable = sourceBenefit != null && (!sourceBenefit.active || sourceBenefit.validFrom > now || (sourceBenefit.validUntil != null && sourceBenefit.validUntil <= now) || (sourceBenefit.maxRedemptions != null && sourceBenefit.redemptions >= sourceBenefit.maxRedemptions));
+          const unavailable = promoCard.status !== "ACTIVE" || (promoCard.expiresAt != null && promoCard.expiresAt <= now) || sourceUnavailable;
           if (unavailable) return { status: promoCard.status === "REDEEMED" ? "REDEEMED" as const : "UNAVAILABLE" as const };
 
           await tx.marketingPromoCard.update({ where: { id: promoCard.id }, data: { status: "REDEEMED", redeemedAt: now } });
+          if (sourceBenefit) await tx.referralBenefit.update({ where: { id: sourceBenefit.id }, data: { redemptions: { increment: 1 } } });
           return { status: "SUCCESS" as const, title: promoCard.title, guestCount: 1 };
         }
         if (card.benefit.restaurantId !== restaurant.id) return { status: "NOT_FOUND" as const };

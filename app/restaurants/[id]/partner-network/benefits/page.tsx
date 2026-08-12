@@ -5,7 +5,8 @@ import { notFound, redirect } from "next/navigation";
 import { BadgePercent, CheckCircle2, Gift, ScanLine, TicketCheck } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
-import { BenefitToggleButton, CreatePartnerBenefitForm, IssueBenefitCardButton, RedeemBenefitCardForm } from "@/components/partners/PartnerBenefitControls";
+import { BenefitToggleButton, CreatePartnerBenefitForm, RedeemBenefitCardForm } from "@/components/partners/PartnerBenefitControls";
+import SendCardToCustomersButton from "@/components/marketing/SendCardToCustomersButton";
 import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
@@ -33,7 +34,13 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
       marketingPromoCards: {
         orderBy: { createdAt: "desc" },
         take: 80,
-        select: { id: true, publicCode: true, title: true, template: true, status: true, sentAt: true, expiresAt: true, redeemedAt: true },
+        select: { id: true, publicCode: true, title: true, template: true, campaignId: true, status: true, sentAt: true, expiresAt: true, redeemedAt: true },
+      },
+      customers: {
+        where: { marketingOptIn: true, email: { not: null } },
+        orderBy: { name: "asc" },
+        select: { id: true, name: true, email: true },
+        take: 1000,
       },
     },
   }) : null;
@@ -44,17 +51,18 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
   const redeemedCards = allCards.filter((card) => card.status === "REDEEMED");
   const totalCardCount = allCards.length + restaurant.marketingPromoCards.length;
   const totalRedeemedCount = redeemedCards.length + restaurant.marketingPromoCards.filter((card) => card.status === "REDEEMED").length;
+  const customerOptions = restaurant.customers.flatMap((customer) => customer.email ? [{ id: customer.id, name: customer.name, email: customer.email }] : []);
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
       <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
         <RestaurantSidebar id={id} restaurantName={restaurant.name} active="marketing" />
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-          <header><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Marketing & Fidelização</p><h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">Ofertas e cartões que fazem os clientes voltar.</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">Cria descontos ou vantagens, emite cartões pelos teus próprios canais e mede quantos foram utilizados. Esta área é do restaurante e não pertence à rede de hotéis.</p></header>
+          <header><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Marketing & Fidelização</p><h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">Cartões que fazem os clientes voltar.</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">Cria cartões privados, escolhe um ou vários clientes do sistema e acompanha os envios e utilizações. Esta área é do restaurante e não pertence à rede de hotéis.</p></header>
           <MarketingLoyaltyTabs id={id} />
 
           <section className="mt-7 grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <Kpi icon={<Gift size={18} />} label="Ofertas ativas" value={String(activeBenefits.length)} />
+            <Kpi icon={<Gift size={18} />} label="Modelos ativos" value={String(activeBenefits.length)} />
             <Kpi icon={<TicketCheck size={18} />} label="Cartões emitidos" value={String(totalCardCount)} />
             <Kpi icon={<CheckCircle2 size={18} />} label="Utilizações" value={String(totalRedeemedCount)} />
             <Kpi icon={<BadgePercent size={18} />} label="Taxa de utilização" value={totalCardCount ? `${Math.round((totalRedeemedCount / totalCardCount) * 100)}%` : "0%"} />
@@ -62,7 +70,7 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
             <div className="rounded-[34px] border border-[#E1D0B8] bg-white p-5 shadow-[0_24px_75px_rgba(80,55,30,0.07)] sm:p-8">
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Nova promoção</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Publicar oferta</h2><p className="mt-2 text-sm leading-6 text-[#6B6258]">Depois de publicada, podes emitir cartões individuais e partilhar o link com os clientes.</p>
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Novo modelo</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Criar cartão</h2><p className="mt-2 text-sm leading-6 text-[#6B6258]">Cria um cartão privado do restaurante. Depois escolhes exatamente os clientes que o vão receber.</p>
               <CreatePartnerBenefitForm restaurantId={id} />
             </div>
             <div className="rounded-[34px] border border-[#D8C39F] bg-[#FFF9F0] p-5 sm:p-8">
@@ -72,14 +80,16 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
           </section>
 
           <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Campanhas</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Ofertas publicadas</h2>
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Biblioteca</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Os teus cartões</h2><p className="mt-2 text-sm text-[#6B6258]">Modelos privados. Escolhe um cartão e envia-o a um ou vários clientes do sistema.</p>
             <div className="mt-6 grid gap-4 xl:grid-cols-2">
               {restaurant.referralBenefits.map((benefit) => {
-                const used = benefit.cards.filter((card) => card.status === "REDEEMED").length;
+                const directCards = restaurant.marketingPromoCards.filter((card) => card.campaignId === benefit.id);
+                const issued = benefit.cards.length + directCards.length;
+                const used = benefit.cards.filter((card) => card.status === "REDEEMED").length + directCards.filter((card) => card.status === "REDEEMED").length;
                 const expired = benefit.validUntil != null && benefit.validUntil <= new Date();
-                return <article key={benefit.id} className="rounded-[28px] border border-[#E1D0B8] bg-[#FFFDFC] p-5"><div className="flex items-start justify-between gap-4"><div><div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${benefit.active && !expired ? "bg-[#EFF9EF] text-[#3F6A4D]" : "bg-[#EFE7DA] text-[#806D56]"}`}>{expired ? "Expirado" : benefit.active ? "Ativo" : "Pausado"}</span><span className="text-xs text-[#8A7863]">{benefitTypeLabel(benefit.benefitType)}</span></div><h3 className="mt-3 text-xl font-semibold">{benefit.title}</h3></div><p className="text-xl font-semibold text-[#704E27]">{benefitValue(benefit.benefitType, Number(benefit.value || 0))}</p></div>{benefit.description && <p className="mt-3 text-sm leading-6 text-[#6B6258]">{benefit.description}</p>}<div className="mt-4 grid grid-cols-3 gap-2"><MiniStat label="Emitidos" value={String(benefit.cards.length)} /><MiniStat label="Utilizados" value={String(used)} /><MiniStat label="Limite" value={benefit.maxRedemptions == null ? "∞" : String(benefit.maxRedemptions)} /></div>{benefit.active && !expired && <div className="mt-4 rounded-[18px] border border-[#E5D6C0] bg-[#FFF9F0] p-3"><p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#8A6130]">Emitir cartão digital</p><IssueBenefitCardButton benefitId={benefit.id} /></div>}<div className="mt-4 flex items-center justify-between gap-3"><p className="text-xs text-[#75695C]">{benefit.validUntil ? `Até ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium" }).format(benefit.validUntil)}` : "Sem data de fim"}</p><BenefitToggleButton benefitId={benefit.id} active={benefit.active} /></div></article>;
+                return <article key={benefit.id} className="rounded-[28px] border border-[#E1D0B8] bg-[#FFFDFC] p-5"><div className="flex items-start justify-between gap-4"><div><div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${benefit.active && !expired ? "bg-[#EFF9EF] text-[#3F6A4D]" : "bg-[#EFE7DA] text-[#806D56]"}`}>{expired ? "Expirado" : benefit.active ? "Ativo" : "Pausado"}</span><span className="text-xs text-[#8A7863]">{benefitTypeLabel(benefit.benefitType)}</span></div><h3 className="mt-3 text-xl font-semibold">{benefit.title}</h3></div><p className="text-xl font-semibold text-[#704E27]">{benefitValue(benefit.benefitType, Number(benefit.value || 0))}</p></div>{benefit.description && <p className="mt-3 text-sm leading-6 text-[#6B6258]">{benefit.description}</p>}<div className="mt-4 grid grid-cols-3 gap-2"><MiniStat label="Emitidos" value={String(issued)} /><MiniStat label="Utilizados" value={String(used)} /><MiniStat label="Limite" value={benefit.maxRedemptions == null ? "∞" : String(benefit.maxRedemptions)} /></div>{benefit.active && !expired && <div className="mt-4 rounded-[18px] border border-[#E5D6C0] bg-[#FFF9F0] p-3"><p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-[#8A6130]">Oferecer este cartão</p><SendCardToCustomersButton benefitId={benefit.id} customers={customerOptions} /></div>}<div className="mt-4 flex items-center justify-between gap-3"><p className="text-xs text-[#75695C]">{benefit.validUntil ? `Até ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium" }).format(benefit.validUntil)}` : "Sem data de fim"}</p><BenefitToggleButton benefitId={benefit.id} active={benefit.active} /></div></article>;
               })}
-              {restaurant.referralBenefits.length === 0 && <div className="rounded-[28px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-10 text-center xl:col-span-2"><Gift className="mx-auto text-[#9B6F3B]" /><p className="mt-4 font-semibold">Ainda não publicaste ofertas.</p><p className="mt-2 text-sm text-[#6B6258]">Cria a primeira promoção e emite cartões para partilhar com os teus clientes.</p></div>}
+              {restaurant.referralBenefits.length === 0 && <div className="rounded-[28px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-10 text-center xl:col-span-2"><Gift className="mx-auto text-[#9B6F3B]" /><p className="mt-4 font-semibold">Ainda não criaste cartões.</p><p className="mt-2 text-sm text-[#6B6258]">Cria o primeiro modelo e escolhe os clientes que o vão receber.</p></div>}
             </div>
           </section>
 

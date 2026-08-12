@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   const minSpend = Number(body?.minSpend || 0);
   const validDays = Math.round(Number(body?.validDays || 30));
   const terms = clean(body?.terms, 320);
-  const ratingThreshold = Math.min(3, Math.max(1, Math.round(Number(body?.ratingThreshold || 3))));
+  const ratingThreshold = Math.min(4, Math.max(3, Math.round(Number(body?.ratingThreshold || 3))));
 
   if (!restaurantId || title.length < 3 || description.length < 3) return NextResponse.json({ error: "Preenche o título e a mensagem do cartão." }, { status: 400 });
   if (!benefitTypes.has(benefitType)) return NextResponse.json({ error: "Tipo de oferta inválido." }, { status: 400 });
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     return [{ review, reservation: reservation! }];
   }).slice(0, 100);
 
-  if (candidates.length === 0) return NextResponse.json({ error: "Não existem avaliações até 3 estrelas com email elegível por recuperar.", code: "NO_ELIGIBLE_REVIEWS" }, { status: 409 });
+  if (candidates.length === 0) return NextResponse.json({ error: `Não existem avaliações de 1 a ${ratingThreshold} estrelas com email elegível por recuperar.`, code: "NO_ELIGIBLE_REVIEWS" }, { status: 409 });
 
   const resend = new Resend(process.env.RESEND_API_KEY);
   const expiresAt = new Date(Date.now() + validDays * 24 * 60 * 60 * 1000);

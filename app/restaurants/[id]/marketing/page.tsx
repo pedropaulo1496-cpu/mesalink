@@ -150,11 +150,14 @@ export default async function MarketingPage({
   });
   const issuedReviewIds = new Set(issuedReviewCards.map((card) => card.reviewFeedbackId).filter(Boolean));
   const reviewReservationById = new Map(reviewReservations.map((reservation) => [reservation.id, reservation]));
-  const eligibleReviewEmails = new Set<string>();
+  const eligibleReviewEmails3 = new Set<string>();
+  const eligibleReviewEmails4 = new Set<string>();
   for (const review of reviewFeedbacks) {
-    if (review.rating > 3 || issuedReviewIds.has(review.id) || !review.reservationId) continue;
+    if (review.rating > 4 || issuedReviewIds.has(review.id) || !review.reservationId) continue;
     const email = reviewReservationById.get(review.reservationId)?.email?.trim().toLowerCase();
-    if (email) eligibleReviewEmails.add(email);
+    if (!email) continue;
+    eligibleReviewEmails4.add(email);
+    if (review.rating <= 3) eligibleReviewEmails3.add(email);
   }
 
   const reviewerNameByReservationId = new Map(
@@ -216,7 +219,7 @@ export default async function MarketingPage({
   );
 
   const campaignActions = marketingActions.filter((action) =>
-    ["BIRTHDAY", "VIP_UPGRADE", "MANUAL_CAMPAIGN", "AI_CAMPAIGN", "REVIEW_REQUEST", "REVIEW_RECOVERY"].includes(action.type),
+    ["BIRTHDAY", "VIP_UPGRADE", "MANUAL_CAMPAIGN", "AI_CAMPAIGN", "REVIEW_REQUEST", "REVIEW_RECOVERY", "CARD_GIFT"].includes(action.type),
   );
 
   const convertedActions = campaignActions.filter(
@@ -659,6 +662,7 @@ export default async function MarketingPage({
                       AI_CAMPAIGN: t("main.timeline.types.aiCampaign"),
                       REVIEW_REQUEST: t("main.timeline.types.review"),
                       REVIEW_RECOVERY: "Cartão de recuperação enviado",
+                      CARD_GIFT: "Cartão oferecido a cliente",
                     }}
                     statusLabels={{
                       CONVERTED: t("main.timeline.status.converted"),
@@ -703,7 +707,8 @@ export default async function MarketingPage({
 
                 <NegativeReviewRecoveryCard
                   restaurantId={id}
-                  eligibleCount={eligibleReviewEmails.size}
+                  eligibleCount3={eligibleReviewEmails3.size}
+                  eligibleCount4={eligibleReviewEmails4.size}
                   emailsRemaining={subscription?.emailBalance || 0}
                 />
 

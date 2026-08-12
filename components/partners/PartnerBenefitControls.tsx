@@ -2,11 +2,13 @@
 
 import { FormEvent, useState } from "react";
 import { Check, Copy, Gift, Loader2, Share2 } from "lucide-react";
+import { MARKETING_CARD_THEMES, type MarketingCardTheme } from "@/lib/marketing-card-themes";
 
 export function CreatePartnerBenefitForm({ restaurantId }: { restaurantId: string }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [benefitType, setBenefitType] = useState("PERCENT");
+  const [template, setTemplate] = useState<MarketingCardTheme>("GOLD");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -21,14 +23,14 @@ export function CreatePartnerBenefitForm({ restaurantId }: { restaurantId: strin
     const result = await response.json();
     setLoading(false);
     if (!response.ok) return setMessage(result.error || "Não foi possível criar o benefício.");
-    setMessage("Oferta publicada. Já podes emitir e partilhar cartões digitais.");
+    setMessage("Modelo criado. Já podes enviá-lo a um ou vários clientes.");
     setTimeout(() => window.location.reload(), 900);
   }
 
   return (
     <form onSubmit={submit} className="mt-5 space-y-4">
       <input name="title" required minLength={3} maxLength={80} placeholder="Ex.: 15% no menu de almoço" className="input-premium h-12" />
-      <textarea name="description" maxLength={240} rows={3} placeholder="Explica o benefício ao parceiro e ao cliente." className="input-premium min-h-24 resize-y py-3" />
+      <textarea name="description" maxLength={240} rows={3} placeholder="Mensagem curta que aparece no cartão do cliente." className="input-premium min-h-24 resize-y py-3" />
       <div className="grid gap-3 sm:grid-cols-2">
         <select name="benefitType" value={benefitType} onChange={(event) => setBenefitType(event.target.value)} className="input-premium h-12">
           <option value="PERCENT">Desconto percentual</option>
@@ -46,9 +48,10 @@ export function CreatePartnerBenefitForm({ restaurantId }: { restaurantId: strin
         <input name="maxRedemptions" type="number" min="1" max="100000" step="1" placeholder="Máximo de utilizações" className="input-premium h-12" />
       </div>
       <textarea name="terms" maxLength={400} rows={2} placeholder="Condições: dias, menus excluídos, acumulação…" className="input-premium min-h-20 resize-y py-3" />
+      <div><p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#806D56]">Design do cartão</p><div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">{(Object.keys(MARKETING_CARD_THEMES) as MarketingCardTheme[]).map((key) => { const theme = MARKETING_CARD_THEMES[key]; return <button key={key} type="button" onClick={() => setTemplate(key)} className={`aspect-[1.58/1] rounded-2xl border-2 p-3 text-left text-xs font-bold shadow-sm transition ${template === key ? "border-[#B9853E] ring-2 ring-[#B9853E]/15" : "border-transparent"}`} style={{ background: theme.background, color: theme.foreground }}>{theme.name}<span className="mt-5 block text-base" style={{ color: theme.accent }}>{benefitType === "PERCENT" ? "15%" : benefitType === "FIXED" ? "10€" : "OFERTA"}</span></button>; })}</div><input type="hidden" name="template" value={template} /></div>
       {message && <p className="rounded-xl bg-[#FFF4E2] px-3 py-2 text-xs font-semibold text-[#76572F]">{message}</p>}
       <button disabled={loading} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#17120D] px-6 text-sm font-bold text-white disabled:opacity-50">
-        {loading ? <Loader2 size={16} className="animate-spin" /> : <Gift size={16} />} {loading ? "A publicar…" : "Publicar benefício"}
+        {loading ? <Loader2 size={16} className="animate-spin" /> : <Gift size={16} />} {loading ? "A criar…" : "Criar cartão"}
       </button>
     </form>
   );
