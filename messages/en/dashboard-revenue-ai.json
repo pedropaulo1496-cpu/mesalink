@@ -60,10 +60,10 @@
   },
   "activity": {
     "eyebrow": "Agent activity",
-    "title": "Every attempt, every result",
-    "viewAll": "View Growth Engine",
+    "title": "Latest conversations and results",
+    "viewAll": "Open all conversations",
     "unknownCustomer": "Customer",
-    "empty": "There are no recovery attempts yet. Run the first automation above.",
+    "empty": "Conversations appear here automatically after a missed call or a WhatsApp reply.",
     "tapHint": "Tap to see details",
     "showAll": "View all {count} attempts",
     "showLess": "Show recent attempts only",

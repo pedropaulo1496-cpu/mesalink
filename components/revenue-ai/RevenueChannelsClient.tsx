@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, CheckCircle2, ChevronDown, Copy, Globe2, Loader2, Mail, MessageCircleMore, PhoneCall, Save, Sparkles } from "lucide-react";
+import { Check, CheckCircle2, ChevronDown, Copy, Globe2, Loader2, Mail, PhoneCall, Save, Sparkles } from "lucide-react";
 
 type ChannelStatus = {
   providerConfigured: boolean;
@@ -37,8 +37,8 @@ type Props = {
 export default function RevenueChannelsClient({ restaurantId, restaurantName, initial, initialStatus, initialRequest, websiteEnabled, webhookBaseUrl, whatsappBalance, aiCredits }: Props) {
   const [form, setForm] = useState(initial);
   const [status, setStatus] = useState(initialStatus);
-  const [wantsWhatsapp, setWantsWhatsapp] = useState(!initialStatus.whatsappReady);
-  const [wantsCalls, setWantsCalls] = useState(false);
+  const [wantsWhatsapp, setWantsWhatsapp] = useState(Boolean(initialRequest?.channels.includes("WHATSAPP")));
+  const [wantsCalls, setWantsCalls] = useState(Boolean(initialRequest?.channels.includes("VOICE")));
   const [contactPhone, setContactPhone] = useState(initial.forwardNumber);
   const [request, setRequest] = useState(initialRequest);
   const [requesting, setRequesting] = useState(false);
@@ -94,19 +94,17 @@ export default function RevenueChannelsClient({ restaurantId, restaurantName, in
   return <div className="space-y-5">
     <section className="rounded-[26px] border border-[#E1D0B8] bg-white p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Canais</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.045em]">Estado da ligação</h2></div><p className="max-w-xl text-xs leading-5 text-[#6B6258]">O telefone público do restaurante não muda. Só as chamadas não atendidas são encaminhadas para o MesaLink.</p></div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
         <SimpleChannel icon={<Mail size={20} />} title="Email MesaLink" status="Já funciona" text="Follow-up de clientes inativos e respostas individuais pela caixa Revenue AI." price="Usa os 1.000 emails incluídos" active />
         <SimpleChannel icon={<Globe2 size={20} />} title="Reservas e website" status={websiteEnabled ? "Ligado" : "Ligar website"} text="O MesaLink encontra cancelamentos, no-shows e formulários que não chegaram a reserva." price="Sem configuração técnica" active={websiteEnabled} />
-        <SimpleChannel icon={<MessageCircleMore size={20} />} title="WhatsApp AI MesaLink" status={status.whatsappReady ? "Ativo" : request?.channels.includes("WHATSAPP") ? requestStatusLabel : "Extra opcional"} text="Envia a mensagem a partir do número atribuído ao restaurante. As respostas aparecem na caixa Revenue AI." price={`≈ 0,03€ por mensagem · saldo ${whatsappBalance}`} active={status.whatsappReady} pending={Boolean(request?.channels.includes("WHATSAPP") && request.status !== "COMPLETED" && !status.whatsappReady)} />
-        <SimpleChannel icon={<PhoneCall size={20} />} title="Chamadas não atendidas" status={status.voiceReady ? "Ativo" : request?.channels.includes("VOICE") ? requestStatusLabel : "Extra opcional"} text="O operador reencaminha apenas as chamadas sem resposta para o número de deteção MesaLink." price={`1 crédito por chamada · saldo ${aiCredits}`} active={status.voiceReady} pending={Boolean(request?.channels.includes("VOICE") && request.status !== "COMPLETED" && !status.voiceReady)} />
+        <SimpleChannel icon={<PhoneCall size={20} />} title="Chamadas não atendidas" status={status.voiceReady && status.whatsappReady ? "Ativo" : request?.channels.includes("VOICE") ? requestStatusLabel : "Extra opcional"} text="Deteta a chamada sem resposta e envia automaticamente pelo WhatsApp atribuído o link de reserva. As respostas ficam na caixa Revenue AI." price={`1 crédito por chamada + ≈ 0,03€/mensagem · saldos ${aiCredits}/${whatsappBalance}`} active={status.voiceReady && status.whatsappReady} pending={Boolean(request?.channels.includes("VOICE") && request.status !== "COMPLETED" && (!status.voiceReady || !status.whatsappReady))} />
       </div>
     </section>
 
     {(!status.whatsappReady || !status.voiceReady) && <section className="rounded-[26px] border border-[#D7B267] bg-[#FFF7E8] p-5">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Ativar extras</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.045em]">Pedir WhatsApp ou recuperação de chamadas</h2><p className="mt-1 text-xs leading-5 text-[#6B6258]">Indica o telefone público de {restaurantName}. A MesaLink atribui os números e fornece as instruções de reencaminhamento.</p></div>{request && <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#F1E0B9] px-4 py-2 text-xs font-black text-[#715021]"><CheckCircle2 size={15} /> {requestStatusLabel}</span>}</div>
-      <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1.1fr_auto]">
-        <Choice checked={wantsWhatsapp} onChange={setWantsWhatsapp} title="Quero WhatsApp AI" note="O cliente fala com um número MesaLink atribuído" />
-        <Choice checked={wantsCalls} onChange={setWantsCalls} title="Quero recuperar chamadas" note="Só é ativado quando o telefone não atende" />
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Ativar extra</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.045em]">Chamadas não atendidas</h2><p className="mt-1 text-xs leading-5 text-[#6B6258]">Indica o telefone público de {restaurantName}. A MesaLink configura a deteção e o WhatsApp que envia o link de reserva.</p></div>{request && <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#F1E0B9] px-4 py-2 text-xs font-black text-[#715021]"><CheckCircle2 size={15} /> {requestStatusLabel}</span>}</div>
+      <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1.1fr_auto]">
+        <Choice checked={wantsCalls} onChange={(checked) => { setWantsCalls(checked); setWantsWhatsapp(checked); }} title="Ativar chamadas não atendidas" note="Inclui a mensagem WhatsApp automática com o link de reserva" />
         <label className="rounded-[22px] border border-[#DFC9A5] bg-white p-4"><span className="text-[10px] font-black uppercase tracking-[0.13em] text-[#79664E]">Telefone público do restaurante</span><input value={contactPhone} onChange={(event) => setContactPhone(event.target.value)} placeholder="+351 213 000 000" inputMode="tel" className="mt-2 h-11 w-full bg-transparent text-sm font-bold outline-none" /><span className="text-[10px] leading-4 text-[#8A7863]">É o número que os clientes já conhecem. Não será substituído.</span></label>
         <button onClick={requestActivation} disabled={requesting || requestPending || (!wantsWhatsapp && !wantsCalls)} className="inline-flex min-h-16 items-center justify-center gap-2 rounded-[18px] bg-[#17120D] px-5 text-sm font-black text-white disabled:opacity-40">{requesting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />} {requestPending ? "Pedido enviado" : "Pedir ativação"}</button>
       </div>

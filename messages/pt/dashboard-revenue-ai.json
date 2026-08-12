@@ -60,10 +60,10 @@
   },
   "activity": {
     "eyebrow": "Resultados",
-    "title": "O que a IA tentou e o que aconteceu",
-    "viewAll": "Abrir inbox completo",
+    "title": "Últimas conversas e resultados",
+    "viewAll": "Abrir todas as conversas",
     "unknownCustomer": "Cliente",
-    "empty": "Ainda não existem tentativas de recuperação. Executa a primeira automação acima.",
+    "empty": "As conversas surgem aqui automaticamente após uma chamada não atendida ou uma resposta pelo WhatsApp.",
     "tapHint": "Toca para ver detalhes",
     "showAll": "Ver todas as {count} tentativas",
     "showLess": "Mostrar apenas as mais recentes",
