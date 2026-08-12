@@ -33,7 +33,7 @@ export default function Image() {
       <div style={{ display: "flex", flexDirection: "column", maxWidth: 920 }}>
         <div style={{ fontSize: 72, lineHeight: 0.96, letterSpacing: -4.5, fontWeight: 800 }}>Software para restaurantes.</div>
         <div style={{ marginTop: 8, fontSize: 72, lineHeight: 0.96, letterSpacing: -4.5, fontWeight: 800, color: "#C8A56A" }}>Tudo ligado.</div>
-        <div style={{ marginTop: 30, fontSize: 24, lineHeight: 1.4, color: "#D8CABB" }}>Reservas · POS · QR Ordering · Website · CRM · Marketing</div>
+        <div style={{ marginTop: 30, fontSize: 24, lineHeight: 1.4, color: "#D8CABB" }}>Reservas · QR Ordering · Website · CRM · Marketing</div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 18, color: "#B9AA99" }}>

@@ -155,7 +155,7 @@
       "title": "Séries Moloni",
       "loading": "A carregar séries...",
       "empty": "Não foram encontradas séries. Confirma no Moloni se existe uma série ativa.",
-      "choose": "Escolhe a série usada para emitir faturas no POS.",
+      "choose": "Escolhe a série usada para emitir faturas.",
       "invoiceLabel": "Fatura",
       "simplifiedLabel": "Fatura Simplificada",
       "creditNoteLabel": "Nota de Crédito",
@@ -172,7 +172,7 @@
     "documents": {
       "title": "Últimos documentos",
       "emptyTitle": "Ainda não existem documentos.",
-      "emptyText": "Quando o POS emitir faturas ou notas de crédito, elas aparecem aqui.",
+      "emptyText": "Quando forem emitidas faturas ou notas de crédito, elas aparecem aqui.",
       "colNumber": "Número",
       "colType": "Tipo",
       "colStatus": "Estado",

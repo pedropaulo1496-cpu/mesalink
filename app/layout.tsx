@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s | MesaLink",
   },
   description:
-    "Software de gestão para restaurantes com reservas online, POS, QR Ordering, mapa de mesas, website, CRM, marketing e reviews numa única plataforma.",
+    "Software de gestão para restaurantes com reservas online, QR Ordering, mapa de mesas, website, CRM, marketing e reviews numa única plataforma.",
   applicationName: "MesaLink",
   authors: [{ name: "MesaLink", url: "https://www.mesalink.pt" }],
   creator: "MesaLink",
@@ -34,14 +34,14 @@ export const metadata: Metadata = {
     siteName: "MesaLink",
     title: "MesaLink — Software de Gestão para Restaurantes",
     description:
-      "Reservas, POS, QR Ordering, website, CRM e marketing ligados para gerir e fazer crescer restaurantes.",
+      "Reservas, QR Ordering, website, CRM e marketing ligados para gerir e fazer crescer restaurantes.",
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "MesaLink — software para restaurantes" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "MesaLink — Software de Gestão para Restaurantes",
     description:
-      "Reservas, POS, QR Ordering, website, CRM e marketing para restaurantes.",
+      "Reservas, QR Ordering, website, CRM e marketing para restaurantes.",
     images: ["/opengraph-image"],
   },
   verification: process.env.GOOGLE_SITE_VERIFICATION

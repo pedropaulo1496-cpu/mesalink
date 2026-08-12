@@ -8,7 +8,7 @@ const canonicalUrl = "https://www.mesalink.pt/guias/como-escolher-software-para-
 
 export const metadata: Metadata = {
   title: "Como Escolher Software para Restaurantes: Guia 2026",
-  description: "Guia prático para comparar software de restaurante: reservas, POS, QR, faturação, CRM, suporte, custos e integração. Saiba o que avaliar antes de escolher.",
+  description: "Guia prático para comparar software de restaurante: reservas, QR, operação, CRM, suporte, custos e integração. Saiba o que avaliar antes de escolher.",
   alternates: { canonical: canonicalUrl },
   openGraph: {
     type: "article",

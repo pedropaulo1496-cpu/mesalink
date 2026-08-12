@@ -14,6 +14,7 @@ export async function canAccessApp(email: string) {
   const user = await getUserWithSubscription(email);
 
   if (!user) return false;
+  if (user.isAdmin) return true;
 
   const subscription = user.subscription;
 

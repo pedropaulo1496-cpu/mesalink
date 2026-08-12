@@ -155,7 +155,7 @@
       "title": "Moloni-Serien",
       "loading": "Serien werden geladen...",
       "empty": "Keine Serien gefunden. Prüfen Sie in Moloni, ob eine aktive Serie existiert.",
-      "choose": "Wählen Sie die Serie, die für die Ausstellung von Rechnungen am POS verwendet wird.",
+      "choose": "Wählen Sie die Serie für die Ausstellung von Rechnungen.",
       "invoiceLabel": "Rechnung",
       "simplifiedLabel": "Vereinfachte Rechnung",
       "creditNoteLabel": "Gutschrift",
@@ -172,7 +172,7 @@
     "documents": {
       "title": "Letzte Dokumente",
       "emptyTitle": "Es gibt noch keine Dokumente.",
-      "emptyText": "Sobald das POS Rechnungen oder Gutschriften ausstellt, erscheinen sie hier.",
+      "emptyText": "Ausgestellte Rechnungen und Gutschriften erscheinen hier.",
       "colNumber": "Nummer",
       "colType": "Typ",
       "colStatus": "Status",

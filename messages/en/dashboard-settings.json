@@ -155,7 +155,7 @@
       "title": "Moloni Series",
       "loading": "Loading series...",
       "empty": "No series found. Check in Moloni whether an active series exists.",
-      "choose": "Choose the series used to issue invoices at the POS.",
+      "choose": "Choose the series used to issue invoices.",
       "invoiceLabel": "Invoice",
       "simplifiedLabel": "Simplified Invoice",
       "creditNoteLabel": "Credit Note",
@@ -172,7 +172,7 @@
     "documents": {
       "title": "Recent documents",
       "emptyTitle": "There are no documents yet.",
-      "emptyText": "When the POS issues invoices or credit notes, they'll appear here.",
+      "emptyText": "Issued invoices and credit notes will appear here.",
       "colNumber": "Number",
       "colType": "Type",
       "colStatus": "Status",

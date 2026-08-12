@@ -19,7 +19,6 @@ import {
   MenuIcon,
   BillingIcon,
   SettingsIcon,
-  PosIcon,
 } from "@/components/icons/nav-icons";
 
 type RestaurantSidebarProps = {
@@ -80,12 +79,6 @@ export default function RestaurantSidebar({
           name: t("items.menu"),
           href: `/restaurants/${id}/menu`,
           icon: MenuIcon,
-        },
-        {
-          key: "pos",
-          name: t("items.pos"),
-          href: `/restaurants/${id}/pos`,
-          icon: PosIcon,
         },
         {
           key: "qrOrdering",

@@ -18,9 +18,9 @@ import SiteHeader from "@/components/SiteHeader";
 const canonicalUrl = "https://www.mesalink.pt/software-para-restaurantes";
 
 export const metadata: Metadata = {
-  title: "Software para Restaurantes: Reservas, POS, QR e Marketing",
+  title: "Software para Restaurantes: Reservas, QR e Marketing",
   description:
-    "Software de gestão para restaurantes com reservas sem comissões, POS, QR Ordering, mapa de mesas, website, CRM, marketing e reviews. Teste o MesaLink grátis.",
+    "Software de gestão para restaurantes com reservas sem comissões, QR Ordering, mapa de mesas, website, CRM, marketing e reviews. Teste o MesaLink grátis.",
   alternates: { canonical: canonicalUrl },
   openGraph: {
     url: canonicalUrl,
@@ -40,8 +40,8 @@ const capabilities = [
   {
     href: "/software-para-restaurantes",
     icon: UtensilsCrossed,
-    title: "POS e operação de sala",
-    text: "Acompanhe mesas, pedidos, pagamentos e serviço num sistema criado para a realidade diária da restauração.",
+    title: "Sala e mesas",
+    text: "Acompanhe ocupação, reservas e serviço de cada mesa num sistema criado para a realidade diária da restauração.",
   },
   {
     href: "/qr-ordering-restaurantes",
@@ -107,7 +107,7 @@ export default function SoftwareParaRestaurantesPage() {
     applicationSubCategory: "Restaurant Management Software",
     operatingSystem: "Web, Android",
     description:
-      "Software de gestão para restaurantes com reservas, POS, QR Ordering, mapa de mesas, website, CRM, marketing e reviews.",
+      "Software de gestão para restaurantes com reservas, QR Ordering, mapa de mesas, website, CRM, marketing e reviews.",
     publisher: { "@id": "https://www.mesalink.pt/#organization" },
     offers: [
       { "@type": "Offer", name: "MesaLink Essentials", price: "55", priceCurrency: "EUR", url: "https://www.mesalink.pt/pricing" },
@@ -146,7 +146,7 @@ export default function SoftwareParaRestaurantesPage() {
               <span className="block text-[#C8A56A]">Tudo ligado.</span>
             </h1>
             <p className="mt-7 max-w-2xl text-lg leading-8 text-[#5C5348] lg:text-xl">
-              O MesaLink reúne reservas, POS, QR Ordering, mapa de mesas, website, CRM, reviews e marketing numa plataforma criada para gerir e fazer crescer restaurantes.
+              O MesaLink reúne reservas, QR Ordering, mapa de mesas, website, CRM, reviews e marketing numa plataforma criada para gerir e fazer crescer restaurantes.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/register" className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[#17130F] px-8 font-semibold text-white shadow-[0_24px_70px_rgba(80,55,30,0.22)] transition hover:bg-[#2A2118]">
@@ -169,7 +169,7 @@ export default function SoftwareParaRestaurantesPage() {
               <p className="text-xs font-black uppercase tracking-[0.28em] text-[#D7B267]">Restaurant OS</p>
               <h2 className="mt-4 text-4xl font-semibold leading-[0.94] tracking-[-0.06em]">Da reserva à próxima visita.</h2>
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {["Reservas", "Sala & POS", "QR Ordering", "Website & SEO", "CRM", "Marketing"].map((label, index) => (
+                {["Reservas", "Sala & Mesas", "QR Ordering", "Website & SEO", "CRM", "Marketing"].map((label, index) => (
                   <div key={label} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-sm font-semibold">
                     <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#D7B267] text-xs font-black text-[#17130F]">{index + 1}</span>
                     {label}

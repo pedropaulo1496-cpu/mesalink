@@ -6,7 +6,6 @@
   "items": {
     "dashboard": "仪表盘",
     "menu": "菜单与产品",
-    "pos": "收银台 (POS)",
     "qrOrdering": "QR Ordering",
     "serviceDay": "当日服务",
     "reservations": "预订",
@@ -34,7 +33,6 @@
     "moreSheet": {
       "title": "更多选项",
       "tables": "大厅",
-      "pos": "收银台",
       "menu": "菜单",
       "reservations": "预订",
       "customers": "客户",

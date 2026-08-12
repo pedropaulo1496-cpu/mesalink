@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { getCurrentUser } from "@/lib/restaurant-auth";
+import { Prisma } from "@prisma/client";
 
 async function createRestaurant(formData: FormData) {
   "use server";
@@ -13,13 +14,12 @@ async function createRestaurant(formData: FormData) {
   const account = await prisma.user.findUnique({
     where: { id: user.id },
     select: {
-      subscription: { select: { restaurantLimit: true } },
+      restaurants: { select: { id: true }, take: 1 },
       _count: { select: { restaurants: true } },
     },
   });
-  const restaurantLimit = account?.subscription?.restaurantLimit ?? 1;
-  if ((account?._count.restaurants ?? 0) >= restaurantLimit) {
-    redirect("/billing?reason=restaurant_limit");
+  if ((account?._count.restaurants ?? 0) >= 1) {
+    redirect(`/restaurants/${account!.restaurants[0].id}`);
   }
 
   const name = String(formData.get("name"));
@@ -35,7 +35,7 @@ async function createRestaurant(formData: FormData) {
 
     redirect("/");
   } catch (err) {
-    if ((err as any)?.code === "P2002") {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       redirect("/restaurants/new?error=slug_taken");
     }
 
@@ -46,6 +46,13 @@ async function createRestaurant(formData: FormData) {
 export default async function NewRestaurantPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+
+  const existingRestaurant = await prisma.restaurant.findFirst({
+    where: { userId: user.id },
+    select: { id: true },
+    orderBy: { createdAt: "asc" },
+  });
+  if (existingRestaurant) redirect(`/restaurants/${existingRestaurant.id}`);
 
   const t = await getTranslations("restaurants.new");
 

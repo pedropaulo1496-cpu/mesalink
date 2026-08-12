@@ -155,7 +155,7 @@
       "title": "Moloni 序列",
       "loading": "正在加载序列...",
       "empty": "未找到任何序列。请在 Moloni 中确认是否存在有效序列。",
-      "choose": "选择用于在 POS 开具发票的序列。",
+      "choose": "选择用于开具发票的序列。",
       "invoiceLabel": "发票",
       "simplifiedLabel": "简易发票",
       "creditNoteLabel": "贷项通知单",
@@ -172,7 +172,7 @@
     "documents": {
       "title": "最近的单据",
       "emptyTitle": "目前还没有任何单据。",
-      "emptyText": "当 POS 开具发票或贷项通知单后，会显示在此处。",
+      "emptyText": "已开具的发票和贷项通知单会显示在此处。",
       "colNumber": "编号",
       "colType": "类型",
       "colStatus": "状态",

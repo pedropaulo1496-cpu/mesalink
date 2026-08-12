@@ -155,7 +155,7 @@
       "title": "Séries Moloni",
       "loading": "Chargement des séries...",
       "empty": "Aucune série trouvée. Vérifiez dans Moloni qu'une série active existe.",
-      "choose": "Choisissez la série utilisée pour émettre les factures au POS.",
+      "choose": "Choisissez la série utilisée pour émettre les factures.",
       "invoiceLabel": "Facture",
       "simplifiedLabel": "Facture simplifiée",
       "creditNoteLabel": "Note de crédit",
@@ -172,7 +172,7 @@
     "documents": {
       "title": "Derniers documents",
       "emptyTitle": "Il n'y a encore aucun document.",
-      "emptyText": "Lorsque le POS émettra des factures ou des notes de crédit, elles apparaîtront ici.",
+      "emptyText": "Les factures et notes de crédit émises apparaîtront ici.",
       "colNumber": "Numéro",
       "colType": "Type",
       "colStatus": "État",

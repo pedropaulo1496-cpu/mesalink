@@ -20,7 +20,6 @@ import {
   GlobeIcon,
   SettingsIcon,
   MoreIcon,
-  PosIcon,
   MenuIcon,
   BookIcon,
   UsersIcon,
@@ -55,11 +54,6 @@ export default function BottomNav({ id }: { id: string }) {
   ];
 
   const moreLinks = [
-    {
-      href: `/restaurants/${id}/pos`,
-      icon: PosIcon,
-      label: t("moreSheet.pos"),
-    },
     {
       href: `/restaurants/${id}/menu`,
       icon: MenuIcon,

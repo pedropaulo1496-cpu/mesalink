@@ -6,7 +6,6 @@
   "items": {
     "dashboard": "Dashboard",
     "menu": "Menu & Products",
-    "pos": "POS",
     "qrOrdering": "QR Ordering",
     "serviceDay": "Today's Service",
     "reservations": "Reservations",
@@ -34,7 +33,6 @@
     "moreSheet": {
       "title": "More options",
       "tables": "Floor",
-      "pos": "POS",
       "menu": "Menu",
       "reservations": "Reservations",
       "customers": "Customers",

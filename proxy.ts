@@ -7,6 +7,20 @@ const ROOT_DOMAIN = "mesalink.pt";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const posPage = pathname.match(/^\/restaurants\/([^/]+)\/pos(?:\/|$)/);
+  if (posPage) {
+    return NextResponse.redirect(
+      new URL(`/restaurants/${posPage[1]}`, request.url),
+    );
+  }
+
+  if (/^\/api\/restaurants\/[^/]+\/pos(?:\/|$)/.test(pathname)) {
+    return NextResponse.json(
+      { error: "Funcionalidade indisponível." },
+      { status: 404 },
+    );
+  }
+
   const host = request.headers.get("host") || "";
   const hostname = host.split(":")[0].toLowerCase().replace(/\.$/, "");
 
