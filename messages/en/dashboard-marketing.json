@@ -141,7 +141,7 @@
     "revenueAiHandoff": {
       "eyebrow": "Revenue AI",
       "title": "Revenue recovery now has its own command centre",
-      "description": "Marketing shows the impact. Revenue AI runs follow-ups, tracks replies and attempts to recover customers, leads and lost bookings.",
+      "description": "Marketing creates campaigns and loyalty. Revenue AI automatically handles cancellations, no-shows and missed calls.",
       "customers": "Eligible customers",
       "potential": "Potential",
       "open": "Open recovery centre"
@@ -184,7 +184,7 @@
       "revenueAi": {
         "eyebrow": "Revenue AI",
         "title": "Recovery and follow-up now live in Revenue AI",
-        "description": "Missed calls, leads, cancellations, no-shows and inactive customers are managed in a dedicated operational inbox without duplication in Marketing.",
+        "description": "Cancellations, no-shows and missed calls are handled automatically in a dedicated operational inbox. Campaigns and inactive customers stay in Marketing.",
         "open": "Open Revenue AI"
       },
       "vipClub": {

@@ -8,6 +8,7 @@ import BirthdayAutomationCard from "@/components/marketing/BirthdayAutomationCar
 import ReviewAutomationCard from "@/components/marketing/ReviewAutomationCard";
 import MarketingAutopilotCard from "@/components/marketing/MarketingAutopilotCard";
 import RecoveryAutomationCard from "@/components/marketing/RecoveryAutomationCard";
+import NegativeReviewRecoveryCard from "@/components/marketing/NegativeReviewRecoveryCard";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 
@@ -139,9 +140,22 @@ export default async function MarketingPage({
   const reviewReservations = reviewReservationIds.length
     ? await prisma.reservation.findMany({
         where: { id: { in: reviewReservationIds } },
-        select: { id: true, customerName: true },
+        select: { id: true, customerName: true, email: true },
       })
     : [];
+
+  const issuedReviewCards = await prisma.marketingPromoCard.findMany({
+    where: { restaurantId: id, reviewFeedbackId: { not: null } },
+    select: { reviewFeedbackId: true },
+  });
+  const issuedReviewIds = new Set(issuedReviewCards.map((card) => card.reviewFeedbackId).filter(Boolean));
+  const reviewReservationById = new Map(reviewReservations.map((reservation) => [reservation.id, reservation]));
+  const eligibleReviewEmails = new Set<string>();
+  for (const review of reviewFeedbacks) {
+    if (review.rating > 3 || issuedReviewIds.has(review.id) || !review.reservationId) continue;
+    const email = reviewReservationById.get(review.reservationId)?.email?.trim().toLowerCase();
+    if (email) eligibleReviewEmails.add(email);
+  }
 
   const reviewerNameByReservationId = new Map(
     reviewReservations.map((reservation) => [reservation.id, reservation.customerName]),
@@ -202,7 +216,7 @@ export default async function MarketingPage({
   );
 
   const campaignActions = marketingActions.filter((action) =>
-    ["BIRTHDAY", "VIP_UPGRADE", "MANUAL_CAMPAIGN", "AI_CAMPAIGN", "REVIEW_REQUEST"].includes(action.type),
+    ["BIRTHDAY", "VIP_UPGRADE", "MANUAL_CAMPAIGN", "AI_CAMPAIGN", "REVIEW_REQUEST", "REVIEW_RECOVERY"].includes(action.type),
   );
 
   const convertedActions = campaignActions.filter(
@@ -644,6 +658,7 @@ export default async function MarketingPage({
                       MANUAL_CAMPAIGN: t("main.timeline.types.campaign"),
                       AI_CAMPAIGN: t("main.timeline.types.aiCampaign"),
                       REVIEW_REQUEST: t("main.timeline.types.review"),
+                      REVIEW_RECOVERY: "Cartão de recuperação enviado",
                     }}
                     statusLabels={{
                       CONVERTED: t("main.timeline.status.converted"),
@@ -684,6 +699,12 @@ export default async function MarketingPage({
                     balance: t("main.automations.reviewRequest.balance", { count: subscription?.emailBalance || 0 }), error: t("main.automations.reviewRequest.error"),
                     enabledMessage: t("main.automations.reviewRequest.enabledMessage"), disabledMessage: t("main.automations.reviewRequest.disabledMessage"),
                   }}
+                />
+
+                <NegativeReviewRecoveryCard
+                  restaurantId={id}
+                  eligibleCount={eligibleReviewEmails.size}
+                  emailsRemaining={subscription?.emailBalance || 0}
                 />
 
                 <AutomationCard

@@ -16,7 +16,7 @@ export async function GET(
     select: {
       id: true,
       clickedAt: true,
-      restaurant: { select: { slug: true } },
+      restaurant: { select: { id: true, slug: true } },
     },
   });
 
@@ -40,7 +40,11 @@ export async function GET(
     }),
   ]);
 
-  const destination = new URL(`/reserve/${action.restaurant.slug}`, request.url);
+  const requestedOffer = new URL(request.url).searchParams.get("offer")?.trim().toUpperCase() || "";
+  const offer = /^MLC-[A-F0-9]{10}$/.test(requestedOffer)
+    ? await prisma.marketingPromoCard.findFirst({ where: { publicCode: requestedOffer, restaurantId: action.restaurant.id }, select: { publicCode: true } })
+    : null;
+  const destination = new URL(offer ? `/offers/${offer.publicCode}` : `/reserve/${action.restaurant.slug}`, request.url);
   destination.searchParams.set("ml_action", token);
   return NextResponse.redirect(destination, 302);
 }

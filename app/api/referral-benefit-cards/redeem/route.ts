@@ -29,7 +29,18 @@ export async function POST(request: Request) {
             benefit: { select: { restaurantId: true, title: true, active: true, validFrom: true, validUntil: true, maxRedemptions: true, redemptions: true } },
           },
         });
-        if (!card || card.benefit.restaurantId !== restaurant.id) return { status: "NOT_FOUND" as const };
+        if (!card) {
+          const promoCard = await tx.marketingPromoCard.findUnique({ where: { publicCode } });
+          if (!promoCard || promoCard.restaurantId !== restaurant.id) return { status: "NOT_FOUND" as const };
+
+          const now = new Date();
+          const unavailable = promoCard.status !== "ACTIVE" || (promoCard.expiresAt != null && promoCard.expiresAt <= now);
+          if (unavailable) return { status: promoCard.status === "REDEEMED" ? "REDEEMED" as const : "UNAVAILABLE" as const };
+
+          await tx.marketingPromoCard.update({ where: { id: promoCard.id }, data: { status: "REDEEMED", redeemedAt: now } });
+          return { status: "SUCCESS" as const, title: promoCard.title, guestCount: 1 };
+        }
+        if (card.benefit.restaurantId !== restaurant.id) return { status: "NOT_FOUND" as const };
 
         const now = new Date();
         const unavailable = !card.benefit.active ||

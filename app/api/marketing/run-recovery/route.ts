@@ -6,7 +6,9 @@ import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
+import { getMarketingCardTheme } from "@/lib/marketing-card-themes";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
+import { createBenefitCardCode } from "@/lib/referrals";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -127,6 +129,7 @@ async function runRecovery(restaurantId: unknown) {
       created++;
       const emailReference = `email:marketing_recovery:${action.id}`;
       let emailReserved = false;
+      let promoCard: { id: string; publicCode: string } | null = null;
 
       try {
         const allowance = await reserveEmailSend({
@@ -139,6 +142,15 @@ async function runRecovery(restaurantId: unknown) {
         emailReserved = true;
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
         const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
+        promoCard = restaurant.recoveryOffer ? await prisma.marketingPromoCard.create({
+          data: {
+            publicCode: createBenefitCardCode(), restaurantId: customer.restaurantId, customerId: customer.id,
+            campaignId: action.id, title: "Uma oferta para voltar", description: restaurant.recoveryOffer,
+            benefitType: "GIFT", template: "FOREST", expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          },
+        }) : null;
+        const cardUrl = promoCard ? `${clickUrl}?offer=${encodeURIComponent(promoCard.publicCode)}` : null;
+        const theme = getMarketingCardTheme("FOREST");
 
         const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
@@ -161,20 +173,13 @@ async function runRecovery(restaurantId: unknown) {
                 </p>
 
                 ${
-                  restaurant.recoveryOffer
-                    ? `
-                      <div style="margin-top:16px;padding:16px;border-radius:16px;background:#FFF9F0;border:1px solid #E1D0B8;">
-                        <strong>Oferta exclusiva 🍷</strong>
-                        <p style="margin-top:8px;">
-                          ${escapeHtml(restaurant.recoveryOffer)}
-                        </p>
-                      </div>
-                    `
+                  restaurant.recoveryOffer && promoCard && cardUrl
+                    ? `<a href="${cardUrl}" style="display:block;margin-top:22px;padding:22px;border-radius:22px;background:${theme.background};color:${theme.foreground};text-decoration:none;box-shadow:0 18px 40px rgba(48,32,18,.16)"><span style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${theme.accent};font-weight:800">Cartão digital · ${escapeHtml(restaurant.name)}</span><span style="display:block;margin-top:16px;font-size:26px;line-height:1.05;font-weight:800">Uma oferta para voltar</span><span style="display:block;margin-top:12px;font-size:15px;line-height:1.5;color:${theme.muted}">${escapeHtml(restaurant.recoveryOffer)}</span><span style="display:block;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);font-family:monospace;font-size:14px;letter-spacing:2px">${escapeHtml(promoCard.publicCode)}</span></a><p style="font-size:11px;line-height:1.6;color:#8A7C6D">Cartão individual de utilização única, válido durante 30 dias.</p>`
                     : ""
                 }
 
-                <a href="${clickUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:white;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;font-size:14px;">
-                  Reservar mesa
+                <a href="${cardUrl || clickUrl}" style="display:inline-block;margin-top:24px;background:#16120E;color:white;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;font-size:14px;">
+                  ${cardUrl ? "Abrir cartão digital" : "Reservar mesa"}
                 </a>
 
                 <p style="margin-top:28px;font-size:12px;line-height:1.5;color:#8A7C6D;">
@@ -188,14 +193,16 @@ async function runRecovery(restaurantId: unknown) {
         const deliveryId = requireAcceptedEmail(delivery);
 
         await completeEmailSend(emailReference);
-        await prisma.marketingAction.update({
-          where: { id: action.id },
-          data: { status: "SENT", deliveryId, failureReason: null, sentAt: new Date(), nextFollowUpAt: new Date(Date.now() + 48 * 60 * 60 * 1000) },
-        });
+        const sentAt = new Date();
+        await prisma.$transaction([
+          prisma.marketingAction.update({ where: { id: action.id }, data: { status: "SENT", deliveryId, failureReason: null, sentAt, nextFollowUpAt: new Date(Date.now() + 48 * 60 * 60 * 1000) } }),
+          ...(promoCard ? [prisma.marketingPromoCard.update({ where: { id: promoCard.id }, data: { sentAt } })] : []),
+        ]);
         emailsSent++;
       } catch (error) {
         console.error("Erro ao enviar email de recuperação:", error);
         if (emailReserved) await refundEmailSend(emailReference);
+        if (promoCard) await prisma.marketingPromoCard.delete({ where: { id: promoCard.id } }).catch(() => null);
         await prisma.marketingAction.update({
           where: { id: action.id },
           data: { status: "FAILED", failureReason: error instanceof Error ? error.message.slice(0, 500) : "Email delivery failed" },

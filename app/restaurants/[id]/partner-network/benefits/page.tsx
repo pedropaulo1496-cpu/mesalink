@@ -30,6 +30,11 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
           },
         },
       },
+      marketingPromoCards: {
+        orderBy: { createdAt: "desc" },
+        take: 80,
+        select: { id: true, publicCode: true, title: true, template: true, status: true, sentAt: true, expiresAt: true, redeemedAt: true },
+      },
     },
   }) : null;
   if (!restaurant) notFound();
@@ -37,6 +42,8 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
   const allCards = restaurant.referralBenefits.flatMap((benefit) => benefit.cards);
   const activeBenefits = restaurant.referralBenefits.filter((benefit) => benefit.active);
   const redeemedCards = allCards.filter((card) => card.status === "REDEEMED");
+  const totalCardCount = allCards.length + restaurant.marketingPromoCards.length;
+  const totalRedeemedCount = redeemedCards.length + restaurant.marketingPromoCards.filter((card) => card.status === "REDEEMED").length;
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
@@ -48,9 +55,9 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
 
           <section className="mt-7 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <Kpi icon={<Gift size={18} />} label="Ofertas ativas" value={String(activeBenefits.length)} />
-            <Kpi icon={<TicketCheck size={18} />} label="Cartões emitidos" value={String(allCards.length)} />
-            <Kpi icon={<CheckCircle2 size={18} />} label="Utilizações" value={String(redeemedCards.length)} />
-            <Kpi icon={<BadgePercent size={18} />} label="Taxa de utilização" value={allCards.length ? `${Math.round((redeemedCards.length / allCards.length) * 100)}%` : "0%"} />
+            <Kpi icon={<TicketCheck size={18} />} label="Cartões emitidos" value={String(totalCardCount)} />
+            <Kpi icon={<CheckCircle2 size={18} />} label="Utilizações" value={String(totalRedeemedCount)} />
+            <Kpi icon={<BadgePercent size={18} />} label="Taxa de utilização" value={totalCardCount ? `${Math.round((totalRedeemedCount / totalCardCount) * 100)}%` : "0%"} />
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
@@ -75,6 +82,8 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
               {restaurant.referralBenefits.length === 0 && <div className="rounded-[28px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-10 text-center xl:col-span-2"><Gift className="mx-auto text-[#9B6F3B]" /><p className="mt-4 font-semibold">Ainda não publicaste ofertas.</p><p className="mt-2 text-sm text-[#6B6258]">Cria a primeira promoção e emite cartões para partilhar com os teus clientes.</p></div>}
             </div>
           </section>
+
+          {restaurant.marketingPromoCards.length > 0 && <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Enviados aos clientes</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Cartões digitais individuais</h2><p className="mt-2 text-sm text-[#6B6258]">Cartões de recuperação e fidelização. Cada número é único e pode ser validado na caixa acima.</p><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{restaurant.marketingPromoCards.map((card) => <article key={card.id} className="rounded-[22px] border border-[#E5D6C0] bg-[#FFF9F0] p-4"><div className="flex items-start justify-between gap-3"><span className="rounded-full bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-[#806D56]">{card.template}</span><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] ${card.status === "REDEEMED" ? "bg-[#E8F6E8] text-[#3F6A4D]" : "bg-[#FFF0D8] text-[#8A6130]"}`}>{card.status === "REDEEMED" ? "Utilizado" : "Ativo"}</span></div><p className="mt-3 truncate font-semibold">{card.title}</p><p className="mt-2 font-mono text-xs font-bold tracking-[0.1em] text-[#704E27]">{card.publicCode}</p><div className="mt-4 flex items-center justify-between gap-3"><p className="text-[10px] text-[#817466]">{card.redeemedAt ? `Usado ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "short" }).format(card.redeemedAt)}` : card.expiresAt ? `Válido até ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "short" }).format(card.expiresAt)}` : "Sem validade"}</p><Link href={`/offers/${card.publicCode}`} target="_blank" className="text-xs font-bold text-[#7A542A]">Abrir cartão ↗</Link></div></article>)}</div></section>}
         </section>
       </div>
       <BottomNav id={id} />

@@ -141,7 +141,7 @@
     "revenueAiHandoff": {
       "eyebrow": "Revenue AI",
       "title": "A recuperação de receita tem agora um centro próprio",
-      "description": "O Marketing mostra o impacto. O Revenue AI executa follow-ups, acompanha respostas e tenta recuperar clientes, leads e reservas perdidas.",
+      "description": "O Marketing cria campanhas e fidelização. O Revenue AI trata automaticamente cancelamentos, no-shows e chamadas não atendidas.",
       "customers": "Clientes elegíveis",
       "potential": "Potencial",
       "open": "Abrir centro de recuperação"
@@ -184,7 +184,7 @@
       "revenueAi": {
         "eyebrow": "Revenue AI",
         "title": "Recuperação e follow-up vivem agora no Revenue AI",
-        "description": "Chamadas perdidas, leads, cancelamentos, no-shows e clientes inativos são geridos numa caixa operacional própria, sem duplicação no Marketing.",
+        "description": "Cancelamentos, no-shows e chamadas não atendidas são tratados automaticamente numa caixa operacional própria. Campanhas e clientes inativos ficam no Marketing.",
         "open": "Abrir Revenue AI"
       },
       "vipClub": {

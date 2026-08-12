@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
@@ -7,6 +8,8 @@ import { hasGrowthAccess } from "@/lib/ai-billing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
+import { getMarketingCardTheme, MARKETING_CARD_THEMES, marketingBenefitValue } from "@/lib/marketing-card-themes";
+import { createBenefitCardCode } from "@/lib/referrals";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -22,6 +25,18 @@ export async function POST(request: Request) {
     const subject = cleanText(body.get("subject"), 120).replace(/[\r\n]+/g, " ");
     const message = cleanText(body.get("message"), 5000);
     if (!subject || !message) return NextResponse.json({ success: false, error: "Assunto e mensagem são obrigatórios." }, { status: 400 });
+    const includeCard = body.get("includeCard") === "on";
+    const offerTitle = cleanText(body.get("offerTitle"), 100);
+    const offerDescription = cleanText(body.get("offerDescription"), 280);
+    const benefitType = String(body.get("benefitType") || "PERCENT").toUpperCase();
+    const benefitValue = Number(body.get("benefitValue") || 0);
+    const minSpend = Number(body.get("minSpend") || 0);
+    const validDays = Math.round(Number(body.get("validDays") || 30));
+    const cardTerms = cleanText(body.get("cardTerms"), 320);
+    const cardTemplate = String(body.get("cardTemplate") || "GOLD").toUpperCase();
+    if (includeCard && (!offerTitle || !offerDescription || !["PERCENT", "FIXED", "GIFT"].includes(benefitType) || !(cardTemplate in MARKETING_CARD_THEMES) || validDays < 1 || validDays > 180 || !Number.isFinite(minSpend) || minSpend < 0 || minSpend > 10000 || (benefitType !== "GIFT" && (!Number.isFinite(benefitValue) || benefitValue <= 0)) || (benefitType === "PERCENT" && benefitValue > 50) || (benefitType === "FIXED" && benefitValue > 1000))) {
+      return NextResponse.json({ success: false, error: "Confirma os dados do cartão digital." }, { status: 400 });
+    }
 
     const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
     if (!user) return NextResponse.json({ success: false, error: "Não autenticado." }, { status: 401 });
@@ -132,6 +147,9 @@ export async function POST(request: Request) {
     let emailsSent = 0;
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const cardCampaignId = includeCard ? randomUUID() : null;
+    const cardExpiresAt = includeCard ? new Date(Date.now() + validDays * 24 * 60 * 60 * 1000) : null;
+    const cardTheme = getMarketingCardTheme(cardTemplate);
     for (const customer of customers) {
       const action = await prisma.marketingAction.create({
         data: {
@@ -147,6 +165,7 @@ export async function POST(request: Request) {
       });
       const emailReference = `email:marketing_campaign:${action.id}`;
       let emailReserved = false;
+      let promoCard: { id: string; publicCode: string } | null = null;
       try {
         const allowance = await reserveEmailSend({
           userId: user.id,
@@ -156,7 +175,9 @@ export async function POST(request: Request) {
         });
         if (!allowance.canSend) throw new Error("Email already reserved");
         emailReserved = true;
+        promoCard = includeCard ? await prisma.marketingPromoCard.create({ data: { publicCode: createBenefitCardCode(), restaurantId, customerId: customer.id, campaignId: cardCampaignId, title: offerTitle, description: offerDescription, benefitType, value: benefitType === "GIFT" ? null : benefitValue, minSpend: minSpend || null, terms: cardTerms || null, template: cardTemplate, expiresAt: cardExpiresAt } }) : null;
         const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
+        const cardUrl = promoCard ? `${clickUrl}?offer=${encodeURIComponent(promoCard.publicCode)}` : null;
         const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
           to: customer.email!,
@@ -176,8 +197,10 @@ export async function POST(request: Request) {
                   ${escapeHtml(message)}
                 </p>
 
+                ${promoCard && cardUrl ? `<a href="${cardUrl}" style="display:block;margin-top:24px;padding:24px;border-radius:22px;background:${cardTheme.background};color:${cardTheme.foreground};text-decoration:none;box-shadow:0 18px 40px rgba(48,32,18,.16)"><span style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${cardTheme.accent};font-weight:800">Cartão digital · ${escapeHtml(restaurant.name)}</span><span style="display:block;margin-top:18px;font-size:27px;line-height:1.05;font-weight:800">${escapeHtml(offerTitle)}</span><span style="display:block;margin-top:16px;font-size:31px;font-weight:900;color:${cardTheme.accent}">${escapeHtml(marketingBenefitValue(benefitType, benefitType === "GIFT" ? null : benefitValue))}</span><span style="display:block;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);font-family:monospace;font-size:14px;letter-spacing:2px">${escapeHtml(promoCard.publicCode)}</span></a><p style="font-size:11px;line-height:1.6;color:#8A7C6D">Cartão de utilização única. Apresente o número no restaurante.</p>` : ""}
+
                 <a
-                  href="${clickUrl}"
+                  href="${cardUrl || clickUrl}"
                   style="
                     display:inline-block;
                     margin-top:24px;
@@ -190,7 +213,7 @@ export async function POST(request: Request) {
                     font-size:14px;
                   "
                 >
-                  Reservar mesa
+                  ${promoCard ? "Abrir cartão digital" : "Reservar mesa"}
                 </a>
 
                 <p style="margin-top:28px;font-size:12px;line-height:1.5;color:#8A7C6D;">
@@ -204,15 +227,17 @@ export async function POST(request: Request) {
         const deliveryId = requireAcceptedEmail(delivery);
 
         await completeEmailSend(emailReference);
-        await prisma.marketingAction.update({
-          where: { id: action.id },
-          data: { status: "SENT", sentAt: new Date(), deliveryId, failureReason: null },
-        });
+        const sentAt = new Date();
+        await prisma.$transaction([
+          prisma.marketingAction.update({ where: { id: action.id }, data: { status: "SENT", sentAt, deliveryId, failureReason: null } }),
+          ...(promoCard ? [prisma.marketingPromoCard.update({ where: { id: promoCard.id }, data: { sentAt } })] : []),
+        ]);
 
         emailsSent++;
       } catch (error) {
         console.error(error);
         if (emailReserved) await refundEmailSend(emailReference);
+        if (promoCard) await prisma.marketingPromoCard.delete({ where: { id: promoCard.id } }).catch(() => null);
         await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "FAILED", failureReason: error instanceof Error ? error.message.slice(0, 500) : "Email delivery failed" } });
         if (error instanceof InsufficientEmailAllowanceError) {
           return NextResponse.redirect(new URL(`/restaurants/${restaurantId}/marketing?campaignError=emails&emailsSent=${emailsSent}`, request.url), 303);

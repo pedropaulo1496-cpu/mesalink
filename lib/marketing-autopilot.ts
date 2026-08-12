@@ -5,7 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { AI_CREDIT_COSTS, hasGrowthAccess, refundAiCredits, spendAiCredits } from "@/lib/ai-billing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
+import { getMarketingCardTheme, marketingBenefitValue, type MarketingCardTheme } from "@/lib/marketing-card-themes";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
+import { createBenefitCardCode } from "@/lib/referrals";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 export const AUTOPILOT_MAX_RECIPIENTS = 100;
@@ -161,8 +163,8 @@ export async function runMarketingAutopilotForRestaurant(restaurantId: string, o
           message: cleanText(draft.message, 2400),
           offerTitle: createCard ? cleanText(draft.offerTitle, 100) : null,
           offerDescription: createCard ? cleanText(draft.offerDescription, 280) : null,
-          cardToken,
-          promoCode,
+          discountPercent: createCard && discountPercent > 0 ? discountPercent : null,
+          cardTheme: draft.cardTheme,
           validUntil,
         },
       })));
@@ -249,7 +251,7 @@ async function getAudience(restaurantId: string, segment: CampaignDraft["segment
 async function sendAutopilotEmail(input: {
   restaurant: { id: string; name: string; slug: string; userId: string };
   customer: { id: string; name: string; email: string | null };
-  campaign: { id: string; subject: string; message: string; offerTitle: string | null; offerDescription: string | null; cardToken: string | null; promoCode: string | null; validUntil: Date | null };
+  campaign: { id: string; subject: string; message: string; offerTitle: string | null; offerDescription: string | null; discountPercent: number | null; cardTheme: MarketingCardTheme; validUntil: Date | null };
 }) {
   if (!input.customer.email) return "SKIPPED" as const;
   const action = await prisma.marketingAction.create({
@@ -265,35 +267,57 @@ async function sendAutopilotEmail(input: {
   });
   const reference = `email:marketing_autopilot:${action.id}`;
   let reserved = false;
+  let cardId: string | null = null;
   try {
     const allowance = await reserveEmailSend({ userId: input.restaurant.userId, restaurantId: input.restaurant.id, category: "AI_CAMPAIGN", reference });
     if (!allowance.canSend) return "SKIPPED" as const;
     reserved = true;
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/+$/, "");
     const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
-    const cardImage = input.campaign.cardToken ? `${baseUrl}/api/marketing/cards/${input.campaign.cardToken}/png` : null;
-    const cardPdf = input.campaign.cardToken ? `${baseUrl}/api/marketing/cards/${input.campaign.cardToken}/pdf` : null;
+    const card = input.campaign.offerTitle ? await prisma.marketingPromoCard.create({
+      data: {
+        publicCode: createBenefitCardCode(),
+        restaurantId: input.restaurant.id,
+        customerId: input.customer.id,
+        campaignId: input.campaign.id,
+        title: input.campaign.offerTitle,
+        description: input.campaign.offerDescription,
+        benefitType: input.campaign.discountPercent ? "PERCENT" : "GIFT",
+        value: input.campaign.discountPercent,
+        template: input.campaign.cardTheme,
+        expiresAt: input.campaign.validUntil,
+      },
+    }) : null;
+    cardId = card?.id || null;
+    const cardUrl = card ? `${clickUrl}?offer=${encodeURIComponent(card.publicCode)}` : null;
     const delivery = await resend.emails.send({
       from: "MesaLink <noreply@mesalink.pt>",
       to: input.customer.email,
       subject: input.campaign.subject,
-      html: campaignEmailHtml({ ...input, clickUrl, openUrl, cardImage, cardPdf }),
+      html: campaignEmailHtml({ ...input, clickUrl, openUrl, cardUrl, publicCode: card?.publicCode || null }),
     });
     const deliveryId = requireAcceptedEmail(delivery);
     await completeEmailSend(reference);
-    await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "SENT", sentAt: new Date(), deliveryId } });
+    const sentAt = new Date();
+    await prisma.$transaction([
+      prisma.marketingAction.update({ where: { id: action.id }, data: { status: "SENT", sentAt, deliveryId } }),
+      ...(card ? [prisma.marketingPromoCard.update({ where: { id: card.id }, data: { sentAt } })] : []),
+    ]);
     return "SENT" as const;
   } catch (error) {
     if (reserved) await refundEmailSend(reference);
+    if (cardId) await prisma.marketingPromoCard.delete({ where: { id: cardId } }).catch(() => null);
     await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "FAILED", failureReason: error instanceof Error ? error.message.slice(0, 500) : "Falha no envio" } });
     if (!(error instanceof InsufficientEmailAllowanceError)) console.error("Autopilot email failed", action.id, error);
     return "FAILED" as const;
   }
 }
 
-function campaignEmailHtml(input: Parameters<typeof sendAutopilotEmail>[0] & { clickUrl: string; openUrl: string; cardImage: string | null; cardPdf: string | null }) {
+function campaignEmailHtml(input: Parameters<typeof sendAutopilotEmail>[0] & { clickUrl: string; openUrl: string; cardUrl: string | null; publicCode: string | null }) {
   const date = input.campaign.validUntil?.toLocaleDateString("pt-PT") || "";
-  return `<div style="font-family:Arial,sans-serif;background:#F4EEE5;padding:32px 14px"><div style="max-width:600px;margin:auto;background:#fff;border:1px solid #E1D0B8;border-radius:30px;overflow:hidden"><div style="padding:34px"><p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9B6F3B;font-weight:800">${escapeHtml(input.restaurant.name)}</p><h1 style="font-size:32px;line-height:1.08;margin:16px 0;color:#16120E">${escapeHtml(input.campaign.subject)}</h1><p style="font-size:16px;line-height:1.8;color:#62584E;white-space:pre-line">Olá ${escapeHtml(input.customer.name)},\n\n${escapeHtml(input.campaign.message)}</p>${input.cardImage ? `<a href="${input.cardPdf}" style="display:block;margin-top:24px;text-decoration:none"><img src="${input.cardImage}" alt="${escapeHtml(input.campaign.offerTitle || "Oferta especial")}" width="532" style="display:block;width:100%;border-radius:22px;border:0" /></a><p style="font-size:12px;line-height:1.6;color:#8A7C6D">Código: <strong>${escapeHtml(input.campaign.promoCode || "")}</strong>${date ? ` · válido até ${date}` : ""} · sujeito a disponibilidade. Apresente o cartão no restaurante.</p>` : ""}<a href="${input.clickUrl}" style="display:inline-block;margin-top:22px;background:#17120D;color:#fff;text-decoration:none;padding:15px 24px;border-radius:999px;font-weight:800">Reservar mesa</a>${input.cardPdf ? `<a href="${input.cardPdf}" style="display:inline-block;margin:12px 0 0 12px;color:#7A5427;font-weight:700">Guardar cartão em PDF</a>` : ""}<p style="margin-top:30px;font-size:11px;line-height:1.6;color:#918579">Recebeu este email porque aceitou comunicações deste restaurante. Campanha criada pelo MesaLink Marketing Autopilot.</p>${marketingTrackingPixel(input.openUrl)}</div></div></div>`;
+  const theme = getMarketingCardTheme(input.campaign.cardTheme);
+  const card = input.cardUrl && input.publicCode ? `<a href="${input.cardUrl}" style="display:block;margin-top:24px;padding:24px;border-radius:22px;background:${theme.background};color:${theme.foreground};text-decoration:none;box-shadow:0 18px 40px rgba(48,32,18,.16)"><span style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${theme.accent};font-weight:800">Cartão digital · ${escapeHtml(input.restaurant.name)}</span><span style="display:block;margin-top:18px;font-size:27px;line-height:1.05;font-weight:800">${escapeHtml(input.campaign.offerTitle || "Oferta especial")}</span><span style="display:block;margin-top:16px;font-size:31px;font-weight:900;color:${theme.accent}">${escapeHtml(marketingBenefitValue(input.campaign.discountPercent ? "PERCENT" : "GIFT", input.campaign.discountPercent))}</span><span style="display:block;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);font-family:monospace;font-size:14px;letter-spacing:2px">${escapeHtml(input.publicCode)}</span></a><p style="font-size:12px;line-height:1.6;color:#8A7C6D">Cartão individual de utilização única${date ? `, válido até ${date}` : ""}. Apresente o número no restaurante.</p>` : "";
+  return `<div style="font-family:Arial,sans-serif;background:#F4EEE5;padding:32px 14px"><div style="max-width:600px;margin:auto;background:#fff;border:1px solid #E1D0B8;border-radius:30px;overflow:hidden"><div style="padding:34px"><p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9B6F3B;font-weight:800">${escapeHtml(input.restaurant.name)}</p><h1 style="font-size:32px;line-height:1.08;margin:16px 0;color:#16120E">${escapeHtml(input.campaign.subject)}</h1><p style="font-size:16px;line-height:1.8;color:#62584E;white-space:pre-line">Olá ${escapeHtml(input.customer.name)},\n\n${escapeHtml(input.campaign.message)}</p>${card}<a href="${input.cardUrl || input.clickUrl}" style="display:inline-block;margin-top:22px;background:#17120D;color:#fff;text-decoration:none;padding:15px 24px;border-radius:999px;font-weight:800">${input.cardUrl ? "Abrir cartão digital" : "Reservar mesa"}</a><p style="margin-top:30px;font-size:11px;line-height:1.6;color:#918579">Recebeu este email porque aceitou comunicações deste restaurante. Campanha criada pelo MesaLink Marketing Autopilot.</p>${marketingTrackingPixel(input.openUrl)}</div></div></div>`;
 }
 
 function cleanText(value: unknown, max: number) {

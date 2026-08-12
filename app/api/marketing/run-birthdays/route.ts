@@ -5,8 +5,10 @@ import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
+import { getMarketingCardTheme } from "@/lib/marketing-card-themes";
 import { prisma } from "@/lib/prisma";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
+import { createBenefitCardCode } from "@/lib/referrals";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -92,6 +94,7 @@ async function runBirthdays(restaurantId: string | null) {
       created += 1;
       const emailReference = `email:marketing_birthday:${action.id}`;
       let emailReserved = false;
+      let promoCard: { id: string; publicCode: string } | null = null;
 
       try {
         const allowance = await reserveEmailSend({
@@ -104,18 +107,31 @@ async function runBirthdays(restaurantId: string | null) {
         emailReserved = true;
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
         const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
+        promoCard = restaurant.birthdayOffer ? await prisma.marketingPromoCard.create({
+          data: {
+            publicCode: createBenefitCardCode(), restaurantId: customer.restaurantId, customerId: customer.id,
+            campaignId: action.id, title: "O seu presente de aniversário", description: restaurant.birthdayOffer,
+            benefitType: "GIFT", template: "GOLD", expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          },
+        }) : null;
+        const cardUrl = promoCard ? `${clickUrl}?offer=${encodeURIComponent(promoCard.publicCode)}` : null;
         const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
           to: customer.email,
           subject: `Um pequeno presente de aniversário do ${cleanSubject(restaurant.name)}`,
-          html: birthdayEmailHtml({ restaurantName: restaurant.name, customerName: customer.name, offer: restaurant.birthdayOffer, clickUrl, openUrl }),
+          html: birthdayEmailHtml({ restaurantName: restaurant.name, customerName: customer.name, offer: restaurant.birthdayOffer, clickUrl, openUrl, cardUrl, publicCode: promoCard?.publicCode || null }),
         });
         const deliveryId = requireAcceptedEmail(delivery);
         await completeEmailSend(emailReference);
-        await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "SENT", sentAt: new Date(), deliveryId, failureReason: null } });
+        const sentAt = new Date();
+        await prisma.$transaction([
+          prisma.marketingAction.update({ where: { id: action.id }, data: { status: "SENT", sentAt, deliveryId, failureReason: null } }),
+          ...(promoCard ? [prisma.marketingPromoCard.update({ where: { id: promoCard.id }, data: { sentAt } })] : []),
+        ]);
         emailsSent += 1;
       } catch (error) {
         if (emailReserved) await refundEmailSend(emailReference);
+        if (promoCard) await prisma.marketingPromoCard.delete({ where: { id: promoCard.id } }).catch(() => null);
         await prisma.marketingAction.update({ where: { id: action.id }, data: { status: "FAILED", failureReason: error instanceof Error ? error.message.slice(0, 500) : "Email delivery failed" } });
         if (error instanceof InsufficientEmailAllowanceError) insufficientAllowance = true;
       }
@@ -139,8 +155,10 @@ function birthdayWithinNextDays(birthDate: Date, today: Date, days: number) {
   return difference >= 0 && difference <= days * 24 * 60 * 60 * 1000;
 }
 
-function birthdayEmailHtml(input: { restaurantName: string; customerName: string; offer: string | null; clickUrl: string; openUrl: string }) {
-  return `<div style="font-family:Arial,sans-serif;background:#F4EEE5;padding:32px 14px"><div style="max-width:600px;margin:auto;border-radius:30px;overflow:hidden;background:#fff;border:1px solid #E1D0B8"><div style="background:#17120D;padding:34px;color:#fff"><p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#D7B267;font-weight:800">${escapeHtml(input.restaurantName)}</p><h1 style="margin:18px 0 0;font-family:Georgia,serif;font-size:37px;line-height:1.05">Há dias que merecem ser celebrados à mesa.</h1></div><div style="padding:34px"><p style="margin:0;font-size:17px;line-height:1.75;color:#5F554B">Olá ${escapeHtml(input.customerName)},</p><p style="font-size:17px;line-height:1.75;color:#5F554B">O seu aniversário aproxima-se e toda a equipa gostaria de fazer parte da celebração. Será um prazer voltar a recebê-lo.</p>${input.offer ? `<div style="margin-top:24px;padding:24px;border-radius:22px;background:#FFF8EB;border:1px solid #E5C98D"><p style="margin:0;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#8B642E;font-weight:800">O seu presente de aniversário</p><p style="margin:12px 0 0;font-family:Georgia,serif;font-size:24px;line-height:1.35;color:#17120D">${escapeHtml(input.offer)}</p><p style="margin:12px 0 0;font-size:12px;color:#827466">Apresente este email no restaurante. Sujeito a disponibilidade e às condições do estabelecimento.</p></div>` : ""}<a href="${input.clickUrl}" style="display:inline-block;margin-top:26px;background:#17120D;color:#fff;text-decoration:none;padding:15px 24px;border-radius:999px;font-weight:800">Reservar a celebração</a><p style="margin-top:30px;font-size:11px;line-height:1.6;color:#918579">Recebeu este email porque aceitou comunicações deste restaurante. O envio é gerido automaticamente pelo MesaLink.</p>${marketingTrackingPixel(input.openUrl)}</div></div></div>`;
+function birthdayEmailHtml(input: { restaurantName: string; customerName: string; offer: string | null; clickUrl: string; openUrl: string; cardUrl: string | null; publicCode: string | null }) {
+  const theme = getMarketingCardTheme("GOLD");
+  const card = input.offer && input.cardUrl && input.publicCode ? `<a href="${input.cardUrl}" style="display:block;margin-top:24px;padding:24px;border-radius:22px;background:${theme.background};color:${theme.foreground};text-decoration:none;box-shadow:0 18px 40px rgba(48,32,18,.16)"><span style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${theme.accent};font-weight:800">Cartão digital · ${escapeHtml(input.restaurantName)}</span><span style="display:block;margin-top:18px;font-size:27px;line-height:1.05;font-weight:800">O seu presente de aniversário</span><span style="display:block;margin-top:12px;font-size:15px;line-height:1.5;color:${theme.muted}">${escapeHtml(input.offer)}</span><span style="display:block;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);font-family:monospace;font-size:14px;letter-spacing:2px">${escapeHtml(input.publicCode)}</span></a><p style="font-size:11px;line-height:1.6;color:#8A7C6D">Cartão individual de utilização única, válido durante 30 dias.</p>` : "";
+  return `<div style="font-family:Arial,sans-serif;background:#F4EEE5;padding:32px 14px"><div style="max-width:600px;margin:auto;border-radius:30px;overflow:hidden;background:#fff;border:1px solid #E1D0B8"><div style="background:#17120D;padding:34px;color:#fff"><p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#D7B267;font-weight:800">${escapeHtml(input.restaurantName)}</p><h1 style="margin:18px 0 0;font-family:Georgia,serif;font-size:37px;line-height:1.05">Há dias que merecem ser celebrados à mesa.</h1></div><div style="padding:34px"><p style="margin:0;font-size:17px;line-height:1.75;color:#5F554B">Olá ${escapeHtml(input.customerName)},</p><p style="font-size:17px;line-height:1.75;color:#5F554B">O seu aniversário aproxima-se e toda a equipa gostaria de fazer parte da celebração. Será um prazer voltar a recebê-lo.</p>${card}<a href="${input.cardUrl || input.clickUrl}" style="display:inline-block;margin-top:26px;background:#17120D;color:#fff;text-decoration:none;padding:15px 24px;border-radius:999px;font-weight:800">${input.cardUrl ? "Abrir presente digital" : "Reservar a celebração"}</a><p style="margin-top:30px;font-size:11px;line-height:1.6;color:#918579">Recebeu este email porque aceitou comunicações deste restaurante. O envio é gerido automaticamente pelo MesaLink.</p>${marketingTrackingPixel(input.openUrl)}</div></div></div>`;
 }
 
 function escapeHtml(value: string) {
