@@ -41,7 +41,7 @@ export default function NegativeReviewRecoveryCard({ restaurantId, eligibleCount
   }
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-[#E1D0B8] bg-[#FFF9F0]">
+    <div id="marketing-review-recovery" className="scroll-mt-6 overflow-hidden rounded-3xl border border-[#E1D0B8] bg-[#FFF9F0]">
       <div className="flex min-h-[112px] flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2"><p className="font-semibold">Recuperar avaliações menos boas</p><span className="rounded-full bg-[#FFF0EA] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.09em] text-[#9A4934]">{eligibleCount} por recuperar</span></div>

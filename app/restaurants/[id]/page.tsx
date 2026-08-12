@@ -15,7 +15,7 @@ import {
   Plus,
   QrCode,
   Sparkles,
-  TicketCheck,
+  Star,
   UsersRound,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
@@ -74,6 +74,8 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   const subscription = billingUser?.subscription;
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+  const birthdayActionCutoff = new Date(now.getTime() - 330 * 24 * 60 * 60 * 1000);
   const trialEndsAt = subscription?.trialEndsAt ?? null;
   const trialActive = subscription?.status === "TRIAL" && Boolean(trialEndsAt && trialEndsAt > now);
   const trialDaysLeft = trialEndsAt
@@ -132,7 +134,17 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   ].some(Boolean);
   if (!hasConfiguredHours) redirect(`/restaurants/${id}/settings?setup=true`);
 
-  const [marketingActions, latestScan, pendingPartnerOffers, bookedPartnerGroups, openRevenueConversations] = await Promise.all([
+  const [
+    marketingActions,
+    latestScan,
+    pendingPartnerOffers,
+    bookedPartnerGroups,
+    openRevenueConversations,
+    inactiveMarketingCustomers,
+    birthdayMarketingCandidates,
+    poorReviewCandidates,
+    issuedReviewCards,
+  ] = await Promise.all([
     prisma.marketingAction.findMany({
       where: { restaurantId: id, sentAt: { gte: monthStart } },
       select: {
@@ -159,7 +171,75 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
     prisma.revenueConversation.count({
       where: { restaurantId: id, status: { notIn: ["RECOVERED", "LOST", "ARCHIVED"] } },
     }),
+    prisma.customer.count({
+      where: {
+        restaurantId: id,
+        marketingOptIn: true,
+        email: { not: null },
+        OR: [
+          { lastVisitAt: { lt: sixtyDaysAgo } },
+          { lastReservationAt: { lt: sixtyDaysAgo } },
+        ],
+        marketingActions: {
+          none: {
+            type: "INACTIVE_RECOVERY",
+            status: { in: ["QUEUED", "SENT", "OPENED", "CLICKED", "BOOKED"] },
+          },
+        },
+      },
+    }),
+    prisma.customer.findMany({
+      where: {
+        restaurantId: id,
+        marketingOptIn: true,
+        email: { not: null },
+        birthDate: { not: null },
+        marketingActions: {
+          none: {
+            type: "BIRTHDAY",
+            createdAt: { gte: birthdayActionCutoff },
+            status: { in: ["QUEUED", "SENT", "OPENED", "CLICKED", "BOOKED"] },
+          },
+        },
+      },
+      select: { birthDate: true },
+    }),
+    prisma.reviewFeedback.findMany({
+      where: { restaurantId: id, rating: { lte: 4 }, reservationId: { not: null } },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+      select: { id: true, rating: true, reservationId: true },
+    }),
+    prisma.marketingPromoCard.findMany({
+      where: { restaurantId: id, reviewFeedbackId: { not: null } },
+      select: { reviewFeedbackId: true },
+    }),
   ]);
+
+  const birthdayMarketingCustomers = birthdayMarketingCandidates.filter(
+    (customer) => customer.birthDate && birthdayWithinNextDays(customer.birthDate, now, 7),
+  ).length;
+  const issuedReviewIds = new Set(issuedReviewCards.map((card) => card.reviewFeedbackId).filter(Boolean));
+  const untreatedReviews = poorReviewCandidates.filter(
+    (review) => !issuedReviewIds.has(review.id) && review.reservationId,
+  );
+  const untreatedReviewReservationIds = untreatedReviews
+    .map((review) => review.reservationId)
+    .filter((value): value is string => Boolean(value));
+  const untreatedReviewReservations = untreatedReviewReservationIds.length
+    ? await prisma.reservation.findMany({
+        where: { id: { in: untreatedReviewReservationIds }, restaurantId: id, email: { not: null } },
+        select: { id: true, email: true },
+      })
+    : [];
+  const untreatedReviewByReservation = new Map(
+    untreatedReviewReservations.map((reservation) => [reservation.id, reservation.email?.trim().toLowerCase()]),
+  );
+  const poorReviewCustomers = new Set(
+    untreatedReviews
+      .map((review) => (review.reservationId ? untreatedReviewByReservation.get(review.reservationId) : null))
+      .filter((email): email is string => Boolean(email)),
+  ).size;
 
   const tableReservations = restaurant.tables.flatMap((table) => table.reservations);
   const allReservations = [...tableReservations, ...restaurant.reservations].filter(
@@ -289,7 +369,14 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
             </div>
           </section>
 
-          <MarketingQuickActions t={t} restaurantId={id} growthAccess={growthAccess} />
+          <MarketingInterventions
+            t={t}
+            restaurantId={id}
+            growthAccess={growthAccess}
+            inactiveCustomers={inactiveMarketingCustomers}
+            birthdayCustomers={birthdayMarketingCustomers}
+            poorReviewCustomers={poorReviewCustomers}
+          />
 
           <section className="mt-4 flex flex-col gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="px-2"><p className="text-[10px] font-black uppercase tracking-[0.19em] text-[#9B6F3B]">{t("summary.quick.eyebrow")}</p><p className="mt-1 text-sm font-semibold">{t("summary.quick.title")}</p></div>
@@ -307,8 +394,24 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   );
 }
 
-function MarketingQuickActions({ t, restaurantId, growthAccess }: { t: TFunc; restaurantId: string; growthAccess: boolean }) {
-  return <section className="mt-4 flex flex-col gap-4 rounded-[24px] border border-[#E1D0B8] bg-white p-4 shadow-[0_14px_40px_rgba(80,55,30,0.04)] lg:flex-row lg:items-center lg:justify-between"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] bg-[#FFF0D3] text-[#8A602C]"><Sparkles size={17} /></span><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">{t("summary.marketing.quickEyebrow")}</p><p className="mt-1 text-sm font-semibold">{t("summary.marketing.quickTitle")}</p></div></div><div className="grid grid-cols-2 gap-2 sm:flex">{growthAccess ? <RecoveryOfferButton restaurantId={restaurantId} label={t("summary.marketing.recover")} compact /> : <QuickLink href={`/restaurants/${restaurantId}/marketing`} icon={<Sparkles size={14} />} label={t("summary.marketing.open")} primary />}<QuickLink href={`/restaurants/${restaurantId}/marketing/campaigns/new`} icon={<Plus size={14} />} label={t("summary.marketing.newCampaign")} /><QuickLink href={`/restaurants/${restaurantId}/marketing/loyalty`} icon={<TicketCheck size={14} />} label={t("summary.marketing.cards")} /><QuickLink href={`/restaurants/${restaurantId}/marketing`} icon={<ArrowUpRight size={14} />} label={t("summary.marketing.results")} /></div></section>;
+function MarketingInterventions({ t, restaurantId, growthAccess, inactiveCustomers, birthdayCustomers, poorReviewCustomers }: { t: TFunc; restaurantId: string; growthAccess: boolean; inactiveCustomers: number; birthdayCustomers: number; poorReviewCustomers: number }) {
+  const opportunities = inactiveCustomers + birthdayCustomers + poorReviewCustomers;
+  if (!opportunities) return null;
+
+  const interventions = [
+    inactiveCustomers > 0 ? { key: "inactive", count: inactiveCustomers, label: t("summary.marketing.inactive", { count: inactiveCustomers }), action: growthAccess ? <RecoveryOfferButton restaurantId={restaurantId} label={t("summary.marketing.chooseReward")} compact /> : <QuickLink href={`/restaurants/${restaurantId}/marketing`} icon={<ArrowUpRight size={14} />} label={t("summary.marketing.reviewAction")} primary /> } : null,
+    birthdayCustomers > 0 ? { key: "birthday", count: birthdayCustomers, label: t("summary.marketing.birthdays", { count: birthdayCustomers }), action: growthAccess ? <RecoveryOfferButton restaurantId={restaurantId} label={t("summary.marketing.chooseReward")} mode="birthday" compact /> : <QuickLink href={`/restaurants/${restaurantId}/marketing`} icon={<ArrowUpRight size={14} />} label={t("summary.marketing.reviewAction")} primary /> } : null,
+    poorReviewCustomers > 0 ? { key: "reviews", count: poorReviewCustomers, label: t("summary.marketing.poorReviews", { count: poorReviewCustomers }), action: <QuickLink href={`/restaurants/${restaurantId}/marketing#marketing-review-recovery`} icon={<Star size={14} />} label={t("summary.marketing.reviewAction")} primary /> } : null,
+  ].filter((item): item is NonNullable<typeof item> => Boolean(item));
+
+  return <section className="mt-4 overflow-hidden rounded-[24px] border border-[#DFC89F] bg-white shadow-[0_14px_40px_rgba(80,55,30,0.04)]"><div className="flex flex-col gap-3 bg-[#FFF8EA] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">{t("summary.marketing.interventionsEyebrow")}</p><p className="mt-1 text-sm font-semibold">{t("summary.marketing.interventionsTitle")}</p></div><span className="w-fit rounded-full bg-[#17120D] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-white">{t("summary.marketing.opportunities", { count: opportunities })}</span></div><div className="divide-y divide-[#EEE3D3]">{interventions.map((intervention) => <div key={intervention.key} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-center gap-3"><span className="grid h-8 min-w-8 place-items-center rounded-full bg-[#F1E6D5] text-xs font-black text-[#825D2D]">{intervention.count}</span><p className="text-sm font-semibold text-[#3F372E]">{intervention.label}</p></div><div className="shrink-0">{intervention.action}</div></div>)}</div></section>;
+}
+
+function birthdayWithinNextDays(birthDate: Date, today: Date, days: number) {
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const birthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+  if (birthday < start) birthday.setFullYear(today.getFullYear() + 1);
+  return birthday.getTime() - start.getTime() <= days * 24 * 60 * 60 * 1000;
 }
 
 function AttentionCard({ t, restaurantId, total, pendingReservations, partnerOffers, conversations, qrOrders }: { t: TFunc; restaurantId: string; total: number; pendingReservations: number; partnerOffers: number; conversations: number; qrOrders: number }) {

@@ -74,7 +74,7 @@
       "attention": { "eyebrow": "需要处理", "title": "需要您的关注", "reservations": "待确认预订", "groups": "待回复合作伙伴团体", "conversations": "Revenue AI 对话", "qrOrders": "制作中的二维码订单", "clear": "全部处理完毕，没有待办事项。" },
       "upcoming": { "eyebrow": "日程", "title": "即将到来的预订", "all": "查看全部", "guests": "{count} 位客人", "pending": "待确认", "empty": "暂无即将到来的预订。" },
       "growth": { "eyebrow": "增长", "title": "餐厅增长脉搏", "active": "已启用", "available": "Growth 可用" },
-      "marketing": { "eyebrow": "营销与忠诚度", "performance": "本月联系 {sent} 人 · {rate}% 已打开", "empty": "本月尚未发送联系。", "quickEyebrow": "快速营销", "quickTitle": "增加未来到店", "recover": "召回客户", "newCampaign": "新建活动", "cards": "卡片和优惠", "results": "查看结果", "open": "打开营销" },
+      "marketing": { "eyebrow": "营销与忠诚度", "performance": "本月联系 {sent} 人 · {rate}% 已打开", "empty": "本月尚未发送联系。", "interventionsEyebrow": "营销 · 有效行动", "interventionsTitle": "现在值得联系的客户", "opportunities": "{count} 个机会", "inactive": "{count} 位客户超过 60 天未到店", "birthdays": "{count} 位客户将在未来 7 天生日", "poorReviews": "{count} 条 1 至 4 星评价尚未跟进", "chooseReward": "选择奖励", "reviewAction": "立即处理" },
       "ai": { "eyebrow": "AI 可见度", "noScan": "尚未测量", "performance": "{mentions}% 出现率 · {sources} 个来源", "runScan": "运行首次真实诊断。", "priceBelow": "价格低于当地", "priceAbove": "价格高于当地", "priceAligned": "价格符合当地水平" },
       "partners": { "eyebrow": "合作伙伴网络", "pending": "{count} 个新团体", "clear": "暂无新请求", "booked": "已有 {count} 个未来团体预订" },
       "website": { "eyebrow": "网站", "published": "已发布", "draft": "待完成", "finish": "完成并发布网站。" },
