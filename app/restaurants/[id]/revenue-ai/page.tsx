@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
-import RecoveryAutomationCard from "@/components/marketing/RecoveryAutomationCard";
 import RevenueActivityFeed from "@/components/revenue-ai/RevenueActivityFeed";
 import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import { authOptions } from "@/lib/auth";
@@ -316,6 +315,12 @@ export default async function RevenueAiPage({
 
           <GrowthWorkspaceSwitcher restaurantId={id} active="revenue" locale={locale} />
 
+          <section className="mt-6 grid gap-3 md:grid-cols-3">
+            <RevenueExample title="Uma reserva foi cancelada" action="A IA pergunta se o cliente quer escolher outra data." result="Possível reserva recuperada" />
+            <RevenueExample title="Um contacto não reservou" action="A IA retoma a conversa enquanto o interesse ainda está quente." result="Lead transformado em reserva" />
+            <RevenueExample title="Ninguém atendeu o telefone" action="O MesaLink regista a oportunidade e pode responder por WhatsApp." result="Venda que deixa de ficar esquecida" />
+          </section>
+
           <section className="mt-7 overflow-hidden rounded-[38px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_35px_100px_rgba(44,31,18,0.24)]">
             <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
               <div className="border-b border-white/10 p-7 sm:p-9 lg:border-b-0 lg:border-r">
@@ -349,12 +354,15 @@ export default async function RevenueAiPage({
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
             <div className="rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B58A45]">{t("automation.eyebrow")}</p>
-              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("automation.title")}</h2>
-              <p className="mt-2 text-sm leading-6 text-[#6B6258]">{t("automation.description")}</p>
-              <div className="mt-6">
-                <RecoveryAutomationCard inactiveCustomers={inactiveCustomers.length} restaurantId={id} emailsRemaining={subscription?.emailBalance || 0} />
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B58A45]">Fluxo Revenue AI</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Uma oportunidade, uma conversa.</h2>
+              <p className="mt-2 text-sm leading-6 text-[#6B6258]">Aqui não se criam campanhas, cartões ou descontos. A IA acompanha cada venda perdida individualmente até haver resposta ou resultado.</p>
+              <div className="mt-6 space-y-3">
+                <RevenueStep number="1" title="A oportunidade entra" text="Cancelamento, no-show, lead sem reserva ou chamada perdida." />
+                <RevenueStep number="2" title="A IA faz follow-up" text="Retoma a conversa no canal disponível e respeita as regras do restaurante." />
+                <RevenueStep number="3" title="Vês o resultado" text="Resposta, nova reserva e receita recuperada ficam associados ao caso." />
               </div>
+              <Link href={`/restaurants/${id}/revenue-ai/inbox`} className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#17120D] px-5 text-sm font-semibold text-white">Abrir oportunidades <ArrowUpRight size={15} /></Link>
             </div>
 
             <div className="rounded-[34px] border border-[#2C2117] bg-[#17120D] p-5 text-white sm:p-8">
@@ -392,6 +400,14 @@ export default async function RevenueAiPage({
 
 function HeroMetric({ label, value }: { label: string; value: string }) {
   return <div className="bg-[#17120D] p-5 sm:p-6"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/40">{label}</p><p className="mt-3 text-2xl font-semibold tracking-[-0.045em] sm:text-3xl">{value}</p></div>;
+}
+
+function RevenueExample({ title, action, result }: { title: string; action: string; result: string }) {
+  return <article className="rounded-[26px] border border-[#E1D0B8] bg-white p-5"><p className="text-sm font-black">{title}</p><p className="mt-2 text-xs leading-5 text-[#6B6258]">{action}</p><p className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-[#3F6A4D]"><CheckCircle2 size={14} /> {result}</p></article>;
+}
+
+function RevenueStep({ number, title, text }: { number: string; title: string; text: string }) {
+  return <div className="flex gap-3 rounded-[22px] border border-[#E8DCCB] bg-[#FFF9F0] p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#17120D] text-xs font-black text-[#D7B267]">{number}</span><div><p className="text-sm font-semibold">{title}</p><p className="mt-1 text-xs leading-5 text-[#6B6258]">{text}</p></div></div>;
 }
 
 function OpportunityCard({ icon, title, description, count, amountLabel, countLabel, href, cta, tone }: { icon: ReactNode; title: string; description: string; count: number; amountLabel: string; countLabel: string; href: string; cta: string; tone: "red" | "gold" | "blue" }) {

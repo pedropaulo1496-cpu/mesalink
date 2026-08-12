@@ -41,10 +41,10 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
       <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
-        <RestaurantSidebar id={id} restaurantName={restaurant.name} active="partnerNetwork" />
+        <RestaurantSidebar id={id} restaurantName={restaurant.name} active="marketing" />
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-          <header><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">MesaLink Restaurantes · Promoções</p><h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">Cria ofertas e cartões digitais para os teus clientes.</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">Publica descontos ou vantagens, partilha os cartões pelos teus próprios canais e valida-os no momento da visita. Esta área pertence ao restaurante e não aparece na app dos hotéis.</p></header>
-          <RestaurantPartnerTabs id={id} active="benefits" />
+          <header><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Marketing & Fidelização</p><h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">Ofertas e cartões que fazem os clientes voltar.</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">Cria descontos ou vantagens, emite cartões pelos teus próprios canais e mede quantos foram utilizados. Esta área é do restaurante e não pertence à rede de hotéis.</p></header>
+          <MarketingLoyaltyTabs id={id} />
 
           <section className="mt-7 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <Kpi icon={<Gift size={18} />} label="Ofertas ativas" value={String(activeBenefits.length)} />
@@ -82,8 +82,8 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
   );
 }
 
-function RestaurantPartnerTabs({ id, active }: { id: string; active: "groups" | "benefits" }) {
-  return <nav className="mt-6 inline-flex rounded-full border border-[#D9C7AA] bg-white p-1"><Link href={`/restaurants/${id}/partner-network`} className={`rounded-full px-5 py-2.5 text-xs font-bold ${active === "groups" ? "bg-[#17120D] text-white" : "text-[#6B6258]"}`}>Grupos e pagamentos</Link><Link href={`/restaurants/${id}/partner-network/benefits`} className={`rounded-full px-5 py-2.5 text-xs font-bold ${active === "benefits" ? "bg-[#17120D] text-white" : "text-[#6B6258]"}`}>Cartões e ofertas</Link></nav>;
+function MarketingLoyaltyTabs({ id }: { id: string }) {
+  return <nav className="mt-6 inline-flex rounded-full border border-[#D9C7AA] bg-white p-1"><Link href={`/restaurants/${id}/marketing`} className="rounded-full px-5 py-2.5 text-xs font-bold text-[#6B6258]">Visão geral</Link><Link href={`/restaurants/${id}/marketing/loyalty`} className="rounded-full bg-[#17120D] px-5 py-2.5 text-xs font-bold text-white">Cartões e ofertas</Link></nav>;
 }
 
 function Kpi({ icon, label, value }: { icon: ReactNode; label: string; value: string }) { return <div className="rounded-[26px] border border-[#E1D0B8] bg-white p-4 sm:p-5"><div className="text-[#9B6F3B]">{icon}</div><p className="mt-4 text-2xl font-semibold tracking-[-0.04em]">{value}</p><p className="mt-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#8B7D6D]">{label}</p></div>; }

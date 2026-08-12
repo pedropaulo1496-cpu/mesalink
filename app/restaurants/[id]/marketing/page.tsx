@@ -7,6 +7,7 @@ import BottomNav from "@/components/BottomNav";
 import BirthdayAutomationCard from "@/components/marketing/BirthdayAutomationCard";
 import ReviewAutomationCard from "@/components/marketing/ReviewAutomationCard";
 import MarketingAutopilotCard from "@/components/marketing/MarketingAutopilotCard";
+import RecoveryAutomationCard from "@/components/marketing/RecoveryAutomationCard";
 import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -338,6 +339,13 @@ export default async function MarketingPage({
                 className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
               >
                 {t("main.actions.settings")}
+              </Link>
+
+              <Link
+                href={`/restaurants/${id}/marketing/loyalty`}
+                className="rounded-full border border-[#E1D0B8] bg-white px-5 py-3 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
+              >
+                Cartões & Ofertas
               </Link>
 
 <Link
@@ -697,6 +705,11 @@ export default async function MarketingPage({
                 />
 
                 <BirthdayAutomationCard birthdayCustomers={birthdayCustomers.length} restaurantId={id} emailsRemaining={subscription?.emailBalance || 0} />
+
+                <RecoveryAutomationCard inactiveCustomers={customers.filter((customer) => {
+                  const lastVisit = customer.lastVisitAt || customer.lastReservationAt || customer.reservations[0]?.date;
+                  return Boolean(lastVisit && lastVisit < new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000));
+                }).length} restaurantId={id} emailsRemaining={subscription?.emailBalance || 0} />
 
                 <Link
                   href={`/restaurants/${id}/marketing/campaigns/new`}

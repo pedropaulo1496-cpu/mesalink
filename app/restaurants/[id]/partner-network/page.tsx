@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { Building2, CalendarClock, CheckCircle2, CircleDollarSign, Clock3, MapPin, ShieldCheck, UsersRound } from "lucide-react";
@@ -94,7 +93,7 @@ export default async function PartnerNetworkPage({
             <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Contacto oculto até aceitar</div>
           </header>
 
-          <nav className="mt-6 inline-flex rounded-full border border-[#D9C7AA] bg-white p-1"><Link href={`/restaurants/${id}/partner-network`} className="rounded-full bg-[#17120D] px-5 py-2.5 text-xs font-bold text-white">Grupos e pagamentos</Link><Link href={`/restaurants/${id}/partner-network/benefits`} className="rounded-full px-5 py-2.5 text-xs font-bold text-[#6B6258]">Cartões e ofertas</Link></nav>
+          <div className="mt-6 inline-flex rounded-full border border-[#D9C7AA] bg-white px-5 py-3 text-xs font-bold text-[#6B6258]">Grupos, comissões e pagamentos</div>
 
           {result && <div className={`mt-5 rounded-[22px] border px-5 py-4 text-sm font-semibold ${["accepted", "completed", "payment-success", "already-paid"].includes(result) ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : result === "declined" || result === "payment-cancelled" ? "border-[#DCCCAD] bg-[#FFF9ED] text-[#795D38]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{resultMessage(result)}</div>}
 

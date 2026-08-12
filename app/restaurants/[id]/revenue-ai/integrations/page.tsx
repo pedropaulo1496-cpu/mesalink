@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { ArrowLeft, Workflow } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
@@ -19,12 +19,13 @@ export default async function RevenueIntegrationsPage({ params }: { params: Prom
   if (!hasGrowthAccess(user.subscription)) redirect(`/billing?restaurantId=${id}`);
   const restaurant = await prisma.restaurant.findFirst({ where: { id, userId: user.id } });
   if (!restaurant) notFound();
+  const activationRequest = await prisma.marketingAction.findFirst({ where: { restaurantId: id, type: "CHANNEL_ACTIVATION_REQUEST", status: "REQUESTED" }, orderBy: { createdAt: "desc" }, select: { sentAt: true, channel: true } });
 
   return <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
     <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
       <RestaurantSidebar id={id} restaurantName={restaurant.name} active="revenueAi" />
       <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-        <header className="mb-7"><Link href={`/restaurants/${id}/revenue-ai`} className="inline-flex items-center gap-2 text-xs font-bold text-[#806D56]"><ArrowLeft size={14} /> Revenue AI</Link><p className="mt-4 flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]"><Workflow size={14} /> Canais</p><h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">Liga conversas reais ao MesaLink.</h1><p className="mt-3 max-w-3xl text-sm leading-6 text-[#6B6258]">Configura uma vez. O MesaLink recebe WhatsApp, encaminha chamadas para o restaurante, reconhece quando ninguém atendeu e cria o follow-up no Revenue AI.</p></header>
+        <header className="mb-7"><Link href={`/restaurants/${id}/revenue-ai`} className="inline-flex items-center gap-2 text-xs font-bold text-[#806D56]"><ArrowLeft size={14} /> Revenue AI</Link><p className="mt-4 flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]"><Sparkles size={14} /> Ativação assistida</p><h1 className="mt-2 max-w-4xl text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">Escolhe onde queres recuperar clientes. O MesaLink trata da parte técnica.</h1><p className="mt-3 max-w-3xl text-sm leading-6 text-[#6B6258]">Não precisas de saber o que é Twilio, webhooks ou modelos WhatsApp. Diz-nos apenas que canais queres usar e qual é o teu contacto.</p></header>
         <RevenueChannelsClient
           restaurantId={id}
           restaurantName={restaurant.name}
@@ -41,6 +42,8 @@ export default async function RevenueIntegrationsPage({ params }: { params: Prom
             lastError: restaurant.revenueChannelsLastError || "",
           }}
           initialStatus={getRevenueChannelStatus(restaurant)}
+          websiteEnabled={restaurant.websiteEnabled}
+          initialRequest={activationRequest ? { requestedAt: activationRequest.sentAt.toISOString(), channels: activationRequest.channel } : null}
           whatsappBalance={user.subscription?.whatsappMessageBalance || 0}
           aiCredits={user.subscription?.aiCredits || 0}
         />

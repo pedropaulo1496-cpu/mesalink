@@ -1,51 +1,51 @@
 {
   "eyebrow": "Revenue AI",
   "live": "A analisar",
-  "title": "Recupera receita antes de a perder.",
-  "subtitle": "O MesaLink encontra cancelamentos, no-shows, clientes inativos e contactos sem reserva — e transforma cada sinal numa ação de recuperação.",
-  "rulesCta": "Canais e integrações",
+  "title": "Encontra clientes que quase compraram — e ajuda-os a voltar.",
+  "subtitle": "O Revenue AI procura vendas esquecidas, prepara a resposta certa e acompanha cada conversa até existir uma reserva ou uma decisão.",
+  "rulesCta": "Ativar WhatsApp e chamadas",
   "hero": {
     "recoveredLabel": "Receita recuperada este mês",
     "recoveredHint": "{count} conversões atribuídas a ações do MesaLink",
-    "atRisk": "Receita em risco",
-    "pipeline": "Em recuperação",
-    "opportunities": "Oportunidades",
-    "activeFollowups": "Follow-ups ativos"
+    "atRisk": "Valor que podes recuperar",
+    "pipeline": "Em conversa",
+    "opportunities": "Tipos de venda perdida",
+    "activeFollowups": "Clientes em acompanhamento"
   },
   "opportunities": {
-    "eyebrow": "Opportunity inbox",
-    "title": "Vendas que ainda podes recuperar",
+    "eyebrow": "Clientes para recuperar",
+    "title": "Quem precisa de resposta agora",
     "updated": "Calculado com dados reais do restaurante",
     "items": "{count} casos",
     "cancelled": {
       "title": "Reservas canceladas",
       "description": "Reservas recentes que podem ser remarcadas antes de o cliente escolher outro restaurante.",
-      "cta": "Ver reservas"
+      "cta": "Tratar na caixa"
     },
     "inactive": {
       "title": "Clientes desaparecidos",
       "description": "Clientes com consentimento e email que não regressam há mais de 60 dias.",
-      "cta": "Ver clientes"
+      "cta": "Tratar na caixa"
     },
     "leads": {
       "title": "Contactos sem reserva",
       "description": "Contactos criados há mais de 48 horas que ainda não fizeram uma reserva ou visita.",
-      "cta": "Criar follow-up"
+      "cta": "Iniciar conversa"
     },
     "noShows": {
       "title": "No-shows por recuperar",
       "description": "Clientes que faltaram e podem receber uma segunda oportunidade para remarcar.",
-      "cta": "Abrir clientes"
+      "cta": "Tentar remarcar"
     }
   },
   "automation": {
     "eyebrow": "Agente ativo",
     "title": "Recuperação automática por email",
-    "description": "O MesaLink identifica clientes elegíveis, evita contactos duplicados e envia o convite de regresso com a oferta definida pelo restaurante."
+    "description": "O MesaLink identifica cada oportunidade, evita contactos duplicados e acompanha a conversa até existir uma resposta ou resultado."
   },
   "channels": {
-    "eyebrow": "Canais",
-    "title": "Tudo ligado num só lugar",
+    "eyebrow": "Onde a IA responde",
+    "title": "Email e website já funcionam. WhatsApp e chamadas são opcionais.",
     "email": "Email MesaLink",
     "website": "Leads do website",
     "whatsapp": "WhatsApp",
@@ -59,8 +59,8 @@
     "paused": "Pausado"
   },
   "activity": {
-    "eyebrow": "Atividade do agente",
-    "title": "Cada tentativa, cada resultado",
+    "eyebrow": "Resultados",
+    "title": "O que a IA tentou e o que aconteceu",
     "viewAll": "Abrir inbox completo",
     "unknownCustomer": "Cliente",
     "empty": "Ainda não existem tentativas de recuperação. Executa a primeira automação acima.",
