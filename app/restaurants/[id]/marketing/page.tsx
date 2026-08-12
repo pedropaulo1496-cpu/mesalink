@@ -7,6 +7,7 @@ import BottomNav from "@/components/BottomNav";
 import BirthdayAutomationCard from "@/components/marketing/BirthdayAutomationCard";
 import ReviewAutomationCard from "@/components/marketing/ReviewAutomationCard";
 import MarketingAutopilotCard from "@/components/marketing/MarketingAutopilotCard";
+import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 
@@ -158,18 +159,6 @@ export default async function MarketingPage({
     orderBy: { createdAt: "desc" },
   });
 
-  const sixtyDaysAgo = new Date(now);
-  sixtyDaysAgo.setDate(now.getDate() - 60);
-
-  const inactiveCustomers = customers.filter((customer) => {
-    const lastVisit =
-      customer.lastVisitAt ||
-      customer.lastReservationAt ||
-      customer.reservations[0]?.date;
-
-    return lastVisit && new Date(lastVisit) < sixtyDaysAgo;
-  });
-
   const vipCustomers = customers.filter(
     (customer) =>
       customer.vipTier ||
@@ -212,11 +201,15 @@ export default async function MarketingPage({
     (review) => review.rating >= (restaurant.reviewRedirectThreshold || 4),
   );
 
-  const convertedActions = marketingActions.filter(
+  const campaignActions = marketingActions.filter((action) =>
+    ["BIRTHDAY", "VIP_UPGRADE", "MANUAL_CAMPAIGN", "AI_CAMPAIGN", "REVIEW_REQUEST"].includes(action.type),
+  );
+
+  const convertedActions = campaignActions.filter(
     (action) => action.status === "CONVERTED" || action.convertedAt,
   );
 
-  const estimatedRevenue = marketingActions.reduce((total, action) => {
+  const estimatedRevenue = convertedActions.reduce((total, action) => {
     return total + Number(action.estimatedRevenue || 0);
   }, 0);
 
@@ -240,21 +233,7 @@ export default async function MarketingPage({
       ? Math.round((googleReviews.length / reviewFeedbacks.length) * 100)
       : 0;
 
-  const recoveredCustomers = marketingActions.filter(
-    (action) =>
-      action.type === "INACTIVE_RECOVERY" &&
-      (action.status === "CONVERTED" || action.convertedAt),
-  ).length;
-
-  const recoveryRevenue = marketingActions
-    .filter(
-      (action) =>
-        action.type === "INACTIVE_RECOVERY" &&
-        (action.status === "CONVERTED" || action.convertedAt),
-    )
-    .reduce((total, action) => total + Number(action.estimatedRevenue || 0), 0);
-
-  const birthdayRevenue = marketingActions
+  const birthdayRevenue = campaignActions
     .filter(
       (action) =>
         action.type === "BIRTHDAY" &&
@@ -262,11 +241,11 @@ export default async function MarketingPage({
     )
     .reduce((total, action) => total + Number(action.estimatedRevenue || 0), 0);
 
-  const manualCampaigns = marketingActions.filter(
+  const manualCampaigns = campaignActions.filter(
     (action) => action.type === "MANUAL_CAMPAIGN",
   );
 
-  const manualCampaignRevenue = manualCampaigns.reduce(
+  const manualCampaignRevenue = manualCampaigns.filter((action) => action.status === "CONVERTED" || action.convertedAt).reduce(
     (total, action) => total + Number(action.estimatedRevenue || 0),
     0,
   );
@@ -280,16 +259,6 @@ export default async function MarketingPage({
   const threeStars = reviewFeedbacks.filter((review) => review.rating === 3).length;
   const twoStars = reviewFeedbacks.filter((review) => review.rating === 2).length;
   const oneStar = reviewFeedbacks.filter((review) => review.rating === 1).length;
-
-  const inactiveRevenuePotential =
-    inactiveCustomers.length * Number(restaurant.averageTicket || 25);
-
-    const riskyCustomers = customers.filter(
-  (customer) => (customer.riskScore ?? 0) >= 50,
-);
-
-const riskRevenue =
-  riskyCustomers.length * Number(restaurant.averageTicket || 25);
 
   const topCustomers = [...customers]
   .sort(
@@ -308,7 +277,7 @@ const riskRevenue =
     1,
   );
 
-  const recentCampaigns = marketingActions.slice(0, 12);
+  const recentCampaigns = campaignActions.slice(0, 12);
   const latestAiCampaign = await prisma.aiMarketingCampaign.findFirst({
     where: { restaurantId: id },
     orderBy: { createdAt: "desc" },
@@ -320,7 +289,7 @@ const riskRevenue =
     const month = date.getMonth();
     const year = date.getFullYear();
 
-    const revenue = marketingActions
+    const revenue = campaignActions
       .filter((action) => {
         if (!(action.status === "CONVERTED" || action.convertedAt)) return false;
 
@@ -387,6 +356,8 @@ const riskRevenue =
             </div>
           </header>
 
+          <GrowthWorkspaceSwitcher restaurantId={id} active="marketing" locale={locale} />
+
           <section className="mt-8 overflow-hidden rounded-[44px] border border-[#2C2117] bg-[#17120D] p-7 text-white shadow-[0_35px_100px_rgba(44,31,18,0.28)] lg:p-10">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div>
@@ -411,13 +382,7 @@ const riskRevenue =
               </div>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              <DarkInsight
-                label={t("main.hero.insights.recovery.label")}
-                value={`${recoveryRevenue.toFixed(0)}€`}
-                sub={t("main.hero.insights.recovery.sub", { count: recoveredCustomers })}
-              />
-
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
               <DarkInsight
                 label={t("main.hero.insights.birthday.label")}
                 value={`${birthdayRevenue.toFixed(0)}€`}
@@ -538,22 +503,13 @@ const riskRevenue =
             </Panel>
           </section>
 
-          <section className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+          <section className="mt-6 grid gap-6 md:grid-cols-3">
             <GrowthModule
               title={t("main.modules.reviews.title")}
               emoji="⭐"
               value={googleReviews.length}
               label={t("main.modules.reviews.label")}
               sub={t("main.modules.reviews.sub", { count: positiveReviews.length })}
-              activeLabel={t("main.badges.active")}
-            />
-
-            <GrowthModule
-              title={t("main.modules.recovery.title")}
-              emoji="🎯"
-              value={`${recoveryRevenue.toFixed(0)}€`}
-              label={t("main.modules.recovery.label")}
-              sub={t("main.modules.recovery.sub", { count: inactiveCustomers.length })}
               activeLabel={t("main.badges.active")}
             />
 
@@ -565,15 +521,6 @@ const riskRevenue =
               sub={t("main.modules.vip.sub", { count: goldCustomers + platinumCustomers })}
               activeLabel={t("main.badges.active")}
             />
-
-            <GrowthModule
-  title={t("main.modules.risk.title")}
-  emoji="🚨"
-  value={riskyCustomers.length}
-  label={t("main.modules.risk.label")}
-  sub={t("main.modules.risk.sub", { amount: riskRevenue.toFixed(0) })}
-  activeLabel={t("main.badges.active")}
-/>
 
             <Link href={`/restaurants/${id}/marketing/campaigns/new`}>
               <GrowthModule
@@ -671,42 +618,7 @@ const riskRevenue =
             </Panel>
           </section>
 
-          <section className="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-            <Link
-              href={`/restaurants/${id}/revenue-ai`}
-              className="group flex min-h-[420px] flex-col justify-between overflow-hidden rounded-[34px] border border-[#2C2117] bg-[#17120D] p-7 text-white shadow-[0_24px_70px_rgba(45,31,18,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_28px_80px_rgba(45,31,18,0.18)]"
-            >
-              <div>
-                <SectionLabel>{t("main.revenueAiHandoff.eyebrow")}</SectionLabel>
-                <h2 className="mt-3 max-w-md text-3xl font-semibold tracking-[-0.055em]">
-                  {t("main.revenueAiHandoff.title")}
-                </h2>
-                <p className="mt-3 max-w-lg text-sm leading-6 text-[#D5C6B4]">
-                  {t("main.revenueAiHandoff.description")}
-                </p>
-              </div>
-
-              <div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D7B267]">
-                      {t("main.revenueAiHandoff.customers")}
-                    </p>
-                    <p className="mt-2 text-3xl font-semibold">{inactiveCustomers.length}</p>
-                  </div>
-                  <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D7B267]">
-                      {t("main.revenueAiHandoff.potential")}
-                    </p>
-                    <p className="mt-2 text-3xl font-semibold">{inactiveRevenuePotential.toFixed(0)}€</p>
-                  </div>
-                </div>
-                <span className="mt-4 inline-flex rounded-full bg-[#D7B267] px-5 py-3 text-sm font-black text-[#17120D] transition group-hover:bg-[#E7C77F]">
-                  {t("main.revenueAiHandoff.open")}
-                </span>
-              </div>
-            </Link>
-
+          <section className="mt-6">
             <Panel>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -777,11 +689,6 @@ const riskRevenue =
                     enabledMessage: t("main.automations.reviewRequest.enabledMessage"), disabledMessage: t("main.automations.reviewRequest.disabledMessage"),
                   }}
                 />
-
-                <Link href={`/restaurants/${id}/revenue-ai`} className="flex min-h-[112px] flex-col gap-4 rounded-3xl border border-[#2C2117] bg-[#17120D] p-5 text-white sm:flex-row sm:items-center sm:justify-between">
-                  <div><p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D7B267]">{t("main.automations.revenueAi.eyebrow")}</p><p className="mt-2 font-semibold">{t("main.automations.revenueAi.title")}</p><p className="mt-1 text-sm leading-6 text-[#D5C6B4]">{t("main.automations.revenueAi.description")}</p></div>
-                  <span className="w-fit shrink-0 rounded-full bg-[#D7B267] px-4 py-2 text-sm font-black text-[#17120D]">{t("main.automations.revenueAi.open")}</span>
-                </Link>
 
                 <AutomationCard
                   title={t("main.automations.vipClub.title")}

@@ -3,7 +3,7 @@
   "live": "A analisar",
   "title": "Recupera receita antes de a perder.",
   "subtitle": "O MesaLink encontra cancelamentos, no-shows, clientes inativos e contactos sem reserva — e transforma cada sinal numa ação de recuperação.",
-  "rulesCta": "Regras e ofertas",
+  "rulesCta": "Canais e integrações",
   "hero": {
     "recoveredLabel": "Receita recuperada este mês",
     "recoveredHint": "{count} conversões atribuídas a ações do MesaLink",
@@ -61,7 +61,7 @@
   "activity": {
     "eyebrow": "Atividade do agente",
     "title": "Cada tentativa, cada resultado",
-    "viewAll": "Ver Growth Engine",
+    "viewAll": "Abrir inbox completo",
     "unknownCustomer": "Cliente",
     "empty": "Ainda não existem tentativas de recuperação. Executa a primeira automação acima.",
     "tapHint": "Toca para ver detalhes",

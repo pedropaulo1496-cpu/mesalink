@@ -4,6 +4,7 @@ import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
 export default async function MarketingRecommendationsPage({
   params,
@@ -11,6 +12,7 @@ export default async function MarketingRecommendationsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  await assertRestaurantOwner(id);
 
   const t = await getTranslations("dashboardMarketing.recommendations");
 
@@ -71,16 +73,7 @@ export default async function MarketingRecommendationsPage({
     0,
   );
 
-  const riskyPotential = riskyCustomers.reduce(
-    (total, customer) =>
-      total +
-      Math.max(customer.totalVisits ?? 0, customer.visitCount ?? 0, 1) *
-        averageTicket,
-    0,
-  );
-
   const birthdayPotential = birthdayCustomers.length * averageTicket;
-  const inactivePotential = inactiveCustomers.length * averageTicket;
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
@@ -121,9 +114,7 @@ export default async function MarketingRecommendationsPage({
             </p>
 
             <h2 className="mt-5 max-w-3xl text-5xl font-semibold tracking-[-0.075em]">
-              {riskyCustomers.length > 0
-                ? t("priority.messages.risky")
-                : vipCustomers.length > 0
+              {vipCustomers.length > 0
                   ? t("priority.messages.vip")
                   : birthdayCustomers.length > 0
                     ? t("priority.messages.birthday")
@@ -137,20 +128,6 @@ export default async function MarketingRecommendationsPage({
 
           <section className="mt-6 grid gap-6 xl:grid-cols-2">
             <RecommendationCard
-              label={t("cards.risky.label")}
-              title={t("cards.risky.title")}
-              description={t("cards.risky.description")}
-              count={riskyCustomers.length}
-              potential={riskyPotential}
-              href={`/restaurants/${id}/marketing/campaigns/new?segment=INACTIVE`}
-              cta={t("cards.risky.cta")}
-              priority={riskyCustomers.length > 0}
-              priorityLabel={t("priorityBadge")}
-              customersLabel={t("miniStats.customers")}
-              potentialLabel={t("miniStats.potential")}
-            />
-
-            <RecommendationCard
               label={t("cards.vip.label")}
               title={t("cards.vip.title")}
               description={t("cards.vip.description")}
@@ -158,7 +135,7 @@ export default async function MarketingRecommendationsPage({
               potential={vipPotential}
               href={`/restaurants/${id}/marketing/campaigns/new?segment=VIP`}
               cta={t("cards.vip.cta")}
-              priority={riskyCustomers.length === 0 && vipCustomers.length > 0}
+              priority={vipCustomers.length > 0}
               priorityLabel={t("priorityBadge")}
               customersLabel={t("miniStats.customers")}
               potentialLabel={t("miniStats.potential")}
@@ -173,7 +150,6 @@ export default async function MarketingRecommendationsPage({
               href={`/restaurants/${id}/marketing/campaigns/new?segment=BIRTHDAYS`}
               cta={t("cards.birthday.cta")}
               priority={
-                riskyCustomers.length === 0 &&
                 vipCustomers.length === 0 &&
                 birthdayCustomers.length > 0
               }
@@ -182,19 +158,12 @@ export default async function MarketingRecommendationsPage({
               potentialLabel={t("miniStats.potential")}
             />
 
-            <RecommendationCard
-              label={t("cards.inactive.label")}
-              title={t("cards.inactive.title")}
-              description={t("cards.inactive.description")}
-              count={inactiveCustomers.length}
-              potential={inactivePotential}
-              href={`/restaurants/${id}/marketing/campaigns/new?segment=INACTIVE`}
-              cta={t("cards.inactive.cta")}
-              priorityLabel={t("priorityBadge")}
-              customersLabel={t("miniStats.customers")}
-              potentialLabel={t("miniStats.potential")}
-            />
           </section>
+
+          <Link href={`/restaurants/${id}/revenue-ai`} className="mt-6 flex flex-col gap-5 rounded-[34px] border border-[#2C2117] bg-[#17120D] p-6 text-white shadow-[0_24px_70px_rgba(45,31,18,0.14)] sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#D7B267]">Revenue AI · Oportunidades individuais</p><h2 className="mt-2 text-2xl font-semibold">{riskyCustomers.length + inactiveCustomers.length} casos para tratar numa conversa</h2><p className="mt-2 text-sm text-white/55">{t("cards.risky.title")} · {t("cards.inactive.title")} · follow-up e receita recuperada vivem no Revenue AI.</p></div>
+            <span className="w-fit shrink-0 rounded-full bg-[#D7B267] px-5 py-3 text-sm font-black text-[#17120D]">Abrir Revenue AI →</span>
+          </Link>
         </section>
       </div>
 

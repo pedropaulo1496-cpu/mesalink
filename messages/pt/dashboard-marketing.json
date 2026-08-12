@@ -2,23 +2,23 @@
   "upsell": {
     "eyebrow": "MesaLink Growth",
     "title": "Marketing disponível no plano Growth.",
-    "description": "O Essentials mantém reservas, website, QR Ordering, CRM e reviews. Para recuperar clientes, criar campanhas e aumentar visitas recorrentes, ative o Growth.",
+    "description": "O Essentials mantém reservas, website, QR Ordering e CRM. Para criar campanhas, automatizar reviews e fidelizar clientes, ative o Growth.",
     "features": {
       "recovery": {
-        "title": "Recuperação de clientes",
-        "text": "Identifique clientes inativos e traga-os de volta."
+        "title": "Campanhas segmentadas",
+        "text": "Comunique com públicos completos sem gerir conversas individuais."
       },
       "campaigns": {
         "title": "Campanhas automáticas",
         "text": "Promova dias fracos, aniversários e ocasiões especiais."
       },
       "risk": {
-        "title": "Clientes em risco",
-        "text": "Veja quem pode deixar de voltar e aja antes."
+        "title": "Reviews e reputação",
+        "text": "Peça avaliações automaticamente e acompanhe a reputação."
       },
       "roi": {
-        "title": "ROI Growth",
-        "text": "Acompanhe receita recuperada e impacto das campanhas."
+        "title": "ROI de marketing",
+        "text": "Acompanhe conversões e receita atribuída às campanhas."
       }
     },
     "footerNote": "Growth inclui tudo do Essentials + Marketing.",
@@ -26,8 +26,8 @@
   },
   "main": {
     "eyebrow": "MesaLink Growth",
-    "title": "Growth Engine",
-    "subtitle": "Receita recuperada, reviews Google, clientes VIP, campanhas e automações num só motor de crescimento.",
+    "title": "Marketing & Fidelização",
+    "subtitle": "Campanhas, reviews Google, clientes VIP, aniversários e promoções para comunicar com toda a base.",
     "actions": {
       "settings": "Configurações",
       "recommendations": "Recomendações",
@@ -38,10 +38,10 @@
       "inactive": "Desativado"
     },
     "hero": {
-      "eyebrow": "Performance do Growth",
-      "subtitle": "Receita atribuída ao MesaLink",
+      "eyebrow": "Performance das campanhas",
+      "subtitle": "Receita atribuída a campanhas e automações de marketing",
       "metrics": {
-        "roi": "ROI Growth",
+        "roi": "ROI Marketing",
         "conversions": "Conversões",
         "googleReviews": "Google Reviews",
         "avgRating": "Média reviews"
@@ -62,8 +62,8 @@
       }
     },
     "revenue": {
-      "eyebrow": "Receita",
-      "title": "Receita gerada",
+      "eyebrow": "Campanhas",
+      "title": "Receita de marketing",
       "period": "Últimos 6 meses"
     },
     "reviews": {
@@ -205,7 +205,7 @@
   "recommendations": {
     "eyebrow": "MesaLink Recommendations",
     "title": "O que fazer hoje",
-    "subtitle": "Recomendações automáticas com base em clientes VIP, risco de abandono, aniversários e inatividade.",
+    "subtitle": "Recomendações de campanhas para clientes VIP e aniversários. Casos individuais são encaminhados para o Revenue AI.",
     "backToGrowth": "Voltar ao Growth",
     "priority": {
       "eyebrow": "Prioridade recomendada",

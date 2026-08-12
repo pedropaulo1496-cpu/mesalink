@@ -21,6 +21,7 @@ import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import RecoveryAutomationCard from "@/components/marketing/RecoveryAutomationCard";
 import RevenueActivityFeed from "@/components/revenue-ai/RevenueActivityFeed";
+import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getRevenueChannelStatus } from "@/lib/revenue-twilio";
@@ -136,7 +137,8 @@ export default async function RevenueAiPage({
       currency: "EUR",
       maximumFractionDigits: 0,
     }).format(value);
-  const activityActions = marketingActions.map((action) => ({
+  const revenueActions = marketingActions.filter((action) => ["INACTIVE_RECOVERY", "FOLLOW_UP"].includes(action.type));
+  const activityActions = revenueActions.map((action) => ({
     id: action.id,
     customerId: action.customer?.id ?? action.customerId,
     customerName: action.customer?.name ?? null,
@@ -180,7 +182,7 @@ export default async function RevenueAiPage({
       Boolean(customer.email || customer.phone),
   );
 
-  const recoveredActions = marketingActions.filter(
+  const recoveredActions = revenueActions.filter(
     (action) =>
       (action.status === "CONVERTED" || Boolean(action.convertedAt)) &&
       (action.convertedAt || action.createdAt) >= startOfMonth,
@@ -189,7 +191,7 @@ export default async function RevenueAiPage({
     (total, action) => total + Number(action.estimatedRevenue || 0),
     0,
   );
-  const activePipeline = marketingActions.filter((action) =>
+  const activePipeline = revenueActions.filter((action) =>
     ["SENT", "OPENED", "CLICKED", "BOOKED"].includes(action.status),
   );
   const pipelineRevenue = activePipeline.reduce(
@@ -221,7 +223,7 @@ export default async function RevenueAiPage({
       description: t("opportunities.cancelled.description"),
       count: cancelledReservations.length,
       amount: cancellationValue,
-      href: `/restaurants/${id}/reservations/upcoming`,
+      href: `/restaurants/${id}/revenue-ai/inbox`,
       cta: t("opportunities.cancelled.cta"),
       tone: "red" as const,
     },
@@ -231,7 +233,7 @@ export default async function RevenueAiPage({
       description: t("opportunities.inactive.description"),
       count: inactiveCustomers.length,
       amount: inactiveValue,
-      href: `/restaurants/${id}/customers`,
+      href: `/restaurants/${id}/revenue-ai/inbox`,
       cta: t("opportunities.inactive.cta"),
       tone: "gold" as const,
     },
@@ -241,7 +243,7 @@ export default async function RevenueAiPage({
       description: t("opportunities.leads.description"),
       count: abandonedLeads.length,
       amount: abandonedValue,
-      href: `/restaurants/${id}/marketing/campaigns/new`,
+      href: `/restaurants/${id}/revenue-ai/inbox`,
       cta: t("opportunities.leads.cta"),
       tone: "blue" as const,
     },
@@ -251,7 +253,7 @@ export default async function RevenueAiPage({
       description: t("opportunities.noShows.description"),
       count: noShows.length,
       amount: noShowValue,
-      href: `/restaurants/${id}/customers`,
+      href: `/restaurants/${id}/revenue-ai/inbox`,
       cta: t("opportunities.noShows.cta"),
       tone: "red" as const,
     },
@@ -305,12 +307,14 @@ export default async function RevenueAiPage({
               <Link href={`/restaurants/${id}/revenue-ai/inbox`} className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full bg-[#17120D] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]">
                 <MessageCircleMore size={16} /> Inbox de oportunidades
               </Link>
-              <Link href={`/restaurants/${id}/marketing/settings`} className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full border border-[#D8C6A9] bg-white px-5 text-sm font-semibold transition hover:bg-[#FFF9F0]">
+              <Link href={`/restaurants/${id}/revenue-ai/integrations`} className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full border border-[#D8C6A9] bg-white px-5 text-sm font-semibold transition hover:bg-[#FFF9F0]">
                 <Workflow size={16} />
                 {t("rulesCta")}
               </Link>
             </div>
           </header>
+
+          <GrowthWorkspaceSwitcher restaurantId={id} active="revenue" locale={locale} />
 
           <section className="mt-7 overflow-hidden rounded-[38px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_35px_100px_rgba(44,31,18,0.24)]">
             <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
@@ -357,7 +361,7 @@ export default async function RevenueAiPage({
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D7B267]">{t("channels.eyebrow")}</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("channels.title")}</h2>
               <div className="mt-6 space-y-3">
-                <ChannelRow href={`/restaurants/${id}/marketing`} icon={<Mail size={18} />} name={t("channels.email")} status={process.env.RESEND_API_KEY ? t("channels.ready") : t("channels.configure")} active={Boolean(process.env.RESEND_API_KEY)} />
+                <ChannelRow href={`/restaurants/${id}/revenue-ai/inbox`} icon={<Mail size={18} />} name={t("channels.email")} status={process.env.RESEND_API_KEY ? t("channels.ready") : t("channels.configure")} active={Boolean(process.env.RESEND_API_KEY)} />
                 <ChannelRow href={`/restaurants/${id}/website`} icon={<CheckCircle2 size={18} />} name={t("channels.website")} status={restaurant.websiteEnabled ? t("channels.connected") : t("channels.configure")} active={restaurant.websiteEnabled} />
                 <ChannelRow href={`/restaurants/${id}/revenue-ai/integrations`} icon={<MessageCircleMore size={18} />} name={t("channels.whatsapp")} status={revenueChannelStatus.whatsappReady ? revenueChannelStatus.whatsappProactiveReady ? t("channels.ready") : t("channels.receiveOnly") : revenueChannelStatus.whatsappConfigured ? t("channels.waitingProvider") : t("channels.configure")} active={revenueChannelStatus.whatsappReady} />
                 <ChannelRow href={`/restaurants/${id}/revenue-ai/integrations`} icon={<PhoneMissed size={18} />} name={t("channels.calls")} status={revenueChannelStatus.voiceReady ? t("channels.ready") : revenueChannelStatus.voiceConfigured ? restaurant.revenueChannelsLastError ? t("channels.paused") : t("channels.waitingProvider") : t("channels.configure")} active={revenueChannelStatus.voiceReady} />
@@ -371,7 +375,7 @@ export default async function RevenueAiPage({
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B58A45]">{t("activity.eyebrow")}</p>
                 <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">{t("activity.title")}</h2>
               </div>
-              <Link href={`/restaurants/${id}/marketing`} className="hidden items-center gap-1 text-sm font-semibold text-[#7A542A] sm:flex">{t("activity.viewAll")}<ArrowUpRight size={16} /></Link>
+              <Link href={`/restaurants/${id}/revenue-ai/inbox`} className="hidden items-center gap-1 text-sm font-semibold text-[#7A542A] sm:flex">{t("activity.viewAll")}<ArrowUpRight size={16} /></Link>
             </div>
             <RevenueActivityFeed
               restaurantId={id}

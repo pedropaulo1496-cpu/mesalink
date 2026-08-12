@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { UploadDropzone } from "@/lib/uploadthing";
+import { InteractiveUploadSurface } from "@/components/InteractiveUploadSurface";
 
 export function FileUploadField({
   value,
@@ -9,6 +11,10 @@ export function FileUploadField({
   value: string;
   onChange: (url: string) => void;
 }) {
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState("");
+
   return (
     <div className="space-y-3">
       {value?.startsWith("http") && (
@@ -38,32 +44,28 @@ export function FileUploadField({
         </div>
       )}
 
-      <UploadDropzone
-        endpoint="websiteMenuPdf"
-        appearance={{
-          container:
-            "border border-dashed border-[#D6C3A5] rounded-[28px] bg-[#FFF9F0] p-6 min-h-[190px] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
-          uploadIcon: "text-[#C8A56A]",
-          label: "text-[#16120E] font-semibold text-sm text-center",
-          allowedContent: "text-[#9B8F82] text-xs text-center",
-          button:
-            "bg-[#16120E] text-white font-semibold rounded-full px-5 py-2 hover:bg-[#2A2118] [color:#fff!important]",
-        }}
-        content={{
-          label() {
-            return "Arrasta o menu em PDF ou clica para escolher";
-          },
-          allowedContent() {
-            return "PDF até 16MB";
-          },
-          button() {
-            return "Escolher PDF";
-          },
-        }}
-        onClientUploadComplete={(res) => {
-          if (res?.[0]?.ufsUrl) onChange(res[0].ufsUrl);
-        }}
-      />
+      <InteractiveUploadSurface label="Carregar PDF" uploading={uploading} progress={progress}>
+        <UploadDropzone
+          endpoint="websiteMenuPdf"
+          appearance={{
+            container: "border border-dashed border-[#D6C3A5] rounded-[28px] bg-[#FFF9F0] p-6 min-h-[190px] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
+            uploadIcon: "text-[#C8A56A]",
+            label: "text-[#16120E] font-semibold text-sm text-center",
+            allowedContent: "text-[#9B8F82] text-xs text-center",
+            button: "hidden",
+          }}
+          content={{ label: "Arrasta o PDF diretamente para aqui", allowedContent: "O upload começa logo · ou toca na caixa · até 16MB" }}
+          onUploadBegin={() => { setUploading(true); setProgress(4); setError(""); }}
+          onUploadProgress={setProgress}
+          onClientUploadComplete={(res) => {
+            setUploading(false);
+            setProgress(100);
+            if (res?.[0]?.ufsUrl) onChange(res[0].ufsUrl);
+          }}
+          onUploadError={(uploadError) => { setUploading(false); setProgress(0); setError(uploadError.message || "Não foi possível carregar o PDF."); }}
+        />
+      </InteractiveUploadSurface>
+      {error && <p className="rounded-xl bg-[#FFF0EA] px-3 py-2 text-xs font-semibold text-[#A14E36]">{error}</p>}
     </div>
   );
 }

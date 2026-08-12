@@ -5,6 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import { redirect } from "next/navigation";
 import { isValidEmail } from "@/lib/validation";
 import PhoneField from "@/components/PhoneField";
+import CsvUploadField from "@/components/CsvUploadField";
 import { getLocale, getTranslations } from "next-intl/server";
 import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
@@ -477,13 +478,7 @@ export default async function CustomersPage({
               <form action={importCustomers} className="mt-5 space-y-3">
                 <input type="hidden" name="restaurantId" value={id} />
 
-                <input
-                  name="file"
-                  type="file"
-                  accept=".csv,text/csv"
-                  required
-                  className="w-full rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-3 text-sm font-semibold text-[#6B6258]"
-                />
+                <CsvUploadField required />
 
                <div className="overflow-hidden rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0]">
   <div className="grid grid-cols-6 border-b border-[#E1D0B8] bg-white text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
