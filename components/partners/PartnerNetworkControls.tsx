@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { FileUploadField } from "@/components/FileUploadField";
+import { ImageUploadField } from "@/components/ImageUploadField";
 
 export function ReferralNetworkSettingsForm({
   restaurantId,
@@ -106,6 +108,12 @@ export function PartnerProfileSettingsForm({
   highlights: string[];
   menuUrl: string;
 }) {
+  const [profileCuisine, setProfileCuisine] = useState(cuisine);
+  const [profileDescription, setProfileDescription] = useState(description);
+  const [profileHeroImage, setProfileHeroImage] = useState(heroImage);
+  const [profileGallery, setProfileGallery] = useState(gallery.slice(0, 6));
+  const [profileHighlights, setProfileHighlights] = useState(highlights.join("\n"));
+  const [profileMenuUrl, setProfileMenuUrl] = useState(menuUrl);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
@@ -129,28 +137,33 @@ export function PartnerProfileSettingsForm({
   return (
     <form onSubmit={submit} className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="space-y-4">
+        <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Categoria / cozinha</span><input name="cuisine" value={profileCuisine} onChange={(event) => setProfileCuisine(event.target.value)} maxLength={80} className="input-premium h-12" /></label>
+        <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Descrição para hotéis e parceiros</span><textarea name="description" value={profileDescription} onChange={(event) => setProfileDescription(event.target.value)} maxLength={700} rows={4} className="input-premium min-h-28 py-3" /></label>
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Categoria / cozinha</span><input name="cuisine" defaultValue={cuisine} maxLength={80} className="input-premium h-12" /></label>
-          <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Imagem principal</span><input name="heroImage" defaultValue={heroImage} placeholder="https://…" className="input-premium h-12" /></label>
+          <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Destaques · um por linha</span><textarea name="highlights" value={profileHighlights} onChange={(event) => setProfileHighlights(event.target.value)} rows={4} className="input-premium min-h-28 py-3" /></label>
+          <div><p className="mb-2 text-xs font-bold text-[#655A4E]">Fotografia principal</p><ImageUploadField value={profileHeroImage} onChange={setProfileHeroImage} compact /><input type="hidden" name="heroImage" value={profileHeroImage} /></div>
         </div>
-        <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Descrição para hotéis e parceiros</span><textarea name="description" defaultValue={description} maxLength={700} rows={4} className="input-premium min-h-28 py-3" /></label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Destaques · um por linha</span><textarea name="highlights" defaultValue={highlights.join("\n")} rows={4} className="input-premium min-h-28 py-3" /></label>
-          <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Galeria · um link por linha</span><textarea name="gallery" defaultValue={gallery.join("\n")} rows={4} className="input-premium min-h-28 py-3" /></label>
+        <div className="rounded-[26px] border border-[#E1D0B8] bg-[#FFF9F0] p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold">Galeria do restaurante</p><p className="mt-1 text-xs text-[#70665B]">Carrega até 6 fotografias. Podes substituir ou remover cada uma.</p></div><span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-[#795D38]">{profileGallery.length}/6</span></div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {profileGallery.map((image, index) => <div key={`${image}-${index}`}><p className="mb-2 text-[10px] font-black uppercase tracking-[0.13em] text-[#8A765F]">Fotografia {index + 1}</p><ImageUploadField value={image} onChange={(url) => setProfileGallery((items) => url ? items.map((item, itemIndex) => itemIndex === index ? url : item) : items.filter((_, itemIndex) => itemIndex !== index))} compact /></div>)}
+            {profileGallery.length < 6 && <div><p className="mb-2 text-[10px] font-black uppercase tracking-[0.13em] text-[#8A765F]">Adicionar fotografia</p><ImageUploadField value="" onChange={(url) => url && setProfileGallery((items) => [...items, url].slice(0, 6))} compact /></div>}
+          </div>
+          <input type="hidden" name="gallery" value={profileGallery.join("\n")} />
         </div>
-        <label className="block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">Menu PDF ou página do menu</span><input name="menuUrl" defaultValue={menuUrl} placeholder="https://…" className="input-premium h-12" /></label>
+        <div><p className="mb-2 text-xs font-bold text-[#655A4E]">Menu em PDF</p><FileUploadField value={profileMenuUrl} onChange={setProfileMenuUrl} /><input type="hidden" name="menuUrl" value={profileMenuUrl} /></div>
         {message && <p className={`rounded-xl px-3 py-2 text-xs font-semibold ${success ? "bg-[#EFF9EF] text-[#3F6A4D]" : "bg-[#FFF0EA] text-[#A14E36]"}`}>{message}</p>}
         <button disabled={loading} className="h-12 rounded-full bg-[#17120D] px-6 text-sm font-bold text-white disabled:opacity-50">{loading ? "A guardar…" : "Guardar mini-perfil"}</button>
       </div>
 
       <div className="overflow-hidden rounded-[26px] border border-[#E1D0B8] bg-[#FFFDFC]">
-        {heroImage ? <div className="h-36 bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${heroImage})` }} /> : <div className="grid h-36 place-items-center bg-[#EADCC7] text-xs font-black uppercase tracking-[0.16em] text-[#8A6D49]">Imagem automática</div>}
+        {profileHeroImage ? <div className="h-36 bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${profileHeroImage})` }} /> : <div className="grid h-36 place-items-center bg-[#EADCC7] text-xs font-black uppercase tracking-[0.16em] text-[#8A6D49]">Carrega uma fotografia</div>}
         <div className="p-5">
           <p className="text-[9px] font-black uppercase tracking-[0.17em] text-[#9B6F3B]">Pré-visualização</p>
           <p className="mt-2 text-xl font-semibold">{restaurantName}</p>
-          <p className="mt-1 text-xs font-bold text-[#80613D]">{cuisine || "Restaurante"}</p>
-          <p className="mt-3 line-clamp-4 text-xs leading-5 text-[#6B6258]">{description}</p>
-          <div className="mt-3 flex flex-wrap gap-1.5">{highlights.slice(0, 3).map((item) => <span key={item} className="rounded-full bg-[#F1E6D5] px-2.5 py-1 text-[9px] font-bold text-[#795D38]">{item}</span>)}</div>
+          <p className="mt-1 text-xs font-bold text-[#80613D]">{profileCuisine || "Restaurante"}</p>
+          <p className="mt-3 line-clamp-4 text-xs leading-5 text-[#6B6258]">{profileDescription}</p>
+          <div className="mt-3 flex flex-wrap gap-1.5">{profileHighlights.split(/\r?\n/).map((item) => item.trim()).filter(Boolean).slice(0, 3).map((item) => <span key={item} className="rounded-full bg-[#F1E6D5] px-2.5 py-1 text-[9px] font-bold text-[#795D38]">{item}</span>)}</div>
         </div>
       </div>
     </form>
