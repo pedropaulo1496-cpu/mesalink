@@ -80,9 +80,9 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-[34px] border border-[#E1D0B8] bg-white p-5 shadow-[0_24px_75px_rgba(80,55,30,0.07)] sm:p-8">
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Novo modelo</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Criar cartão</h2><p className="mt-2 text-sm leading-6 text-[#6B6258]">Cria um cartão privado do restaurante. Depois escolhes exatamente os clientes que o vão receber.</p>
-              <CreatePartnerBenefitForm restaurantId={id} />
+            <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_20px_60px_rgba(80,55,30,0.06)]">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">Novo modelo</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">Criar cartão</h2></div><p className="max-w-sm text-xs leading-5 text-[#6B6258]">Escolhe uma sugestão, ajusta se quiseres e vê logo o resultado.</p></div>
+              <CreatePartnerBenefitForm restaurantId={id} restaurantName={restaurant.name} />
             </div>
             <div className="rounded-[34px] border border-[#D8C39F] bg-[#FFF9F0] p-5 sm:p-8">
               <div className="w-fit rounded-full bg-[#17120D] p-3 text-[#D7B267]"><ScanLine size={22} /></div><p className="mt-5 text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">No restaurante</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Validar cartão</h2><p className="mt-2 text-sm leading-6 text-[#6B6258]">Introduz o código mostrado pelo cliente. Cada cartão só pode ser utilizado uma vez.</p>
