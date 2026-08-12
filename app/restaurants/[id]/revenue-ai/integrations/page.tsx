@@ -19,7 +19,7 @@ export default async function RevenueIntegrationsPage({ params }: { params: Prom
   if (!hasGrowthAccess(user.subscription)) redirect(`/billing?restaurantId=${id}`);
   const restaurant = await prisma.restaurant.findFirst({ where: { id, userId: user.id } });
   if (!restaurant) notFound();
-  const activationRequest = await prisma.marketingAction.findFirst({ where: { restaurantId: id, type: "CHANNEL_ACTIVATION_REQUEST", status: "REQUESTED" }, orderBy: { createdAt: "desc" }, select: { sentAt: true, channel: true } });
+  const activationRequest = await prisma.marketingAction.findFirst({ where: { restaurantId: id, type: "CHANNEL_ACTIVATION_REQUEST" }, orderBy: { createdAt: "desc" }, select: { sentAt: true, channel: true, status: true } });
 
   return <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
     <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
@@ -43,7 +43,7 @@ export default async function RevenueIntegrationsPage({ params }: { params: Prom
           }}
           initialStatus={getRevenueChannelStatus(restaurant)}
           websiteEnabled={restaurant.websiteEnabled}
-          initialRequest={activationRequest ? { requestedAt: activationRequest.sentAt.toISOString(), channels: activationRequest.channel } : null}
+          initialRequest={activationRequest ? { requestedAt: activationRequest.sentAt.toISOString(), channels: activationRequest.channel, status: activationRequest.status } : null}
           whatsappBalance={user.subscription?.whatsappMessageBalance || 0}
           aiCredits={user.subscription?.aiCredits || 0}
         />

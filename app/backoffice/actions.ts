@@ -10,6 +10,7 @@ import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { prisma } from "@/lib/prisma";
 import { assertBackofficeAdmin, assertClientAccess, assertStaff } from "@/lib/staff-auth";
 import { isValidEmail } from "@/lib/validation";
+import { getTwilioClient, getTwilioCredentials, normalizeContentSid, normalizeE164 } from "@/lib/revenue-twilio";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -300,6 +301,77 @@ export async function decideCommercialRequest(formData: FormData) {
     throw error;
   }
   finish("/backoffice/requests", "request-approved");
+}
+
+export async function updateRevenueActivationRequest(formData: FormData) {
+  const admin = await assertBackofficeAdmin();
+  const requestId = clean(formData.get("requestId"));
+  const nextStatus = clean(formData.get("status")).toUpperCase();
+  const adminNote = clean(formData.get("adminNote"), 1000) || null;
+  if (!['REQUESTED', 'PREPARING', 'COMPLETED'].includes(nextStatus)) throw new Error("Estado de ativação inválido.");
+
+  const request = await prisma.marketingAction.findFirst({
+    where: { id: requestId, type: "CHANNEL_ACTIVATION_REQUEST" },
+    include: { restaurant: { select: { id: true, userId: true } } },
+  });
+  if (!request?.restaurant) throw new Error("Pedido de ativação não encontrado.");
+  let details: Record<string, unknown> = {};
+  try { details = request.failureReason ? JSON.parse(request.failureReason) : {}; } catch { details = {}; }
+  const whatsappNumber = normalizeE164(clean(formData.get("whatsappNumber"), 40));
+  const voiceNumber = normalizeE164(clean(formData.get("voiceNumber"), 40));
+  const forwardNumber = normalizeE164(clean(formData.get("forwardNumber"), 40));
+  const contentSid = normalizeContentSid(clean(formData.get("contentSid"), 80));
+  details.whatsappNumber = whatsappNumber;
+  details.voiceNumber = voiceNumber;
+  details.forwardNumber = forwardNumber;
+  details.contentSid = contentSid;
+  details.adminNote = adminNote;
+  details.updatedBy = admin.userId;
+  details.updatedAt = new Date().toISOString();
+
+  if (nextStatus === "COMPLETED") {
+    const wantsWhatsapp = request.channel.includes("WHATSAPP");
+    const wantsVoice = request.channel.includes("VOICE");
+    if (!getTwilioCredentials().configured) throw new Error("Configure primeiro TWILIO_ACCOUNT_SID e TWILIO_AUTH_TOKEN no Vercel.");
+    if (wantsWhatsapp && (!whatsappNumber || !contentSid)) throw new Error("Para ativar WhatsApp são necessários o número aprovado e o Content SID.");
+    if (wantsVoice && (!voiceNumber || !forwardNumber)) throw new Error("Para ativar chamadas são necessários o número Twilio e o telefone de encaminhamento.");
+
+    const client = getTwilioClient();
+    await client.api.accounts(getTwilioCredentials().accountSid).fetch();
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.mesalink.pt").replace(/\/+$/, "");
+    for (const number of [voiceNumber, whatsappNumber].filter((value): value is string => Boolean(value))) {
+      const owned = (await client.incomingPhoneNumbers.list({ phoneNumber: number, limit: 2 })).find((item) => normalizeE164(item.phoneNumber) === number);
+      if (number === voiceNumber && !owned) throw new Error(`O número de chamadas ${number} não pertence à conta Twilio MesaLink.`);
+      if (owned) await client.incomingPhoneNumbers(owned.sid).update({
+        ...(number === voiceNumber ? { voiceUrl: `${baseUrl}/api/revenue-ai/webhooks/twilio/voice/incoming`, voiceMethod: "POST" } : {}),
+        ...(number === whatsappNumber ? { smsUrl: `${baseUrl}/api/revenue-ai/webhooks/twilio/whatsapp`, smsMethod: "POST" } : {}),
+      });
+    }
+    await prisma.restaurant.update({
+      where: { id: request.restaurant.id },
+      data: {
+        revenueWhatsappEnabled: wantsWhatsapp,
+        revenueWhatsappNumber: wantsWhatsapp ? whatsappNumber : null,
+        revenueWhatsappContentSid: wantsWhatsapp ? contentSid : null,
+        revenueWhatsappAutoReply: wantsWhatsapp,
+        revenueVoiceEnabled: wantsVoice,
+        revenueVoiceNumber: wantsVoice ? voiceNumber : null,
+        revenueVoiceForwardNumber: wantsVoice ? forwardNumber : null,
+        revenueMissedCallAutoReply: wantsVoice && wantsWhatsapp,
+        revenueChannelsConfiguredAt: new Date(),
+        revenueChannelsLastError: null,
+      },
+    });
+  }
+
+  await prisma.marketingAction.update({ where: { id: request.id }, data: { status: nextStatus, failureReason: JSON.stringify(details) } });
+  await audit({
+    actorId: admin.userId,
+    targetUserId: request.restaurant.userId || undefined,
+    action: "REVENUE_CHANNEL_ACTIVATION_UPDATED",
+    details: { requestId: request.id, status: nextStatus, channels: request.channel, adminNote },
+  });
+  finish("/backoffice/requests", "activation-updated");
 }
 
 export async function sendPromotionDirectly(formData: FormData) {

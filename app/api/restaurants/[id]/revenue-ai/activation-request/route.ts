@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const channels = [wantsWhatsapp ? "WHATSAPP" : "", wantsCalls ? "VOICE" : ""].filter(Boolean).join("+");
   const details = JSON.stringify({ contactPhone, requestedBy: session.user.email, channels });
-  const previous = await prisma.marketingAction.findFirst({ where: { restaurantId: id, type: "CHANNEL_ACTIVATION_REQUEST", status: "REQUESTED" }, orderBy: { createdAt: "desc" } });
+  const previous = await prisma.marketingAction.findFirst({ where: { restaurantId: id, type: "CHANNEL_ACTIVATION_REQUEST", status: { in: ["REQUESTED", "PREPARING"] } }, orderBy: { createdAt: "desc" } });
   if (previous) {
     await prisma.marketingAction.update({ where: { id: previous.id }, data: { channel: channels, failureReason: details, sentAt: new Date() } });
   } else {
@@ -43,7 +43,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       replyTo: session.user.email,
       subject: `Ativação Revenue AI — ${restaurant.name}`,
       html: `<div style="font-family:Arial,sans-serif"><h1>Pedido de ativação Revenue AI</h1><p><strong>Restaurante:</strong> ${escapeHtml(restaurant.name)}</p><p><strong>Conta:</strong> ${escapeHtml(session.user.email)}</p><p><strong>Contacto:</strong> ${escapeHtml(contactPhone)}</p><p><strong>Ativar:</strong> ${escapeHtml(channels)}</p><p><strong>ID:</strong> ${escapeHtml(id)}</p></div>`,
-    });
+    }).catch((error) => console.error("Não foi possível enviar o alerta de ativação Revenue AI:", error));
   }
 
   return NextResponse.json({ success: true, requestedAt: new Date().toISOString(), channels });

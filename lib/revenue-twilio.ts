@@ -23,12 +23,25 @@ export class InvalidTwilioWebhookError extends Error {
 export function getTwilioCredentials() {
   const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim() || "";
   const authToken = process.env.TWILIO_AUTH_TOKEN?.trim() || "";
-  return { accountSid, authToken, configured: Boolean(accountSid && authToken) };
+  const apiKeySid = process.env.TWILIO_API_KEY_SID?.trim() || "";
+  const apiKeySecret = process.env.TWILIO_API_KEY_SECRET?.trim() || "";
+  const apiKeyConfigured = Boolean(apiKeySid && apiKeySecret);
+  return {
+    accountSid,
+    authToken,
+    apiKeySid,
+    apiKeySecret,
+    apiKeyConfigured,
+    configured: Boolean(accountSid && authToken),
+  };
 }
 
 export function getTwilioClient() {
   const credentials = getTwilioCredentials();
   if (!credentials.configured) throw new Error("O conector Twilio do MesaLink ainda não está configurado.");
+  if (credentials.apiKeyConfigured) {
+    return twilio(credentials.apiKeySid, credentials.apiKeySecret, { accountSid: credentials.accountSid });
+  }
   return twilio(credentials.accountSid, credentials.authToken);
 }
 

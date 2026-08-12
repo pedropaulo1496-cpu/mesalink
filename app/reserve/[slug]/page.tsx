@@ -6,6 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import ReserveForm from "./ReserveForm";
 import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
+import { reservationManagementUrl } from "@/lib/reservation-management";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -353,6 +354,8 @@ async function createPublicReservation(formData: FormData) {
         const statusText = isPending
           ? emailT("statusPending")
           : emailT("statusConfirmed");
+        const manageUrl = reservationManagementUrl(finalReservation.id, email);
+        const cancelUrl = reservationManagementUrl(finalReservation.id, email, "cancel");
 
         const delivery = await resend.emails.send({
           from: "MesaLink <noreply@mesalink.pt>",
@@ -379,6 +382,12 @@ async function createPublicReservation(formData: FormData) {
                   <p><strong>${emailT("labelGuests")}</strong> ${guests}</p>
                   <p><strong>${emailT("labelStatus")}</strong> ${statusText}</p>
                 </div>
+                <p style="margin:0 0 12px;font-size:13px;color:#6B6258;">${emailT("manageIntro")}</p>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
+                  <td style="padding-right:6px;"><a href="${manageUrl}" style="display:block;padding:13px 14px;border-radius:999px;background:#17120D;color:#fff;text-align:center;text-decoration:none;font-weight:700;">${emailT("manageButton")}</a></td>
+                  <td style="padding-left:6px;"><a href="${cancelUrl}" style="display:block;padding:12px 14px;border:1px solid #D8C6A9;border-radius:999px;color:#7A3E2D;text-align:center;text-decoration:none;font-weight:700;">${emailT("cancelButton")}</a></td>
+                </tr></table>
+                <p style="margin:14px 0 0;font-size:11px;color:#9B8F82;">${emailT("manageSafety")}</p>
                 <p style="font-size:12px;color:#9B8F82;">${emailT("footerNote")}</p>
               </div>
             </div>

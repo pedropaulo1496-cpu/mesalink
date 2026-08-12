@@ -27,7 +27,7 @@ type Props = {
     lastError: string;
   };
   initialStatus: ChannelStatus;
-  initialRequest: { requestedAt: string; channels: string } | null;
+  initialRequest: { requestedAt: string; channels: string; status: string } | null;
   websiteEnabled: boolean;
   webhookBaseUrl: string;
   whatsappBalance: number;
@@ -61,7 +61,7 @@ export default function RevenueChannelsClient({ restaurantId, restaurantName, in
     const result = await response.json().catch(() => ({}));
     setRequesting(false);
     if (!response.ok) return setFeedback(result.error || "Não foi possível enviar o pedido.");
-    setRequest({ requestedAt: result.requestedAt, channels: result.channels });
+    setRequest({ requestedAt: result.requestedAt, channels: result.channels, status: "REQUESTED" });
     setFeedback("Pedido recebido. A equipa MesaLink vai preparar os canais e contactar-te.");
   }
 
@@ -88,7 +88,8 @@ export default function RevenueChannelsClient({ restaurantId, restaurantName, in
 
   const whatsappWebhook = `${webhookBaseUrl}/api/revenue-ai/webhooks/twilio/whatsapp`;
   const voiceWebhook = `${webhookBaseUrl}/api/revenue-ai/webhooks/twilio/voice/incoming`;
-  const requestPending = Boolean(request && (!status.whatsappReady || request.channels.includes("VOICE") && !status.voiceReady));
+  const requestPending = Boolean(request && ["REQUESTED", "PREPARING"].includes(request.status) && (!status.whatsappReady || request.channels.includes("VOICE") && !status.voiceReady));
+  const requestStatusLabel = request?.status === "COMPLETED" ? "Ativação concluída" : request?.status === "PREPARING" ? "Em preparação pela MesaLink" : "Pedido recebido";
 
   return <div className="space-y-6">
     <section className="overflow-hidden rounded-[36px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_26px_80px_rgba(45,31,18,0.18)]">
@@ -100,18 +101,18 @@ export default function RevenueChannelsClient({ restaurantId, restaurantName, in
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SimpleChannel icon={<Mail size={20} />} title="Email MesaLink" status="Já funciona" text="Follow-up de clientes inativos e respostas individuais pela caixa Revenue AI." price="Usa os 1.000 emails incluídos" active />
         <SimpleChannel icon={<Globe2 size={20} />} title="Reservas e website" status={websiteEnabled ? "Ligado" : "Ligar website"} text="O MesaLink encontra cancelamentos, no-shows e formulários que não chegaram a reserva." price="Sem configuração técnica" active={websiteEnabled} />
-        <SimpleChannel icon={<MessageCircleMore size={20} />} title="WhatsApp AI" status={status.whatsappReady ? "Ativo" : request?.channels.includes("WHATSAPP") ? "Pedido recebido" : "Extra opcional"} text="Responde depressa e faz follow-up quando o cliente prefere mensagens." price={`≈ 0,03€ por mensagem · saldo ${whatsappBalance}`} active={status.whatsappReady} pending={request?.channels.includes("WHATSAPP") && !status.whatsappReady} />
-        <SimpleChannel icon={<PhoneCall size={20} />} title="Chamadas perdidas" status={status.voiceReady ? "Ativo" : request?.channels.includes("VOICE") ? "Pedido recebido" : "Extra opcional"} text="Se ninguém atender, cria logo uma oportunidade e pode enviar WhatsApp." price={`1 crédito / 2 min · saldo ${aiCredits}`} active={status.voiceReady} pending={request?.channels.includes("VOICE") && !status.voiceReady} />
+        <SimpleChannel icon={<MessageCircleMore size={20} />} title="WhatsApp AI" status={status.whatsappReady ? "Ativo" : request?.channels.includes("WHATSAPP") ? requestStatusLabel : "Extra opcional"} text="Responde depressa e faz follow-up quando o cliente prefere mensagens." price={`≈ 0,03€ por mensagem · saldo ${whatsappBalance}`} active={status.whatsappReady} pending={Boolean(request?.channels.includes("WHATSAPP") && request.status !== "COMPLETED" && !status.whatsappReady)} />
+        <SimpleChannel icon={<PhoneCall size={20} />} title="Chamadas perdidas" status={status.voiceReady ? "Ativo" : request?.channels.includes("VOICE") ? requestStatusLabel : "Extra opcional"} text="Se ninguém atender, cria logo uma oportunidade e pode enviar WhatsApp." price={`1 crédito / 2 min · saldo ${aiCredits}`} active={status.voiceReady} pending={Boolean(request?.channels.includes("VOICE") && request.status !== "COMPLETED" && !status.voiceReady)} />
       </div>
     </section>
 
     {(!status.whatsappReady || !status.voiceReady) && <section className="rounded-[34px] border border-[#D7B267] bg-[#FFF7E8] p-5 sm:p-8">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Ativar extras</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Só tens de escolher e deixar um contacto.</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">A equipa MesaLink atribui os números, liga o fornecedor e testa tudo para {restaurantName}. Não precisas de criar contas externas nem copiar códigos.</p></div>{requestPending && <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#F1E0B9] px-4 py-2 text-xs font-black text-[#715021]"><CheckCircle2 size={15} /> Pedido em preparação</span>}</div>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Ativar extras</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Só tens de escolher e deixar um contacto.</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">A equipa MesaLink atribui os números, liga o fornecedor e testa tudo para {restaurantName}. Não precisas de criar contas externas nem copiar códigos.</p></div>{request && <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#F1E0B9] px-4 py-2 text-xs font-black text-[#715021]"><CheckCircle2 size={15} /> {requestStatusLabel}</span>}</div>
       <div className="mt-6 grid gap-3 lg:grid-cols-[1fr_1fr_1.1fr_auto]">
         <Choice checked={wantsWhatsapp} onChange={setWantsWhatsapp} title="Quero WhatsApp AI" note="Cerca de 0,03€ por mensagem enviada" />
         <Choice checked={wantsCalls} onChange={setWantsCalls} title="Quero recuperar chamadas" note="Recebes um número MesaLink que encaminha para ti" />
         <label className="rounded-[22px] border border-[#DFC9A5] bg-white p-4"><span className="text-[10px] font-black uppercase tracking-[0.13em] text-[#79664E]">O teu contacto</span><input value={contactPhone} onChange={(event) => setContactPhone(event.target.value)} placeholder="+351 912 345 678" className="mt-2 h-11 w-full bg-transparent text-sm font-bold outline-none" /><span className="text-[10px] text-[#8A7863]">Para a ativação e para receber chamadas.</span></label>
-        <button onClick={requestActivation} disabled={requesting || (!wantsWhatsapp && !wantsCalls)} className="inline-flex min-h-20 items-center justify-center gap-2 rounded-[22px] bg-[#17120D] px-6 text-sm font-black text-white disabled:opacity-40">{requesting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />} Pedir ativação</button>
+        <button onClick={requestActivation} disabled={requesting || requestPending || (!wantsWhatsapp && !wantsCalls)} className="inline-flex min-h-20 items-center justify-center gap-2 rounded-[22px] bg-[#17120D] px-6 text-sm font-black text-white disabled:opacity-40">{requesting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />} {requestPending ? "Pedido enviado" : "Pedir ativação"}</button>
       </div>
       {request && <p className="mt-4 text-xs font-semibold text-[#72572F]">Pedido enviado em {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(request.requestedAt))}. A equipa MesaLink vai confirmar preços e ativação antes de existir qualquer custo.</p>}
     </section>}
