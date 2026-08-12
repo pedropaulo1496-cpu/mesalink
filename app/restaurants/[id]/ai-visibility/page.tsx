@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   Bot,
   CheckCircle2,
+  CircleDollarSign,
   Globe2,
   MessageSquareText,
   Radar,
@@ -20,6 +21,7 @@ import VisibilityScanButton from "@/components/ai-visibility/VisibilityScanButto
 import VisibilityOptimizeButton from "@/components/ai-visibility/VisibilityOptimizeButton";
 import { authOptions } from "@/lib/auth";
 import { calculateAiVisibility, type VisibilityOpportunity } from "@/lib/ai-visibility";
+import { parsePriceBenchmark, type PriceBenchmark } from "@/lib/ai-visibility-pricing";
 import { hasGrowthAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 
@@ -83,6 +85,7 @@ export default async function AiVisibilityPage({
 
   const actionableCount = report.opportunities.filter((item) => item.tone !== "positive").length;
   const latestScan = restaurant.aiVisibilityScans[0];
+  const priceBenchmark = parsePriceBenchmark(latestScan?.priceBenchmark);
   const latestOptimization = restaurant.aiVisibilityOptimizations[0];
   const displayedOverall = latestOptimization?.afterScore ?? latestScan?.overallScore ?? report.overall;
   const cuisine = restaurant.websiteCuisine?.trim() || restaurant.name;
@@ -156,6 +159,8 @@ export default async function AiVisibilityPage({
               </div>
             </div>
           </section>
+
+          <PricePositioning benchmark={priceBenchmark} hasScan={Boolean(latestScan)} />
 
           <details className="group mt-5 rounded-[24px] border border-[#E1D0B8] bg-white">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-bold"><span>Resultados dos testes reais</span><span className="text-xs text-[#9B6F3B] group-open:hidden">Ver detalhes ↓</span><span className="hidden text-xs text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
@@ -303,6 +308,47 @@ function Query({ text }: { text: string }) {
 
 function LiveMetric({ label, value }: { label: string; value: string }) {
   return <div className="min-w-28 rounded-[20px] border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-3 text-center"><p className="text-xl font-semibold">{value}</p><p className="mt-1 text-[9px] font-black uppercase tracking-[0.13em] text-[#8A7863]">{label}</p></div>;
+}
+
+function PricePositioning({ benchmark, hasScan }: { benchmark: PriceBenchmark | null; hasScan: boolean }) {
+  const euro = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  if (!benchmark || benchmark.status !== "READY") {
+    return <section className="mt-5 rounded-[26px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_50px_rgba(80,55,30,0.05)]"><div className="flex items-start gap-4"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#F1E3CC] text-[#8A6130]"><CircleDollarSign size={21} /></span><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#B58A45]">Posicionamento de preço</p><h2 className="mt-1 text-xl font-semibold tracking-[-0.035em]">{hasScan ? "Ainda não há dados comparáveis suficientes" : "Compare o preço com restaurantes semelhantes"}</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-[#6B6258]">{hasScan ? "A próxima análise procura preços públicos de restaurantes da mesma zona, cozinha e nível de serviço. Sem pelo menos três comparáveis credíveis, o MesaLink não inventa uma conclusão." : "Execute a análise real para comparar o ticket médio e o menu com a realidade da zona, sem penalizar conceitos premium por serem mais caros."}</p></div></div></section>;
+  }
+
+  const position = benchmark.position === "BELOW"
+    ? { label: "Abaixo do intervalo", style: "bg-[#EAF4FA] text-[#32657B]", guidance: "Existe margem potencial para rever preços — confirme procura, porções e margem antes de alterar." }
+    : benchmark.position === "ABOVE"
+      ? { label: "Acima do intervalo", style: "bg-[#FFF1E6] text-[#9A542A]", guidance: "O preço precisa de ser sustentado por qualidade, reputação e proposta de valor claramente visíveis." }
+      : { label: "Alinhado com o mercado", style: "bg-[#ECF7EC] text-[#3F6A4D]", guidance: "O posicionamento está próximo de restaurantes comparáveis; acompanhe procura e margem." };
+  const confidence = benchmark.confidence === "HIGH" ? "Confiança alta" : benchmark.confidence === "MEDIUM" ? "Confiança média" : "Confiança baixa";
+
+  return <section className="mt-5 overflow-hidden rounded-[26px] border border-[#E1D0B8] bg-white shadow-[0_18px_50px_rgba(80,55,30,0.05)]">
+    <div className="grid xl:grid-cols-[1.05fr_0.95fr]">
+      <div className="p-5 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2"><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#B58A45]">Posicionamento de preço</p><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] ${position.style}`}>{position.label}</span></div>
+        <h2 className="mt-3 text-2xl font-semibold tracking-[-0.045em]">O preço está próximo da realidade da zona?</h2>
+        <p className="mt-2 text-sm leading-6 text-[#6B6258]">{benchmark.summary}</p>
+        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <PriceMetric label="O seu ticket" value={euro.format(benchmark.restaurantTicket)} strong />
+          <PriceMetric label="Intervalo local" value={`${euro.format(benchmark.marketLow || 0)}–${euro.format(benchmark.marketHigh || 0)}`} />
+          <PriceMetric label="Mediana local" value={euro.format(benchmark.marketMedian || 0)} />
+          <PriceMetric label="Amostra" value={`${benchmark.comparableCount} locais`} />
+        </div>
+        <div className="mt-4 rounded-[20px] border border-[#E8DCCB] bg-[#FFF9F0] p-4"><p className="text-xs font-black text-[#5B4227]">Leitura MesaLink</p><p className="mt-1 text-sm leading-6 text-[#6B6258]">{benchmark.recommendation || position.guidance}</p></div>
+      </div>
+      <div className="border-t border-[#E8DCCB] bg-[#17120D] p-5 text-white sm:p-6 xl:border-l xl:border-t-0">
+        <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#D7B267]">Comparação justa</p><p className="mt-2 text-lg font-semibold">{benchmark.qualityBand}</p></div><span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#E7C98D]">{confidence}</span></div>
+        <p className="mt-3 text-xs leading-5 text-white/55">Zona, tipo de cozinha, ticket por pessoa e nível de serviço. Preço não altera o AI Visibility Score: serve para orientar posicionamento.</p>
+        <div className="mt-4 space-y-2">{benchmark.comparables.slice(0, 5).map((item) => <div key={`${item.name}-${item.area}`} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2.5"><div className="min-w-0"><p className="truncate text-xs font-bold">{item.name}</p><p className="mt-0.5 truncate text-[10px] text-white/45">{item.area || item.qualitySignal}</p></div><span className="shrink-0 text-xs font-black text-[#E7C98D]">{item.estimatedTicket ? `≈ ${euro.format(item.estimatedTicket)}` : "Preço n/d"}</span></div>)}</div>
+        {benchmark.sourceUrls.length > 0 && <details className="mt-4"><summary className="cursor-pointer text-[10px] font-black uppercase tracking-[0.12em] text-white/55">Ver fontes ({benchmark.sourceUrls.length})</summary><div className="mt-2 flex flex-wrap gap-2">{benchmark.sourceUrls.slice(0, 6).map((url) => <a key={url} href={url} target="_blank" rel="noreferrer" className="max-w-full truncate rounded-full border border-white/10 px-2.5 py-1 text-[9px] text-white/65">{safeHost(url)}</a>)}</div></details>}
+      </div>
+    </div>
+  </section>;
+}
+
+function PriceMetric({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return <div className={`rounded-[18px] border p-3 ${strong ? "border-[#D7B267] bg-[#FFF4DC]" : "border-[#E8DCCB] bg-[#FFFDFC]"}`}><p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#8A7863]">{label}</p><p className="mt-1.5 text-base font-semibold tracking-[-0.03em]">{value}</p></div>;
 }
 
 function safeHost(url: string) {

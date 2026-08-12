@@ -1263,6 +1263,7 @@ model AiVisibilityScan {
   visibilityScore Int?
   mentionRate     Int?
   sourceCount     Int?
+  priceBenchmark  Json?
   error           String?
 
   results AiVisibilityPromptResult[]
