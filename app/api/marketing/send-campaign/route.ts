@@ -8,7 +8,7 @@ import { hasGrowthAccess } from "@/lib/ai-billing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
-import { getMarketingCardTheme, MARKETING_CARD_THEMES, marketingBenefitValue } from "@/lib/marketing-card-themes";
+import { getMarketingCardTheme, MARKETING_CARD_THEMES, marketingBenefitSentence, marketingBenefitValue } from "@/lib/marketing-card-themes";
 import { createBenefitCardCode } from "@/lib/referrals";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -196,6 +196,8 @@ export async function POST(request: Request) {
                 <p style="font-size:15px;line-height:1.8;color:#6B6258;white-space:pre-line;">
                   ${escapeHtml(message)}
                 </p>
+
+                ${promoCard ? `<p style="font-size:15px;line-height:1.7;color:#6B6258;font-weight:700;">${escapeHtml(marketingBenefitSentence(benefitType, benefitType === "GIFT" ? null : benefitValue))}</p>` : ""}
 
                 ${promoCard && cardUrl ? `<a href="${cardUrl}" style="display:block;margin-top:24px;padding:24px;border-radius:22px;background:${cardTheme.background};color:${cardTheme.foreground};text-decoration:none;box-shadow:0 18px 40px rgba(48,32,18,.16)"><span style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${cardTheme.accent};font-weight:800">Cartão digital · ${escapeHtml(restaurant.name)}</span><span style="display:block;margin-top:18px;font-size:27px;line-height:1.05;font-weight:800">${escapeHtml(offerTitle)}</span><span style="display:block;margin-top:16px;font-size:31px;font-weight:900;color:${cardTheme.accent}">${escapeHtml(marketingBenefitValue(benefitType, benefitType === "GIFT" ? null : benefitValue))}</span><span style="display:block;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);font-family:monospace;font-size:14px;letter-spacing:2px">${escapeHtml(promoCard.publicCode)}</span></a><p style="font-size:11px;line-height:1.6;color:#8A7C6D">Cartão de utilização única. Apresente o número no restaurante.</p>` : ""}
 

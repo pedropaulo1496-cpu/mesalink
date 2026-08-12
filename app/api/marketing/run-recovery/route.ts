@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
-import { getMarketingCardTheme, MARKETING_CARD_THEMES, marketingBenefitValue, type MarketingCardTheme } from "@/lib/marketing-card-themes";
+import { getMarketingCardTheme, MARKETING_CARD_THEMES, marketingBenefitSentence, marketingBenefitValue, type MarketingCardTheme } from "@/lib/marketing-card-themes";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
 import { createBenefitCardCode } from "@/lib/referrals";
 
@@ -179,6 +179,8 @@ async function runRecovery(restaurantId: unknown, offerInput: unknown) {
                   Olá ${escapeHtml(customer.name)}, já passou algum tempo desde a sua última visita.
                   Gostávamos muito de o voltar a receber em breve.
                 </p>
+
+                ${offer ? `<p style="font-size:15px;line-height:1.6;color:#6B6258;margin:14px 0 0;font-weight:700;">${escapeHtml(marketingBenefitSentence(offer.benefitType, offer.value))}</p>` : ""}
 
                 ${
                   offer && promoCard && cardUrl

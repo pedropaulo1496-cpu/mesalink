@@ -36,7 +36,13 @@ export function getMarketingCardTheme(value: string) {
 }
 
 export function marketingBenefitValue(type: string, value: number | null) {
-  if (type === "PERCENT") return `${new Intl.NumberFormat("pt-PT").format(value || 0)}%`;
-  if (type === "FIXED") return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value || 0);
+  if (type === "PERCENT") return `${new Intl.NumberFormat("pt-PT").format(value || 0)}% OFF`;
+  if (type === "FIXED") return `${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value || 0)} OFF`;
   return "OFERTA";
+}
+
+export function marketingBenefitSentence(type: string, value: number | null) {
+  if (type === "PERCENT") return `Preparámos para si ${new Intl.NumberFormat("pt-PT").format(value || 0)}% de desconto na próxima visita.`;
+  if (type === "FIXED") return `Preparámos para si ${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value || 0)} de desconto na próxima visita.`;
+  return "Preparámos para si a oferta especial indicada neste cartão.";
 }
