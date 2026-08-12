@@ -679,6 +679,7 @@ model Reservation {
   customer   Customer? @relation(fields: [customerId], references: [id])
 
   createdAt            DateTime              @default(now())
+  marketingPromoCard   MarketingPromoCard?
   posTableSessions     POSTableSession[]
   referralGroup        ReferralGroup?
   revenueConversations RevenueConversation[]
@@ -951,10 +952,12 @@ model MarketingPromoCard {
   id         String @id @default(cuid())
   publicCode String @unique
 
-  restaurantId String
-  customerId   String?
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  customer     Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  restaurantId  String
+  customerId    String?
+  reservationId String?      @unique
+  restaurant    Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  customer      Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  reservation   Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
 
   reviewFeedbackId String? @unique
   campaignId       String?
@@ -976,6 +979,7 @@ model MarketingPromoCard {
 
   @@index([restaurantId, status])
   @@index([customerId, status])
+  @@index([reservationId])
   @@index([expiresAt, status])
 }
 

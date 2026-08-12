@@ -25,6 +25,7 @@ import SignOutButton from "@/components/SignOutButton";
 import { authOptions } from "@/lib/auth";
 import { canAccessApp, getUserWithSubscription } from "@/lib/check-subscription";
 import { parsePriceBenchmark } from "@/lib/ai-visibility-pricing";
+import { marketingBenefitValue } from "@/lib/marketing-card-themes";
 import { prisma } from "@/lib/prisma";
 
 type TFunc = (key: string, values?: Record<string, string | number>) => string;
@@ -46,6 +47,7 @@ type ReservationSummary = {
   date: Date;
   guests: number;
   status: string;
+  offer: { title: string; benefitType: string; value: unknown; publicCode: string } | null;
 };
 
 function sameDay(a: Date, b: Date) {
@@ -103,8 +105,8 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
-      tables: { include: { reservations: true } },
-      reservations: true,
+      tables: { include: { reservations: { include: { marketingPromoCard: true } } } },
+      reservations: { include: { marketingPromoCard: true } },
       orderingTableSessions: {
         where: { status: "OPEN" },
         include: { orders: { select: { status: true } } },
@@ -262,6 +264,12 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       date: reservation.date,
       guests: reservation.guests,
       status: reservation.status,
+      offer: reservation.marketingPromoCard ? {
+        title: reservation.marketingPromoCard.title,
+        benefitType: reservation.marketingPromoCard.benefitType,
+        value: reservation.marketingPromoCard.value,
+        publicCode: reservation.marketingPromoCard.publicCode,
+      } : null,
     }));
   const totalCapacity = restaurant.reservationMode === "CAPACITY" && restaurant.totalCapacity
     ? restaurant.totalCapacity
@@ -425,7 +433,7 @@ function AttentionCard({ t, restaurantId, total, pendingReservations, partnerOff
 }
 
 function UpcomingReservations({ t, intlLocale, restaurantId, reservations }: { t: TFunc; intlLocale: string; restaurantId: string; reservations: ReservationSummary[] }) {
-  return <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-4 shadow-[0_18px_55px_rgba(80,55,30,0.05)] sm:p-5"><div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">{t("summary.upcoming.eyebrow")}</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">{t("summary.upcoming.title")}</h2></div><Link href={`/restaurants/${restaurantId}/reservations/upcoming`} className="text-xs font-bold text-[#9B6F3B]">{t("summary.upcoming.all")} →</Link></div><div className="mt-4 overflow-hidden rounded-[20px] border border-[#E8DCCB]">{reservations.length ? reservations.map((reservation) => <details key={reservation.id} className="group border-b border-[#E8DCCB] bg-[#FFFDFC] last:border-b-0"><summary className="grid cursor-pointer list-none grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-3 transition hover:bg-white"><div className="rounded-xl bg-[#F1E6D5] py-2 text-center"><p className="text-[9px] font-black uppercase text-[#8A6D49]">{new Intl.DateTimeFormat(intlLocale, { day: "2-digit", month: "short" }).format(reservation.date)}</p><p className="mt-0.5 text-xs font-black">{new Intl.DateTimeFormat(intlLocale, { hour: "2-digit", minute: "2-digit" }).format(reservation.date)}</p></div><div className="min-w-0"><p className="truncate text-sm font-semibold">{reservation.customerName}</p><p className="mt-0.5 text-[10px] text-[#776B5F]">{t("summary.upcoming.guests", { count: reservation.guests })}{reservation.status === "PENDING" ? ` · ${t("summary.upcoming.pending")}` : ""}</p></div><span className="flex items-center gap-2 text-xs font-black text-[#9B6F3B]">{reservation.guests}p <span className="transition group-open:rotate-180">⌄</span></span></summary><div className="grid gap-2 border-t border-[#EEE3D3] bg-white px-3 py-3 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#FFF9F0] px-3 py-2"><p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#8A7863]">{t("reservationsCard.mobile")}</p><a href={`tel:${reservation.phone}`} className="mt-1 block truncate font-semibold text-[#17120D]">{reservation.phone || t("reservationsCard.mobileEmpty")}</a></div><div className="rounded-xl bg-[#FFF9F0] px-3 py-2"><p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#8A7863]">{t("reservationsCard.email")}</p>{reservation.email ? <a href={`mailto:${reservation.email}`} className="mt-1 block truncate font-semibold text-[#17120D]">{reservation.email}</a> : <p className="mt-1 font-semibold text-[#776B5F]">{t("reservationsCard.emailEmpty")}</p>}</div></div></details>) : <div className="p-6 text-center text-sm text-[#70665B]">{t("summary.upcoming.empty")}</div>}</div></div>;
+  return <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-4 shadow-[0_18px_55px_rgba(80,55,30,0.05)] sm:p-5"><div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">{t("summary.upcoming.eyebrow")}</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">{t("summary.upcoming.title")}</h2></div><Link href={`/restaurants/${restaurantId}/reservations/upcoming`} className="text-xs font-bold text-[#9B6F3B]">{t("summary.upcoming.all")} →</Link></div><div className="mt-4 overflow-hidden rounded-[20px] border border-[#E8DCCB]">{reservations.length ? reservations.map((reservation) => <details key={reservation.id} className="group border-b border-[#E8DCCB] bg-[#FFFDFC] last:border-b-0"><summary className="grid cursor-pointer list-none grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-3 transition hover:bg-white"><div className="rounded-xl bg-[#F1E6D5] py-2 text-center"><p className="text-[9px] font-black uppercase text-[#8A6D49]">{new Intl.DateTimeFormat(intlLocale, { day: "2-digit", month: "short" }).format(reservation.date)}</p><p className="mt-0.5 text-xs font-black">{new Intl.DateTimeFormat(intlLocale, { hour: "2-digit", minute: "2-digit" }).format(reservation.date)}</p></div><div className="min-w-0"><div className="flex min-w-0 items-center gap-2"><p className="truncate text-sm font-semibold">{reservation.customerName}</p>{reservation.offer && <span className="shrink-0 rounded-full bg-[#FFF0D3] px-2 py-0.5 text-[8px] font-black uppercase text-[#7A542A]">{t("summary.upcoming.offerApplied")}</span>}</div><p className="mt-0.5 text-[10px] text-[#776B5F]">{t("summary.upcoming.guests", { count: reservation.guests })}{reservation.status === "PENDING" ? ` · ${t("summary.upcoming.pending")}` : ""}</p></div><span className="flex items-center gap-2 text-xs font-black text-[#9B6F3B]">{reservation.guests}p <span className="transition group-open:rotate-180">⌄</span></span></summary><div className="grid gap-2 border-t border-[#EEE3D3] bg-white px-3 py-3 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#FFF9F0] px-3 py-2"><p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#8A7863]">{t("reservationsCard.mobile")}</p><a href={`tel:${reservation.phone}`} className="mt-1 block truncate font-semibold text-[#17120D]">{reservation.phone || t("reservationsCard.mobileEmpty")}</a></div><div className="rounded-xl bg-[#FFF9F0] px-3 py-2"><p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#8A7863]">{t("reservationsCard.email")}</p>{reservation.email ? <a href={`mailto:${reservation.email}`} className="mt-1 block truncate font-semibold text-[#17120D]">{reservation.email}</a> : <p className="mt-1 font-semibold text-[#776B5F]">{t("reservationsCard.emailEmpty")}</p>}</div>{reservation.offer && <div className="rounded-xl border border-[#E4C993] bg-[#FFF6E5] px-3 py-2 sm:col-span-2"><p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#8A6130]">{t("summary.upcoming.offerApplied")}</p><p className="mt-1 font-semibold text-[#17120D]">{reservation.offer.title} · {marketingBenefitValue(reservation.offer.benefitType, reservation.offer.value == null ? null : Number(reservation.offer.value))}</p><p className="mt-0.5 font-mono text-[9px] text-[#806D56]">{reservation.offer.publicCode}</p></div>}</div></details>) : <div className="p-6 text-center text-sm text-[#70665B]">{t("summary.upcoming.empty")}</div>}</div></div>;
 }
 
 function DarkMetric({ icon, value, label, alert = false }: { icon: ReactNode; value: string; label: string; alert?: boolean }) {

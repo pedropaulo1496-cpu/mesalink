@@ -13,6 +13,7 @@ import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/emai
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
+import { marketingBenefitValue } from "@/lib/marketing-card-themes";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -309,7 +310,7 @@ export default async function DayPage({
       date: { gte: dayStart, lte: dayEnd },
       status: { notIn: ["CANCELLED", "REJECTED"] },
     },
-    include: { table: true },
+    include: { table: true, marketingPromoCard: true },
     orderBy: { date: "asc" },
   });
 
@@ -393,6 +394,11 @@ export default async function DayPage({
                 {reasonLabel}
               </span>
             )}
+            {reservation.marketingPromoCard && (
+              <span className="rounded-full bg-[#FFF0D3] px-2.5 py-1 text-[10px] font-semibold text-[#7A542A]">
+                {t("row.offerApplied")}
+              </span>
+            )}
           </div>
 
           <p className="mt-1 truncate text-xs text-[#6B6258]">
@@ -403,6 +409,8 @@ export default async function DayPage({
   {reservation.source === "PUBLIC" ? ` · ${t("row.online")}` : ` · ${t("row.manual")}`}
   {reservation.notes ? ` · ${reservation.notes}` : ""}
 </p>
+
+{reservation.marketingPromoCard && <div className="mt-2 rounded-2xl border border-[#E2C58D] bg-[#FFF6E5] px-3 py-2 text-xs"><p className="font-bold text-[#6F4D26]">{t("row.offerApplied")}: {reservation.marketingPromoCard.title} · {marketingBenefitValue(reservation.marketingPromoCard.benefitType, reservation.marketingPromoCard.value == null ? null : Number(reservation.marketingPromoCard.value))}</p><p className="mt-1 font-mono text-[10px] text-[#806D56]">{reservation.marketingPromoCard.publicCode} · {t("row.offerSingleUse")}</p></div>}
 
 <details className="group mt-2">
   <summary className="cursor-pointer list-none text-xs font-semibold text-[#9B6F3B] transition hover:text-[#16120E]">

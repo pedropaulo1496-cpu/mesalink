@@ -19,9 +19,10 @@ export default async function ReservationSuccessPage({
     date?: string;
     status?: string;
     already?: string;
+    offer?: string;
   }>;
 }) {
-  const { name, guests, date, status, already } = await searchParams;
+  const { name, guests, date, status, already, offer } = await searchParams;
 
   const t = await getTranslations("publicFlows.reserveSuccess");
   const locale = await getLocale();
@@ -99,6 +100,7 @@ export default async function ReservationSuccessPage({
               value={isPending ? t("statusPending") : t("statusConfirmed")}
               highlight
             />
+            {offer && <InfoRow label={t("labels.offer")} value={offer} highlight />}
           </div>
 
           <a

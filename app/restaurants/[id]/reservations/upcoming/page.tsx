@@ -8,6 +8,8 @@ import type { ReactNode } from "react";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, getTranslations } from "next-intl/server";
+import { marketingBenefitValue } from "@/lib/marketing-card-themes";
+import type { Prisma } from "@prisma/client";
 
 const dashboardDateLocales: Record<string, string> = {
   pt: "pt-PT",
@@ -16,6 +18,12 @@ const dashboardDateLocales: Record<string, string> = {
   de: "de-DE",
   zh: "zh-CN",
   es: "es-ES",
+};
+
+type UpcomingReservation = Prisma.ReservationGetPayload<{ include: { marketingPromoCard: true } }> & { tableNumber: number | null };
+type Translation = {
+  (key: string, values?: Record<string, string | number>): string;
+  raw: (key: string) => unknown;
 };
 
 function getStatusLabel(status: string, labels: Record<string, string>) {
@@ -83,8 +91,8 @@ export default async function UpcomingReservationsPage({
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
-      tables: { include: { reservations: true } },
-      reservations: true,
+      tables: { include: { reservations: { include: { marketingPromoCard: true } } } },
+      reservations: { include: { marketingPromoCard: true } },
     },
   });
 
@@ -215,8 +223,8 @@ function ReservationRow({
   t,
   intlLocale,
 }: {
-  reservation: any;
-  t: any;
+  reservation: UpcomingReservation;
+  t: Translation;
   intlLocale: string;
 }) {
   const statusLabels = t.raw("statusLabels") as Record<string, string>;
@@ -232,7 +240,7 @@ function ReservationRow({
         </p>
 
         <div className="min-w-0">
-          <p className="truncate font-semibold">{reservation.customerName}</p>
+          <div className="flex min-w-0 items-center gap-2"><p className="truncate font-semibold">{reservation.customerName}</p>{reservation.marketingPromoCard && <span className="shrink-0 rounded-full bg-[#FFF0D3] px-2 py-0.5 text-[8px] font-black uppercase text-[#7A542A]">{t("row.offerApplied")}</span>}</div>
           <p className="mt-0.5 text-xs text-[#6B6258]">
             {reservation.tableNumber
               ? t("row.table", { number: reservation.tableNumber })
@@ -263,6 +271,7 @@ function ReservationRow({
           <p className="font-semibold text-[#16120E]">{t("row.emailLabel")}</p>
           <p className="mt-1 break-all">{reservation.email || t("row.noEmail")}</p>
         </div>
+        {reservation.marketingPromoCard && <div className="rounded-xl border border-[#E2C58D] bg-[#FFF6E5] p-3 sm:col-span-2"><p className="font-bold text-[#6F4D26]">{t("row.offerApplied")}: {reservation.marketingPromoCard.title} · {marketingBenefitValue(reservation.marketingPromoCard.benefitType, reservation.marketingPromoCard.value == null ? null : Number(reservation.marketingPromoCard.value))}</p><p className="mt-1 font-mono text-[10px]">{reservation.marketingPromoCard.publicCode} · {t("row.offerSingleUse")}</p></div>}
       </div>
     </details>
   );

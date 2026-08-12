@@ -72,7 +72,7 @@
     "summary": {
       "today": { "eyebrow": "今日运营", "title": "当前重点", "openDay": "打开今日服务", "reservations": "预订", "guests": "客人", "pending": "待处理", "qrOrders": "二维码订单", "occupancy": "预计上座率" },
       "attention": { "eyebrow": "需要处理", "title": "需要您的关注", "reservations": "待确认预订", "groups": "待回复合作伙伴团体", "conversations": "Revenue AI 对话", "qrOrders": "制作中的二维码订单", "clear": "全部处理完毕，没有待办事项。" },
-      "upcoming": { "eyebrow": "日程", "title": "即将到来的预订", "all": "查看全部", "guests": "{count} 位客人", "pending": "待确认", "empty": "暂无即将到来的预订。" },
+      "upcoming": { "eyebrow": "日程", "title": "即将到来的预订", "all": "查看全部", "guests": "{count} 位客人", "pending": "待确认", "empty": "暂无即将到来的预订。", "offerApplied": "已用优惠" },
       "growth": { "eyebrow": "增长", "title": "餐厅增长脉搏", "active": "已启用", "available": "Growth 可用" },
       "marketing": { "eyebrow": "营销与忠诚度", "performance": "本月联系 {sent} 人 · {rate}% 已打开", "empty": "本月尚未发送联系。", "interventionsEyebrow": "营销 · 有效行动", "interventionsTitle": "现在值得联系的客户", "opportunities": "{count} 个机会", "inactive": "{count} 位客户超过 60 天未到店", "birthdays": "{count} 位客户将在未来 7 天生日", "poorReviews": "{count} 条 1 至 4 星评价尚未跟进", "chooseReward": "选择奖励", "reviewAction": "立即处理" },
       "ai": { "eyebrow": "AI 可见度", "noScan": "尚未测量", "performance": "{mentions}% 出现率 · {sources} 个来源", "runScan": "运行首次真实诊断。", "priceBelow": "价格低于当地", "priceAbove": "价格高于当地", "priceAligned": "价格符合当地水平" },
@@ -164,6 +164,8 @@
       "mobileEmpty": "无手机号码",
       "email": "邮箱",
       "emailEmpty": "无邮箱",
+      "offerApplied": "已用优惠",
+      "offerSingleUse": "已登记单次使用",
       "finishNote": "评价邀请将在预订结束 12 小时后发送；标记为未到店即可阻止发送。"
     },
     "actions": {

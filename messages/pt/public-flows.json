@@ -6,6 +6,17 @@
       "quickConfirmation": "Confirmação rápida",
       "onlineBooking": "Reserva online"
     },
+    "offer": {
+      "eyebrow": "Oferta aplicada à reserva",
+      "assignedTo": "Cartão atribuído a {name}",
+      "customerFallback": "este cliente",
+      "singleUse": "utilização única",
+      "appliedOnBooking": "{benefit} será aplicado automaticamente a esta reserva.",
+      "unavailableTitle": "Cartão indisponível",
+      "unavailableText": "Este cartão já foi utilizado, expirou ou não pertence a este restaurante.",
+      "ownerErrorTitle": "Cartão atribuído a outro cliente",
+      "ownerErrorText": "Utilize o email do cliente que recebeu este cartão para aplicar a oferta."
+    },
     "unavailable": {
       "title": "Reservas indisponíveis",
       "text": "Este restaurante não está a aceitar reservas online neste momento."
@@ -79,6 +90,7 @@
       "labelTime": "Hora:",
       "labelGuests": "Pessoas:",
       "labelStatus": "Estado:",
+      "labelOffer": "Oferta aplicada:",
       "statusPending": "Pendente de aprovação",
       "statusConfirmed": "Confirmada",
       "statusCancelled": "Cancelada",
@@ -109,7 +121,8 @@
       "guests": "Pessoas",
       "date": "Data",
       "time": "Hora",
-      "status": "Estado"
+      "status": "Estado",
+      "offer": "Oferta aplicada"
     },
     "statusPending": "Pendente de aprovação",
     "statusConfirmed": "Confirmada",

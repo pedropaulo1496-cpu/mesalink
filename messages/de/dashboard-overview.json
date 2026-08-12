@@ -72,7 +72,7 @@
     "summary": {
       "today": { "eyebrow": "Heutiger Betrieb", "title": "Das Wesentliche jetzt", "openDay": "Service öffnen", "reservations": "Reservierungen", "guests": "Gäste", "pending": "Ausstehend", "qrOrders": "QR-Bestellungen", "occupancy": "Erwartete Belegung" },
       "attention": { "eyebrow": "Handlungsbedarf", "title": "Benötigt Ihre Aufmerksamkeit", "reservations": "Reservierungen bestätigen", "groups": "Partnergruppen beantworten", "conversations": "Revenue-AI-Gespräche", "qrOrders": "QR-Bestellungen in Arbeit", "clear": "Alles erledigt. Keine offenen Aufgaben." },
-      "upcoming": { "eyebrow": "Agenda", "title": "Nächste Reservierungen", "all": "Alle anzeigen", "guests": "{count, plural, one {# Gast} other {# Gäste}}", "pending": "zu bestätigen", "empty": "Noch keine kommenden Reservierungen." },
+      "upcoming": { "eyebrow": "Agenda", "title": "Nächste Reservierungen", "all": "Alle anzeigen", "guests": "{count, plural, one {# Gast} other {# Gäste}}", "pending": "zu bestätigen", "empty": "Noch keine kommenden Reservierungen.", "offerApplied": "Angebot angewendet" },
       "growth": { "eyebrow": "Wachstum", "title": "Restaurant-Puls", "active": "Aktiv", "available": "Mit Growth verfügbar" },
       "marketing": { "eyebrow": "Marketing & Loyalität", "performance": "{sent} Kontakte diesen Monat · {rate}% geöffnet", "empty": "Diesen Monat wurden noch keine Kontakte gesendet.", "interventionsEyebrow": "Marketing · sinnvolle Aktion", "interventionsTitle": "Kunden, die jetzt kontaktiert werden sollten", "opportunities": "{count, plural, one {# Chance} other {# Chancen}}", "inactive": "{count, plural, one {# Kunde war seit über 60 Tagen nicht da} other {# Kunden waren seit über 60 Tagen nicht da}}", "birthdays": "{count, plural, one {# Kunde hat in den nächsten 7 Tagen Geburtstag} other {# Kunden haben in den nächsten 7 Tagen Geburtstag}}", "poorReviews": "{count, plural, one {# Bewertung mit 1 bis 4 Sternen ist noch offen} other {# Bewertungen mit 1 bis 4 Sternen sind noch offen}}", "chooseReward": "Prämie wählen", "reviewAction": "Jetzt bearbeiten" },
       "ai": { "eyebrow": "KI-Sichtbarkeit", "noScan": "Nicht gemessen", "performance": "{mentions}% Präsenz · {sources} Quellen", "runScan": "Erste echte Diagnose starten.", "priceBelow": "Preis unter dem Gebiet", "priceAbove": "Preis über dem Gebiet", "priceAligned": "Preis passend zum Gebiet" },
@@ -164,6 +164,8 @@
       "mobileEmpty": "Keine Mobilnummer",
       "email": "E-Mail",
       "emailEmpty": "Keine E-Mail",
+      "offerApplied": "Angebot angewendet",
+      "offerSingleUse": "einmalige Nutzung registriert",
       "finishNote": "Die Bewertung wird 12 Std. nach der Reservierung gesendet; No-show verhindert den Versand."
     },
     "actions": {

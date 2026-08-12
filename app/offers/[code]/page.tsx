@@ -16,7 +16,10 @@ export default async function MarketingOfferCardPage({ params, searchParams }: {
   const { ml_action: marketingAction } = await searchParams;
   const card = await prisma.marketingPromoCard.findUnique({
     where: { publicCode: code.toUpperCase() },
-    include: { restaurant: { select: { name: true, slug: true, websiteLogoImage: true, address: true } } },
+    include: {
+      customer: { select: { name: true } },
+      restaurant: { select: { name: true, slug: true, websiteLogoImage: true, address: true } },
+    },
   });
   if (!card) notFound();
 
@@ -25,7 +28,9 @@ export default async function MarketingOfferCardPage({ params, searchParams }: {
   const used = card.status === "REDEEMED";
   const active = card.status === "ACTIVE" && !expired;
   const expiry = card.expiresAt ? new Intl.DateTimeFormat("pt-PT", { dateStyle: "long" }).format(card.expiresAt) : null;
-  const reservationUrl = `/reserve/${card.restaurant.slug}${marketingAction && /^[a-f0-9]{48}$/.test(marketingAction) ? `?ml_action=${marketingAction}` : ""}`;
+  const reservationParams = new URLSearchParams({ offer: card.publicCode });
+  if (marketingAction && /^[a-f0-9]{48}$/.test(marketingAction)) reservationParams.set("ml_action", marketingAction);
+  const reservationUrl = `/reserve/${card.restaurant.slug}?${reservationParams.toString()}`;
 
   return (
     <main className="min-h-screen bg-[#F2ECE2] px-4 py-8 text-[#17120D] sm:py-12">
@@ -62,7 +67,7 @@ export default async function MarketingOfferCardPage({ params, searchParams }: {
 
         <section className="mt-5 rounded-[26px] border border-[#DECEB6] bg-white p-5 shadow-[0_16px_40px_rgba(65,46,27,0.06)]">
           <div className="grid gap-3 sm:grid-cols-2">
-            <Info icon={<ShieldCheck size={16} />} title="Utilização única" text="Apresenta o número no restaurante. Depois de validado, o cartão fica utilizado." />
+            <Info icon={<ShieldCheck size={16} />} title="Utilização única" text={card.customer ? `Exclusivo de ${card.customer.name}. Ao concluir a reserva, o cartão fica automaticamente associado.` : "Ao concluir a reserva, o cartão fica automaticamente associado e utilizado."} />
             <Info icon={<Clock3 size={16} />} title={expiry ? `Válido até ${expiry}` : "Sem data de fim"} text={card.minSpend ? `Consumo mínimo: ${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(Number(card.minSpend))}` : "Sem consumo mínimo definido."} />
           </div>
           {card.terms && <p className="mt-4 rounded-2xl bg-[#F7F1E8] px-4 py-3 text-xs leading-5 text-[#6B6258]">{card.terms}</p>}

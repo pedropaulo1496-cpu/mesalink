@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
-import { BadgePercent, CheckCircle2, Gift, ScanLine, TicketCheck } from "lucide-react";
+import { BadgePercent, CheckCircle2, Gift, ScanLine, ShieldCheck, TicketCheck, UserRound } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import { BenefitToggleButton, CreatePartnerBenefitForm, RedeemBenefitCardForm } from "@/components/partners/PartnerBenefitControls";
@@ -34,7 +34,18 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
       marketingPromoCards: {
         orderBy: { createdAt: "desc" },
         take: 80,
-        select: { id: true, publicCode: true, title: true, template: true, campaignId: true, status: true, sentAt: true, expiresAt: true, redeemedAt: true },
+        select: {
+          id: true,
+          publicCode: true,
+          title: true,
+          template: true,
+          campaignId: true,
+          status: true,
+          sentAt: true,
+          expiresAt: true,
+          redeemedAt: true,
+          customer: { select: { name: true, email: true } },
+        },
       },
       customers: {
         where: { marketingOptIn: true, email: { not: null } },
@@ -93,7 +104,7 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
             </div>
           </section>
 
-          {restaurant.marketingPromoCards.length > 0 && <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Enviados aos clientes</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Cartões digitais individuais</h2><p className="mt-2 text-sm text-[#6B6258]">Cartões de recuperação e fidelização. Cada número é único e pode ser validado na caixa acima.</p><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{restaurant.marketingPromoCards.map((card) => <article key={card.id} className="rounded-[22px] border border-[#E5D6C0] bg-[#FFF9F0] p-4"><div className="flex items-start justify-between gap-3"><span className="rounded-full bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-[#806D56]">{card.template}</span><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] ${card.status === "REDEEMED" ? "bg-[#E8F6E8] text-[#3F6A4D]" : "bg-[#FFF0D8] text-[#8A6130]"}`}>{card.status === "REDEEMED" ? "Utilizado" : "Ativo"}</span></div><p className="mt-3 truncate font-semibold">{card.title}</p><p className="mt-2 font-mono text-xs font-bold tracking-[0.1em] text-[#704E27]">{card.publicCode}</p><div className="mt-4 flex items-center justify-between gap-3"><p className="text-[10px] text-[#817466]">{card.redeemedAt ? `Usado ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "short" }).format(card.redeemedAt)}` : card.expiresAt ? `Válido até ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "short" }).format(card.expiresAt)}` : "Sem validade"}</p><Link href={`/offers/${card.publicCode}`} target="_blank" className="text-xs font-bold text-[#7A542A]">Abrir cartão ↗</Link></div></article>)}</div></section>}
+          {restaurant.marketingPromoCards.length > 0 && <section className="mt-6 rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8"><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Enviados aos clientes</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Cartões digitais individuais</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-[#6B6258]">Cada código pertence a um único cliente e só pode ser utilizado uma vez. Para oferecer a mesma promoção a outra pessoa, volta ao modelo acima e emite um novo cartão.</p><div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{restaurant.marketingPromoCards.map((card) => <article key={card.id} className="rounded-[22px] border border-[#E5D6C0] bg-[#FFF9F0] p-4"><div className="flex items-start justify-between gap-3"><span className="rounded-full bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-[#806D56]">{card.template}</span><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] ${card.status === "REDEEMED" ? "bg-[#E8F6E8] text-[#3F6A4D]" : "bg-[#FFF0D8] text-[#8A6130]"}`}>{card.status === "REDEEMED" ? "Utilizado" : "Ativo"}</span></div><p className="mt-3 truncate font-semibold">{card.title}</p><p className="mt-2 font-mono text-xs font-bold tracking-[0.1em] text-[#704E27]">{card.publicCode}</p><div className="mt-3 rounded-[16px] border border-[#E5D6C0] bg-white p-3"><p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em] text-[#8A7863]"><UserRound size={12} /> Atribuído a</p><p className="mt-1 truncate text-sm font-semibold">{card.customer?.name || "Cliente não identificado"}</p>{card.customer?.email && <p className="mt-0.5 truncate text-[10px] text-[#817466]">{card.customer.email}</p>}</div><p className="mt-3 flex items-center gap-1.5 text-[10px] font-bold text-[#6D5435]"><ShieldCheck size={13} /> Utilização única · exclusivo deste cliente</p><div className="mt-3 flex items-center justify-between gap-3 border-t border-[#E8DCCB] pt-3"><p className="text-[10px] text-[#817466]">{card.redeemedAt ? `Usado ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "short" }).format(card.redeemedAt)}` : card.expiresAt ? `Válido até ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "short" }).format(card.expiresAt)}` : "Sem validade"}</p><Link href={`/offers/${card.publicCode}`} target="_blank" className="text-xs font-bold text-[#7A542A]">Abrir cartão ↗</Link></div></article>)}</div></section>}
         </section>
       </div>
       <BottomNav id={id} />

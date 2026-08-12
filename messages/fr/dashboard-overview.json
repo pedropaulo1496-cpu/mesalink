@@ -72,7 +72,7 @@
     "summary": {
       "today": { "eyebrow": "Opération du jour", "title": "L'essentiel, maintenant", "openDay": "Ouvrir le service", "reservations": "Réservations", "guests": "Personnes", "pending": "En attente", "qrOrders": "Commandes QR", "occupancy": "Occupation prévue" },
       "attention": { "eyebrow": "Action requise", "title": "Nécessite votre attention", "reservations": "Réservations à confirmer", "groups": "Groupes partenaires à traiter", "conversations": "Conversations Revenue AI", "qrOrders": "Commandes QR en préparation", "clear": "Tout est traité. Aucune action en attente." },
-      "upcoming": { "eyebrow": "Agenda", "title": "Prochaines réservations", "all": "Tout voir", "guests": "{count, plural, one {# personne} other {# personnes}}", "pending": "à confirmer", "empty": "Aucune réservation à venir." },
+      "upcoming": { "eyebrow": "Agenda", "title": "Prochaines réservations", "all": "Tout voir", "guests": "{count, plural, one {# personne} other {# personnes}}", "pending": "à confirmer", "empty": "Aucune réservation à venir.", "offerApplied": "Offre appliquée" },
       "growth": { "eyebrow": "Croissance", "title": "Pouls du restaurant", "active": "Actif", "available": "Disponible avec Growth" },
       "marketing": { "eyebrow": "Marketing et Fidélisation", "performance": "{sent} contacts ce mois · {rate}% ont ouvert", "empty": "Aucun contact envoyé ce mois-ci.", "interventionsEyebrow": "Marketing · action utile", "interventionsTitle": "Clients à contacter maintenant", "opportunities": "{count, plural, one {# opportunité} other {# opportunités}}", "inactive": "{count, plural, one {# client n'est pas venu depuis plus de 60 jours} other {# clients ne sont pas venus depuis plus de 60 jours}}", "birthdays": "{count, plural, one {# client fête son anniversaire dans les 7 prochains jours} other {# clients fêtent leur anniversaire dans les 7 prochains jours}}", "poorReviews": "{count, plural, one {# avis de 1 à 4 étoiles n'a pas encore été récupéré} other {# avis de 1 à 4 étoiles n'ont pas encore été récupérés}}", "chooseReward": "Choisir la récompense", "reviewAction": "Agir maintenant" },
       "ai": { "eyebrow": "Visibilité IA", "noScan": "Non mesurée", "performance": "{mentions}% de présence · {sources} sources", "runScan": "Lancez le premier diagnostic réel.", "priceBelow": "Prix sous la zone", "priceAbove": "Prix au-dessus de la zone", "priceAligned": "Prix aligné avec la zone" },
@@ -164,6 +164,8 @@
       "mobileEmpty": "Aucun numéro",
       "email": "Email",
       "emailEmpty": "Aucun email",
+      "offerApplied": "Offre appliquée",
+      "offerSingleUse": "usage unique enregistré",
       "finishNote": "L'avis est envoyé 12 h après la réservation ; indiquez No-show pour l'empêcher."
     },
     "actions": {

@@ -7,6 +7,7 @@ import ReserveForm from "./ReserveForm";
 import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { reservationManagementUrl } from "@/lib/reservation-management";
+import { marketingBenefitValue } from "@/lib/marketing-card-themes";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -24,6 +25,8 @@ async function createPublicReservation(formData: FormData) {
 
   const slug = String(formData.get("slug") || "");
   const restaurantId = String(formData.get("restaurantId") || "");
+  const offerCodeValue = String(formData.get("offerCode") || "").trim().toUpperCase();
+  const offerCode = /^MLC-[A-F0-9]{10}$/.test(offerCodeValue) ? offerCodeValue : null;
   const marketingTokenValue = String(formData.get("marketingToken") || "");
   const marketingToken = /^[a-f0-9]{48}$/.test(marketingTokenValue)
     ? marketingTokenValue
@@ -31,6 +34,7 @@ async function createPublicReservation(formData: FormData) {
   const errorRedirect = (error: string) => {
     const query = new URLSearchParams({ error });
     if (marketingToken) query.set("ml_action", marketingToken);
+    if (offerCode) query.set("offer", offerCode);
     return `/reserve/${slug}?${query.toString()}`;
   };
   const tableIdValue = String(formData.get("tableId") ?? "");
@@ -70,6 +74,20 @@ async function createPublicReservation(formData: FormData) {
   });
 
   if (!restaurant) notFound();
+
+  const offerCard = offerCode
+    ? await prisma.marketingPromoCard.findFirst({
+        where: { publicCode: offerCode, restaurantId: restaurant.id },
+        include: { customer: { select: { email: true } } },
+      })
+    : null;
+  const offerExpired = Boolean(offerCard?.expiresAt && offerCard.expiresAt <= new Date());
+  if (offerCode && (!offerCard || offerCard.status !== "ACTIVE" || offerExpired || offerCard.reservationId)) {
+    redirect(errorRedirect("offer"));
+  }
+  if (offerCard?.customer?.email && offerCard.customer.email.trim().toLowerCase() !== email) {
+    redirect(errorRedirect("offer_owner"));
+  }
 
   const subscription = restaurant.user?.subscription;
   const plan = String(subscription?.plan || restaurant.plan || "").toUpperCase();
@@ -282,6 +300,19 @@ async function createPublicReservation(formData: FormData) {
     }
   }
 
+  if (offerCard) {
+    const claimed = await prisma.marketingPromoCard.updateMany({
+      where: {
+        id: offerCard.id,
+        status: "ACTIVE",
+        reservationId: null,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+      data: { status: "REDEEMED", redeemedAt: new Date(), reservationId: finalReservation.id },
+    });
+    if (claimed.count !== 1) redirect(errorRedirect("offer"));
+  }
+
   // Se a reserva já existia e estava ativa, não repetir efeitos secundários
   // (conversão de marketing, email de confirmação) — só avisar o cliente.
   if (!alreadyBooked) {
@@ -381,6 +412,7 @@ async function createPublicReservation(formData: FormData) {
                   })}</p>
                   <p><strong>${emailT("labelGuests")}</strong> ${guests}</p>
                   <p><strong>${emailT("labelStatus")}</strong> ${statusText}</p>
+                  ${offerCard ? `<p><strong>${emailT("labelOffer")}</strong> ${offerCard.title} · ${marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value))}</p>` : ""}
                 </div>
                 <p style="margin:0 0 12px;font-size:13px;color:#6B6258;">${emailT("manageIntro")}</p>
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
@@ -407,7 +439,7 @@ async function createPublicReservation(formData: FormData) {
       customerName,
     )}&guests=${finalReservation.guests}&date=${encodeURIComponent(
       date.toISOString(),
-    )}&status=${finalReservation.status}${alreadyBooked ? "&already=1" : ""}`,
+    )}&status=${finalReservation.status}${alreadyBooked ? "&already=1" : ""}${offerCard ? `&offer=${encodeURIComponent(`${offerCard.title} · ${marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value))}`)}` : ""}`,
   );
 }
 
@@ -416,10 +448,10 @@ export default async function PublicReservePage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ error?: string; ml_action?: string }>;
+  searchParams: Promise<{ error?: string; ml_action?: string; offer?: string }>;
 }) {
   const { slug } = await params;
-  const { error, ml_action: marketingTokenValue } = await searchParams;
+  const { error, ml_action: marketingTokenValue, offer: offerCodeValue } = await searchParams;
   const marketingToken =
     typeof marketingTokenValue === "string" &&
     /^[a-f0-9]{48}$/.test(marketingTokenValue)
@@ -438,11 +470,37 @@ export default async function PublicReservePage({
 
   if (!restaurant) notFound();
 
+  const requestedOfferCode = typeof offerCodeValue === "string" && /^MLC-[A-F0-9]{10}$/.test(offerCodeValue.toUpperCase())
+    ? offerCodeValue.toUpperCase()
+    : undefined;
+  const offerCard = requestedOfferCode
+    ? await prisma.marketingPromoCard.findFirst({
+        where: { publicCode: requestedOfferCode, restaurantId: restaurant.id },
+        include: { customer: { select: { name: true, email: true, phone: true } } },
+      })
+    : null;
+  const offerAvailable = Boolean(
+    offerCard && offerCard.status === "ACTIVE" && !offerCard.reservationId && (!offerCard.expiresAt || offerCard.expiresAt > new Date()),
+  );
+  const offer = offerCard && offerAvailable ? {
+    code: offerCard.publicCode,
+    title: offerCard.title,
+    description: offerCard.description,
+    benefit: marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value)),
+    customerName: offerCard.customer?.name || null,
+    customerEmail: offerCard.customer?.email || null,
+    customerPhone: offerCard.customer?.phone || null,
+    minSpend: offerCard.minSpend ? `Consumo mínimo: ${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(Number(offerCard.minSpend))}` : null,
+    terms: offerCard.terms,
+  } : undefined;
+
   return (
     <ReserveForm
       restaurant={restaurant}
       error={error}
       marketingToken={marketingToken}
+      offer={offer}
+      offerUnavailable={Boolean(requestedOfferCode && !offerAvailable)}
       createPublicReservation={createPublicReservation}
     />
   );

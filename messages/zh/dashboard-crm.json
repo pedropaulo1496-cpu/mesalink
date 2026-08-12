@@ -137,7 +137,9 @@
         "phoneLabel": "手机",
         "noPhone": "无手机号码",
         "emailLabel": "邮箱",
-        "noEmail": "无邮箱"
+        "noEmail": "无邮箱",
+        "offerApplied": "已用优惠",
+        "offerSingleUse": "已登记单次使用"
       }
     }
   },

@@ -6,6 +6,17 @@
       "quickConfirmation": "快速确认",
       "onlineBooking": "在线预订"
     },
+    "offer": {
+      "eyebrow": "优惠已用于预订",
+      "assignedTo": "卡片归属于 {name}",
+      "customerFallback": "该客户",
+      "singleUse": "仅限使用一次",
+      "appliedOnBooking": "{benefit} 将自动应用到此预订。",
+      "unavailableTitle": "卡片不可用",
+      "unavailableText": "此卡已使用、已过期或不属于该餐厅。",
+      "ownerErrorTitle": "卡片属于其他客户",
+      "ownerErrorText": "请使用收到此卡的客户邮箱来应用优惠。"
+    },
     "unavailable": {
       "title": "暂不接受预订",
       "text": "该餐厅目前暂未开放在线预订。"
@@ -79,6 +90,7 @@
       "labelTime": "时间：",
       "labelGuests": "人数：",
       "labelStatus": "状态：",
+      "labelOffer": "已用优惠：",
       "statusPending": "待批准",
       "statusConfirmed": "已确认",
       "statusCancelled": "已取消",
@@ -109,7 +121,8 @@
       "guests": "人数",
       "date": "日期",
       "time": "时间",
-      "status": "状态"
+      "status": "状态",
+      "offer": "已用优惠"
     },
     "statusPending": "待批准",
     "statusConfirmed": "已确认",

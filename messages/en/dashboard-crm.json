@@ -137,7 +137,9 @@
         "phoneLabel": "Mobile",
         "noPhone": "No mobile number",
         "emailLabel": "Email",
-        "noEmail": "No email"
+        "noEmail": "No email",
+        "offerApplied": "Offer applied",
+        "offerSingleUse": "single use registered"
       }
     }
   },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import PhoneField from "@/components/PhoneField";
@@ -56,6 +56,18 @@ type Restaurant = {
   sundayDinner: string | null;
 
   tables: Table[];
+};
+
+type ReservationOffer = {
+  code: string;
+  title: string;
+  description: string | null;
+  benefit: string;
+  customerName: string | null;
+  customerEmail: string | null;
+  customerPhone: string | null;
+  minSpend: string | null;
+  terms: string | null;
 };
 
 const weekdayKeys = [
@@ -181,11 +193,15 @@ export default function ReserveForm({
   restaurant,
   error,
   marketingToken,
+  offer,
+  offerUnavailable,
   createPublicReservation,
 }: {
   restaurant: Restaurant;
   error?: string;
   marketingToken?: string;
+  offer?: ReservationOffer;
+  offerUnavailable?: boolean;
   createPublicReservation: (formData: FormData) => void;
 }) {
   const t = useTranslations("publicFlows.reserve");
@@ -193,7 +209,6 @@ export default function ReserveForm({
 
   const [selectedDay, setSelectedDay] = useState(today);
   const [selectedHour, setSelectedHour] = useState("");
-  const [selectedTableId, setSelectedTableId] = useState("");
   const [guests, setGuests] = useState(2);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hasSubmittedRef = useRef(false);
@@ -202,24 +217,19 @@ export default function ReserveForm({
     return getAvailableHoursForDay(restaurant, selectedDay);
   }, [restaurant, selectedDay]);
 
-  useEffect(() => {
-    if (!availableHours.includes(selectedHour)) {
-      setSelectedHour(availableHours[0] ?? "");
-    }
-  }, [availableHours, selectedHour]);
-
-  const selectedDateValue = selectedHour ? `${selectedDay}T${selectedHour}` : "";
+  const resolvedHour = availableHours.includes(selectedHour) ? selectedHour : availableHours[0] ?? "";
+  const selectedDateValue = resolvedHour ? `${selectedDay}T${resolvedHour}` : "";
   const isCapacityMode = restaurant.reservationMode === "CAPACITY";
 
   const freeTables = useMemo(() => {
-    if (!selectedHour) return [];
+    if (!resolvedHour) return [];
 
-    const date = new Date(`${selectedDay}T${selectedHour}:00`);
+    const date = new Date(`${selectedDay}T${resolvedHour}:00`);
 
     return restaurant.tables.filter((table) =>
       isTableAvailable(date, table.reservations),
     );
-  }, [restaurant.tables, selectedDay, selectedHour]);
+  }, [restaurant.tables, selectedDay, resolvedHour]);
 
   const availableTables = useMemo(() => {
     return freeTables.filter((table) => table.capacity >= guests);
@@ -232,30 +242,14 @@ export default function ReserveForm({
     return findTableCombination(freeTables, guests);
   }, [availableTables.length, freeTables, guests, isCapacityMode]);
 
-  useEffect(() => {
-    if (isCapacityMode) {
-      setSelectedTableId("");
-      return;
-    }
-
-    if (
-      selectedTableId &&
-      availableTables.some((table) => table.id === selectedTableId)
-    ) {
-      return;
-    }
-
-    setSelectedTableId(availableTables[0]?.id ?? "");
-  }, [availableTables, selectedTableId, isCapacityMode]);
-
   const isPendingRequest =
     !isCapacityMode && availableTables.length === 0 && !!tableCombination;
 
   const tableIdToSubmit = isPendingRequest
     ? tableCombination?.tables[0]?.id ?? ""
-    : selectedTableId;
+    : isCapacityMode ? "" : availableTables[0]?.id ?? "";
 
-  const canSubmit = !!selectedHour && (isCapacityMode || !!tableIdToSubmit);
+  const canSubmit = !!resolvedHour && (isCapacityMode || !!tableIdToSubmit);
 
   if (!restaurant.onlineReservationsEnabled) {
     return (
@@ -336,6 +330,33 @@ export default function ReserveForm({
             transition={{ duration: 0.55, delay: 0.1 }}
             className="rounded-[36px] border border-[#E1D0B8] bg-white p-5 shadow-[0_22px_70px_rgba(80,55,30,0.08)] md:p-8"
           >
+            {offer && (
+              <div className="mb-6 overflow-hidden rounded-[24px] border border-[#D8BE8E] bg-[#17120D] text-white">
+                <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D7B267]">{t("offer.eyebrow")}</p>
+                    <p className="mt-2 text-xl font-semibold tracking-[-0.035em]">{offer.title}</p>
+                    {offer.description && <p className="mt-1 text-xs leading-5 text-white/65">{offer.description}</p>}
+                    <p className="mt-3 text-sm font-bold text-[#F3D28D]">{t("offer.appliedOnBooking", { benefit: offer.benefit })}</p>
+                    <p className="mt-2 text-[10px] font-bold text-white/60">{t("offer.assignedTo", { name: offer.customerName || t("offer.customerFallback") })} · {t("offer.singleUse")}</p>
+                  </div>
+                  <div className="shrink-0 rounded-[18px] border border-white/10 bg-white/[0.07] px-5 py-4 text-center">
+                    <p className="text-2xl font-black text-[#D7B267]">{offer.benefit}</p>
+                    <p className="mt-1 font-mono text-[9px] font-bold tracking-[0.12em] text-white/55">{offer.code}</p>
+                  </div>
+                </div>
+                {(offer.minSpend || offer.terms) && <p className="border-t border-white/10 px-5 py-3 text-[10px] leading-5 text-white/55">{[offer.minSpend, offer.terms].filter(Boolean).join(" · ")}</p>}
+              </div>
+            )}
+
+            {(offerUnavailable || error === "offer" || error === "offer_owner") && (
+              <Alert
+                tone="red"
+                title={error === "offer_owner" ? t("offer.ownerErrorTitle") : t("offer.unavailableTitle")}
+                text={error === "offer_owner" ? t("offer.ownerErrorText") : t("offer.unavailableText")}
+              />
+            )}
+
             {error === "conflict" && (
               <Alert
                 tone="red"
@@ -399,7 +420,7 @@ export default function ReserveForm({
                 ) : (
                   <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
                     {availableHours.map((hour) => {
-                      const isSelected = selectedHour === hour;
+                      const isSelected = resolvedHour === hour;
 
                       return (
                         <motion.button
@@ -471,7 +492,7 @@ export default function ReserveForm({
               </motion.div>
 
               {!isCapacityMode &&
-                selectedHour &&
+                resolvedHour &&
                 availableTables.length === 0 &&
                 !tableCombination && (
                   <Alert
@@ -515,6 +536,7 @@ export default function ReserveForm({
                 {marketingToken && (
                   <input type="hidden" name="marketingToken" value={marketingToken} />
                 )}
+                {offer && <input type="hidden" name="offerCode" value={offer.code} />}
                 <input type="hidden" name="date" value={selectedDateValue} />
                 <input type="hidden" name="guests" value={guests} />
                 <input
@@ -546,6 +568,7 @@ export default function ReserveForm({
                       <input
                         name="customerName"
                         type="text"
+                        defaultValue={offer?.customerName || ""}
                         placeholder={t("fields.namePlaceholder")}
                         className={inputClass}
                         required
@@ -555,6 +578,7 @@ export default function ReserveForm({
                     <Field label={t("fields.phone")} required>
                       <PhoneField
                         name="phone"
+                        defaultValue={offer?.customerPhone || ""}
                         required
                         placeholder={t("fields.phonePlaceholder")}
                       />
@@ -564,6 +588,7 @@ export default function ReserveForm({
                       <input
                         name="email"
                         type="email"
+                        defaultValue={offer?.customerEmail || ""}
                         placeholder={t("fields.emailPlaceholder")}
                         className={inputClass}
                         required
