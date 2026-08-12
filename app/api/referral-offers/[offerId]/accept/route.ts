@@ -26,6 +26,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ off
   if (offer.status !== "PENDING" || offer.group.status !== "OPEN" || offer.group.desiredDate <= new Date()) {
     return NextResponse.redirect(`${backUrl}?result=unavailable`, 303);
   }
+  if (offer.group.publicCode.startsWith("DEMO-")) {
+    return NextResponse.redirect(`${backUrl}?result=demo-safe`, 303);
+  }
 
   const type = isCommissionType(offer.commissionType) ? offer.commissionType : "TOTAL";
   const amounts = calculateReferralCommission({
