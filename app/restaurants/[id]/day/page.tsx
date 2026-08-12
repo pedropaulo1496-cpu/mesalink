@@ -2,6 +2,7 @@ import DayPicker from "./DayPicker";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import { prisma } from "@/lib/prisma";
+import { triggerRevenueRecovery } from "@/lib/trigger-revenue-recovery";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { Resend } from "resend";
@@ -99,6 +100,10 @@ async function updateReservationStatus(formData: FormData) {
     customer: true,
   },
 });
+
+if (["CANCELLED", "REJECTED", "NO_SHOW"].includes(status) && previousReservation.status !== status) {
+  await triggerRevenueRecovery(restaurantId);
+}
 
 if (status === "FINISHED" && previousReservation.status !== "FINISHED" && reservation.customerId) {
   const currentCustomer = await prisma.customer.findUnique({

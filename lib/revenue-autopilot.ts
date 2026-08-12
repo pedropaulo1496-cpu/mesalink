@@ -50,13 +50,34 @@ export async function dispatchRevenueAutopilotForRestaurant(input: {
       continue;
     }
 
+    const hello = `Olá ${conversation.contactName}, somos o assistente de reservas do ${conversation.restaurant.name}.`;
+    const content = conversation.opportunityType === "NO_SHOW"
+      ? `${hello} Não conseguimos recebê-lo na última reserva e esperamos que esteja tudo bem. Gostaria de remarcar para outra data?`
+      : `${hello} Vimos que a sua reserva foi cancelada. Gostaria de remarcar para outra data?`;
+
+    if (conversation.opportunityType === "CANCELLED_RESERVATION") {
+      const lifecycleEmail = await prisma.emailUsage.findUnique({
+        where: { reference: `email:reservation_cancelled:${conversation.reservationId}` },
+        select: { status: true, sentAt: true },
+      });
+      if (lifecycleEmail?.status === "SENT") {
+        const sentAt = lifecycleEmail.sentAt || new Date();
+        await prisma.$transaction([
+          prisma.revenueMessage.create({
+            data: { conversationId: conversation.id, direction: "OUTBOUND", sender: "RESERVATION_SYSTEM", channel: "EMAIL", content, status: "SENT", sentAt },
+          }),
+          prisma.revenueConversation.update({
+            where: { id: conversation.id },
+            data: { status: "WAITING_CUSTOMER", lastMessagePreview: content, lastMessageAt: sentAt, nextFollowUpAt: new Date(sentAt.getTime() + 48 * 60 * 60 * 1000) },
+          }),
+        ]);
+        result.skipped += 1;
+        continue;
+      }
+    }
+
     result.attempted += 1;
     try {
-      const hello = `Olá ${conversation.contactName}, somos o assistente de reservas do ${conversation.restaurant.name}.`;
-      const content = conversation.opportunityType === "NO_SHOW"
-        ? `${hello} Não conseguimos recebê-lo na última reserva e esperamos que esteja tudo bem. Gostaria de remarcar para outra data?`
-        : `${hello} Vimos que a sua reserva foi cancelada. Gostaria de remarcar para outra data?`;
-
       const sendResponse = await fetch(`${baseUrl}/api/revenue-ai/conversations/${conversation.id}/send`, {
         method: "POST",
         headers: { ...headers, "content-type": "application/json" },

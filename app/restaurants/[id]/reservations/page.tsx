@@ -9,6 +9,7 @@ import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, getTranslations } from "next-intl/server";
 import { assertRestaurantOwner } from "@/lib/restaurant-auth";
+import { triggerRevenueRecovery } from "@/lib/trigger-revenue-recovery";
 
 const dashboardDateLocales: Record<string, string> = {
   pt: "pt-PT",
@@ -37,6 +38,10 @@ async function updateReservationStatus(formData: FormData) {
     where: { id: reservationId, restaurantId },
     data: { status },
   });
+
+  if (["CANCELLED", "REJECTED", "NO_SHOW"].includes(status)) {
+    await triggerRevenueRecovery(restaurantId);
+  }
 
   redirect(`/restaurants/${restaurantId}/reservations`);
 }
