@@ -8,7 +8,6 @@ import BirthdayAutomationCard from "@/components/marketing/BirthdayAutomationCar
 import ReviewAutomationCard from "@/components/marketing/ReviewAutomationCard";
 import MarketingAutopilotCard from "@/components/marketing/MarketingAutopilotCard";
 import RecoveryAutomationCard from "@/components/marketing/RecoveryAutomationCard";
-import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 
@@ -344,8 +343,6 @@ export default async function MarketingPage({
               </Link>
             </div>
           </header>
-
-          <GrowthWorkspaceSwitcher restaurantId={id} active="marketing" locale={locale} />
 
           <section className="mt-5 overflow-hidden rounded-[26px] border border-[#2C2117] bg-[#17120D] p-5 text-white shadow-[0_20px_55px_rgba(44,31,18,0.16)]">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">

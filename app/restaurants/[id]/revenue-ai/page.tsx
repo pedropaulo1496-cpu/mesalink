@@ -20,7 +20,6 @@ import {
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import RevenueActivityFeed from "@/components/revenue-ai/RevenueActivityFeed";
-import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getRevenueChannelStatus } from "@/lib/revenue-twilio";
@@ -312,8 +311,6 @@ export default async function RevenueAiPage({
               </Link>
             </div>
           </header>
-
-          <GrowthWorkspaceSwitcher restaurantId={id} active="revenue" locale={locale} />
 
           <section className="mt-5 overflow-hidden rounded-[26px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_20px_55px_rgba(44,31,18,0.16)]">
             <div className="grid lg:grid-cols-[1fr_1.2fr]">

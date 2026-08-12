@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import {
   ArrowUpRight,
@@ -18,7 +18,6 @@ import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import VisibilityScanButton from "@/components/ai-visibility/VisibilityScanButton";
 import VisibilityOptimizeButton from "@/components/ai-visibility/VisibilityOptimizeButton";
-import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import { authOptions } from "@/lib/auth";
 import { calculateAiVisibility, type VisibilityOpportunity } from "@/lib/ai-visibility";
 import { hasGrowthAccess } from "@/lib/ai-billing";
@@ -31,7 +30,6 @@ export default async function AiVisibilityPage({
 }) {
   const { id } = await params;
   const t = await getTranslations("dashboardAiVisibility");
-  const locale = await getLocale();
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) redirect("/login");
@@ -124,8 +122,6 @@ export default async function AiVisibilityPage({
 
             <VisibilityScanButton restaurantId={id} credits={user.subscription?.aiCredits || 0} canScan={hasGrowthAccess(user.subscription)} label={`${latestScan ? t("rescan") : t("liveScan.run")} · 10 créditos`} />
           </header>
-
-          <GrowthWorkspaceSwitcher restaurantId={id} active="visibility" locale={locale} />
 
           <section className="mt-5 overflow-hidden rounded-[26px] border border-[#2C2117] bg-[#17120D] text-white shadow-[0_20px_55px_rgba(44,31,18,0.16)]">
             <div className="grid xl:grid-cols-[260px_1fr]">

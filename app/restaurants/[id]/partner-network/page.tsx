@@ -1,11 +1,9 @@
 import type { ReactNode } from "react";
 import { getServerSession } from "next-auth";
-import { getLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import { Building2, CalendarClock, CheckCircle2, CircleDollarSign, Clock3, MapPin, ShieldCheck, UsersRound } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
-import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import { PartnerProfileSettingsForm, ReferralAgreementForm, ReferralNetworkSettingsForm } from "@/components/partners/PartnerNetworkControls";
 import { authOptions } from "@/lib/auth";
 import { buildPartnerProfile } from "@/lib/partner-profile";
@@ -21,7 +19,6 @@ export default async function PartnerNetworkPage({
 }) {
   const { id } = await params;
   const { result } = await searchParams;
-  const locale = await getLocale();
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
 
@@ -95,8 +92,6 @@ export default async function PartnerNetworkPage({
             <div><div className="flex flex-wrap items-center gap-3"><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Rede de Parceiros</p><span className="rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#3F6A4D]">Ativa</span></div><h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">Grupos enviados por hotéis e parceiros.</h1><p className="mt-2 max-w-2xl text-sm leading-5 text-[#6B6258]">Aceita os grupos que interessam. A comissão e o pagamento ficam tratados no MesaLink.</p></div>
             <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Contacto oculto até aceitar</div>
           </header>
-
-          <GrowthWorkspaceSwitcher restaurantId={id} active="partners" locale={locale} />
 
           {result && <div className={`mt-5 rounded-[22px] border px-5 py-4 text-sm font-semibold ${["accepted", "completed", "payment-success", "already-paid"].includes(result) ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : result === "declined" || result === "payment-cancelled" ? "border-[#DCCCAD] bg-[#FFF9ED] text-[#795D38]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{resultMessage(result)}</div>}
 

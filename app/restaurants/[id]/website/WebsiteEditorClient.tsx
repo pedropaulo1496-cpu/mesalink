@@ -3,10 +3,9 @@
 import { FileUploadField } from "@/components/FileUploadField";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { useMemo, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
-import GrowthWorkspaceSwitcher from "@/components/growth/GrowthWorkspaceSwitcher";
 import { CheckCircle2, Database, Image as ImageIcon, LoaderCircle, Search, Sparkles, WandSparkles } from "lucide-react";
 import { CustomDomainManager, type PublicDomainOrder } from "./CustomDomainManager";
 
@@ -84,7 +83,6 @@ export function WebsiteEditorClient({
   domainServiceConfigured: boolean;
 }) {
   const t = useTranslations("dashboardSettings.website");
-  const locale = useLocale();
   const [enabled, setEnabled] = useState(restaurant.websiteEnabled);
   const [template, setTemplate] = useState(
     restaurant.websiteTemplate || "PREMIUM",
@@ -501,8 +499,6 @@ export function WebsiteEditorClient({
             </button>
           </div>
         </header>
-
-        <GrowthWorkspaceSwitcher restaurantId={restaurant.id} active="website" locale={locale} />
 
         <form
           id="website-editor-form"
