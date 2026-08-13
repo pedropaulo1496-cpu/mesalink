@@ -37,6 +37,7 @@ export type PartnerProfileSource = {
   referralProfileGallery?: string[];
   referralProfileHighlights?: string[];
   referralProfileMenuUrl?: string | null;
+  googleBusinessPhotos?: string[];
 };
 
 export function buildPartnerProfile(source: PartnerProfileSource) {
@@ -61,11 +62,13 @@ export function buildPartnerProfile(source: PartnerProfileSource) {
     ...productImages,
   ]).slice(0, 6);
   const explicitGallery = unique(source.referralProfileGallery || []);
+  const googleGallery = unique(source.googleBusinessPhotos || []);
   const heroImage = clean(source.referralProfileHeroImage)
+    || googleGallery[0]
     || clean(source.websiteHeroImage)
     || automaticGallery[0]
     || clean(source.websiteLogoImage);
-  const galleryImages = (explicitGallery.length > 0 ? explicitGallery : automaticGallery)
+  const galleryImages = (explicitGallery.length > 0 ? explicitGallery : googleGallery.length > 0 ? googleGallery : automaticGallery)
     .filter((image) => image !== heroImage)
     .slice(0, 6);
   const automaticHighlights = unique([

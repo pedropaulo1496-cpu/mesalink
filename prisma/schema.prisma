@@ -94,6 +94,7 @@ model SalesRepresentative {
 
   clients     User[]              @relation("AssignedClientAccounts")
   commissions SalesCommission[]
+  commissionStatements SalesCommissionStatement[]
   requests    CommercialRequest[]
   messages    CommercialMessage[]
 
@@ -132,6 +133,34 @@ model SalesCommission {
   @@unique([sourceType, sourceId])
   @@index([salesRepresentativeId, status, earnedAt])
   @@index([userId, earnedAt])
+}
+
+model SalesCommissionStatement {
+  id String @id @default(cuid())
+
+  salesRepresentativeId String
+  salesRepresentative   SalesRepresentative @relation(fields: [salesRepresentativeId], references: [id], onDelete: Cascade)
+
+  period          String
+  currency        String  @default("EUR")
+  grossSales      Decimal @default(0) @db.Decimal(12, 2)
+  commissionTotal Decimal @default(0) @db.Decimal(12, 2)
+  status          String  @default("MISSING")
+
+  invoiceUrl                 String?
+  invoiceNumber              String?
+  invoiceUploadedAt          DateTime?
+  invoiceVerifiedAt          DateTime?
+  invoiceVerifiedBy          String?
+  invoiceRejectedAt          DateTime?
+  invoiceRejectionReason     String?
+  paidAt                     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([salesRepresentativeId, period])
+  @@index([status, period])
 }
 
 model CommercialRequest {
@@ -377,6 +406,9 @@ model Restaurant {
   referralDefaultCommissionType   String   @default("PER_PERSON")
   referralDefaultCommissionAmount Decimal  @default(5) @db.Decimal(10, 2)
   referralMaxCommissionPerPerson  Decimal? @db.Decimal(10, 2)
+  referralAutoAcceptEnabled       Boolean  @default(false)
+  referralPaymentMethodId         String?
+  referralDefaultDailyCapacity    Int      @default(0)
   referralProfileCuisine          String?
   referralProfileDescription      String?
   referralProfileHeroImage        String?
@@ -439,6 +471,18 @@ model Restaurant {
   floorRooms                      FloorRoom[]
   marketingActions                MarketingAction[]
   googleReviewUrl                 String?
+  googlePlaceId                   String?
+  googleRating                    Float?
+  googleReviewCount               Int?
+  googlePriceLevel                Int?
+  googleBusinessAccountName       String?
+  googleBusinessLocationName      String?
+  googleBusinessRefreshToken      String?
+  googleBusinessTitle             String?
+  googleBusinessAddress           String?
+  googleBusinessPhotos            String[]  @default([])
+  googleBusinessConnectedAt       DateTime?
+  googleBusinessSyncedAt          DateTime?
   reviewRedirectThreshold         Int               @default(4)
   reviewAutomationEnabled         Boolean           @default(true)
   reviewDelayHours                Int               @default(12)
@@ -476,6 +520,7 @@ model Restaurant {
 
   referralAgreements        ReferralAgreement[]
   referralOffers            ReferralOffer[]
+  referralDailyCapacities   ReferralDailyCapacity[]
   acceptedReferralGroups    ReferralGroup[]            @relation("AcceptedReferralRestaurant")
   referralBenefits          ReferralBenefit[]
   aiVisibilityScans         AiVisibilityScan[]
@@ -1099,6 +1144,23 @@ model ReferralGroup {
   @@index([partnerId, status])
   @@index([acceptedRestaurantId, status])
   @@index([desiredDate, status])
+}
+
+model ReferralDailyCapacity {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  date     DateTime
+  capacity Int
+  enabled  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([restaurantId, date])
+  @@index([restaurantId, date, enabled])
 }
 
 model ReferralOffer {

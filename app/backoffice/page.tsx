@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, BellRing, MessageCircle, TrendingUp } from "lucide-react";
+import FinancialTrendChart from "@/components/backoffice/FinancialTrendChart";
 import { DoneNotice, PageHeading, RiskPill, StatCard, euroAmount, euroCents } from "@/components/backoffice/BackofficeUI";
 import { getBackofficeClients } from "@/lib/backoffice-data";
+import { getBackofficeFinance } from "@/lib/backoffice-finance";
 import { prisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff-auth";
 
@@ -10,7 +12,17 @@ export const dynamic = "force-dynamic";
 export default async function BackofficeOverview({ searchParams }: { searchParams: Promise<{ done?: string }> }) {
   const staff = await requireStaff();
   const { done } = await searchParams;
-  const clients = await getBackofficeClients(staff);
+  const referenceTime = new Date();
+  const activeThreshold = new Date(referenceTime.getTime() - 7 * 86_400_000);
+  const newThreshold = new Date(referenceTime.getTime() - 30 * 86_400_000);
+  const clientWhere = { isAdmin: false, salesProfile: null, referralPartner: null, ...(staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId! } : {}) };
+  const [clients, finance, totalClientCount, activeClientCount, newClientCount] = await Promise.all([
+    getBackofficeClients(staff),
+    staff.role === "ADMIN" ? getBackofficeFinance() : Promise.resolve(null),
+    prisma.user.count({ where: clientWhere }),
+    prisma.user.count({ where: { ...clientWhere, OR: [{ lastActiveAt: { gte: activeThreshold } }, { lastLoginAt: { gte: activeThreshold } }, { restaurants: { some: { updatedAt: { gte: activeThreshold } } } }] } }),
+    prisma.user.count({ where: { ...clientWhere, createdAt: { gte: newThreshold } } }),
+  ]);
   const commissionWhere = staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId! } : {};
   const [commissions, pendingRequests, unreadMessages, representatives] = await Promise.all([
     prisma.salesCommission.groupBy({ by: ["status"], where: commissionWhere, _sum: { commissionAmount: true } }),
@@ -25,11 +37,10 @@ export default async function BackofficeOverview({ searchParams }: { searchParam
 
   const pendingCommission = commissions.filter((item) => item.status === "PENDING").reduce((sum, item) => sum + Number(item._sum.commissionAmount || 0), 0);
   const paidCommission = commissions.filter((item) => item.status === "PAID").reduce((sum, item) => sum + Number(item._sum.commissionAmount || 0), 0);
-  const activeClients = clients.filter((client) => client.health.inactiveDays !== null && client.health.inactiveDays <= 7).length;
+  const activeClients = activeClientCount;
+  const inactiveClients = totalClientCount - activeClientCount;
   const highRiskClients = clients.filter((client) => client.health.riskLevel === "HIGH").length;
-  const newClients = clients.filter((client) => client.isNewLast30Days).length;
-  const totalRevenue = clients.reduce((sum, client) => sum + client.payments.revenueCents, 0);
-  const mrr = clients.filter((client) => client.subscription?.status === "ACTIVE").reduce((sum, client) => sum + (client.subscription?.priceMonthly || 0), 0);
+  const newClients = newClientCount;
   const opportunities = [...clients].sort((a, b) => b.health.riskScore - a.health.riskScore).slice(0, 6);
 
   const representativeCommissions = staff.role === "ADMIN" ? await prisma.salesCommission.groupBy({
@@ -49,12 +60,12 @@ export default async function BackofficeOverview({ searchParams }: { searchParam
 
       <section className="mt-5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
         {staff.role === "ADMIN" ? <>
-          <StatCard label="Clientes" value={clients.length.toString()} note={`${newClients} novos em 30 dias`} />
-          <StatCard label="MRR" value={euroAmount(mrr)} note="planos ativos" />
-          <StatCard label="Receita" value={euroCents(totalRevenue)} note="pagamentos Stripe" tone="gold" />
-          <StatCard label="Comissões por pagar" value={euroAmount(pendingCommission)} note="equipa comercial" tone="red" />
+          <StatCard label="Receita recorrente líquida" value={euroCents(finance?.netMrrCents || 0)} note={`${euroCents(finance?.grossMrrCents || 0)} MRR bruto · ${euroCents(finance?.planCommissionCents || 0)} comercial`} tone="gold" />
+          <StatCard label="Créditos comprados" value={euroCents(finance?.current.creditGrossCents || 0)} note={`${euroCents(finance?.current.creditNetCents || 0)} líquido este mês`} tone="blue" />
+          <StatCard label="Despesa do mês" value={euroCents(finance?.current.expenseCents || 0)} note={monthChange(finance?.current.expenseCents || 0, finance?.previous.expenseCents || 0)} tone="red" />
+          <StatCard label="Lucro líquido" value={euroCents(finance?.current.profitCents || 0)} note={monthChange(finance?.current.profitCents || 0, finance?.previous.profitCents || 0)} tone={(finance?.current.profitCents || 0) >= 0 ? "green" : "red"} />
         </> : <>
-          <StatCard label="A minha carteira" value={clients.length.toString()} note="clientes atribuídos" />
+          <StatCard label="A minha carteira" value={totalClientCount.toString()} note="clientes atribuídos" />
           <StatCard label="Novos clientes" value={newClients.toString()} note="últimos 30 dias" tone="blue" />
           <StatCard label="A receber" value={euroAmount(pendingCommission)} note="comissões pendentes" tone="gold" />
           <StatCard label="Já recebido" value={euroAmount(paidCommission)} note="comissões pagas" tone="green" />
@@ -62,11 +73,20 @@ export default async function BackofficeOverview({ searchParams }: { searchParam
       </section>
 
       <section className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[#DCC9AA] bg-[#DCC9AA] sm:grid-cols-4">
-        <CompactMetric label={staff.role === "ADMIN" ? "Ativos esta semana" : "Clientes ativos 7d"} value={activeClients.toString()} />
-        <CompactMetric label={staff.role === "ADMIN" ? "Clientes em risco alto" : "A contactar hoje"} value={highRiskClients.toString()} alert={highRiskClients > 0} />
-        <CompactMetric label={staff.role === "ADMIN" ? "Aprovações pendentes" : "Meus pedidos pendentes"} value={pendingRequests.toString()} alert={pendingRequests > 0} />
-        <CompactMetric label="Mensagens por ler" value={unreadMessages.toString()} alert={unreadMessages > 0} />
+        <CompactMetric label="Clientes ativos" value={activeClients.toString()} />
+        <CompactMetric label={staff.role === "ADMIN" ? "Inativos há mais de 1 semana" : "A contactar hoje"} value={(staff.role === "ADMIN" ? inactiveClients : highRiskClients).toString()} alert={(staff.role === "ADMIN" ? inactiveClients : highRiskClients) > 0} />
+        <CompactMetric label={staff.role === "ADMIN" ? "Comissões do mês" : "Meus pedidos pendentes"} value={staff.role === "ADMIN" ? euroCents(finance?.current.commissionCents || 0) : pendingRequests.toString()} alert={staff.role !== "ADMIN" && pendingRequests > 0} />
+        <CompactMetric label={staff.role === "ADMIN" ? "Taxas Stripe do mês" : "Mensagens por ler"} value={staff.role === "ADMIN" ? euroCents(finance?.current.stripeFeesCents || 0) : unreadMessages.toString()} alert={staff.role !== "ADMIN" && unreadMessages > 0} />
       </section>
+
+      {staff.role === "ADMIN" && finance && <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <FinancialTrendChart months={finance.months} />
+        <div className="rounded-2xl border border-[#DCC9AA] bg-white p-4">
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">Despesa deste mês</p>
+          <div className="mt-3 divide-y divide-[#EEE4D6]"><CostRow label="Stripe" value={finance.current.stripeFeesCents} /><CostRow label="Comerciais" value={finance.current.commissionCents} /><CostRow label="Email, IA e WhatsApp" value={finance.current.usageCostCents} /><CostRow label="Fornecedores e domínios" value={finance.current.providerCostCents} /></div>
+          <div className="mt-3 rounded-xl bg-[#F5EFE6] px-3 py-2.5"><div className="flex items-center justify-between gap-3"><span className="text-[10px] font-bold text-[#6B6258]">Receita capturada</span><strong className="text-[13px]">{euroCents(finance.current.revenueCents)}</strong></div><p className="mt-1 text-[9px] leading-4 text-[#887A6B]">Valores operacionais estimados com dados Stripe e custos definidos no HQ.</p></div>
+        </div>
+      </section>}
 
       <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_340px]">
         <div className="overflow-hidden rounded-2xl border border-[#DCC9AA] bg-white">
@@ -123,4 +143,14 @@ function QuickLink({ href, icon, title, note }: { href: string; icon: React.Reac
 
 function CompactMetric({ label, value, alert = false }: { label: string; value: string; alert?: boolean }) {
   return <div className="flex items-center justify-between gap-3 bg-white px-3.5 py-2.5"><p className="truncate text-[10px] font-bold text-[#6B6258]">{label}</p><p className={`text-sm font-black ${alert ? "text-[#A14E36]" : "text-[#17130F]"}`}>{value}</p></div>;
+}
+
+function CostRow({ label, value }: { label: string; value: number }) {
+  return <div className="flex items-center justify-between gap-3 py-2"><span className="text-[11px] text-[#6B6258]">{label}</span><strong className="text-[12px]">{euroCents(value)}</strong></div>;
+}
+
+function monthChange(current: number, previous: number) {
+  if (previous === 0) return current === 0 ? "sem movimento este mês" : "primeiro movimento comparável";
+  const percent = Math.round(((current - previous) / Math.abs(previous)) * 100);
+  return `${percent >= 0 ? "+" : ""}${percent}% face ao mês anterior`;
 }

@@ -26,7 +26,6 @@ export default async function PartnerAppPage({
         include: {
           acceptedRestaurant: { select: { name: true, billingLegalName: true, billingTaxId: true, billingAddressLine1: true, billingPostalCode: true, billingCity: true, billingCountry: true } },
           payment: true,
-          offers: { select: { status: true } },
         },
       },
     },
@@ -34,9 +33,17 @@ export default async function PartnerAppPage({
   if (!partner) redirect("/partners/login");
 
   const requestTime = new Date();
+  const availabilityStart = new Date(requestTime);
+  availabilityStart.setUTCHours(0, 0, 0, 0);
   const invoiceCutoff = new Date(requestTime.getTime() - 24 * 60 * 60 * 1000);
-  const [restaurants, paidTotals, pendingTotals, invoicedTotals, toInvoiceTotals, acceptedGroupsCount, pendingGroupsCount] = await Promise.all([
+  const [restaurants, paidTotals, pendingTotals, invoicedTotals, toInvoiceTotals, acceptedGroupsCount, upcomingGroupsCount] = await Promise.all([
     prisma.restaurant.findMany({
+    where: {
+      OR: [
+        { referralAutoAcceptEnabled: true, referralPaymentMethodId: { not: null }, referralNetworkEnabled: true },
+        { slug: { contains: "demo", mode: "insensitive" } },
+      ],
+    },
     orderBy: { name: "asc" },
     select: {
       id: true,
@@ -63,6 +70,28 @@ export default async function PartnerAppPage({
       referralProfileHighlights: true,
       referralProfileMenuUrl: true,
       averageTicket: true,
+      googleRating: true,
+      googleReviewCount: true,
+      googlePriceLevel: true,
+      googleReviewUrl: true,
+      googleBusinessTitle: true,
+      googleBusinessAddress: true,
+      googleBusinessPhotos: true,
+      googleBusinessConnectedAt: true,
+      referralDefaultCommissionType: true,
+      referralDefaultCommissionAmount: true,
+      referralDefaultDailyCapacity: true,
+      referralDailyCapacities: {
+        where: { date: { gte: availabilityStart } },
+        orderBy: { date: "asc" },
+        take: 120,
+        select: { date: true, capacity: true, enabled: true },
+      },
+      reservations: {
+        where: { date: { gte: availabilityStart }, status: { notIn: ["CANCELLED", "NO_SHOW"] } },
+        select: { date: true, guests: true },
+        take: 500,
+      },
       websiteMenus: {
         orderBy: { sortOrder: "asc" },
         take: 6,
@@ -105,17 +134,23 @@ export default async function PartnerAppPage({
       _sum: { partnerInvoiceTotal: true },
     }),
     prisma.referralGroup.count({ where: { partnerId: partner.id, status: { in: ["BOOKED", "COMPLETED", "PAID"] } } }),
-    prisma.referralGroup.count({ where: { partnerId: partner.id, status: "OPEN" } }),
+    prisma.referralGroup.count({ where: { partnerId: partner.id, status: "BOOKED", desiredDate: { gte: requestTime } } }),
   ]);
 
   const restaurantOptions = restaurants.map((restaurant) => {
     const profile = buildPartnerProfile(restaurant);
+    const isDemo = restaurant.slug.includes("demo");
+    const reservedByDay = restaurant.reservations.reduce<Record<string, number>>((totals, reservation) => {
+      const key = reservation.date.toISOString().slice(0, 10);
+      totals[key] = (totals[key] || 0) + reservation.guests;
+      return totals;
+    }, {});
     return {
       id: restaurant.id,
-      name: restaurant.name,
-      isDemo: restaurant.slug.includes("demo"),
+      name: restaurant.googleBusinessTitle || restaurant.name,
+      isDemo,
       cuisine: profile.cuisine,
-      address: restaurant.address || "",
+      address: restaurant.googleBusinessAddress || restaurant.address || "",
       latitude: restaurant.latitude,
       longitude: restaurant.longitude,
       description: profile.description,
@@ -125,6 +160,20 @@ export default async function PartnerAppPage({
       menuUrl: profile.menuUrl,
       menuSections: profile.menuSections,
       averageTicket: Number(restaurant.averageTicket || 0),
+      commissionType: isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON" as const,
+      commissionAmount: isDemo ? 1 : Number(restaurant.referralDefaultCommissionAmount),
+      defaultDailyCapacity: isDemo ? Math.max(80, restaurant.referralDefaultDailyCapacity) : restaurant.referralDefaultDailyCapacity,
+      dailyAvailability: restaurant.referralDailyCapacities.map((item) => ({
+        date: item.date.toISOString().slice(0, 10),
+        capacity: item.enabled ? item.capacity : 0,
+        reserved: reservedByDay[item.date.toISOString().slice(0, 10)] || 0,
+      })),
+      reservedByDay,
+      googleRating: restaurant.googleRating ?? (isDemo ? 4.6 : null),
+      googleReviewCount: restaurant.googleReviewCount ?? (isDemo ? 284 : null),
+      googlePriceLevel: restaurant.googlePriceLevel ?? (isDemo ? 2 : null),
+      googleMapsUrl: restaurant.googleReviewUrl || "",
+      googleBusinessConnected: Boolean(restaurant.googleBusinessConnectedAt),
     };
   });
 
@@ -145,7 +194,7 @@ export default async function PartnerAppPage({
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-7 sm:px-6">
         <nav className="mb-6 grid grid-cols-2 gap-1.5 rounded-[22px] border border-[#D9C7AA] bg-[#EDE2D1] p-1.5 shadow-[0_10px_30px_rgba(79,56,32,0.06)] sm:grid-cols-4 lg:w-fit">
           {[
-            { id: "groups", label: "Novo pedido", icon: <UsersRound size={14} /> },
+            { id: "groups", label: "Nova reserva", icon: <UsersRound size={14} /> },
             { id: "history", label: "Reservas", icon: <FileText size={14} /> },
             { id: "stats", label: "Resultados", icon: <BarChart3 size={14} /> },
             { id: "account", label: "Pagamentos", icon: <Landmark size={14} /> },
@@ -180,7 +229,7 @@ export default async function PartnerAppPage({
 
         {tab === "groups" && <>
         <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div><p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">Partner app</p><h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">Encontra o restaurante certo para cada grupo.</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">Sem partilhar a identidade do cliente. O restaurante vê apenas o que precisa para aceitar e preparar o serviço.</p></div>
+          <div><p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">Partner app</p><h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">Reserva já o restaurante certo.</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">Escolhe um restaurante disponível, vê a comissão que oferece e confirma a reserva imediatamente.</p></div>
           <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Privacidade ativa</div>
         </section>
 
@@ -191,15 +240,15 @@ export default async function PartnerAppPage({
         <section className="flex flex-col gap-2">
           <p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">Desempenho</p>
           <h1 className="text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">O que já geraste com a rede.</h1>
-          <p className="max-w-2xl text-sm leading-6 text-[#6B6258]">Valores de faturação, pagamentos e grupos num resumo simples.</p>
+          <p className="max-w-2xl text-sm leading-6 text-[#6B6258]">Valores de faturação, pagamentos e reservas num resumo simples.</p>
         </section>
         <section className="mt-6 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
           <Kpi icon={<Euro size={15} />} label="Faturado · base" value={formatMoney(invoicedRevenue)} />
           <Kpi icon={<Euro size={15} />} label="Por faturar" value={formatMoney(toInvoiceRevenue)} />
           <Kpi icon={<Clock3 size={15} />} label="Por receber" value={formatMoney(pendingRevenue)} />
           <Kpi icon={<Euro size={15} />} label="Já recebido" value={formatMoney(paidRevenue)} />
-          <Kpi icon={<UsersRound size={15} />} label="Grupos aceites" value={String(acceptedGroupsCount)} />
-          <Kpi icon={<Clock3 size={15} />} label="A aguardar" value={String(pendingGroupsCount)} />
+          <Kpi icon={<UsersRound size={15} />} label="Reservas geradas" value={String(acceptedGroupsCount)} />
+          <Kpi icon={<Clock3 size={15} />} label="Próximas reservas" value={String(upcomingGroupsCount)} />
         </section>
         <section className="mt-5 grid gap-3 md:grid-cols-3">
           <StatDetail title="Valor líquido" value="Automático" note="Comissão MesaLink, taxas e impostos são descontados no cálculo final." />
@@ -209,18 +258,18 @@ export default async function PartnerAppPage({
         </>}
 
         {tab === "history" && <section className="rounded-[30px] border border-[#E1D0B8] bg-white p-5 sm:p-7">
-          <div className="flex items-end justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Histórico</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Grupos publicados</h2></div></div>
+          <div className="flex items-end justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Histórico</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Reservas criadas</h2></div></div>
           <div className="mt-6 space-y-3">
             {partner.groups.map((group) => {
               const type = isCommissionType(group.commissionType) ? group.commissionType : "TOTAL";
               const amounts = calculateReferralCommission({ guests: group.guests, commissionType: type, commissionAmount: Number(group.commissionAmount) });
               const accepted = group.acceptedRestaurant?.name;
               return <div key={group.id} className="grid gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} /></div><p className="mt-2 text-sm text-[#6B6258]">{group.actualGuests != null ? `${group.actualGuests} pessoas confirmadas · pedido inicial ${group.guests}` : groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · {accepted || `${group.offers.filter((offer) => offer.status === "PENDING").length} respostas pendentes`}</p><PartnerInvoiceState group={group} /></div>
+                <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} /></div><p className="mt-2 text-sm text-[#6B6258]">{group.actualGuests != null ? `${group.actualGuests} pessoas confirmadas · reserva inicial ${group.guests}` : groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · {accepted || "Reserva em processamento"}</p><PartnerInvoiceState group={group} /></div>
                 <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">{partnerPaymentLabel(group.payment?.status)}</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(Number(group.payment?.partnerInvoiceTotal || group.payment?.partnerNet || amounts.partnerNet))}</p><p className="text-[9px] text-[#8A7863]">líquido · comissão e taxas descontadas</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
               </div>;
             })}
-            {partner.groups.length === 0 && <div className="rounded-[24px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-8 text-center text-sm text-[#6B6258]">O primeiro grupo que publicares aparece aqui.</div>}
+            {partner.groups.length === 0 && <div className="rounded-[24px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-8 text-center text-sm text-[#6B6258]">A primeira reserva que criares aparece aqui.</div>}
           </div>
         </section>}
 

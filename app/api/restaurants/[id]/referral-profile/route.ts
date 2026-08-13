@@ -31,6 +31,10 @@ export async function POST(
   const description = text(body.description, 700);
   const heroImage = safeUrl(body.heroImage);
   const menuUrl = safeUrl(body.menuUrl);
+  const googleMapsUrl = safeUrl(body.googleMapsUrl);
+  const googleRating = optionalNumber(body.googleRating);
+  const googleReviewCount = optionalNumber(body.googleReviewCount);
+  const googlePriceLevel = optionalNumber(body.googlePriceLevel);
   const gallery = lines(body.gallery, 6, 1000).map(safeUrl).filter(Boolean);
   const highlights = lines(body.highlights, 6, 80);
 
@@ -38,8 +42,11 @@ export async function POST(
     return NextResponse.json({ error: "Escolhe um tipo de cozinha da lista." }, { status: 400 });
   }
 
-  if ((body.heroImage && !heroImage) || (body.menuUrl && !menuUrl)) {
+  if ((body.heroImage && !heroImage) || (body.menuUrl && !menuUrl) || (body.googleMapsUrl && !googleMapsUrl)) {
     return NextResponse.json({ error: "Confirma os links da imagem e do menu." }, { status: 400 });
+  }
+  if ((googleRating != null && (googleRating < 1 || googleRating > 5)) || (googleReviewCount != null && (!Number.isInteger(googleReviewCount) || googleReviewCount < 0)) || (googlePriceLevel != null && (![1, 2, 3, 4].includes(googlePriceLevel)))) {
+    return NextResponse.json({ error: "Confirma a avaliação, número de reviews e faixa de preço Google." }, { status: 400 });
   }
 
   await prisma.restaurant.update({
@@ -51,6 +58,10 @@ export async function POST(
       referralProfileGallery: gallery,
       referralProfileHighlights: highlights,
       referralProfileMenuUrl: menuUrl || null,
+      googleReviewUrl: googleMapsUrl || null,
+      googleRating,
+      googleReviewCount,
+      googlePriceLevel,
     },
   });
 
@@ -82,4 +93,10 @@ function safeUrl(value: unknown) {
   } catch {
     return "";
   }
+}
+
+function optionalNumber(value: unknown) {
+  if (value === "" || value == null) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
 }

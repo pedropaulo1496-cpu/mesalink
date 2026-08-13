@@ -15,7 +15,7 @@ const links = [
 export default function BackofficeNavigation({ role, variant }: { role: "ADMIN" | "SALES"; variant: "desktop" | "mobile" }) {
   const pathname = usePathname();
   const items = role === "ADMIN"
-    ? [...links, { href: "/backoffice/partner-payouts", label: "Pagamentos", icon: WalletCards }, { href: "/backoffice/team", label: "Equipa", icon: UsersRound }]
+    ? [...links, { href: "/backoffice/partner-payouts", label: "Pagamentos", icon: WalletCards }, { href: "/backoffice/team", label: "Comerciais", icon: UsersRound }]
     : links;
 
   if (variant === "desktop") {

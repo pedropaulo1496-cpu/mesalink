@@ -431,35 +431,6 @@ export async function addManualCommission(formData: FormData) {
   finish("/backoffice/commissions", "commission-created");
 }
 
-export async function markCommissionPaid(formData: FormData) {
-  const admin = await assertBackofficeAdmin();
-  const commissionId = clean(formData.get("commissionId"));
-  const commission = await prisma.salesCommission.update({
-    where: { id: commissionId },
-    data: { status: "PAID", paidAt: new Date() },
-    select: { id: true, userId: true, salesRepresentativeId: true, commissionAmount: true },
-  });
-  await audit({ actorId: admin.userId, targetUserId: commission.userId, action: "COMMISSION_MARKED_PAID", details: { commissionId, salesRepresentativeId: commission.salesRepresentativeId, amount: Number(commission.commissionAmount) } });
-  finish("/backoffice/commissions", "commission-paid");
-}
-
-export async function markRepresentativeCommissionsPaid(formData: FormData) {
-  const admin = await assertBackofficeAdmin();
-  const salesRepresentativeId = clean(formData.get("salesRepresentativeId"));
-  const pending = await prisma.salesCommission.findMany({
-    where: { salesRepresentativeId, status: "PENDING" },
-    select: { id: true, commissionAmount: true },
-  });
-  if (!pending.length) throw new Error("Este comercial não tem comissões pendentes.");
-  const paidAt = new Date();
-  await prisma.salesCommission.updateMany({
-    where: { id: { in: pending.map((item) => item.id) }, status: "PENDING" },
-    data: { status: "PAID", paidAt },
-  });
-  await audit({ actorId: admin.userId, action: "SALES_REP_COMMISSIONS_PAID", details: { salesRepresentativeId, count: pending.length, amount: pending.reduce((sum, item) => sum + Number(item.commissionAmount), 0) } });
-  finish("/backoffice/commissions", "commissions-paid");
-}
-
 export async function sendCommercialMessage(formData: FormData) {
   const staff = await assertStaff();
   const requestedRepresentativeId = clean(formData.get("salesRepresentativeId"));

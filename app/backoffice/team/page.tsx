@@ -15,9 +15,9 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
     prisma.salesRepresentative.findMany({
       include: {
         user: { select: { lastLoginAt: true, lastActiveAt: true } },
-        clients: { select: { id: true } },
-        commissions: { select: { commissionAmount: true, status: true } },
-        requests: { select: { status: true } },
+        clients: { select: { id: true, createdAt: true, lastActiveAt: true, lastLoginAt: true } },
+        commissions: { select: { grossAmount: true, commissionAmount: true, status: true, earnedAt: true } },
+        requests: { select: { status: true, createdAt: true } },
         messages: { where: { readAt: null, senderUserId: { not: staff.userId } }, select: { id: true } },
       },
       orderBy: [{ active: "desc" }, { name: "asc" }],
@@ -32,12 +32,17 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   return (
     <>
       <DoneNotice done={done} />
-      <PageHeading eyebrow="Gestão de acessos" title="Equipa comercial" description="Cria acessos privados, define comissões por omissão e acompanha atividade, carteira, pedidos e valores de cada comercial." />
+      <PageHeading eyebrow="Equipa e resultados" title="Comerciais" description="Resultados individuais, carteiras, vendas, comissões e atividade. Cada comercial vê apenas os próprios clientes." />
       <section className="mt-5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Comerciais ativos" value={String(active)} note={`${representatives.length} perfis criados`} tone="green" />
         <StatCard label="Clientes atribuídos" value={String(clients)} note="carteira comercial" tone="blue" />
         <StatCard label="Comissões pendentes" value={euroAmount(pending)} note="a liquidar" tone="red" />
         <StatCard label="Comissões pagas" value={euroAmount(paid)} note="histórico acumulado" tone="gold" />
+      </section>
+
+      <section className="mt-4 rounded-2xl border border-dashed border-[#C9A66B] bg-[#FFF9F0] p-3.5">
+        <div className="flex items-center justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">Demonstração</p><h2 className="mt-1 text-base font-semibold">Exemplo dos resultados por comercial</h2></div><span className="rounded-full bg-white px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-[#8A6130]">Dados fictícios</span></div>
+        <div className="mt-3 grid gap-2.5 md:grid-cols-3">{demoCommercials.map((demo) => <DemoCommercial key={demo.name} {...demo} />)}</div>
       </section>
 
       <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_360px]">
@@ -46,14 +51,19 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
             const repPending = rep.commissions.filter((item) => item.status === "PENDING").reduce((sum, item) => sum + Number(item.commissionAmount), 0);
             const repPaid = rep.commissions.filter((item) => item.status === "PAID").reduce((sum, item) => sum + Number(item.commissionAmount), 0);
             const pendingRequests = rep.requests.filter((item) => item.status === "PENDING").length;
+            const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+            const monthCommissions = rep.commissions.filter((item) => item.earnedAt >= monthStart);
+            const monthSales = monthCommissions.reduce((sum, item) => sum + Number(item.grossAmount), 0);
+            const monthCommission = monthCommissions.reduce((sum, item) => sum + Number(item.commissionAmount), 0);
+            const newClients = rep.clients.filter((item) => item.createdAt >= monthStart).length;
             return (
               <details key={rep.id} className="group rounded-2xl border border-[#DCC9AA] bg-white p-4">
                 <summary className="cursor-pointer list-none">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div><div className="flex items-center gap-2"><h2 className="text-base font-semibold">{rep.name}</h2><span className={`rounded-full px-2.5 py-1 text-[8px] font-black uppercase ${rep.active ? "bg-[#E3F1E2] text-[#35603A]" : "bg-[#EEE9E2] text-[#6B6258]"}`}>{rep.active ? "Ativo" : "Inativo"}</span></div><p className="mt-0.5 text-[11px] text-[#6B6258]">{rep.email}{rep.phone ? ` · ${rep.phone}` : ""}</p></div>
-                    <div className="grid grid-cols-3 gap-4 text-right"><Metric label="Clientes" value={String(rep.clients.length)} /><Metric label="Pendente" value={euroAmount(repPending)} /><Metric label="Pago" value={euroAmount(repPaid)} /></div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-right sm:grid-cols-4"><Metric label="Clientes" value={String(rep.clients.length)} /><Metric label="Novos" value={String(newClients)} /><Metric label="Vendas mês" value={euroAmount(monthSales)} /><Metric label="Comissão mês" value={euroAmount(monthCommission)} /></div>
                   </div>
-                  <p className="mt-4 border-t border-[#EFE4D4] pt-3 text-[11px] text-[#776B5E]">Último acesso: {dateTime(rep.user.lastActiveAt || rep.user.lastLoginAt)} · {pendingRequests} pedidos pendentes · {rep.messages.length} mensagens por ler <span className="float-right font-bold text-[#9B6F3B]">Editar ↓</span></p>
+                  <p className="mt-3 border-t border-[#EFE4D4] pt-2.5 text-[10px] text-[#776B5E]">Último acesso: {dateTime(rep.user.lastActiveAt || rep.user.lastLoginAt)} · {euroAmount(repPending)} por faturar · {euroAmount(repPaid)} pago · {pendingRequests} pedidos · {rep.messages.length} mensagens <span className="float-right font-bold text-[#9B6F3B]">Editar ↓</span></p>
                 </summary>
                 <form action={updateSalesRepresentative} className="mt-4 grid gap-3 border-t border-[#EFE4D4] pt-4 sm:grid-cols-2 xl:grid-cols-5">
                   <input type="hidden" name="salesRepresentativeId" value={rep.id} />
@@ -90,4 +100,14 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
 
 function Metric({ label, value }: { label: string; value: string }) {
   return <div><p className="text-[8px] font-black uppercase tracking-wider text-[#9B6F3B]">{label}</p><p className="mt-1 text-sm font-bold">{value}</p></div>;
+}
+
+const demoCommercials = [
+  { name: "Ana Martins", clients: 14, newClients: 3, sales: "1 485 €", commission: "148,50 €", conversion: "31%" },
+  { name: "Miguel Costa", clients: 9, newClients: 2, sales: "920 €", commission: "92 €", conversion: "24%" },
+  { name: "Sofia Almeida", clients: 18, newClients: 5, sales: "2 160 €", commission: "216 €", conversion: "38%" },
+];
+
+function DemoCommercial({ name, clients, newClients, sales, commission, conversion }: { name: string; clients: number; newClients: number; sales: string; commission: string; conversion: string }) {
+  return <div className="rounded-xl border border-[#E2D3BC] bg-white p-3"><div className="flex items-center justify-between gap-2"><p className="text-[12px] font-bold">{name}</p><span className="rounded-full bg-[#EDF5EA] px-2 py-1 text-[8px] font-black text-[#3F6A4D]">{conversion} conversão</span></div><div className="mt-3 grid grid-cols-2 gap-2"><Metric label="Clientes" value={String(clients)} /><Metric label="Novos" value={String(newClients)} /><Metric label="Vendas mês" value={sales} /><Metric label="Comissão" value={commission} /></div></div>;
 }
