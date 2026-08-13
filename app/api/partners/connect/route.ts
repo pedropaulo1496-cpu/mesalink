@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     const origin = new URL(request.url).origin;
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${origin}/partners/app?connect=refresh`,
+      refresh_url: `${origin}/partners/app?tab=account&connect=refresh`,
       return_url: `${origin}/api/partners/connect/return`,
       type: "account_onboarding",
     });
@@ -47,11 +47,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Stripe Connect onboarding error", error);
     const message = error instanceof Error ? error.message : "";
-    let code = message.includes("signed up for Connect") ? "platform-not-enabled" : "unavailable";
-    if (code === "platform-not-enabled") {
-      const platform = await stripe.account.retrieve(null).catch(() => null);
-      if (platform?.capabilities?.transfers === "active") code = "retry";
-    }
-    return NextResponse.redirect(new URL(`/partners/app?connect=${code}`, request.url), 303);
+    const code = message.includes("signed up for Connect") ? "platform-not-enabled" : "unavailable";
+    return NextResponse.redirect(new URL(`/partners/app?tab=account&connect=${code}`, request.url), 303);
   }
 }

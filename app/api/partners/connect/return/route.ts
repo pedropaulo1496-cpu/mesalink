@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   });
   const partner = user?.referralPartner;
 
-  if (!partner?.stripeAccountId) return NextResponse.redirect(new URL("/partners/app?connect=missing", request.url));
+  if (!partner?.stripeAccountId) return NextResponse.redirect(new URL("/partners/app?tab=account&connect=missing", request.url));
 
   const account = await stripe.accounts.retrieve(partner.stripeAccountId);
   const complete = Boolean(account.details_submitted && account.payouts_enabled);
@@ -44,5 +44,5 @@ export async function GET(request: Request) {
     },
   });
 
-  return NextResponse.redirect(new URL(`/partners/app?connect=${complete ? "complete" : "pending"}`, request.url));
+  return NextResponse.redirect(new URL(`/partners/app?tab=account&connect=${complete ? "complete" : "pending"}`, request.url));
 }

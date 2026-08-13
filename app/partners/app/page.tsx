@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { ArrowUpRight, Clock3, Euro, ShieldCheck, UsersRound } from "lucide-react";
+import { ArrowUpRight, BarChart3, Clock3, Euro, FileText, Landmark, ShieldCheck, UsersRound } from "lucide-react";
 import NewReferralGroupForm from "@/components/partners/NewReferralGroupForm";
 import PartnerInvoiceUpload from "@/components/partners/PartnerInvoiceUpload";
 import PartnerOnboardingForm from "@/components/partners/PartnerOnboardingForm";
@@ -13,9 +13,10 @@ import { prisma } from "@/lib/prisma";
 export default async function PartnerAppPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connect?: string }>;
+  searchParams: Promise<{ connect?: string; tab?: string }>;
 }) {
-  const { connect } = await searchParams;
+  const { connect, tab: requestedTab } = await searchParams;
+  const tab = ["groups", "history", "stats", "account"].includes(requestedTab || "") ? requestedTab! : "groups";
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login?callbackUrl=/partners/app");
 
@@ -167,8 +168,21 @@ export default async function PartnerAppPage({
       </header>
 
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-7 sm:px-6">
-        <nav className="mb-7 inline-flex rounded-full border border-[#D9C7AA] bg-white p-1"><Link href="/partners/app" className="rounded-full bg-[#17120D] px-5 py-2.5 text-xs font-bold text-white">Grupos e pagamentos</Link></nav>
-        {!partner.stripeOnboardingComplete && (
+        <nav className="mb-7 grid grid-cols-2 gap-1 rounded-[20px] border border-[#D9C7AA] bg-white p-1.5 sm:inline-grid sm:grid-cols-4 sm:rounded-full">
+          {[
+            { id: "groups", label: "Grupos", icon: <UsersRound size={14} /> },
+            { id: "history", label: "Histórico e faturas", icon: <FileText size={14} /> },
+            { id: "stats", label: "Estatísticas", icon: <BarChart3 size={14} /> },
+            { id: "account", label: "Conta e IBAN", icon: <Landmark size={14} /> },
+          ].map((item) => (
+            <Link key={item.id} href={`/partners/app?tab=${item.id}`} className={`flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[11px] font-bold transition ${tab === item.id ? "bg-[#17120D] text-white" : "text-[#6B6258] hover:bg-[#F7F0E5]"}`}>
+              {item.icon}{item.label}
+              {item.id === "account" && !partner.stripeOnboardingComplete && <span className="h-2 w-2 rounded-full bg-[#D79A4A]" />}
+            </Link>
+          ))}
+        </nav>
+
+        {tab === "account" && !partner.stripeOnboardingComplete && (
           <section className="mb-6 flex flex-col gap-4 rounded-[28px] border border-[#2C2117] bg-[#17120D] p-5 text-white sm:flex-row sm:items-center sm:justify-between sm:p-6">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.23em] text-[#D7B267]">Pagamentos</p>
@@ -182,18 +196,28 @@ export default async function PartnerAppPage({
           </section>
         )}
 
-        {partner.stripeOnboardingComplete && connect === "complete" && (
+        {tab === "account" && partner.stripeOnboardingComplete && connect === "complete" && (
           <div className="mb-6 rounded-[22px] border border-[#A8D3A6] bg-[#EFF9EF] px-5 py-4 text-sm font-semibold text-[#3F6A4D]">Pagamentos verificados. A conta está pronta para receber comissões.</div>
         )}
-        {connect === "platform-not-enabled" && <div className="mb-6 flex flex-col gap-3 rounded-[20px] border border-[#E8C8B9] bg-[#FFF0EA] px-5 py-4 text-sm text-[#934A35] sm:flex-row sm:items-center sm:justify-between"><p><strong>O Stripe Connect já foi ativado.</strong> A tentativa anterior ficou desatualizada; inicia novamente a validação do IBAN.</p><form action="/api/partners/connect" method="POST"><button className="h-10 whitespace-nowrap rounded-full bg-[#17120D] px-5 text-xs font-bold text-white">Tentar novamente</button></form></div>}
-        {connect === "retry" && <div className="mb-6 flex flex-col gap-3 rounded-[20px] border border-[#D8C29E] bg-[#FFF7E8] px-5 py-4 text-sm text-[#795D38] sm:flex-row sm:items-center sm:justify-between"><p><strong>O Connect está ativo.</strong> Não foi possível concluir aquela tentativa; abre uma ligação nova e segura.</p><form action="/api/partners/connect" method="POST"><button className="h-10 whitespace-nowrap rounded-full bg-[#17120D] px-5 text-xs font-bold text-white">Adicionar IBAN</button></form></div>}
-        {connect === "unavailable" && <div className="mb-6 rounded-[22px] border border-[#E8C8B9] bg-[#FFF0EA] px-5 py-4 text-sm font-semibold text-[#934A35]">Não foi possível abrir agora a verificação bancária Stripe. Nenhum dado foi perdido; tenta novamente dentro de alguns minutos.</div>}
+        {tab === "account" && connect === "platform-not-enabled" && <div className="mb-6 rounded-[20px] border border-[#E8C8B9] bg-[#FFF0EA] px-5 py-4 text-sm leading-6 text-[#934A35]"><strong>Validação bancária temporariamente indisponível.</strong> A ativação central de pagamentos do MesaLink está a ser concluída no Stripe. Não precisas de repetir dados nem criar outra conta; o botão ficará disponível assim que essa validação única terminar.</div>}
+        {tab === "account" && connect === "retry" && <div className="mb-6 flex flex-col gap-3 rounded-[20px] border border-[#D8C29E] bg-[#FFF7E8] px-5 py-4 text-sm text-[#795D38] sm:flex-row sm:items-center sm:justify-between"><p>Não foi possível concluir aquela sessão. Abre uma ligação segura nova.</p><form action="/api/partners/connect" method="POST"><button className="h-10 whitespace-nowrap rounded-full bg-[#17120D] px-5 text-xs font-bold text-white">Adicionar IBAN</button></form></div>}
+        {tab === "account" && connect === "unavailable" && <div className="mb-6 rounded-[22px] border border-[#E8C8B9] bg-[#FFF0EA] px-5 py-4 text-sm font-semibold text-[#934A35]">Não foi possível abrir agora a verificação bancária Stripe. Nenhum dado foi perdido; tenta novamente dentro de alguns minutos.</div>}
 
+        {tab === "groups" && <>
         <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div><p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">Partner app</p><h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">Encontra o restaurante certo para cada grupo.</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">Sem partilhar a identidade do cliente. O restaurante vê apenas o que precisa para aceitar e preparar o serviço.</p></div>
           <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Privacidade ativa</div>
         </section>
 
+        <NewReferralGroupForm restaurants={restaurantOptions} defaultCommissionType={partner.defaultCommissionType} defaultCommissionAmount={1} publishingEnabled={partner.stripeOnboardingComplete} />
+        </>}
+
+        {tab === "stats" && <>
+        <section className="flex flex-col gap-2">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">Desempenho</p>
+          <h1 className="text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">O que já geraste com a rede.</h1>
+          <p className="max-w-2xl text-sm leading-6 text-[#6B6258]">Valores de faturação, pagamentos e grupos num resumo simples.</p>
+        </section>
         <section className="mt-6 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
           <Kpi icon={<Euro size={15} />} label="Faturado · base" value={formatMoney(invoicedRevenue)} />
           <Kpi icon={<Euro size={15} />} label="Por faturar" value={formatMoney(toInvoiceRevenue)} />
@@ -202,10 +226,14 @@ export default async function PartnerAppPage({
           <Kpi icon={<UsersRound size={15} />} label="Grupos aceites" value={String(acceptedGroupsCount)} />
           <Kpi icon={<Clock3 size={15} />} label="A aguardar" value={String(pendingGroupsCount)} />
         </section>
+        <section className="mt-5 grid gap-3 md:grid-cols-3">
+          <StatDetail title="Taxa do parceiro" value="85%" note="Do valor de comissão aceite, antes do imposto aplicável." />
+          <StatDetail title="Pagamento" value="Semanal" note="Inclui apenas faturas anexadas e verificadas." />
+          <StatDetail title="Faturas por tratar" value={formatMoney(toInvoiceRevenue)} note="Ficam disponíveis 24h após a reserva." />
+        </section>
+        </>}
 
-        <NewReferralGroupForm restaurants={restaurantOptions} defaultCommissionType={partner.defaultCommissionType} defaultCommissionAmount={1} publishingEnabled={partner.stripeOnboardingComplete} />
-
-        <section className="mt-7 rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8">
+        {tab === "history" && <section className="rounded-[30px] border border-[#E1D0B8] bg-white p-5 sm:p-7">
           <div className="flex items-end justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Histórico</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Grupos publicados</h2></div></div>
           <div className="mt-6 space-y-3">
             {partner.groups.map((group) => {
@@ -219,7 +247,25 @@ export default async function PartnerAppPage({
             })}
             {partner.groups.length === 0 && <div className="rounded-[24px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-8 text-center text-sm text-[#6B6258]">O primeiro grupo que publicares aparece aqui.</div>}
           </div>
-        </section>
+        </section>}
+
+        {tab === "account" && <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-[30px] border border-[#E1D0B8] bg-white p-6 sm:p-7">
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Dados de pagamento</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Conta bancária e verificação</h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-[#6B6258]">O IBAN e os documentos são recolhidos diretamente pelo Stripe. O MesaLink não guarda nem mostra os teus dados bancários.</p>
+            <div className="mt-5 flex items-center justify-between gap-4 rounded-[20px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
+              <div><p className="text-sm font-bold">Estado da conta</p><p className="mt-1 text-xs text-[#6B6258]">{partner.stripeOnboardingComplete ? "IBAN verificado e pagamentos ativos." : "Falta concluir a validação bancária."}</p></div>
+              <span className={`rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.12em] ${partner.stripeOnboardingComplete ? "bg-[#E7F4E7] text-[#3F6A4D]" : "bg-[#FFF0CB] text-[#7A592F]"}`}>{partner.stripeOnboardingComplete ? "Verificado" : "Pendente"}</span>
+            </div>
+          </div>
+          <div className="rounded-[30px] border border-[#2C2117] bg-[#17120D] p-6 text-white sm:p-7">
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-[#D7B267]">Pagamentos</p>
+            <p className="mt-4 text-4xl font-semibold tracking-[-0.06em]">85%</p>
+            <p className="mt-2 text-sm leading-6 text-white/60">Recebes 85% da comissão acordada. O MesaLink retém 15% e o imposto aplicável é calculado separadamente.</p>
+            <div className="mt-5 border-t border-white/10 pt-4 text-xs leading-5 text-white/55">Pagamentos semanais, após a visita e a verificação da respetiva fatura.</div>
+          </div>
+        </section>}
       </div>
     </main>
   );
@@ -275,6 +321,10 @@ function PartnerInvoiceState({ group }: { group: PartnerHistoryGroup }) {
 
 function Kpi({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return <div className="rounded-[16px] border border-[#E1D0B8] bg-white p-3"><div className="flex items-center gap-1.5 text-[#9B6F3B]">{icon}<p className="text-[7px] font-black uppercase tracking-[0.1em] text-[#8B7D6D]">{label}</p></div><p className="mt-1.5 text-lg font-semibold tracking-[-0.04em]">{value}</p></div>;
+}
+
+function StatDetail({ title, value, note }: { title: string; value: string; note: string }) {
+  return <div className="rounded-[22px] border border-[#E1D0B8] bg-white p-5"><p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#8A7863]">{title}</p><p className="mt-2 text-2xl font-semibold tracking-[-0.05em]">{value}</p><p className="mt-2 text-xs leading-5 text-[#6B6258]">{note}</p></div>;
 }
 
 function Status({ status }: { status: string }) {
