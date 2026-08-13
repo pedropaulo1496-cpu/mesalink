@@ -5,6 +5,6 @@
     { "path": "/api/marketing/run-birthdays", "schedule": "20 9 * * *" },
     { "path": "/api/marketing/run-autopilot", "schedule": "35 10 * * *" },
     { "path": "/api/revenue-ai/run-autopilot", "schedule": "10 8 * * *" },
-    { "path": "/api/partners/settle", "schedule": "15 * * * *" }
+    { "path": "/api/partners/settle", "schedule": "5 10 * * *" }
   ]
 }
