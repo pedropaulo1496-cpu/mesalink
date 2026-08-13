@@ -13,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { isVercelDomainServiceConfigured, quoteVercelDomain } from "@/lib/vercel-domains";
 import { Prisma } from "@prisma/client";
+import { MESALINK_SERVICE_TAX_CODE } from "@/lib/stripe-tax";
 
 export async function POST(
   request: Request,
@@ -90,9 +91,11 @@ export async function POST(
         price_data: {
           currency: "eur",
           unit_amount: pricing.totalCents,
+          tax_behavior: "exclusive",
           product_data: {
             name: kind === "PURCHASE" ? `Domínio ${domain} · 1 ano` : `Ligação do domínio ${domain}`,
             description: `Custo do domínio + 5% + €1 + processamento Stripe. ${kind === "PURCHASE" ? "Renovação não automática." : "Domínio já pertencente ao cliente."}`,
+            tax_code: MESALINK_SERVICE_TAX_CODE,
           },
         },
       }],

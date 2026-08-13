@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { referralPriceData } from "@/lib/stripe-tax";
 
 export async function POST(request: Request, { params }: { params: Promise<{ offerId: string }> }) {
   const { offerId } = await params;
@@ -46,31 +47,28 @@ export async function POST(request: Request, { params }: { params: Promise<{ off
       : { customer_email: offer.restaurant.email || session.user.email, customer_creation: "always" as const }),
     billing_address_collection: "required",
     tax_id_collection: { enabled: true },
+    automatic_tax: { enabled: true },
     success_url: `${baseUrl}/api/referral-offers/${offer.id}/accept/return?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${backUrl}?result=authorization-cancelled`,
     locale: "auto",
     line_items: [
       {
         quantity: 1,
-        price_data: {
+        price_data: referralPriceData({
           currency: "eur",
-          unit_amount: Math.round(amounts.gross * 100),
-          product_data: {
-            name: `Garantia do grupo ${offer.group.publicCode}`,
-            description: `${offer.group.guests} pessoas · comissão protegida até confirmar a presença`,
-          },
-        },
+          unitAmount: Math.round(amounts.gross * 100),
+          name: `Garantia do grupo ${offer.group.publicCode}`,
+          description: `${offer.group.guests} pessoas · comissão base ${amounts.gross.toFixed(2)} € · impostos aplicáveis calculados no checkout`,
+        }),
       },
       ...(serviceFee > 0 ? [{
         quantity: 1,
-        price_data: {
+        price_data: referralPriceData({
           currency: "eur",
-          unit_amount: Math.round(serviceFee * 100),
-          product_data: {
-            name: "Proteção e processamento MesaLink",
-            description: "Autorização do cartão, reserva e processamento do pagamento.",
-          },
-        },
+          unitAmount: Math.round(serviceFee * 100),
+          name: "Proteção e processamento MesaLink",
+          description: `${serviceFee.toFixed(2)} € base · autorização do cartão, reserva e processamento`,
+        }),
       }] : []),
     ],
     metadata: {

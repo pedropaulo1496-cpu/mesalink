@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { MESALINK_SERVICE_TAX_CODE } from "@/lib/stripe-tax";
 
 export async function issueCapturedReferralInvoice(paymentId: string) {
   const payment = await prisma.referralPayment.findUnique({
@@ -31,6 +32,7 @@ export async function issueCapturedReferralInvoice(paymentId: string) {
     collection_method: "send_invoice",
     days_until_due: 1,
     auto_advance: false,
+    automatic_tax: { enabled: true },
     pending_invoice_items_behavior: "exclude",
     description: `MesaLink Partner · grupo ${payment.group.publicCode}`,
     custom_fields: [{ name: "Grupo", value: payment.group.publicCode }],
@@ -46,6 +48,8 @@ export async function issueCapturedReferralInvoice(paymentId: string) {
     amount: grossCents,
     currency,
     description: `Comissão do grupo ${payment.group.publicCode} · ${payment.group.actualGuests || payment.group.guests} pessoas`,
+    tax_behavior: "exclusive",
+    tax_code: MESALINK_SERVICE_TAX_CODE,
     metadata,
   }, { idempotencyKey: `referral_invoice_commission_${payment.id}` });
   if (serviceCents > 0) {
@@ -55,6 +59,8 @@ export async function issueCapturedReferralInvoice(paymentId: string) {
       amount: serviceCents,
       currency,
       description: "Proteção, reserva e processamento MesaLink",
+      tax_behavior: "exclusive",
+      tax_code: MESALINK_SERVICE_TAX_CODE,
       metadata,
     }, { idempotencyKey: `referral_invoice_service_${payment.id}` });
   }

@@ -46,7 +46,7 @@ export default function PartnerOnboardingForm() {
           <option value="PER_PERSON">Comissão por pessoa</option>
           <option value="TOTAL">Comissão total</option>
         </select>
-        <input name="commissionAmount" type="number" min="1" max="1000" step="0.01" defaultValue="5" required className="h-14 rounded-2xl border border-[#DED1BD] bg-[#FFF9F0] px-4 text-sm outline-none" />
+        <input name="commissionAmount" type="number" min="1" max="1000" step="0.01" defaultValue="1" required className="h-14 rounded-2xl border border-[#DED1BD] bg-[#FFF9F0] px-4 text-sm outline-none" />
       </div>
       <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedTerms" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Aceito os Termos e Condições do MesaLink Partners.</span></label>
       <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedPrivacy" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Li a Política de Privacidade e tenho autorização para fornecer o contacto necessário às reservas.</span></label>

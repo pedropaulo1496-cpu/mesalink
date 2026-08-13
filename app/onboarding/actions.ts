@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { isValidEmail } from "@/lib/validation";
+import { geocodeRestaurantAddress } from "@/lib/geocoding";
 
 function slugify(value: string) {
   return value.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
@@ -48,6 +49,7 @@ export async function createRestaurant(formData: FormData) {
     counter++;
   }
 
-  const restaurant = await prisma.restaurant.create({ data: { name, email, phone, address, slug, userId: user.id, plan: "ESSENTIALS" } });
+  const coordinates = await geocodeRestaurantAddress(address);
+  const restaurant = await prisma.restaurant.create({ data: { name, email, phone, address, slug, userId: user.id, plan: "ESSENTIALS", ...coordinates } });
   redirect(`/restaurants/${restaurant.id}`);
 }

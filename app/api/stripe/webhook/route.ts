@@ -160,8 +160,8 @@ async function settleReferralSession(session: Stripe.Checkout.Session) {
     return;
   }
 
-  const expectedAmount = Math.round((Number(payment.grossCommission) + Number(payment.serviceFee)) * 100);
-  if (session.amount_total !== expectedAmount || session.currency?.toUpperCase() !== payment.currency.toUpperCase()) {
+  const expectedSubtotal = Math.round((Number(payment.grossCommission) + Number(payment.serviceFee)) * 100);
+  if (session.amount_subtotal !== expectedSubtotal || session.currency?.toUpperCase() !== payment.currency.toUpperCase()) {
     await prisma.referralPayment.update({
       where: { id: payment.id },
       data: { status: "PAYMENT_REVIEW", lastError: "Checkout amount or currency mismatch." },
@@ -187,6 +187,8 @@ async function settleReferralSession(session: Stripe.Checkout.Session) {
       stripeCheckoutSessionId: session.id,
       stripePaymentIntentId: paymentIntentId,
       stripeChargeId: chargeId,
+      taxAmount: (session.total_details?.amount_tax || 0) / 100,
+      taxCountry: session.customer_details?.address?.country || null,
       paidAt: new Date(),
       lastError: null,
     },
@@ -220,14 +222,28 @@ async function handleReferralRefund(charge: Stripe.Charge) {
   });
   if (!payment || charge.amount <= 0) return;
 
-  const grossRefundedCents = charge.amount_refunded;
+  const refunds = await stripe.refunds.list({ charge: charge.id, limit: 100 });
+  const attendanceAdjustmentCents = refunds.data
+    .filter((refund) => refund.metadata?.kind === "REFERRAL_ATTENDANCE_ADJUSTMENT")
+    .reduce((total, refund) => total + refund.amount, 0);
+  const grossRefundedCents = Math.max(0, charge.amount_refunded - attendanceAdjustmentCents);
+  if (grossRefundedCents === 0) {
+    await prisma.referralPayment.update({
+      where: { id: payment.id },
+      data: { refundedAmount: charge.amount_refunded / 100 },
+    });
+    return;
+  }
+  const grossCommissionCents = Math.round(Number(payment.grossCommission) * 100);
+  const partnerNetCents = Math.round(Number(payment.partnerNet) * 100);
+  const collectedAfterAttendanceAdjustment = Math.max(1, charge.amount - attendanceAdjustmentCents);
   const commissionRefundedCents = Math.min(
-    Math.round(Number(payment.grossCommission) * 100),
-    Math.round((grossRefundedCents / charge.amount) * Number(payment.grossCommission) * 100),
+    grossCommissionCents,
+    Math.round((grossRefundedCents / collectedAfterAttendanceAdjustment) * grossCommissionCents),
   );
   const desiredReversalCents = Math.min(
-    Math.round(Number(payment.partnerNet) * 100),
-    Math.round((commissionRefundedCents / Math.max(1, Number(payment.grossCommission) * 100)) * Number(payment.partnerNet) * 100),
+    partnerNetCents,
+    Math.round((commissionRefundedCents / Math.max(1, grossCommissionCents)) * partnerNetCents),
   );
   const alreadyReversedCents = Math.round(Number(payment.reversedAmount) * 100);
   const reversalDelta = Math.max(0, desiredReversalCents - alreadyReversedCents);
@@ -243,13 +259,13 @@ async function handleReferralRefund(charge: Stripe.Charge) {
     );
   }
 
-  const fullyRefunded = grossRefundedCents >= charge.amount;
+  const fullyRefunded = grossRefundedCents >= collectedAfterAttendanceAdjustment;
   await prisma.$transaction([
     prisma.referralPayment.update({
       where: { id: payment.id },
       data: {
         status: fullyRefunded ? "REFUNDED" : "PARTIALLY_REFUNDED",
-        refundedAmount: commissionRefundedCents / 100,
+        refundedAmount: charge.amount_refunded / 100,
         reversedAmount: desiredReversalCents / 100,
         refundedAt: new Date(),
         lastError: null,

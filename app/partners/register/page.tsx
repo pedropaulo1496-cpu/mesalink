@@ -85,7 +85,7 @@ export default function PartnerRegisterPage() {
                 <option value="PER_PERSON">Comissão por pessoa</option>
                 <option value="TOTAL">Comissão total</option>
               </select>
-              <div className="relative"><input name="commissionAmount" type="number" min="1" max="1000" step="0.01" defaultValue="5" required className={`${inputClass} pr-10`} /><span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-[#8A6130]">€</span></div>
+              <div className="relative"><input name="commissionAmount" type="number" min="1" max="1000" step="0.01" defaultValue="1" required className={`${inputClass} pr-10`} /><span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-[#8A6130]">€</span></div>
             </div>
             <div className="rounded-2xl border border-[#E4D2B4] bg-[#FFF9ED] p-4 text-xs leading-5 text-[#6B6258]">O MesaLink retém 15% da comissão. Os restantes 85% entram no pagamento semanal apenas depois da refeição e da fatura do parceiro ser anexada e verificada.</div>
             <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedTerms" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Aceito os <Link href="/terms" target="_blank" className="font-bold text-[#17120D] underline">Termos e Condições</Link> do MesaLink.</span></label>

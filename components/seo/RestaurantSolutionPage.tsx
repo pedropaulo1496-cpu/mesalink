@@ -82,7 +82,7 @@ export default function RestaurantSolutionPage({ content }: { content: SolutionP
               </Link>
               <Link href="/contact" className="inline-flex h-14 items-center justify-center rounded-full border border-[#B9965E] bg-[#FFF9F0] px-8 font-semibold transition hover:bg-white">Pedir demonstração</Link>
             </div>
-            <p className="mt-4 text-sm font-semibold text-[#7D6E5D]">Planos desde 55€/mês + IVA · sem comissão por reserva</p>
+            <p className="mt-4 text-sm font-semibold text-[#7D6E5D]">Planos desde 55€/mês + impostos aplicáveis · sem comissão por reserva</p>
           </div>
 
           <div className="rounded-[40px] border border-[#D6BE94] bg-[#FFF9F0] p-4 shadow-[0_42px_130px_rgba(71,47,24,0.18)]">

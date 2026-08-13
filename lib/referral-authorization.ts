@@ -3,6 +3,7 @@ import { calculateReferralCommission, calculateReferralServiceFee, isCommissionT
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { syncRestaurantBillingDetails } from "@/lib/stripe-billing-details";
+import { checkoutTaxAmount } from "@/lib/stripe-tax";
 
 export async function finalizeReferralAuthorization(sessionId: string) {
   const session = await stripe.checkout.sessions.retrieve(sessionId, {
@@ -47,8 +48,12 @@ export async function finalizeReferralAuthorization(sessionId: string) {
     platformFeePercent: Number(offer.platformFeePercent),
   });
   const serviceFee = calculateReferralServiceFee(amounts.gross);
-  const expectedCents = Math.round((amounts.gross + serviceFee) * 100);
-  if (session.amount_total !== expectedCents || session.currency?.toLowerCase() !== "eur") {
+  const expectedSubtotalCents = Math.round((amounts.gross + serviceFee) * 100);
+  if (
+    session.amount_subtotal !== expectedSubtotalCents
+    || session.currency?.toLowerCase() !== "eur"
+    || session.automatic_tax?.status !== "complete"
+  ) {
     await stripe.paymentIntents.cancel(paymentIntent.id).catch(() => undefined);
     throw new Error("Referral authorization amount mismatch");
   }
@@ -116,6 +121,8 @@ export async function finalizeReferralAuthorization(sessionId: string) {
             platformFee: amounts.platformFee,
             partnerNet: amounts.partnerNet,
             serviceFee,
+            taxAmount: checkoutTaxAmount(session) / 100,
+            taxCountry: session.customer_details?.address?.country || null,
             status: "AUTHORIZED",
             stripeCheckoutSessionId: session.id,
             stripePaymentIntentId: paymentIntent.id,

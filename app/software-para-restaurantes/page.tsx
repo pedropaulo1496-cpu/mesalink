@@ -159,7 +159,7 @@ export default function SoftwareParaRestaurantesPage() {
             <div className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-[#5C5348]">
               <span className="flex items-center gap-2"><Check size={15} className="text-[#9B6F3B]" /> 7 dias grátis</span>
               <span className="flex items-center gap-2"><Check size={15} className="text-[#9B6F3B]" /> 0€ por reserva</span>
-              <span className="flex items-center gap-2"><Check size={15} className="text-[#9B6F3B]" /> Planos desde 55€/mês + IVA</span>
+              <span className="flex items-center gap-2"><Check size={15} className="text-[#9B6F3B]" /> Planos desde 55€/mês + impostos aplicáveis</span>
               <span className="flex items-center gap-2"><Check size={15} className="text-[#9B6F3B]" /> Funciona no telemóvel</span>
             </div>
           </div>

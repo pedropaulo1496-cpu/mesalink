@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { getCurrentUser } from "@/lib/restaurant-auth";
 import { Prisma } from "@prisma/client";
+import { geocodeRestaurantAddress } from "@/lib/geocoding";
 
 async function createRestaurant(formData: FormData) {
   "use server";
@@ -27,10 +28,11 @@ async function createRestaurant(formData: FormData) {
   const email = String(formData.get("email"));
   const phone = String(formData.get("phone"));
   const address = String(formData.get("address"));
+  const coordinates = await geocodeRestaurantAddress(address);
 
   try {
     await prisma.restaurant.create({
-      data: { name, slug, email, phone, address, userId: user.id },
+      data: { name, slug, email, phone, address, userId: user.id, ...coordinates },
     });
 
     redirect("/");

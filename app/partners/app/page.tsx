@@ -64,6 +64,8 @@ export default async function PartnerAppPage({
       name: true,
       slug: true,
       address: true,
+      latitude: true,
+      longitude: true,
       websiteCuisine: true,
       websiteDescription: true,
       websiteAboutText: true,
@@ -112,6 +114,8 @@ export default async function PartnerAppPage({
       isDemo: restaurant.slug.includes("demo"),
       cuisine: profile.cuisine,
       address: restaurant.address || "",
+      latitude: restaurant.latitude,
+      longitude: restaurant.longitude,
       description: profile.description,
       heroImage: profile.heroImage,
       galleryImages: profile.galleryImages,
@@ -155,7 +159,8 @@ export default async function PartnerAppPage({
         {partner.stripeOnboardingComplete && connect === "complete" && (
           <div className="mb-6 rounded-[22px] border border-[#A8D3A6] bg-[#EFF9EF] px-5 py-4 text-sm font-semibold text-[#3F6A4D]">Pagamentos verificados. A conta está pronta para receber comissões.</div>
         )}
-        {connect === "platform-not-enabled" && <div className="mb-6 rounded-[22px] border border-[#E8C8B9] bg-[#FFF0EA] px-5 py-4 text-sm font-semibold text-[#934A35]">O Stripe Connect do MesaLink está a terminar a ativação. O teu perfil e os restaurantes continuam disponíveis; volta a tentar quando a plataforma confirmar a ativação.</div>}
+        {connect === "platform-not-enabled" && <div className="mb-6 flex flex-col gap-3 rounded-[20px] border border-[#E8C8B9] bg-[#FFF0EA] px-5 py-4 text-sm text-[#934A35] sm:flex-row sm:items-center sm:justify-between"><p><strong>O Stripe Connect já foi ativado.</strong> A tentativa anterior ficou desatualizada; inicia novamente a validação do IBAN.</p><form action="/api/partners/connect" method="POST"><button className="h-10 whitespace-nowrap rounded-full bg-[#17120D] px-5 text-xs font-bold text-white">Tentar novamente</button></form></div>}
+        {connect === "retry" && <div className="mb-6 flex flex-col gap-3 rounded-[20px] border border-[#D8C29E] bg-[#FFF7E8] px-5 py-4 text-sm text-[#795D38] sm:flex-row sm:items-center sm:justify-between"><p><strong>O Connect está ativo.</strong> Não foi possível concluir aquela tentativa; abre uma ligação nova e segura.</p><form action="/api/partners/connect" method="POST"><button className="h-10 whitespace-nowrap rounded-full bg-[#17120D] px-5 text-xs font-bold text-white">Adicionar IBAN</button></form></div>}
         {connect === "unavailable" && <div className="mb-6 rounded-[22px] border border-[#E8C8B9] bg-[#FFF0EA] px-5 py-4 text-sm font-semibold text-[#934A35]">Não foi possível abrir agora a verificação bancária Stripe. Nenhum dado foi perdido; tenta novamente dentro de alguns minutos.</div>}
 
         <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -170,7 +175,7 @@ export default async function PartnerAppPage({
           <Kpi icon={<Clock3 size={18} />} label="A aguardar" value={String(pendingGroups.length)} />
         </section>
 
-        <NewReferralGroupForm restaurants={restaurantOptions} defaultCommissionType={partner.defaultCommissionType} defaultCommissionAmount={Number(partner.defaultCommissionAmount)} publishingEnabled={partner.stripeOnboardingComplete} />
+        <NewReferralGroupForm restaurants={restaurantOptions} defaultCommissionType={partner.defaultCommissionType} defaultCommissionAmount={1} publishingEnabled={partner.stripeOnboardingComplete} />
 
         <section className="mt-7 rounded-[34px] border border-[#E1D0B8] bg-white p-5 sm:p-8">
           <div className="flex items-end justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Histórico</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Grupos publicados</h2></div></div>
@@ -181,7 +186,7 @@ export default async function PartnerAppPage({
               const accepted = group.acceptedRestaurant?.name;
               return <div key={group.id} className="grid gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-4 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} /></div><p className="mt-2 text-sm text-[#6B6258]">{groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · {accepted || `${group.offers.filter((offer) => offer.status === "PENDING").length} respostas pendentes`}</p><PartnerInvoiceState group={group} /></div>
-                <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">{partnerPaymentLabel(group.payment?.status)}</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(Number(group.payment?.partnerNet || amounts.partnerNet))}</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
+                <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">{partnerPaymentLabel(group.payment?.status)}</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(Number(group.payment?.partnerNet || amounts.partnerNet))}</p><p className="text-[9px] text-[#8A7863]">base · impostos conforme fatura</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
               </div>;
             })}
             {partner.groups.length === 0 && <div className="rounded-[24px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-8 text-center text-sm text-[#6B6258]">O primeiro grupo que publicares aparece aqui.</div>}

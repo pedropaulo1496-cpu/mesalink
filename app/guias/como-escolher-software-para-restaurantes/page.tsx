@@ -159,7 +159,7 @@ export default function GuidePage() {
         <div className="mx-auto max-w-5xl rounded-[40px] bg-[#17130F] p-8 text-center text-white sm:p-12">
           <p className="text-xs font-black uppercase tracking-[0.28em] text-[#D7B267]">Compare com o seu restaurante</p>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">Teste os fluxos MesaLink durante 7 dias.</h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/68">Sem comissão por reserva. Planos desde 55€/mês + IVA.</p>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/68">Sem comissão por reserva. Planos desde 55€/mês + impostos aplicáveis.</p>
           <Link href="/register" className="mt-7 inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[#D7B267] px-8 font-black text-[#17130F]">Experimentar grátis <ArrowRight size={17} /></Link>
         </div>
       </section>

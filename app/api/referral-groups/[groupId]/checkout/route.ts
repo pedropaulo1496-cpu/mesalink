@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { referralPriceData } from "@/lib/stripe-tax";
 
 export async function POST(request: Request, { params }: { params: Promise<{ groupId: string }> }) {
   const { groupId } = await params;
@@ -49,29 +50,29 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
     {
       mode: "payment",
       customer_email: group.acceptedRestaurant?.email || session.user.email,
+      customer_creation: "always",
+      billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
+      automatic_tax: { enabled: true },
       success_url: `${backUrl}?result=payment-processing`,
       cancel_url: `${backUrl}?result=payment-cancelled`,
       locale: "auto",
       line_items: [{
         quantity: 1,
-        price_data: {
-          currency: group.payment.currency.toLowerCase(),
-          unit_amount: Math.round(Number(group.payment.grossCommission) * 100),
-          product_data: {
+        price_data: referralPriceData({
+            currency: group.payment.currency.toLowerCase(),
+            unitAmount: Math.round(Number(group.payment.grossCommission) * 100),
             name: `Comissão do grupo ${group.publicCode}`,
-            description: "85% parceiro · 15% MesaLink",
-          },
-        },
+            description: `${Number(group.payment.grossCommission).toFixed(2)} € base · impostos aplicáveis calculados pela Stripe`,
+          }),
       }, ...(Number(group.payment.serviceFee) > 0 ? [{
         quantity: 1,
-        price_data: {
-          currency: group.payment.currency.toLowerCase(),
-          unit_amount: Math.round(Number(group.payment.serviceFee) * 100),
-          product_data: {
+        price_data: referralPriceData({
+            currency: group.payment.currency.toLowerCase(),
+            unitAmount: Math.round(Number(group.payment.serviceFee) * 100),
             name: "Serviço MesaLink Partner Network",
-            description: "Operação, proteção do pagamento e distribuição da comissão.",
-          },
-        },
+            description: `${Number(group.payment.serviceFee).toFixed(2)} € base · operação e distribuição`,
+          }),
       }] : [])],
       metadata: {
         kind: "REFERRAL_COMMISSION",

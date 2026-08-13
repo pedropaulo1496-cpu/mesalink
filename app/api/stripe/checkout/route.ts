@@ -69,6 +69,7 @@ export async function POST(request: Request) {
         : { customer_email: user.email, customer_creation: "always" as const }),
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
+      automatic_tax: { enabled: true },
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
       metadata: { userId: user.id, subscriptionId: subscription.id, product, billing, restaurantId: restaurant?.id || "" },

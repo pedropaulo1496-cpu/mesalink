@@ -47,7 +47,11 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Stripe Connect onboarding error", error);
     const message = error instanceof Error ? error.message : "";
-    const code = message.includes("signed up for Connect") ? "platform-not-enabled" : "unavailable";
+    let code = message.includes("signed up for Connect") ? "platform-not-enabled" : "unavailable";
+    if (code === "platform-not-enabled") {
+      const platform = await stripe.account.retrieve(null).catch(() => null);
+      if (platform?.capabilities?.transfers === "active") code = "retry";
+    }
     return NextResponse.redirect(new URL(`/partners/app?connect=${code}`, request.url), 303);
   }
 }

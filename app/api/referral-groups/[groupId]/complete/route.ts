@@ -5,6 +5,7 @@ import { calculateReferralCommission, calculateReferralServiceFee, isCommissionT
 import { issueCapturedReferralInvoice } from "@/lib/referral-invoices";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { checkoutTaxAmount, proportionalTaxAmount } from "@/lib/stripe-tax";
 
 export async function POST(request: Request, { params }: { params: Promise<{ groupId: string }> }) {
   const { groupId } = await params;
@@ -55,17 +56,37 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
     platformFeePercent: Number(group.platformFeePercent),
   });
   const serviceFee = calculateReferralServiceFee(amounts.gross);
-  const amountToCapture = Math.round((amounts.gross + serviceFee) * 100);
+  const targetSubtotal = Math.round((amounts.gross + serviceFee) * 100);
 
   try {
+    if (!group.payment.stripeCheckoutSessionId) throw new Error("CHECKOUT_SESSION_MISSING");
+    const checkout = await stripe.checkout.sessions.retrieve(group.payment.stripeCheckoutSessionId);
+    const originalSubtotal = checkout.amount_subtotal || 0;
+    const originalTax = checkoutTaxAmount(checkout);
+    const originalTotal = checkout.amount_total || originalSubtotal + originalTax;
+    const targetTax = proportionalTaxAmount({ originalSubtotal, originalTax, targetSubtotal });
+    const targetTotal = targetSubtotal + targetTax;
+    const attendanceAdjustment = Math.max(0, originalTotal - targetTotal);
     const intent = await stripe.paymentIntents.retrieve(group.payment.stripePaymentIntentId);
-    if (intent.status !== "requires_capture" || intent.amount_capturable < amountToCapture) {
+    if (intent.status !== "requires_capture" || intent.amount_capturable < originalTotal) {
       throw new Error("AUTHORIZATION_NOT_CAPTURABLE");
     }
-    await stripe.paymentIntents.capture(intent.id, {
-      amount_to_capture: amountToCapture,
+    const capturedIntent = await stripe.paymentIntents.capture(intent.id, {
+      amount_to_capture: originalTotal,
       metadata: { actualGuests: String(actualGuests), referralGroupId: group.id },
     }, { idempotencyKey: `referral_capture_${group.payment.id}_${actualGuests}` });
+    if (attendanceAdjustment > 0) {
+      await stripe.refunds.create({
+        payment_intent: capturedIntent.id,
+        amount: attendanceAdjustment,
+        reason: "requested_by_customer",
+        metadata: {
+          kind: "REFERRAL_ATTENDANCE_ADJUSTMENT",
+          referralPaymentId: group.payment.id,
+          actualGuests: String(actualGuests),
+        },
+      }, { idempotencyKey: `referral_attendance_adjustment_${group.payment.id}_${actualGuests}` });
+    }
 
     await prisma.$transaction([
       prisma.referralGroup.update({ where: { id: group.id }, data: { status: "COMPLETED", actualGuests } }),
@@ -76,6 +97,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
           platformFee: amounts.platformFee,
           partnerNet: amounts.partnerNet,
           serviceFee,
+          taxAmount: targetTax / 100,
+          taxCountry: checkout.customer_details?.address?.country || group.payment.taxCountry,
+          refundedAmount: attendanceAdjustment / 100,
           status: "CAPTURED_AWAITING_PAYOUT",
           capturedAt: new Date(),
           paidAt: new Date(),

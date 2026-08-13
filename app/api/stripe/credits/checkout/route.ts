@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { getAiCreditPack } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { MESALINK_DIGITAL_TAX_CODE } from "@/lib/stripe-tax";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -47,9 +48,11 @@ export async function POST(request: Request) {
         price_data: {
           currency: "eur",
           unit_amount: pack.priceCents,
+          tax_behavior: "exclusive",
           product_data: {
             name: `MesaLink AI · ${pack.label}`,
             description: "Saldo pré-pago para AI Visibility, Revenue AI e conteúdo do website.",
+            tax_code: MESALINK_DIGITAL_TAX_CODE,
           },
         },
       }],

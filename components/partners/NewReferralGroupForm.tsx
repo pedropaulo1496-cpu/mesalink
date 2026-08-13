@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { Check, ExternalLink, ImageIcon, MapPin, Search, ShieldCheck, UtensilsCrossed } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Check, Crosshair, ExternalLink, ImageIcon, MapPin, Search, ShieldCheck, UtensilsCrossed } from "lucide-react";
 import { REFERRAL_ACCESSIBILITY_TAGS, REFERRAL_CUISINE_TAGS, REFERRAL_DIETARY_TAGS, REFERRAL_OCCASION_TAGS, REFERRAL_REQUIREMENT_TAGS } from "@/lib/referral-tags";
 
 export type PartnerRestaurant = {
@@ -17,6 +17,8 @@ export type PartnerRestaurant = {
   menuUrl: string;
   menuSections: Array<{ title: string; items: string[] }>;
   averageTicket: number;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export default function NewReferralGroupForm({
@@ -31,7 +33,7 @@ export default function NewReferralGroupForm({
   publishingEnabled?: boolean;
 }) {
   const [selected, setSelected] = useState<string[]>([]);
-  const [targetMode, setTargetMode] = useState<"ALL" | "FILTERED" | "SELECTED">("SELECTED");
+  const [targetMode, setTargetMode] = useState<"ALL" | "FILTERED" | "SELECTED">("ALL");
   const [query, setQuery] = useState("");
   const [restaurantCuisineFilter, setRestaurantCuisineFilter] = useState("ALL");
   const [requestedCuisines, setRequestedCuisines] = useState<string[]>([]);
@@ -39,7 +41,9 @@ export default function NewReferralGroupForm({
   const [adults, setAdults] = useState(6);
   const [children, setChildren] = useState(0);
   const [commissionType, setCommissionType] = useState(defaultCommissionType);
-  const [commissionAmount, setCommissionAmount] = useState(defaultCommissionAmount);
+  const [commissionAmount, setCommissionAmount] = useState(defaultCommissionAmount || 1);
+  const [currentPosition, setCurrentPosition] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationState, setLocationState] = useState<"loading" | "ready" | "denied" | "unsupported">("loading");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
@@ -52,12 +56,29 @@ export default function NewReferralGroupForm({
   const realCount = restaurants.length - demoCount;
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    return restaurants.filter((restaurant) => {
+    const matches = restaurants.filter((restaurant) => {
       const matchesCuisine = restaurantCuisineFilter === "ALL" || restaurant.cuisine === restaurantCuisineFilter;
       const matchesQuery = !normalized || `${restaurant.name} ${restaurant.cuisine} ${restaurant.address} ${restaurant.description} ${restaurant.highlights.join(" ")}`.toLowerCase().includes(normalized);
       return matchesCuisine && matchesQuery;
     });
-  }, [restaurants, query, restaurantCuisineFilter]);
+    if (!currentPosition) return matches;
+    return [...matches].sort((a, b) => distanceTo(a, currentPosition) - distanceTo(b, currentPosition));
+  }, [restaurants, query, restaurantCuisineFilter, currentPosition]);
+
+  useEffect(() => {
+    if (!("geolocation" in navigator)) {
+      queueMicrotask(() => setLocationState("unsupported"));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCurrentPosition({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+        setLocationState("ready");
+      },
+      () => setLocationState("denied"),
+      { enableHighAccuracy: false, timeout: 7000, maximumAge: 10 * 60 * 1000 },
+    );
+  }, []);
 
   const guests = adults + children;
   const gross = commissionType === "PER_PERSON" ? guests * commissionAmount : commissionAmount;
@@ -67,6 +88,20 @@ export default function NewReferralGroupForm({
 
   function toggle(id: string) {
     setSelected((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
+    setTargetMode("SELECTED");
+  }
+
+  function requestLocation() {
+    if (!("geolocation" in navigator)) return setLocationState("unsupported");
+    setLocationState("loading");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCurrentPosition({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+        setLocationState("ready");
+      },
+      () => setLocationState("denied"),
+      { enableHighAccuracy: false, timeout: 7000, maximumAge: 0 },
+    );
   }
 
   function toggleTag(value: string, values: string[], setValues: (next: string[]) => void, maximum: number) {
@@ -107,7 +142,7 @@ export default function NewReferralGroupForm({
           restaurantQuery: query,
           restaurantCuisine: restaurantCuisineFilter,
           desiredDate: form.get("desiredDate"),
-          alternativeDate: form.get("alternativeDate") || null,
+          alternativeDate: null,
           adults,
           children,
           guests,
@@ -144,24 +179,23 @@ export default function NewReferralGroupForm({
   }
 
   return (
-    <form onSubmit={submit} className="mt-6 grid gap-6 xl:grid-cols-[1fr_370px]">
-      {!publishingEnabled && <div className="rounded-[24px] border border-[#D8C29E] bg-[#FFF7E8] px-5 py-4 text-sm font-semibold text-[#795D38] xl:col-span-2">Podes explorar todos os restaurantes reais e DEMO. Para publicares um grupo, falta apenas validar o IBAN no Stripe.</div>}
-      <div className="space-y-5">
-        <div className="rounded-[30px] border border-[#E1D0B8] bg-white p-5 sm:p-7">
+    <form onSubmit={submit} className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      {!publishingEnabled && <div className="rounded-[18px] border border-[#D8C29E] bg-[#FFF7E8] px-4 py-3 text-xs font-semibold text-[#795D38] xl:col-span-2">Podes explorar os restaurantes. Para publicares um grupo, adiciona primeiro o IBAN.</div>}
+      <div className="space-y-4">
+        <div className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 sm:p-5">
           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.24em] text-[#9B6F3B]"><ShieldCheck size={16} /> Contacto protegido</div>
-          <h2 className="mt-3 text-2xl font-semibold tracking-[-0.045em]">Quando e para quantas pessoas?</h2>
-          <div className="mt-5 rounded-[24px] border border-[#D7E4D4] bg-[#F3FAF2] p-4">
+          <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Dados do grupo</h2>
+          <div className="mt-3 rounded-[18px] border border-[#D7E4D4] bg-[#F3FAF2] p-3">
             <p className="text-xs font-black uppercase tracking-[0.16em] text-[#4F6C4D]">Contacto protegido</p>
-            <p className="mt-1 text-xs leading-5 text-[#587255]">Só o restaurante que concluir a autorização do cartão e ficar com a reserva verá estes dados.</p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-3"><Field label="Nome do cliente"><input name="customerName" required maxLength={100} placeholder="Nome da reserva" className="input-premium h-12" /></Field><Field label="Telemóvel"><input name="customerPhone" required maxLength={30} placeholder="+351 9…" className="input-premium h-12" /></Field><Field label="Email"><input name="customerEmail" type="email" maxLength={160} placeholder="Opcional" className="input-premium h-12" /></Field></div>
+            <p className="mt-1 text-[11px] leading-4 text-[#587255]">O contacto só é revelado ao restaurante que aceitar.</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3"><Field label="Nome do cliente"><input name="customerName" required maxLength={100} placeholder="Nome da reserva" className="input-premium h-10" /></Field><Field label="Telemóvel"><input name="customerPhone" required maxLength={30} placeholder="+351 9…" className="input-premium h-10" /></Field><Field label="Email"><input name="customerEmail" type="email" maxLength={160} placeholder="Opcional" className="input-premium h-10" /></Field></div>
           </div>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <Field label="Data e hora preferida"><input name="desiredDate" type="datetime-local" required className="input-premium h-12" /></Field>
-            <Field label="Data alternativa"><input name="alternativeDate" type="datetime-local" className="input-premium h-12" /></Field>
-            <div className="grid grid-cols-2 gap-3"><Field label="Adultos"><input value={adults} onChange={(event) => setAdults(Math.max(1, Number(event.target.value)))} type="number" min="1" max="200" required className="input-premium h-12" /></Field><Field label="Crianças"><input value={children} onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))} type="number" min="0" max="199" required className="input-premium h-12" /></Field></div>
-            <Field label="Budget por pessoa"><input name="budgetPerPerson" type="number" min="1" step="0.01" placeholder="35" className="input-premium h-12" /></Field>
-            <Field label="Cidade *"><input name="city" required maxLength={100} placeholder="Lisboa" className="input-premium h-12" /></Field>
-            <Field label="Zona preferida"><input name="area" placeholder="Chiado, centro…" className="input-premium h-12" /></Field>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <Field label="Data e hora"><input name="desiredDate" type="datetime-local" required className="input-premium h-10" /></Field>
+            <div className="grid grid-cols-2 gap-2"><Field label="Adultos"><input value={adults} onChange={(event) => setAdults(Math.max(1, Number(event.target.value)))} type="number" min="1" max="200" required className="input-premium h-10" /></Field><Field label="Crianças"><input value={children} onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))} type="number" min="0" max="199" required className="input-premium h-10" /></Field></div>
+            <Field label="Budget / pessoa"><input name="budgetPerPerson" type="number" min="1" step="0.01" placeholder="35" className="input-premium h-10" /></Field>
+            <Field label="Cidade *"><input name="city" required maxLength={100} placeholder="Lisboa" className="input-premium h-10" /></Field>
+            <Field label="Zona preferida"><input name="area" placeholder="Chiado, centro…" className="input-premium h-10" /></Field>
           </div>
           <div className="mt-4">
             <div className="flex items-center justify-between gap-3"><p className="text-xs font-bold text-[#655A4E]">Tipo de cozinha * <span className="font-normal text-[#8A7D70]">· até 3</span></p><span className="text-[10px] font-bold text-[#8A6130]">{requestedCuisines.length}/3</span></div>
@@ -176,32 +210,32 @@ export default function NewReferralGroupForm({
           <p className="mt-4 rounded-2xl border border-[#D7E4D4] bg-[#F3FAF2] p-4 text-xs leading-5 text-[#4F6C4D]">Enquanto o grupo está aberto, os restaurantes veem apenas os detalhes do pedido. Nome, telefone e email permanecem protegidos até existir uma reserva confirmada.</p>
         </div>
 
-        <div className="rounded-[30px] border border-[#E1D0B8] bg-white p-5 sm:p-7">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Restaurantes</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Envia para todos, por filtro ou manualmente</h2></div><span className="rounded-full bg-[#F1E6D5] px-3 py-1 text-xs font-bold text-[#795D38]">{realCount} reais{demoCount > 0 ? ` · ${demoCount} DEMO` : ""}</span></div>
-          <div className="mt-5 grid gap-2 sm:grid-cols-3">{([{"value":"ALL","label":"Todos","note":`${restaurants.length} restaurantes`},{"value":"FILTERED","label":"Resultados do filtro","note":`${filtered.length} restaurantes`},{"value":"SELECTED","label":"Escolher manualmente","note":`${selected.length} selecionados`}] as const).map((option) => <button key={option.value} type="button" onClick={() => setTargetMode(option.value)} className={`rounded-[20px] border p-4 text-left ${targetMode === option.value ? "border-[#8A6130] bg-[#FFF3DF] ring-2 ring-[#C8A56A]/20" : "border-[#E1D0B8] bg-white"}`}><span className="block text-sm font-black">{option.label}</span><span className="mt-1 block text-xs text-[#74685B]">{option.note}</span></button>)}</div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_220px]">
-            <label className="relative"><Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8C7E6E]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome, cozinha ou zona" className="input-premium h-12 pl-11" /></label>
-            <select value={restaurantCuisineFilter} onChange={(event) => setRestaurantCuisineFilter(event.target.value)} className="input-premium h-12"><option value="ALL">Todas as cozinhas</option>{cuisines.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+        <div className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 sm:p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">Restaurantes</p><h2 className="mt-1 text-xl font-semibold tracking-[-0.04em]">Escolhe quem recebe o pedido</h2></div><span className="rounded-full bg-[#F1E6D5] px-3 py-1 text-[10px] font-bold text-[#795D38]">{realCount} reais{demoCount > 0 ? ` · ${demoCount} DEMO` : ""}</span></div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_190px_auto]">
+            <label className="relative block"><Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-[#8C7E6E]" /><input value={query} onChange={(event) => { setQuery(event.target.value); setTargetMode("FILTERED"); }} placeholder="Nome, cozinha ou zona" className="input-premium h-10" style={{ paddingLeft: "2.65rem" }} /></label>
+            <select value={restaurantCuisineFilter} onChange={(event) => { setRestaurantCuisineFilter(event.target.value); setTargetMode("FILTERED"); }} className="input-premium h-10"><option value="ALL">Todas as cozinhas</option>{cuisines.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+            <button type="button" onClick={requestLocation} className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-[#D8C6A9] bg-white px-3 text-[10px] font-bold text-[#715536]"><Crosshair size={13} />{locationState === "ready" ? "Distância ativa" : locationState === "loading" ? "A localizar…" : "Usar localização"}</button>
           </div>
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {([{"value":"ALL","label":`Enviar a todos (${restaurants.length})`},{"value":"FILTERED","label":`Enviar aos resultados (${filtered.length})`},{"value":"SELECTED","label":`Só selecionados (${selected.length})`}] as const).map((option) => <button key={option.value} type="button" disabled={option.value === "SELECTED" && selected.length === 0} onClick={() => setTargetMode(option.value)} className={`h-9 rounded-full border px-4 text-[11px] font-bold disabled:opacity-35 ${targetMode === option.value ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#D8C6A9] bg-[#FFFDFC] text-[#674E32]"}`}>{option.label}</button>)}
+            <button type="button" onClick={() => { setSelected(filtered.map((restaurant) => restaurant.id)); setTargetMode("SELECTED"); }} className="ml-auto h-9 rounded-full border border-[#D8C6A9] px-3 text-[10px] font-bold text-[#715536]">Selecionar resultados</button>
+            {selected.length > 0 && <button type="button" onClick={() => { setSelected([]); setTargetMode(query || restaurantCuisineFilter !== "ALL" ? "FILTERED" : "ALL"); }} className="h-9 rounded-full px-2 text-[10px] font-bold text-[#9A563F]">Limpar</button>}
+          </div>
+          {locationState === "denied" && <p className="mt-2 text-[10px] text-[#8A6542]">Autoriza a localização no navegador para veres a distância em quilómetros.</p>}
+          <div className="mt-3 space-y-2">
             {filtered.map((restaurant) => {
               const isSelected = selected.includes(restaurant.id);
-              return <article key={restaurant.id} className={`overflow-hidden rounded-[24px] border transition ${isSelected ? "border-[#9E733D] bg-[#FFF7E9] ring-2 ring-[#C8A56A]/25" : "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A]"}`}>
-                <div className="relative">
-                  {restaurant.heroImage ? <div className="h-32 bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.heroImage})` }} /> : <div className="grid h-32 place-items-center bg-[#EADCC7] text-[#9B7D57]"><ImageIcon size={24} /></div>}
-                  {targetMode === "SELECTED" && <button type="button" aria-pressed={isSelected} onClick={() => toggle(restaurant.id)} className={`absolute right-3 top-3 inline-flex h-9 items-center gap-2 rounded-full px-3 text-xs font-black shadow-sm ${isSelected ? "bg-[#17120D] text-white" : "border border-white/80 bg-white/95 text-[#4E3B28]"}`}><span className={`grid h-5 w-5 place-items-center rounded-full border ${isSelected ? "border-white/40 bg-white/15" : "border-[#D3BE9C]"}`}>{isSelected && <Check size={12} />}</span>{isSelected ? "Selecionado" : "Escolher"}</button>}
+              const distance = currentPosition ? distanceTo(restaurant, currentPosition) : null;
+              return <article key={restaurant.id} className={`rounded-[17px] border p-2.5 transition ${isSelected ? "border-[#9E733D] bg-[#FFF7E9] ring-1 ring-[#C8A56A]/25" : "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A]"}`}>
+                <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-3">
+                  {restaurant.heroImage ? <div className="h-16 rounded-[13px] bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.heroImage})` }} /> : <div className="grid h-16 place-items-center rounded-[13px] bg-[#EADCC7] text-[#9B7D57]"><ImageIcon size={18} /></div>}
+                  <div className="min-w-0"><div className="flex flex-wrap items-center gap-1.5"><p className="truncate text-sm font-semibold">{restaurant.name}</p>{restaurant.isDemo && <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">DEMO</span>}</div><p className="mt-0.5 text-[10px] font-bold text-[#80613D]">{restaurant.cuisine}</p><p className="mt-1 flex items-center gap-1 truncate text-[10px] text-[#6B6258]"><MapPin size={11} className="shrink-0 text-[#9B6F3B]" />{distance !== null && Number.isFinite(distance) ? <strong className="text-[#4F6C4D]">{formatDistance(distance)} ·</strong> : null}<span className="truncate">{restaurant.address || "Portugal"}</span></p></div>
+                  <button type="button" aria-pressed={isSelected} onClick={() => toggle(restaurant.id)} className={`grid h-9 w-9 place-items-center rounded-full border ${isSelected ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#D3BE9C] bg-white text-transparent"}`}><Check size={15} /></button>
                 </div>
-                <div className="p-4">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2"><p className="text-lg font-semibold tracking-[-0.025em]">{restaurant.name}</p>{restaurant.isDemo && <span className="rounded-full border border-[#D7B267] bg-[#FFF2D5] px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-[#805D2B]">DEMO</span>}</div>
-                    <p className="mt-1 text-xs font-bold text-[#80613D]">{restaurant.cuisine || "Restaurante"}</p>
-                    <p className="mt-2 flex items-start gap-1.5 text-xs leading-5 text-[#6B6258]"><MapPin size={14} className="mt-0.5 shrink-0 text-[#9B6F3B]" /><span><span className="font-black text-[#5E4326]">Localização:</span> {restaurant.address || "Portugal"}</span></p>
-                  </div>
-                  <p className="mt-3 line-clamp-2 text-xs leading-5 text-[#6B6258]">{restaurant.description}</p>
-                  {restaurant.highlights.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{restaurant.highlights.slice(0, 3).map((item) => <span key={item} className="rounded-full bg-[#F1E6D5] px-2.5 py-1 text-[9px] font-bold text-[#795D38]">{item}</span>)}</div>}
-                  <details className="group mt-4 rounded-2xl border border-[#E7DAC7] bg-white px-3.5 py-3">
+                <details className="group mt-2 border-t border-[#EEE3D3] pt-2">
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><UtensilsCrossed size={14} /> Ver perfil, imagens e menu</span><span className="transition group-open:rotate-180">⌄</span></summary>
-                    <div className="mt-3 border-t border-[#EEE3D3] pt-3">
+                    <div className="mt-2 rounded-xl bg-white p-3"><p className="line-clamp-2 text-[11px] leading-4 text-[#6B6258]">{restaurant.description}</p>
                       {restaurant.galleryImages.length > 0 && <div className="grid grid-cols-3 gap-2">{restaurant.galleryImages.slice(0, 3).map((image) => <div key={image} className="h-16 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />)}</div>}
                       {restaurant.menuSections.length > 0 && <div className="mt-3 space-y-2">{restaurant.menuSections.slice(0, 3).map((section) => <div key={section.title}><p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#8A6130]">{section.title}</p><p className="mt-1 text-[11px] leading-4 text-[#6B6258]">{section.items.join(" · ")}</p></div>)}</div>}
                       {restaurant.menuUrl && <a href={restaurant.menuUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Abrir menu completo <ExternalLink size={13} /></a>}
@@ -209,7 +243,6 @@ export default function NewReferralGroupForm({
                       {restaurant.address && <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address)}`} target="_blank" rel="noreferrer" className="mt-3 flex w-fit items-center gap-1.5 text-xs font-black text-[#7B572B]"><MapPin size={13} /> Ver localização no mapa <ExternalLink size={12} /></a>}
                     </div>
                   </details>
-                </div>
               </article>;
             })}
             {filtered.length === 0 && <div className="md:col-span-2 rounded-[24px] border border-dashed border-[#D6C3A5] p-8 text-center text-sm text-[#6B6258]">Ainda não existem restaurantes disponíveis com estes filtros.</div>}
@@ -217,27 +250,43 @@ export default function NewReferralGroupForm({
         </div>
       </div>
 
-      <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
-        <div className="rounded-[30px] border border-[#2C2117] bg-[#17120D] p-6 text-white">
-          <p className="text-xs font-black uppercase tracking-[0.24em] text-[#D7B267]">Comissão proposta</p>
-          <div className="mt-5 grid gap-3">
-            <select value={commissionType} onChange={(event) => setCommissionType(event.target.value)} className="h-12 rounded-2xl border border-white/15 bg-white/10 px-4 text-sm"><option className="text-black" value="PER_PERSON">Por pessoa</option><option className="text-black" value="TOTAL">Total</option></select>
-            <input value={commissionAmount} onChange={(event) => setCommissionAmount(Number(event.target.value))} type="number" min="1" max="1000" step="0.01" className="h-12 rounded-2xl border border-white/15 bg-white/10 px-4 text-sm" />
+      <aside className="space-y-3 xl:sticky xl:top-5 xl:self-start">
+        <div className="rounded-[22px] border border-[#2C2117] bg-[#17120D] p-4 text-white">
+          <div className="flex items-center justify-between gap-3"><p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D7B267]">Comissão</p><span className="rounded-full bg-white/10 px-2.5 py-1 text-[9px] font-bold">Recomendado: 1 €</span></div>
+          <div className="mt-3 grid grid-cols-[1fr_100px] gap-2">
+            <select value={commissionType} onChange={(event) => setCommissionType(event.target.value)} className="h-10 rounded-xl border border-white/15 bg-white/10 px-3 text-xs"><option className="text-black" value="PER_PERSON">Por pessoa</option><option className="text-black" value="TOTAL">Total</option></select>
+            <input aria-label="Valor da comissão" value={commissionAmount} onChange={(event) => setCommissionAmount(Number(event.target.value))} type="number" min="1" max="1000" step="0.01" className="h-10 rounded-xl border border-white/15 bg-white/10 px-3 text-xs" />
           </div>
-          <div className="mt-6 border-t border-white/10 pt-5 text-sm"><MoneyRow label="Recebes · 85%" value={money(partnerNet)} strong /></div>
-          <p className="mt-4 text-[11px] leading-5 text-white/40">O restaurante vê a comissão equivalente por pessoa e o valor total.</p>
+          <div className="mt-3 space-y-1.5 border-t border-white/10 pt-3 text-xs"><MoneyRow label="Por pessoa" value={money(gross / Math.max(1, guests))} /><MoneyRow label={`Total · ${guests} pessoas`} value={money(gross)} strong /><MoneyRow label="Recebes · 85%" value={money(partnerNet)} /></div>
+          <p className="mt-3 text-[10px] leading-4 text-white/50">Valores base. IVA, GST ou sales tax são calculados pela Stripe conforme o país, morada fiscal e VAT/NIF do restaurante.</p>
         </div>
         {message && <div className={`rounded-[22px] border p-4 text-sm font-semibold ${success ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{message}</div>}
-        <button disabled={!publishingEnabled || loading || (targetMode === "SELECTED" && selected.length === 0) || (targetMode === "FILTERED" && filtered.length === 0)} className="h-14 w-full rounded-full bg-[#C8A56A] px-6 text-sm font-black text-[#17120D] shadow-[0_18px_45px_rgba(156,112,51,0.22)] disabled:cursor-not-allowed disabled:opacity-45">{!publishingEnabled ? "Valida o IBAN para publicar" : loading ? "A publicar…" : `Publicar para ${targetMode === "ALL" ? restaurants.length : targetMode === "FILTERED" ? filtered.length : selected.length} restaurante(s)`}</button>
+        <button disabled={!publishingEnabled || loading || (targetMode === "SELECTED" && selected.length === 0) || (targetMode === "FILTERED" && filtered.length === 0)} className="h-12 w-full rounded-full bg-[#C8A56A] px-5 text-xs font-black text-[#17120D] shadow-[0_14px_35px_rgba(156,112,51,0.18)] disabled:cursor-not-allowed disabled:opacity-45">{!publishingEnabled ? "Adicionar IBAN para publicar" : loading ? "A publicar…" : `Enviar a ${targetMode === "ALL" ? restaurants.length : targetMode === "FILTERED" ? filtered.length : selected.length} restaurante(s)`}</button>
       </aside>
     </form>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="mt-4 block"><span className="mb-2 block text-xs font-bold text-[#655A4E]">{label}</span>{children}</label>;
+  return <label className="block"><span className="mb-1.5 block text-[11px] font-bold text-[#655A4E]">{label}</span>{children}</label>;
 }
 
 function MoneyRow({ label, value, muted = false, strong = false }: { label: string; value: string; muted?: boolean; strong?: boolean }) {
-  return <div className={`flex items-center justify-between gap-4 ${muted ? "text-white/45" : ""} ${strong ? "border-t border-white/10 pt-3 text-base font-bold text-[#E8C985]" : ""}`}><span>{label}</span><span>{value}</span></div>;
+  return <div className={`flex items-center justify-between gap-4 ${muted ? "text-white/45" : ""} ${strong ? "border-t border-white/10 pt-2 text-sm font-bold text-[#E8C985]" : ""}`}><span>{label}</span><span>{value}</span></div>;
+}
+
+function distanceTo(restaurant: Pick<PartnerRestaurant, "latitude" | "longitude">, position: { latitude: number; longitude: number }) {
+  if (restaurant.latitude == null || restaurant.longitude == null) return Number.POSITIVE_INFINITY;
+  const radius = 6371;
+  const toRadians = (degrees: number) => degrees * Math.PI / 180;
+  const latitudeDelta = toRadians(restaurant.latitude - position.latitude);
+  const longitudeDelta = toRadians(restaurant.longitude - position.longitude);
+  const a = Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(toRadians(position.latitude)) * Math.cos(toRadians(restaurant.latitude)) * Math.sin(longitudeDelta / 2) ** 2;
+  return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDistance(distance: number) {
+  if (distance < 1) return `${Math.max(50, Math.round(distance * 1000 / 50) * 50)} m`;
+  return `${distance < 10 ? distance.toFixed(1) : Math.round(distance)} km`;
 }
