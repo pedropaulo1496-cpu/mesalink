@@ -1,5 +1,5 @@
 import type Stripe from "stripe";
-import { calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
+import { calculatePartnerInvoiceAmounts, calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { syncRestaurantBillingDetails } from "@/lib/stripe-billing-details";
@@ -48,6 +48,13 @@ export async function finalizeReferralAuthorization(sessionId: string) {
     platformFeePercent: Number(offer.platformFeePercent),
   });
   const serviceFee = calculateReferralServiceFee(amounts.gross);
+  const taxAmount = checkoutTaxAmount(session) / 100;
+  const partnerInvoice = calculatePartnerInvoiceAmounts({
+    partnerNet: amounts.partnerNet,
+    grossCommission: amounts.gross,
+    serviceFee,
+    taxAmount,
+  });
   const expectedSubtotalCents = Math.round((amounts.gross + serviceFee) * 100);
   if (
     session.amount_subtotal !== expectedSubtotalCents
@@ -121,8 +128,11 @@ export async function finalizeReferralAuthorization(sessionId: string) {
             platformFee: amounts.platformFee,
             partnerNet: amounts.partnerNet,
             serviceFee,
-            taxAmount: checkoutTaxAmount(session) / 100,
+            taxAmount,
             taxCountry: session.customer_details?.address?.country || null,
+            partnerInvoiceBase: partnerInvoice.base,
+            partnerInvoiceTax: partnerInvoice.tax,
+            partnerInvoiceTotal: partnerInvoice.total,
             status: "AUTHORIZED",
             stripeCheckoutSessionId: session.id,
             stripePaymentIntentId: paymentIntent.id,

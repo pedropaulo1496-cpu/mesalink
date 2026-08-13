@@ -20,7 +20,7 @@ export async function transferPartnerCommission(paymentId: string) {
 
   try {
     const transfer = await stripe.transfers.create({
-      amount: Math.round(Number(payment.partnerNet) * 100),
+      amount: Math.round(Number(payment.partnerInvoiceTotal || payment.partnerNet) * 100),
       currency: payment.currency.toLowerCase(),
       destination: payment.partner.stripeAccountId,
       transfer_group: `REFERRAL_${payment.groupId}`,

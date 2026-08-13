@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import BottomNav from "@/components/BottomNav";
+import RestaurantSidebar from "@/components/RestaurantSidebar";
 import { getLocale, getTranslations } from "next-intl/server";
 
 const dashboardDateLocales: Record<string, string> = {
@@ -160,8 +161,11 @@ export default async function CalendarPage({
   });
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#F5EFE6] px-4 py-5 pb-24 text-[#16120E] sm:px-6 lg:px-8 lg:py-7">
-      <div className="mx-auto max-w-7xl space-y-5">
+    <main className="min-h-screen overflow-x-hidden bg-[#F5EFE6] text-[#16120E]">
+      <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
+        <RestaurantSidebar id={id} restaurantName={restaurant.name} active="calendar" />
+        <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-7 lg:pt-7">
+          <div className="mx-auto max-w-7xl space-y-5">
         <header className="rounded-[32px] border border-[#E1D0B8] bg-white p-5 shadow-[0_22px_70px_rgba(80,55,30,0.055)] sm:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -414,9 +418,10 @@ export default async function CalendarPage({
             })}
           </div>
         </section>
+          </div>
+          <BottomNav id={id} />
+        </section>
       </div>
-
-      <BottomNav id={id} />
     </main>
   );
 }

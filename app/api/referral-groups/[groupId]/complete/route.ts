@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
+import { calculatePartnerInvoiceAmounts, calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { issueCapturedReferralInvoice } from "@/lib/referral-invoices";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
@@ -65,6 +65,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
     const originalTax = checkoutTaxAmount(checkout);
     const originalTotal = checkout.amount_total || originalSubtotal + originalTax;
     const targetTax = proportionalTaxAmount({ originalSubtotal, originalTax, targetSubtotal });
+    const partnerInvoice = calculatePartnerInvoiceAmounts({
+      partnerNet: amounts.partnerNet,
+      grossCommission: amounts.gross,
+      serviceFee,
+      taxAmount: targetTax / 100,
+    });
     const targetTotal = targetSubtotal + targetTax;
     const attendanceAdjustment = Math.max(0, originalTotal - targetTotal);
     const intent = await stripe.paymentIntents.retrieve(group.payment.stripePaymentIntentId);
@@ -99,6 +105,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
           serviceFee,
           taxAmount: targetTax / 100,
           taxCountry: checkout.customer_details?.address?.country || group.payment.taxCountry,
+          partnerInvoiceBase: partnerInvoice.base,
+          partnerInvoiceTax: partnerInvoice.tax,
+          partnerInvoiceTotal: partnerInvoice.total,
           refundedAmount: attendanceAdjustment / 100,
           status: "CAPTURED_AWAITING_PAYOUT",
           capturedAt: new Date(),

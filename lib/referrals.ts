@@ -38,6 +38,25 @@ export function calculateReferralServiceFee(grossCommission: number) {
   return roundCurrency(grossCommission * (MESALINK_REFERRAL_SERVICE_PERCENT / 100) + MESALINK_REFERRAL_SERVICE_FIXED);
 }
 
+export function calculatePartnerInvoiceAmounts({
+  partnerNet,
+  grossCommission,
+  serviceFee,
+  taxAmount,
+}: {
+  partnerNet: number;
+  grossCommission: number;
+  serviceFee: number;
+  taxAmount: number;
+}) {
+  const base = roundCurrency(Math.max(0, partnerNet));
+  const taxableSubtotal = Math.max(0, grossCommission) + Math.max(0, serviceFee);
+  const tax = taxableSubtotal > 0
+    ? roundCurrency(Math.max(0, taxAmount) * (base / taxableSubtotal))
+    : 0;
+  return { base, tax, total: roundCurrency(base + tax) };
+}
+
 export function createBenefitCardCode() {
   return `MLC-${randomBytes(5).toString("hex").toUpperCase()}`;
 }

@@ -23,7 +23,7 @@ export default async function PartnerPayoutsPage({ searchParams }: { searchParam
   const blocked = awaiting.filter((payment) => payment.partnerInvoiceStatus !== "VERIFIED" || !payment.partnerInvoiceUrl);
   const transferred = payments.filter((payment) => payment.status === "TRANSFERRED");
   const paid = payments.filter((payment) => payment.status === "PAID");
-  const sum = (items: typeof payments) => items.reduce((total, item) => total + Number(item.partnerNet), 0);
+  const sum = (items: typeof payments) => items.reduce((total, item) => total + Number(item.partnerInvoiceTotal || item.partnerNet), 0);
 
   return <>
     <DoneNotice done={done === "batch" ? `${count || 0} pagamentos semanais enviados.` : done} />
@@ -39,7 +39,7 @@ export default async function PartnerPayoutsPage({ searchParams }: { searchParam
         <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr_0.75fr_0.9fr_auto] lg:items-center">
           <div><p className="font-bold">{payment.partner.businessName}</p><p className="mt-1 text-xs text-[#74685B]">{payment.partner.contactName || payment.partner.email}</p></div>
           <div><p className="font-semibold">{payment.group.publicCode}</p><p className="mt-1 text-xs text-[#74685B]">{payment.group.acceptedRestaurant?.name || "Restaurante"}</p></div>
-          <div><p className="font-black text-[#6C4B25]">{euroAmount(Number(payment.partnerNet))}</p><p className="mt-1 text-[10px] text-[#8A7863]">MesaLink {euroAmount(Number(payment.platformFee))}</p></div>
+          <div><p className="font-black text-[#6C4B25]">{euroAmount(Number(payment.partnerInvoiceTotal || payment.partnerNet))}</p><p className="mt-1 text-[10px] text-[#8A7863]">Fatura: {euroAmount(Number(payment.partnerInvoiceBase || payment.partnerNet))} + {euroAmount(Number(payment.partnerInvoiceTax))} imposto · MesaLink {euroAmount(Number(payment.platformFee))}</p></div>
           <PaymentState status={payment.status} dueAt={payment.payoutDueAt} />
           <div>{staff.role === "ADMIN" && ["CAPTURED_AWAITING_PAYOUT", "TRANSFER_FAILED"].includes(payment.status) && (payment.partnerInvoiceStatus === "VERIFIED" ? <form action={processPartnerPayment}><input type="hidden" name="paymentId" value={payment.id} /><button className="h-10 rounded-full bg-[#17130F] px-4 text-xs font-bold text-white">Transferir</button></form> : <span className="text-[10px] font-black uppercase tracking-[0.1em] text-[#A14E36]">Pagamento bloqueado</span>)}{staff.role === "ADMIN" && payment.status === "TRANSFERRED" && <form action={confirmPartnerPayout}><input type="hidden" name="paymentId" value={payment.id} /><button className="h-10 rounded-full border border-[#9BC49B] bg-[#EFF8EF] px-4 text-xs font-bold text-[#3F6A4D]">Confirmar recebido</button></form>}</div>
         </div>

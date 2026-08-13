@@ -57,7 +57,10 @@ export default async function PartnerAppPage({
     );
   }
 
-  const restaurants = await prisma.restaurant.findMany({
+  const requestTime = new Date();
+  const invoiceCutoff = new Date(requestTime.getTime() - 24 * 60 * 60 * 1000);
+  const [restaurants, paidTotals, pendingTotals, invoicedTotals, toInvoiceTotals, acceptedGroupsCount, pendingGroupsCount] = await Promise.all([
+    prisma.restaurant.findMany({
     orderBy: { name: "asc" },
     select: {
       id: true,
@@ -104,7 +107,30 @@ export default async function PartnerAppPage({
         },
       },
     },
-  });
+    }),
+    prisma.referralPayment.aggregate({
+      where: { partnerId: partner.id, status: { in: ["TRANSFERRED", "PAID"] } },
+      _sum: { partnerInvoiceTotal: true, reversedAmount: true },
+    }),
+    prisma.referralPayment.aggregate({
+      where: { partnerId: partner.id, status: { in: ["AUTHORIZED", "CAPTURED_AWAITING_PAYOUT", "TRANSFER_PENDING"] } },
+      _sum: { partnerInvoiceTotal: true },
+    }),
+    prisma.referralPayment.aggregate({
+      where: { partnerId: partner.id, partnerInvoiceStatus: { in: ["PENDING", "VERIFIED"] } },
+      _sum: { partnerInvoiceTotal: true },
+    }),
+    prisma.referralPayment.aggregate({
+      where: {
+        partnerId: partner.id,
+        partnerInvoiceStatus: { in: ["MISSING", "REJECTED"] },
+        group: { status: { in: ["COMPLETED", "PAID"] }, desiredDate: { lte: invoiceCutoff } },
+      },
+      _sum: { partnerInvoiceTotal: true },
+    }),
+    prisma.referralGroup.count({ where: { partnerId: partner.id, status: { in: ["BOOKED", "COMPLETED", "PAID"] } } }),
+    prisma.referralGroup.count({ where: { partnerId: partner.id, status: "OPEN" } }),
+  ]);
 
   const restaurantOptions = restaurants.map((restaurant) => {
     const profile = buildPartnerProfile(restaurant);
@@ -126,10 +152,10 @@ export default async function PartnerAppPage({
     };
   });
 
-  const paidRevenue = partner.groups.filter((group) => ["TRANSFERRED", "PAID"].includes(group.payment?.status || "")).reduce((total, group) => total + Math.max(0, Number(group.payment?.partnerNet || 0) - Number(group.payment?.reversedAmount || 0)), 0);
-  const pendingRevenue = partner.groups.filter((group) => ["AUTHORIZED", "CAPTURED_AWAITING_PAYOUT", "TRANSFER_PENDING"].includes(group.payment?.status || "")).reduce((total, group) => total + Number(group.payment?.partnerNet || 0), 0);
-  const acceptedGroups = partner.groups.filter((group) => ["ACCEPTED", "BOOKED", "COMPLETED", "PAID"].includes(group.status));
-  const pendingGroups = partner.groups.filter((group) => group.status === "OPEN");
+  const paidRevenue = Math.max(0, Number(paidTotals._sum.partnerInvoiceTotal || 0) - Number(paidTotals._sum.reversedAmount || 0));
+  const pendingRevenue = Number(pendingTotals._sum.partnerInvoiceTotal || 0);
+  const invoicedRevenue = Number(invoicedTotals._sum.partnerInvoiceTotal || 0);
+  const toInvoiceRevenue = Number(toInvoiceTotals._sum.partnerInvoiceTotal || 0);
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
@@ -168,11 +194,13 @@ export default async function PartnerAppPage({
           <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Privacidade ativa</div>
         </section>
 
-        <section className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Kpi icon={<Euro size={18} />} label="Por receber" value={formatMoney(pendingRevenue)} />
-          <Kpi icon={<Euro size={18} />} label="Já recebido" value={formatMoney(paidRevenue)} />
-          <Kpi icon={<UsersRound size={18} />} label="Grupos aceites" value={String(acceptedGroups.length)} />
-          <Kpi icon={<Clock3 size={18} />} label="A aguardar" value={String(pendingGroups.length)} />
+        <section className="mt-6 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+          <Kpi icon={<Euro size={15} />} label="Faturado · base" value={formatMoney(invoicedRevenue)} />
+          <Kpi icon={<Euro size={15} />} label="Por faturar" value={formatMoney(toInvoiceRevenue)} />
+          <Kpi icon={<Clock3 size={15} />} label="Por receber" value={formatMoney(pendingRevenue)} />
+          <Kpi icon={<Euro size={15} />} label="Já recebido" value={formatMoney(paidRevenue)} />
+          <Kpi icon={<UsersRound size={15} />} label="Grupos aceites" value={String(acceptedGroupsCount)} />
+          <Kpi icon={<Clock3 size={15} />} label="A aguardar" value={String(pendingGroupsCount)} />
         </section>
 
         <NewReferralGroupForm restaurants={restaurantOptions} defaultCommissionType={partner.defaultCommissionType} defaultCommissionAmount={1} publishingEnabled={partner.stripeOnboardingComplete} />
@@ -186,7 +214,7 @@ export default async function PartnerAppPage({
               const accepted = group.acceptedRestaurant?.name;
               return <div key={group.id} className="grid gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-4 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} /></div><p className="mt-2 text-sm text-[#6B6258]">{group.actualGuests != null ? `${group.actualGuests} pessoas confirmadas · pedido inicial ${group.guests}` : groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · {accepted || `${group.offers.filter((offer) => offer.status === "PENDING").length} respostas pendentes`}</p><PartnerInvoiceState group={group} /></div>
-                <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">{partnerPaymentLabel(group.payment?.status)}</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(Number(group.payment?.partnerNet || amounts.partnerNet))}</p><p className="text-[9px] text-[#8A7863]">base · impostos conforme fatura</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
+                <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">{partnerPaymentLabel(group.payment?.status)}</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(Number(group.payment?.partnerInvoiceTotal || group.payment?.partnerNet || amounts.partnerNet))}</p><p className="text-[9px] text-[#8A7863]">total a faturar/receber</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
               </div>;
             })}
             {partner.groups.length === 0 && <div className="rounded-[24px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-8 text-center text-sm text-[#6B6258]">O primeiro grupo que publicares aparece aqui.</div>}
@@ -207,6 +235,10 @@ type PartnerHistoryGroup = {
     partnerInvoiceUrl: string | null;
     partnerInvoiceNumber: string | null;
     partnerInvoiceRejectionReason: string | null;
+    partnerInvoiceBase: unknown;
+    partnerInvoiceTax: unknown;
+    partnerInvoiceTotal: unknown;
+    currency: string;
   };
   acceptedRestaurant: null | {
     billingLegalName: string | null;
@@ -238,11 +270,11 @@ function PartnerInvoiceState({ group }: { group: PartnerHistoryGroup }) {
   } : undefined;
   if (payment.partnerInvoiceStatus === "VERIFIED") return <div className="mt-3 flex flex-wrap items-center gap-2"><a href={payment.partnerInvoiceUrl} target="_blank" rel="noreferrer" className="text-xs font-black text-[#3F6A4D] underline">Fatura {payment.partnerInvoiceNumber} · abrir PDF</a><span className="rounded-full bg-[#E7F4E7] px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-[#3F6A4D]">Verificada · pagamento autorizado</span></div>;
   if (payment.partnerInvoiceStatus === "PENDING") return <div className="mt-3 flex flex-wrap items-center gap-2"><a href={payment.partnerInvoiceUrl} target="_blank" rel="noreferrer" className="text-xs font-black text-[#6C4B25] underline">Fatura {payment.partnerInvoiceNumber} · abrir PDF</a><span className="rounded-full bg-[#FFF0CB] px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-[#7A592F]">Em verificação</span></div>;
-  return <>{payment.partnerInvoiceStatus === "REJECTED" && <p className="mt-3 rounded-xl border border-[#E8C8B9] bg-[#FFF0EA] p-3 text-xs font-semibold text-[#934A35]">Fatura rejeitada: {payment.partnerInvoiceRejectionReason || "corrige os dados e volta a anexar."}</p>}<PartnerInvoiceUpload groupId={group.id} recipient={recipient} /></>;
+  return <>{payment.partnerInvoiceStatus === "REJECTED" && <p className="mt-3 rounded-xl border border-[#E8C8B9] bg-[#FFF0EA] p-3 text-xs font-semibold text-[#934A35]">Fatura rejeitada: {payment.partnerInvoiceRejectionReason || "corrige os dados e volta a anexar."}</p>}<PartnerInvoiceUpload groupId={group.id} recipient={recipient} amount={{ base: Number(payment.partnerInvoiceBase), tax: Number(payment.partnerInvoiceTax), total: Number(payment.partnerInvoiceTotal), currency: payment.currency }} /></>;
 }
 
 function Kpi({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return <div className="rounded-[26px] border border-[#E1D0B8] bg-white p-4 sm:p-5"><div className="text-[#9B6F3B]">{icon}</div><p className="mt-4 text-2xl font-semibold tracking-[-0.04em]">{value}</p><p className="mt-1 text-[10px] font-black uppercase tracking-[0.15em] text-[#8B7D6D]">{label}</p></div>;
+  return <div className="rounded-[16px] border border-[#E1D0B8] bg-white p-3"><div className="flex items-center gap-1.5 text-[#9B6F3B]">{icon}<p className="text-[7px] font-black uppercase tracking-[0.1em] text-[#8B7D6D]">{label}</p></div><p className="mt-1.5 text-lg font-semibold tracking-[-0.04em]">{value}</p></div>;
 }
 
 function Status({ status }: { status: string }) {

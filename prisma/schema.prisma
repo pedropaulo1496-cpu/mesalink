@@ -1156,6 +1156,9 @@ model ReferralPayment {
   payoutConfirmedAt             DateTime?
   partnerInvoiceUrl             String?
   partnerInvoiceNumber          String?
+  partnerInvoiceBase            Decimal   @default(0) @db.Decimal(10, 2)
+  partnerInvoiceTax             Decimal   @default(0) @db.Decimal(10, 2)
+  partnerInvoiceTotal           Decimal   @default(0) @db.Decimal(10, 2)
   partnerInvoiceUploadedAt      DateTime?
   partnerInvoiceStatus          String    @default("MISSING")
   partnerInvoiceVerifiedAt      DateTime?

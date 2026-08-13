@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { recordSalesCommission } from "@/lib/sales-commissions";
 import { finalizeReferralAuthorization } from "@/lib/referral-authorization";
+import { calculatePartnerInvoiceAmounts } from "@/lib/referrals";
 import { syncRestaurantBillingDetails, syncUserRestaurantBillingDetails } from "@/lib/stripe-billing-details";
 import {
   handleDomainChargeDispute,
@@ -179,6 +180,13 @@ async function settleReferralSession(session: Stripe.Checkout.Session) {
     ? paymentIntent.latest_charge
     : paymentIntent.latest_charge?.id;
   if (!chargeId) throw new Error("Missing referral charge");
+  const taxAmount = (session.total_details?.amount_tax || 0) / 100;
+  const partnerInvoice = calculatePartnerInvoiceAmounts({
+    partnerNet: Number(payment.partnerNet),
+    grossCommission: Number(payment.grossCommission),
+    serviceFee: Number(payment.serviceFee),
+    taxAmount,
+  });
 
   await prisma.referralPayment.update({
     where: { id: payment.id },
@@ -187,8 +195,11 @@ async function settleReferralSession(session: Stripe.Checkout.Session) {
       stripeCheckoutSessionId: session.id,
       stripePaymentIntentId: paymentIntentId,
       stripeChargeId: chargeId,
-      taxAmount: (session.total_details?.amount_tax || 0) / 100,
+      taxAmount,
       taxCountry: session.customer_details?.address?.country || null,
+      partnerInvoiceBase: partnerInvoice.base,
+      partnerInvoiceTax: partnerInvoice.tax,
+      partnerInvoiceTotal: partnerInvoice.total,
       paidAt: new Date(),
       lastError: null,
     },
@@ -234,16 +245,11 @@ async function handleReferralRefund(charge: Stripe.Charge) {
     });
     return;
   }
-  const grossCommissionCents = Math.round(Number(payment.grossCommission) * 100);
-  const partnerNetCents = Math.round(Number(payment.partnerNet) * 100);
+  const partnerPayoutCents = Math.round(Number(payment.partnerInvoiceTotal || payment.partnerNet) * 100);
   const collectedAfterAttendanceAdjustment = Math.max(1, charge.amount - attendanceAdjustmentCents);
-  const commissionRefundedCents = Math.min(
-    grossCommissionCents,
-    Math.round((grossRefundedCents / collectedAfterAttendanceAdjustment) * grossCommissionCents),
-  );
   const desiredReversalCents = Math.min(
-    partnerNetCents,
-    Math.round((commissionRefundedCents / Math.max(1, grossCommissionCents)) * partnerNetCents),
+    partnerPayoutCents,
+    Math.round((grossRefundedCents / collectedAfterAttendanceAdjustment) * partnerPayoutCents),
   );
   const alreadyReversedCents = Math.round(Number(payment.reversedAmount) * 100);
   const reversalDelta = Math.max(0, desiredReversalCents - alreadyReversedCents);
@@ -285,7 +291,7 @@ async function handleChargeDispute(dispute: Stripe.Dispute) {
 
   const payment = await prisma.referralPayment.findUnique({ where: { stripeChargeId: chargeId } });
   if (!payment) return;
-  const partnerNetCents = Math.round(Number(payment.partnerNet) * 100);
+  const partnerNetCents = Math.round(Number(payment.partnerInvoiceTotal || payment.partnerNet) * 100);
   const reversedCents = Math.round(Number(payment.reversedAmount) * 100);
   const reversalDelta = Math.max(0, partnerNetCents - reversedCents);
 
