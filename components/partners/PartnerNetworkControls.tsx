@@ -1,9 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { FileUploadField } from "@/components/FileUploadField";
-import { ImageUploadField } from "@/components/ImageUploadField";
-import { REFERRAL_CUISINE_TAGS, isReferralCuisineTag } from "@/lib/referral-tags";
 
 export function ReferralBookingSettingsForm({
   restaurantId,
@@ -20,12 +17,14 @@ export function ReferralBookingSettingsForm({
   initialDefaultDailyCapacity: number;
   initialAutoAcceptEnabled: boolean;
   paymentMethodReady: boolean;
-  initialDailyCapacities: Array<{ date: string; capacity: number }>;
+  initialDailyCapacities: Array<{ date: string; capacity: number; enabled: boolean }>;
 }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [dailyCapacities, setDailyCapacities] = useState(initialDailyCapacities);
   const [capacityLoading, setCapacityLoading] = useState(false);
+  const [exceptionDate, setExceptionDate] = useState("");
+  const [exceptionCapacity, setExceptionCapacity] = useState(String(initialDefaultDailyCapacity || ""));
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -47,6 +46,25 @@ export function ReferralBookingSettingsForm({
     setMessage(response.ok ? "Definições guardadas." : result.error || "Não foi possível guardar.");
   }
 
+  async function saveDate(enabled: boolean) {
+    if (!exceptionDate) return setMessage("Escolhe primeiro o dia.");
+    const capacity = enabled ? Number(exceptionCapacity) : 0;
+    if (enabled && (!Number.isInteger(capacity) || capacity < 1)) return setMessage("Indica quantos lugares queres abrir nesse dia.");
+    setCapacityLoading(true);
+    setMessage("");
+    const response = await fetch(`/api/restaurants/${restaurantId}/referral-capacity`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: exceptionDate, capacity, enabled }),
+    });
+    const result = await response.json();
+    setCapacityLoading(false);
+    if (!response.ok) return setMessage(result.error || "Não foi possível guardar o dia.");
+    setDailyCapacities((items) => [...items.filter((item) => item.date !== exceptionDate), { date: exceptionDate, capacity, enabled }].sort((a, b) => a.date.localeCompare(b.date)));
+    setExceptionDate("");
+    setExceptionCapacity(String(initialDefaultDailyCapacity || ""));
+  }
+
   return (
     <>
       {!paymentMethodReady && <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-[#E5CF9D] bg-[#FFF7E5] p-3"><div><p className="text-xs font-bold text-[#6E512A]">1. Validar garantia de pagamento</p><p className="mt-0.5 text-[9px] text-[#80613D]">É feito uma única vez e não cobra nada agora.</p></div><form action={`/api/restaurants/${restaurantId}/referral-auto-accept/setup`} method="POST"><button className="h-8 rounded-full bg-[#17120D] px-4 text-[9px] font-bold text-white">Validar cartão</button></form></div>}
@@ -63,33 +81,30 @@ export function ReferralBookingSettingsForm({
       </form>
 
       <details className="group mt-3 rounded-[13px] border border-[#E7D9C6] bg-[#FFFDFC]">
-        <summary className="flex cursor-pointer list-none items-center justify-between px-3.5 py-2.5 text-[10px] font-bold"><span>Exceções de capacidade por data</span><span className="text-[#9B6F3B] group-open:hidden">Opcional ↓</span><span className="hidden text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
+        <summary className="flex cursor-pointer list-none items-center justify-between px-3.5 py-2.5 text-[10px] font-bold"><span>Alterar disponibilidade num dia</span><span className="text-[#9B6F3B] group-open:hidden">Abrir ↓</span><span className="hidden text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
         <div className="border-t border-[#E7D9C6] p-3">
-      <form onSubmit={async (event) => {
-        event.preventDefault();
-        setCapacityLoading(true);
-        const data = new FormData(event.currentTarget);
-        const date = String(data.get("date") || "");
-        const capacity = Number(data.get("capacity"));
-        const response = await fetch(`/api/restaurants/${restaurantId}/referral-capacity`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date, capacity }) });
-        const result = await response.json();
-        setCapacityLoading(false);
-        if (!response.ok) return setMessage(result.error || "Não foi possível guardar a data.");
-        setDailyCapacities((items) => [...items.filter((item) => item.date !== date), { date, capacity }].sort((a, b) => a.date.localeCompare(b.date)));
-        event.currentTarget.reset();
-      }} className="grid grid-cols-[1fr_90px_auto] gap-2">
-        <input name="date" type="date" required className="input-premium h-9 text-xs" />
-        <input name="capacity" type="number" min="0" max="2000" placeholder="Lugares" required className="input-premium h-9 text-xs" />
-        <button disabled={capacityLoading} className="h-9 rounded-full border border-[#CBB795] bg-white px-3 text-[9px] font-bold disabled:opacity-50">Adicionar</button>
-      </form>
-      {dailyCapacities.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{dailyCapacities.map((item) => <div key={item.date} className="inline-flex items-center gap-2 rounded-full border border-[#D8C6A9] bg-white py-1 pl-3 pr-1 text-[10px]"><span>{new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "short" }).format(new Date(`${item.date}T12:00:00Z`))} · <strong>{item.capacity} lugares</strong></span><button type="button" onClick={async () => { const response = await fetch(`/api/restaurants/${restaurantId}/referral-capacity`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date: item.date }) }); if (response.ok) setDailyCapacities((items) => items.filter((row) => row.date !== item.date)); }} className="grid h-7 w-7 place-items-center rounded-full bg-[#F6EBDD] font-black text-[#9A563F]" aria-label={`Remover ${item.date}`}>×</button></div>)}</div>}
+          <div className="grid gap-2 sm:grid-cols-[150px_100px_auto_auto] sm:items-center">
+            <input value={exceptionDate} onChange={(event) => setExceptionDate(event.target.value)} type="date" aria-label="Dia" className="input-premium h-9 text-xs" />
+            <input value={exceptionCapacity} onChange={(event) => setExceptionCapacity(event.target.value)} type="number" min="1" max="2000" placeholder="Lugares" aria-label="Lugares disponíveis" className="input-premium h-9 text-xs" />
+            <button type="button" onClick={() => saveDate(true)} disabled={capacityLoading} className="h-9 rounded-full border border-[#CBB795] bg-white px-3 text-[9px] font-bold disabled:opacity-50">Guardar lugares</button>
+            <button type="button" onClick={() => saveDate(false)} disabled={capacityLoading} className="h-9 rounded-full bg-[#17120D] px-3 text-[9px] font-bold text-white disabled:opacity-50">Ficar offline neste dia</button>
+          </div>
+          {dailyCapacities.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{dailyCapacities.map((item) => <div key={item.date} className={`inline-flex items-center gap-2 rounded-full border py-1 pl-3 pr-1 text-[10px] ${item.enabled ? "border-[#C9DCC6] bg-[#F2FAF1] text-[#405C42]" : "border-[#E0B7A8] bg-[#FFF0EA] text-[#934A35]"}`}><span>{new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "short" }).format(new Date(`${item.date}T12:00:00Z`))} · <strong>{item.enabled ? `${item.capacity} lugares` : "Offline"}</strong></span><button type="button" onClick={async () => { const response = await fetch(`/api/restaurants/${restaurantId}/referral-capacity`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date: item.date }) }); if (response.ok) setDailyCapacities((items) => items.filter((row) => row.date !== item.date)); }} className="grid h-7 w-7 place-items-center rounded-full bg-white/80 font-black" aria-label={`Remover exceção de ${item.date}`}>×</button></div>)}</div>}
         </div>
       </details>
     </>
   );
 }
 
-export function ReferralAgreementForm({ restaurantId }: { restaurantId: string }) {
+export function ReferralAgreementForm({
+  restaurantId,
+  initialAgreements,
+  initialRequests,
+}: {
+  restaurantId: string;
+  initialAgreements: Array<{ id: string; partnerName: string; partnerEmail: string; commissionType: "PER_PERSON" | "TOTAL"; commissionAmount: number }>;
+  initialRequests: Array<{ id: string; partnerName: string; partnerEmail: string; commissionType: "PER_PERSON" | "TOTAL"; commissionAmount: number }>;
+}) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
@@ -112,15 +127,20 @@ export function ReferralAgreementForm({ restaurantId }: { restaurantId: string }
   }
 
   return (
-    <form onSubmit={submit} className="mt-5 space-y-3">
-      <input name="partnerEmail" type="email" required placeholder="Email da conta MesaLink Partner" className="input-premium h-12" />
-      <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
-        <select name="commissionType" defaultValue="PER_PERSON" className="input-premium h-12"><option value="PER_PERSON">Por pessoa</option><option value="TOTAL">Total</option></select>
-        <input name="commissionAmount" type="number" min="1" max="1000" step="0.01" defaultValue="5" required className="input-premium h-12" />
+    <details className="group mt-3 rounded-[13px] border border-[#E7D9C6] bg-[#FFFDFC]">
+      <summary className="flex cursor-pointer list-none items-center justify-between px-3.5 py-2.5 text-[10px] font-bold"><span>Comissão diferente por parceiro {initialAgreements.length > 0 ? `· ${initialAgreements.length}` : ""}</span><span className="text-[#9B6F3B] group-open:hidden">Acrescentar ↓</span><span className="hidden text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
+      <div className="border-t border-[#E7D9C6] p-3">
+        {initialRequests.length > 0 && <div className="mb-3 space-y-2"><p className="text-[9px] font-black uppercase tracking-[0.12em] text-[#9B6F3B]">Pedidos por responder</p>{initialRequests.map((request) => <div key={request.id} className="flex flex-wrap items-center justify-between gap-2 rounded-[11px] border border-[#E5CF9D] bg-[#FFF7E5] px-3 py-2"><p className="text-[9px]"><strong>{request.partnerName}</strong> propõe <strong>{request.commissionAmount.toLocaleString("pt-PT", { minimumFractionDigits: 2 })} € {request.commissionType === "PER_PERSON" ? "/ pessoa" : "total"}</strong></p><div className="flex gap-1.5"><button type="button" onClick={() => respondToCommissionRequest(restaurantId, request.id, "REJECT")} className="h-7 rounded-full border border-[#D8C6A9] bg-white px-3 text-[8px] font-bold">Recusar</button><button type="button" onClick={() => respondToCommissionRequest(restaurantId, request.id, "ACCEPT")} className="h-7 rounded-full bg-[#17120D] px-3 text-[8px] font-bold text-white">Aceitar</button></div></div>)}</div>}
+        <form onSubmit={submit} className="grid gap-2 sm:grid-cols-[minmax(220px,1fr)_130px_90px_auto] sm:items-end">
+          <label className="text-[9px] font-bold text-[#75695D]">Parceiro<input name="partnerEmail" type="email" required placeholder="email da conta Partner" className="input-premium mt-1 h-9 text-xs" /></label>
+          <label className="text-[9px] font-bold text-[#75695D]">Tipo<select name="commissionType" defaultValue="PER_PERSON" className="input-premium mt-1 h-9 text-xs"><option value="PER_PERSON">Por pessoa</option><option value="TOTAL">Total</option></select></label>
+          <label className="text-[9px] font-bold text-[#75695D]">Valor (€)<input name="commissionAmount" type="number" min="0.5" max="1000" step="0.01" defaultValue="1.5" required className="input-premium mt-1 h-9 text-xs" /></label>
+          <button disabled={loading} className="h-9 rounded-full bg-[#17120D] px-4 text-[9px] font-bold text-white disabled:opacity-50">{loading ? "A guardar…" : "Adicionar"}</button>
+        </form>
+        {message && <p className={`mt-2 text-[9px] font-semibold ${success ? "text-[#3F6A4D]" : "text-[#A14E36]"}`}>{message}</p>}
+        {initialAgreements.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{initialAgreements.map((agreement) => <div key={agreement.id} className="inline-flex items-center gap-2 rounded-full border border-[#D8C6A9] bg-white py-1 pl-3 pr-1 text-[9px]"><span><strong>{agreement.partnerName}</strong> · {agreement.commissionAmount.toLocaleString("pt-PT", { minimumFractionDigits: 2 })} € {agreement.commissionType === "PER_PERSON" ? "/ pessoa" : "total"}</span><button type="button" onClick={async () => { const response = await fetch(`/api/restaurants/${restaurantId}/referral-agreements`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agreementId: agreement.id }) }); if (response.ok) window.location.reload(); }} className="grid h-7 w-7 place-items-center rounded-full bg-[#F6EBDD] font-black text-[#9A563F]" aria-label={`Remover exceção de ${agreement.partnerName}`}>×</button></div>)}</div>}
       </div>
-      {message && <p className={`rounded-xl px-3 py-2 text-xs font-semibold ${success ? "bg-[#EFF9EF] text-[#3F6A4D]" : "bg-[#FFF0EA] text-[#A14E36]"}`}>{message}</p>}
-      <button disabled={loading} className="h-12 rounded-full border border-[#CBB795] bg-[#FFF9F0] px-6 text-sm font-bold disabled:opacity-50">{loading ? "A guardar…" : "Criar acordo"}</button>
-    </form>
+    </details>
   );
 }
 
@@ -130,15 +150,12 @@ export function PartnerProfileSettingsForm({
   cuisine,
   description,
   heroImage,
-  gallery,
-  highlights,
-  menuUrl,
+  address,
   googleMapsUrl,
   googleRating,
   googleReviewCount,
   googlePriceLevel,
   googleBusinessConnected,
-  googleBusinessPhotoCount,
   googleBusinessReady,
 }: {
   restaurantId: string;
@@ -146,77 +163,29 @@ export function PartnerProfileSettingsForm({
   cuisine: string;
   description: string;
   heroImage: string;
-  gallery: string[];
-  highlights: string[];
-  menuUrl: string;
+  address: string;
   googleMapsUrl: string;
   googleRating: number | null;
   googleReviewCount: number | null;
   googlePriceLevel: number | null;
   googleBusinessConnected: boolean;
-  googleBusinessPhotoCount: number;
   googleBusinessReady: boolean;
 }) {
-  const [profileCuisine, setProfileCuisine] = useState(isReferralCuisineTag(cuisine) ? cuisine : "");
-  const [profileDescription, setProfileDescription] = useState(description);
-  const [profileHeroImage, setProfileHeroImage] = useState(heroImage);
-  const [profileGallery, setProfileGallery] = useState(gallery.slice(0, 6));
-  const [profileHighlights, setProfileHighlights] = useState(highlights.join("\n"));
-  const [profileMenuUrl, setProfileMenuUrl] = useState(menuUrl);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [success, setSuccess] = useState(false);
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setLoading(true);
-    setMessage("");
-    const data = new FormData(event.currentTarget);
-    const response = await fetch(`/api/restaurants/${restaurantId}/referral-profile`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(data.entries())),
-    });
-    const result = await response.json();
-    setLoading(false);
-    setSuccess(response.ok);
-    setMessage(response.ok ? "Mini-perfil guardado e atualizado na app dos parceiros." : result.error || "Não foi possível guardar.");
-  }
-
   return (
-    <form onSubmit={submit} className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
-      <div className="space-y-3">
-        <div className="grid gap-2 sm:grid-cols-[190px_minmax(0,1fr)]">
-          <label className="block"><span className="mb-1 block text-[10px] font-bold text-[#655A4E]">Cozinha *</span><select name="cuisine" value={profileCuisine} onChange={(event) => setProfileCuisine(event.target.value)} required className="input-premium h-10"><option value="" disabled>Escolher</option>{REFERRAL_CUISINE_TAGS.map((tag) => <option key={tag} value={tag}>{tag}</option>)}</select></label>
-          <label className="block"><span className="mb-1 block text-[10px] font-bold text-[#655A4E]">Descrição curta</span><textarea name="description" value={profileDescription} onChange={(event) => setProfileDescription(event.target.value)} maxLength={700} rows={2} className="input-premium min-h-20 py-2.5 text-sm" /></label>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-[#CFE0CC] bg-[#F3FAF2] p-3">
-          <div><p className="text-xs font-bold text-[#405C42]">Google Maps</p><p className="mt-0.5 text-[9px] text-[#587255]">Fotografias, avaliação e localização automáticas.</p></div>
-          <div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[8px] font-black uppercase ${googleBusinessConnected ? "bg-[#DDEEDB] text-[#3F6A4D]" : "bg-[#FFF0CB] text-[#7A592F]"}`}>{googleBusinessConnected ? `Ligado · ${googleBusinessPhotoCount} fotos` : "Por ligar"}</span><button type="button" onClick={() => submitExternalForm(`/api/restaurants/${restaurantId}/google-business/${googleBusinessConnected ? "sync" : "connect"}`)} disabled={!googleBusinessReady} className="h-8 rounded-full bg-[#17120D] px-3 text-[9px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-35">{googleBusinessConnected ? "Atualizar" : "Associar"}</button>{googleMapsUrl && <a href={googleMapsUrl} target="_blank" rel="noreferrer" className="text-[9px] font-bold text-[#456846] underline">Abrir Maps</a>}</div>
-          {!googleBusinessReady && <p className="w-full text-[9px] text-[#80613D]">Ligação automática disponível assim que o Google aprovar o acesso central do MesaLink.</p>}
-        </div>
-
-        <details className="group rounded-[14px] border border-[#E1D0B8] bg-[#FFF9F0]">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-3.5 py-3 text-[10px] font-bold"><span>Personalização opcional</span><span className="text-[#9B6F3B] group-open:hidden">Abrir ↓</span><span className="hidden text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
-          <div className="space-y-3 border-t border-[#E1D0B8] p-3">
-            <div className="grid gap-2 sm:grid-cols-2"><label className="block"><span className="mb-1 block text-[9px] font-bold text-[#655A4E]">Destaques · um por linha</span><textarea name="highlights" value={profileHighlights} onChange={(event) => setProfileHighlights(event.target.value)} rows={2} className="input-premium min-h-20 py-2.5 text-xs" /></label><div><p className="mb-1 text-[9px] font-bold text-[#655A4E]">Menu em PDF</p><FileUploadField value={profileMenuUrl} onChange={setProfileMenuUrl} /></div></div>
-            <div><p className="mb-2 text-[9px] font-bold text-[#655A4E]">Fotografias próprias · substituem as do Google</p><div className="grid grid-cols-3 gap-2 sm:grid-cols-5"><ImageUploadField value={profileHeroImage} onChange={setProfileHeroImage} compact />{profileGallery.slice(0, 3).map((image, index) => <ImageUploadField key={`${image}-${index}`} value={image} onChange={(url) => setProfileGallery((items) => url ? items.map((item, itemIndex) => itemIndex === index ? url : item) : items.filter((_, itemIndex) => itemIndex !== index))} compact />)}{profileGallery.length < 6 && <ImageUploadField value="" onChange={(url) => url && setProfileGallery((items) => [...items, url].slice(0, 6))} compact />}</div></div>
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_80px_100px_110px]"><input name="googleMapsUrl" type="url" defaultValue={googleMapsUrl} placeholder="Link Google Maps" className="input-premium h-9 text-xs" /><input name="googleRating" type="number" min="1" max="5" step="0.1" defaultValue={googleRating ?? ""} placeholder="Nota" aria-label="Avaliação Google" className="input-premium h-9 text-xs" /><input name="googleReviewCount" type="number" min="0" step="1" defaultValue={googleReviewCount ?? ""} placeholder="Reviews" aria-label="Número de reviews Google" className="input-premium h-9 text-xs" /><select name="googlePriceLevel" defaultValue={googlePriceLevel ?? ""} aria-label="Faixa de preços Google" className="input-premium h-9 text-xs"><option value="">Preço</option><option value="1">€</option><option value="2">€€</option><option value="3">€€€</option><option value="4">€€€€</option></select></div>
-          </div>
-        </details>
-        <input type="hidden" name="heroImage" value={profileHeroImage} />
-        <input type="hidden" name="gallery" value={profileGallery.join("\n")} />
-        <input type="hidden" name="menuUrl" value={profileMenuUrl} />
-        {message && <p className={`rounded-xl px-3 py-2 text-[10px] font-semibold ${success ? "bg-[#EFF9EF] text-[#3F6A4D]" : "bg-[#FFF0EA] text-[#A14E36]"}`}>{message}</p>}
-        <button disabled={loading} className="h-9 rounded-full bg-[#17120D] px-5 text-[10px] font-bold text-white disabled:opacity-50">{loading ? "A guardar…" : "Guardar perfil"}</button>
+    <div className="grid gap-3 rounded-[14px] bg-[#FBF8F3] p-3 sm:grid-cols-[72px_minmax(0,1fr)_auto] sm:items-center">
+      {heroImage ? <span className="h-[72px] rounded-[12px] bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${heroImage})` }} /> : <span className="grid h-[72px] place-items-center rounded-[12px] bg-[#EADCC7] text-[8px] font-black uppercase tracking-[0.12em] text-[#8A6D49]">Google</span>}
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2"><p className="text-sm font-bold">{restaurantName}</p><span className={`rounded-full px-2 py-0.5 text-[7px] font-black uppercase tracking-[0.08em] ${googleBusinessConnected ? "bg-[#DDEEDB] text-[#3F6A4D]" : "bg-[#FFF0CB] text-[#7A592F]"}`}>{googleBusinessConnected ? "Google ligado" : "Google por ligar"}</span></div>
+        <p className="mt-0.5 text-[10px] font-semibold text-[#80613D]">{cuisine || "Restaurante"}{googleRating != null ? ` · ★ ${googleRating.toFixed(1)}${googleReviewCount != null ? ` (${googleReviewCount})` : ""}` : ""}{googlePriceLevel ? ` · ${"€".repeat(googlePriceLevel)}` : ""}</p>
+        {address && <p className="mt-1 truncate text-[9px] text-[#75695D]">{address}</p>}
+        {description && <p className="mt-1 line-clamp-1 text-[9px] text-[#75695D]">{description}</p>}
       </div>
-
-      <aside className="overflow-hidden rounded-[16px] border border-[#E1D0B8] bg-[#FFFDFC] xl:self-start">
-        {profileHeroImage ? <div className="h-24 bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${profileHeroImage})` }} /> : <div className="grid h-24 place-items-center bg-[#EADCC7] text-[9px] font-black uppercase tracking-[0.12em] text-[#8A6D49]">Imagem automática</div>}
-        <div className="p-3.5"><div className="flex items-center justify-between gap-2"><div><p className="text-[8px] font-black uppercase tracking-[0.14em] text-[#9B6F3B]">Como aparece</p><p className="mt-1 text-base font-semibold">{restaurantName}</p></div>{googleRating != null && <span className="text-[10px] font-bold text-[#A36D19]">★ {googleRating.toFixed(1)}</span>}</div><p className="mt-0.5 text-[10px] font-bold text-[#80613D]">{profileCuisine || "Restaurante"}</p><p className="mt-2 line-clamp-2 text-[10px] leading-4 text-[#6B6258]">{profileDescription}</p><div className="mt-2 flex flex-wrap gap-1">{profileHighlights.split(/\r?\n/).map((item) => item.trim()).filter(Boolean).slice(0, 2).map((item) => <span key={item} className="rounded-full bg-[#F1E6D5] px-2 py-0.5 text-[8px] font-bold text-[#795D38]">{item}</span>)}</div></div>
-      </aside>
-    </form>
+      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+        <button type="button" onClick={() => submitExternalForm(`/api/restaurants/${restaurantId}/google-business/${googleBusinessConnected ? "sync" : "connect"}`)} disabled={!googleBusinessReady} className="h-8 rounded-full bg-[#17120D] px-3 text-[9px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-35">{googleBusinessConnected ? "Atualizar Google" : "Associar Google"}</button>
+        {googleMapsUrl && <a href={googleMapsUrl} target="_blank" rel="noreferrer" className="h-8 rounded-full border border-[#CBB795] px-3 py-2 text-[9px] font-bold text-[#6F573A]">Abrir Maps</a>}
+        <p className="w-full text-[8px] leading-3 text-[#80613D]">{googleBusinessReady ? "Avaliação, preço, localização e fotografias vêm do Google e não podem ser alterados aqui." : "A integração central MesaLink aguarda aprovação do Google. Depois, cada restaurante autoriza o seu perfil uma vez."}</p>
+      </div>
+    </div>
   );
 }
 
@@ -226,4 +195,13 @@ function submitExternalForm(action: string) {
   form.action = action;
   document.body.appendChild(form);
   form.submit();
+}
+
+async function respondToCommissionRequest(restaurantId: string, requestId: string, action: "ACCEPT" | "REJECT") {
+  const response = await fetch(`/api/restaurants/${restaurantId}/referral-commission-requests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ requestId, action }),
+  });
+  if (response.ok) window.location.reload();
 }

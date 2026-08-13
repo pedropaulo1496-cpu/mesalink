@@ -55,6 +55,11 @@ export async function POST(request: Request) {
         referralPaymentMethodId: true,
         referralProfileCuisine: true,
         websiteCuisine: true,
+        referralAgreements: {
+          where: { partnerId: partner.id, active: true },
+          take: 1,
+          select: { commissionType: true, commissionAmount: true },
+        },
       },
     });
     const isDemo = Boolean(restaurant?.slug.includes("demo"));
@@ -62,8 +67,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Este restaurante já não aceita reservas automáticas." }, { status: 409 });
     }
 
-    const commissionType = isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON";
-    const commissionAmount = isDemo ? 1 : Number(restaurant.referralDefaultCommissionAmount);
+    const agreement = restaurant.referralAgreements[0];
+    const commissionType = agreement && isCommissionType(agreement.commissionType)
+      ? agreement.commissionType
+      : isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON";
+    const commissionAmount = isDemo ? 1.5 : Number(agreement?.commissionAmount ?? restaurant.referralDefaultCommissionAmount);
     const tagNote = (tags: readonly { value: string; note: string | null }[], value: unknown) => tags.find((tag) => tag.value === value)?.note;
     const notes = [
       tagNote(REFERRAL_OCCASION_TAGS, body?.occasion),

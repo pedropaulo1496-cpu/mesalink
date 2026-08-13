@@ -21,7 +21,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
   const [restaurant, partner] = await Promise.all([
     user ? prisma.restaurant.findFirst({ where: { id, userId: user.id }, select: { id: true } }) : null,
-    prisma.referralPartner.findUnique({ where: { email: partnerEmail }, select: { id: true } }),
+    prisma.referralPartner.findUnique({ where: { email: partnerEmail }, select: { id: true, businessName: true, email: true } }),
   ]);
 
   if (!restaurant) return NextResponse.json({ error: "Restaurante não encontrado." }, { status: 404 });
@@ -33,5 +33,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     create: { partnerId: partner.id, restaurantId: id, commissionType, commissionAmount, platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT },
   });
 
-  return NextResponse.json({ success: true, agreementId: agreement.id });
+  return NextResponse.json({ success: true, agreementId: agreement.id, partner: { businessName: partner.businessName, email: partner.email } });
+}
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const body = await request.json().catch(() => null);
+  const agreementId = typeof body?.agreementId === "string" ? body.agreementId : "";
+  const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  if (!user || !agreementId) return NextResponse.json({ error: "Pedido inválido." }, { status: 400 });
+  const updated = await prisma.referralAgreement.updateMany({
+    where: { id: agreementId, restaurantId: id, restaurant: { userId: user.id } },
+    data: { active: false, endsAt: new Date() },
+  });
+  if (updated.count === 0) return NextResponse.json({ error: "Exceção não encontrada." }, { status: 404 });
+  return NextResponse.json({ success: true });
 }

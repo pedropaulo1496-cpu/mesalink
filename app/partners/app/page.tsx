@@ -81,6 +81,17 @@ export default async function PartnerAppPage({
       referralDefaultCommissionType: true,
       referralDefaultCommissionAmount: true,
       referralDefaultDailyCapacity: true,
+      referralAgreements: {
+        where: { partnerId: partner.id, active: true },
+        take: 1,
+        select: { commissionType: true, commissionAmount: true },
+      },
+      referralCommissionRequests: {
+        where: { partnerId: partner.id },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { status: true, commissionType: true, commissionAmount: true },
+      },
       referralDailyCapacities: {
         where: { date: { gte: availabilityStart } },
         orderBy: { date: "asc" },
@@ -145,6 +156,8 @@ export default async function PartnerAppPage({
       totals[key] = (totals[key] || 0) + reservation.guests;
       return totals;
     }, {});
+    const agreement = restaurant.referralAgreements[0];
+    const negotiation = restaurant.referralCommissionRequests[0];
     return {
       id: restaurant.id,
       name: restaurant.googleBusinessTitle || restaurant.name,
@@ -160,8 +173,8 @@ export default async function PartnerAppPage({
       menuUrl: profile.menuUrl,
       menuSections: profile.menuSections,
       averageTicket: Number(restaurant.averageTicket || 0),
-      commissionType: isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON" as const,
-      commissionAmount: isDemo ? 1 : Number(restaurant.referralDefaultCommissionAmount),
+      commissionType: agreement && isCommissionType(agreement.commissionType) ? agreement.commissionType : isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON" as const,
+      commissionAmount: isDemo ? 1.5 : Number(agreement?.commissionAmount ?? restaurant.referralDefaultCommissionAmount),
       defaultDailyCapacity: isDemo ? Math.max(80, restaurant.referralDefaultDailyCapacity) : restaurant.referralDefaultDailyCapacity,
       dailyAvailability: restaurant.referralDailyCapacities.map((item) => ({
         date: item.date.toISOString().slice(0, 10),
@@ -174,6 +187,9 @@ export default async function PartnerAppPage({
       googlePriceLevel: restaurant.googlePriceLevel ?? (isDemo ? 2 : null),
       googleMapsUrl: restaurant.googleReviewUrl || "",
       googleBusinessConnected: Boolean(restaurant.googleBusinessConnectedAt),
+      negotiationStatus: negotiation?.status || null,
+      negotiationType: negotiation && isCommissionType(negotiation.commissionType) ? negotiation.commissionType : null,
+      negotiationAmount: negotiation ? Number(negotiation.commissionAmount) : null,
     };
   });
 

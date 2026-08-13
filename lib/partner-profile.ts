@@ -61,36 +61,30 @@ export function buildPartnerProfile(source: PartnerProfileSource) {
     source.websiteGalleryImage4,
     ...productImages,
   ]).slice(0, 6);
-  const explicitGallery = unique(source.referralProfileGallery || []);
   const googleGallery = unique(source.googleBusinessPhotos || []);
-  const heroImage = clean(source.referralProfileHeroImage)
-    || googleGallery[0]
+  const heroImage = googleGallery[0]
     || clean(source.websiteHeroImage)
     || automaticGallery[0]
     || clean(source.websiteLogoImage);
-  const galleryImages = (explicitGallery.length > 0 ? explicitGallery : googleGallery.length > 0 ? googleGallery : automaticGallery)
+  const galleryImages = (googleGallery.length > 0 ? googleGallery : automaticGallery)
     .filter((image) => image !== heroImage)
     .slice(0, 6);
   const automaticHighlights = unique([
     ...(source.websiteSpecialties || []),
     ...menuSections.map((section) => section.title),
   ]).slice(0, 6);
-  const explicitHighlights = unique(source.referralProfileHighlights || []);
-  const cuisine = normalizeReferralCuisine(source.referralProfileCuisine)
-    || normalizeReferralCuisine(source.websiteCuisine)
+  const cuisine = normalizeReferralCuisine(source.websiteCuisine)
     || "Internacional";
 
   return {
     cuisine,
-    description: clean(source.referralProfileDescription)
-      || clean(source.websiteDescription)
+    description: clean(source.websiteDescription)
       || clean(source.websiteAboutText)
       || `${source.name} recebe grupos através da rede MesaLink.`,
     heroImage,
     galleryImages,
-    highlights: explicitHighlights.length > 0 ? explicitHighlights : automaticHighlights,
-    menuUrl: clean(source.referralProfileMenuUrl)
-      || clean(source.websiteMenuPdf)
+    highlights: automaticHighlights,
+    menuUrl: clean(source.websiteMenuPdf)
       || clean(source.websiteMenus?.[0]?.pdf),
     menuSections,
   };

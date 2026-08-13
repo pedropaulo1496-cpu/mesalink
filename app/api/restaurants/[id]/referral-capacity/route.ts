@@ -17,6 +17,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const body = await request.json().catch(() => null);
   const rawDate = new Date(`${String(body?.date || "")}T12:00:00.000Z`);
   const capacity = Number(body?.capacity);
+  const enabled = body?.enabled !== false;
   if (Number.isNaN(rawDate.getTime()) || !Number.isInteger(capacity) || capacity < 0 || capacity > 2000) {
     return NextResponse.json({ error: "Revê a data e a capacidade." }, { status: 400 });
   }
@@ -25,8 +26,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const row = await prisma.referralDailyCapacity.upsert({
     where: { restaurantId_date: { restaurantId: id, date: start } },
-    create: { restaurantId: id, date: start, capacity, enabled: capacity > 0 },
-    update: { capacity, enabled: capacity > 0 },
+    create: { restaurantId: id, date: start, capacity: enabled ? capacity : 0, enabled },
+    update: { capacity: enabled ? capacity : 0, enabled },
   });
   return NextResponse.json({ success: true, id: row.id });
 }

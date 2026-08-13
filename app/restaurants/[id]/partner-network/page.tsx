@@ -1,9 +1,9 @@
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
-import { CheckCircle2, Clock3, ShieldCheck } from "lucide-react";
+import { CalendarCheck2, CheckCircle2, Clock3, Store } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
-import { PartnerProfileSettingsForm, ReferralBookingSettingsForm } from "@/components/partners/PartnerNetworkControls";
+import { PartnerProfileSettingsForm, ReferralAgreementForm, ReferralBookingSettingsForm } from "@/components/partners/PartnerNetworkControls";
 import { authOptions } from "@/lib/auth";
 import { buildPartnerProfile } from "@/lib/partner-profile";
 import { isCommissionType } from "@/lib/referrals";
@@ -37,6 +37,17 @@ export default async function PartnerNetworkPage({
             orderBy: { date: "asc" },
             take: 30,
           },
+          referralAgreements: {
+            where: { active: true },
+            orderBy: { updatedAt: "desc" },
+            include: { partner: { select: { businessName: true, email: true } } },
+          },
+          referralCommissionRequests: {
+            where: { status: "PENDING" },
+            orderBy: { createdAt: "asc" },
+            include: { partner: { select: { businessName: true, email: true } } },
+          },
+          tables: { select: { capacity: true } },
           websiteMenus: {
             orderBy: { sortOrder: "asc" },
             take: 6,
@@ -63,8 +74,14 @@ export default async function PartnerNetworkPage({
   if (!restaurant) notFound();
 
   const partnerProfile = buildPartnerProfile(restaurant);
-  const completedGroups = restaurant.acceptedReferralGroups.filter((group) => ["COMPLETED", "PAID"].includes(group.status));
   const commissionType = isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON";
+  const configuredCapacity = restaurant.reservationMode === "CAPACITY" && restaurant.totalCapacity
+    ? restaurant.totalCapacity
+    : restaurant.tables.reduce((sum, table) => sum + table.capacity, 0);
+  const defaultDailyCapacity = restaurant.referralDefaultDailyCapacity > 0 ? restaurant.referralDefaultDailyCapacity : configuredCapacity;
+  const defaultCommissionAmount = !restaurant.referralAutoAcceptEnabled && Number(restaurant.referralDefaultCommissionAmount) === 5
+    ? 1.5
+    : Number(restaurant.referralDefaultCommissionAmount);
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
@@ -72,30 +89,24 @@ export default async function PartnerNetworkPage({
         <RestaurantSidebar id={id} restaurantName={restaurant.name} active="partnerNetwork" />
 
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-          <header className="flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div><div className="flex flex-wrap items-center gap-2"><p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Parceiros</p><span className={`rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.12em] ${restaurant.referralAutoAcceptEnabled ? "bg-[#E5F3E4] text-[#3F6A4D]" : "bg-[#FFF0D3] text-[#795D38]"}`}>{restaurant.referralAutoAcceptEnabled ? "Ativo" : "Por configurar"}</span></div><h1 className="mt-1.5 text-2xl font-semibold tracking-[-0.05em] sm:text-3xl">Reservas de parceiros</h1><p className="mt-1 text-xs leading-5 text-[#6B6258]">Define a comissão e os lugares. As reservas disponíveis entram automaticamente.</p></div>
-            <div className="inline-flex w-fit items-center gap-1.5 text-[10px] font-bold text-[#48704E]"><ShieldCheck size={14} /> Contacto protegido até à reserva</div>
+          <header className="max-w-5xl">
+            <p className="text-[9px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Rede de parceiros</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-[-0.05em] sm:text-3xl">Parceiros</h1>
+            <p className="mt-1 max-w-xl text-xs leading-5 text-[#6B6258]">Recebe reservas de hotéis, concierges e outros parceiros, sem aprovação manual.</p>
           </header>
 
           {result && <div className={`mt-5 rounded-[22px] border px-5 py-4 text-sm font-semibold ${["accepted", "completed", "payment-success", "already-paid", "auto-accept-ready"].includes(result) ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : result === "declined" || result === "payment-cancelled" || result === "card-cancelled" ? "border-[#DCCCAD] bg-[#FFF9ED] text-[#795D38]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{resultMessage(result)}</div>}
           {google && <div className={`mt-5 rounded-[22px] border px-5 py-4 text-sm font-semibold ${["connected", "synced"].includes(google) ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : google === "not-configured" ? "border-[#DCCCAD] bg-[#FFF9ED] text-[#795D38]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{google === "connected" ? "Perfil Google Business associado e mini-perfil atualizado." : google === "synced" ? "Avaliação, reviews e fotografias atualizadas a partir do Google." : google === "not-configured" ? "A ligação gratuita central aguarda as credenciais e a aprovação do Google Business Profile API." : "Não foi possível atualizar agora o perfil Google."}</div>}
 
-          <section className="mt-4 flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 rounded-[16px] border border-[#E1D0B8] bg-white px-4 py-3">
-            <CompactMetric label="Comissão" value={`${formatMoney(Number(restaurant.referralDefaultCommissionAmount))}${commissionType === "PER_PERSON" ? " / pessoa" : " total"}`} />
-            <CompactMetric label="Lugares" value={`${restaurant.referralDefaultDailyCapacity} / dia`} />
-            <CompactMetric label="Próximas" value={String(restaurant.acceptedReferralGroups.filter((group) => group.status === "BOOKED").length)} />
-            <CompactMetric label="Concluídas" value={String(completedGroups.length)} />
-          </section>
-
-          <section className="mt-4 max-w-6xl space-y-2">
-            <details open={!restaurant.referralAutoAcceptEnabled} className="group rounded-[18px] border border-[#E1D0B8] bg-white">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5"><div><p className="text-sm font-bold">Comissão e disponibilidade</p><p className="mt-0.5 text-[10px] text-[#75695D]">O essencial para começar a receber reservas.</p></div><span className="rounded-full bg-[#F5EBDD] px-3 py-1 text-[9px] font-black text-[#795D38] group-open:hidden">Configurar</span><span className="hidden text-[10px] font-bold text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
-              <div className="border-t border-[#E8DCCB] px-4 pb-4"><ReferralBookingSettingsForm restaurantId={id} initialCommissionType={commissionType} initialCommissionAmount={Number(restaurant.referralDefaultCommissionAmount)} initialDefaultDailyCapacity={restaurant.referralDefaultDailyCapacity} initialAutoAcceptEnabled={restaurant.referralAutoAcceptEnabled} paymentMethodReady={Boolean(restaurant.referralPaymentMethodId)} initialDailyCapacities={restaurant.referralDailyCapacities.map((item) => ({ date: item.date.toISOString().slice(0, 10), capacity: item.capacity }))} /></div>
+          <section className="mt-4 max-w-5xl overflow-hidden rounded-[20px] border border-[#E1D0B8] bg-white shadow-[0_10px_35px_rgba(88,62,31,0.04)]">
+            <details className="group">
+              <summary className="grid cursor-pointer list-none grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 sm:grid-cols-[40px_minmax(0,1fr)_auto_auto]"><span className={`grid h-10 w-10 place-items-center rounded-[12px] ${restaurant.referralAutoAcceptEnabled ? "bg-[#EAF5E9] text-[#456846]" : "bg-[#FFF1D8] text-[#90672F]"}`}><CalendarCheck2 size={17} /></span><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-bold">Reservas automáticas</p><span className={`rounded-full px-2 py-0.5 text-[7px] font-black uppercase tracking-[0.1em] ${restaurant.referralAutoAcceptEnabled ? "bg-[#E5F3E4] text-[#3F6A4D]" : "bg-[#FFF0D3] text-[#795D38]"}`}>{restaurant.referralAutoAcceptEnabled ? "Ativas" : "Por configurar"}</span></div><p className="mt-0.5 text-[10px] text-[#75695D]">Comissão e lugares disponíveis para parceiros.</p></div><div className="hidden text-right sm:block"><p className="text-xs font-bold">{formatMoney(defaultCommissionAmount)}{commissionType === "PER_PERSON" ? " / pessoa" : " total"}</p><p className="mt-0.5 text-[9px] text-[#75695D]">{defaultDailyCapacity} lugares / dia</p></div><span className="rounded-full border border-[#D8C6A9] px-3 py-1.5 text-[9px] font-bold text-[#795D38] group-open:hidden">Editar</span><span className="hidden px-3 text-[9px] font-bold text-[#9B6F3B] group-open:block">Fechar</span></summary>
+              <div className="border-t border-[#E8DCCB] px-4 pb-4"><ReferralBookingSettingsForm restaurantId={id} initialCommissionType={commissionType} initialCommissionAmount={defaultCommissionAmount} initialDefaultDailyCapacity={defaultDailyCapacity} initialAutoAcceptEnabled={restaurant.referralAutoAcceptEnabled} paymentMethodReady={Boolean(restaurant.referralPaymentMethodId)} initialDailyCapacities={restaurant.referralDailyCapacities.map((item) => ({ date: item.date.toISOString().slice(0, 10), capacity: item.capacity, enabled: item.enabled }))} /><ReferralAgreementForm restaurantId={id} initialAgreements={restaurant.referralAgreements.map((agreement) => ({ id: agreement.id, partnerName: agreement.partner.businessName, partnerEmail: agreement.partner.email, commissionType: isCommissionType(agreement.commissionType) ? agreement.commissionType : "PER_PERSON", commissionAmount: Number(agreement.commissionAmount) }))} initialRequests={restaurant.referralCommissionRequests.map((request) => ({ id: request.id, partnerName: request.partner.businessName, partnerEmail: request.partner.email, commissionType: isCommissionType(request.commissionType) ? request.commissionType : "PER_PERSON", commissionAmount: Number(request.commissionAmount) }))} /></div>
             </details>
 
-            <details className="group rounded-[18px] border border-[#E1D0B8] bg-white">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5"><div><p className="text-sm font-bold">Perfil visto pelos parceiros</p><p className="mt-0.5 text-[10px] text-[#75695D]">{partnerProfile.cuisine} · fotografias e informações preenchidas automaticamente.</p></div><div className="flex items-center gap-2">{partnerProfile.heroImage && <div className="h-9 w-12 rounded-lg bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${partnerProfile.heroImage})` }} />}<span className="text-[10px] font-bold text-[#9B6F3B] group-open:hidden">Editar</span><span className="hidden text-[10px] font-bold text-[#9B6F3B] group-open:block">Fechar ↑</span></div></summary>
-              <div className="border-t border-[#E8DCCB] p-4"><PartnerProfileSettingsForm restaurantId={id} restaurantName={restaurant.name} cuisine={partnerProfile.cuisine} description={partnerProfile.description} heroImage={partnerProfile.heroImage} gallery={partnerProfile.galleryImages} highlights={partnerProfile.highlights} menuUrl={partnerProfile.menuUrl} googleMapsUrl={restaurant.googleReviewUrl || ""} googleRating={restaurant.googleRating} googleReviewCount={restaurant.googleReviewCount} googlePriceLevel={restaurant.googlePriceLevel} googleBusinessConnected={Boolean(restaurant.googleBusinessConnectedAt)} googleBusinessPhotoCount={restaurant.googleBusinessPhotos.length} googleBusinessReady={googleBusinessConfigured()} /></div>
+            <details className="group border-t border-[#E8DCCB]">
+              <summary className="grid cursor-pointer list-none grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 sm:grid-cols-[40px_minmax(0,1fr)_auto_auto]"><span className="grid h-10 w-10 place-items-center overflow-hidden rounded-[12px] bg-[#F3E8D8] text-[#90672F]">{partnerProfile.heroImage ? <span className="h-full w-full bg-cover bg-center" style={{ backgroundImage: `url(${partnerProfile.heroImage})` }} /> : <Store size={17} />}</span><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-bold">Perfil Google</p>{restaurant.googleBusinessConnectedAt && <span className="rounded-full bg-[#E5F3E4] px-2 py-0.5 text-[7px] font-black uppercase text-[#3F6A4D]">Ligado</span>}</div><p className="mt-0.5 text-[10px] text-[#75695D]">Fotos, localização, avaliação e preço verificados.</p></div><div className="hidden max-w-[240px] truncate text-right text-[9px] text-[#75695D] sm:block">{partnerProfile.cuisine} · {restaurant.googleRating ? `★ ${restaurant.googleRating.toFixed(1)}` : "aguarda associação"}</div><span className="rounded-full border border-[#D8C6A9] px-3 py-1.5 text-[9px] font-bold text-[#795D38] group-open:hidden">Ver</span><span className="hidden px-3 text-[9px] font-bold text-[#9B6F3B] group-open:block">Fechar</span></summary>
+              <div className="border-t border-[#E8DCCB] p-4"><PartnerProfileSettingsForm restaurantId={id} restaurantName={restaurant.name} cuisine={partnerProfile.cuisine} description={partnerProfile.description} heroImage={partnerProfile.heroImage} address={restaurant.address || restaurant.googleBusinessAddress || ""} googleMapsUrl={restaurant.googleReviewUrl || ""} googleRating={restaurant.googleRating} googleReviewCount={restaurant.googleReviewCount} googlePriceLevel={restaurant.googlePriceLevel} googleBusinessConnected={Boolean(restaurant.googleBusinessConnectedAt)} googleBusinessReady={googleBusinessConfigured()} /></div>
             </details>
           </section>
 
@@ -123,10 +134,6 @@ export default async function PartnerNetworkPage({
       <BottomNav id={id} />
     </main>
   );
-}
-
-function CompactMetric({ label, value }: { label: string; value: string }) {
-  return <div className="flex items-baseline gap-2"><span className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8B7D6D]">{label}</span><strong className="text-sm">{value}</strong></div>;
 }
 
 function ReferralInvoices({ payment }: { payment: null | {

@@ -92,11 +92,11 @@ model SalesRepresentative {
   defaultPlanCommissionPercent  Decimal @default(10) @db.Decimal(5, 2)
   defaultExtraCommissionPercent Decimal @default(5) @db.Decimal(5, 2)
 
-  clients     User[]              @relation("AssignedClientAccounts")
-  commissions SalesCommission[]
+  clients              User[]                     @relation("AssignedClientAccounts")
+  commissions          SalesCommission[]
   commissionStatements SalesCommissionStatement[]
-  requests    CommercialRequest[]
-  messages    CommercialMessage[]
+  requests             CommercialRequest[]
+  messages             CommercialMessage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -147,14 +147,14 @@ model SalesCommissionStatement {
   commissionTotal Decimal @default(0) @db.Decimal(12, 2)
   status          String  @default("MISSING")
 
-  invoiceUrl                 String?
-  invoiceNumber              String?
-  invoiceUploadedAt          DateTime?
-  invoiceVerifiedAt          DateTime?
-  invoiceVerifiedBy          String?
-  invoiceRejectedAt          DateTime?
-  invoiceRejectionReason     String?
-  paidAt                     DateTime?
+  invoiceUrl             String?
+  invoiceNumber          String?
+  invoiceUploadedAt      DateTime?
+  invoiceVerifiedAt      DateTime?
+  invoiceVerifiedBy      String?
+  invoiceRejectedAt      DateTime?
+  invoiceRejectionReason String?
+  paidAt                 DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -404,7 +404,7 @@ model Restaurant {
 
   referralNetworkEnabled          Boolean  @default(false)
   referralDefaultCommissionType   String   @default("PER_PERSON")
-  referralDefaultCommissionAmount Decimal  @default(5) @db.Decimal(10, 2)
+  referralDefaultCommissionAmount Decimal  @default(1.5) @db.Decimal(10, 2)
   referralMaxCommissionPerPerson  Decimal? @db.Decimal(10, 2)
   referralAutoAcceptEnabled       Boolean  @default(false)
   referralPaymentMethodId         String?
@@ -480,7 +480,7 @@ model Restaurant {
   googleBusinessRefreshToken      String?
   googleBusinessTitle             String?
   googleBusinessAddress           String?
-  googleBusinessPhotos            String[]  @default([])
+  googleBusinessPhotos            String[]          @default([])
   googleBusinessConnectedAt       DateTime?
   googleBusinessSyncedAt          DateTime?
   reviewRedirectThreshold         Int               @default(4)
@@ -518,28 +518,29 @@ model Restaurant {
   fiscalIntegration FiscalIntegration?
   fiscalDocuments   FiscalDocument[]
 
-  referralAgreements        ReferralAgreement[]
-  referralOffers            ReferralOffer[]
-  referralDailyCapacities   ReferralDailyCapacity[]
-  acceptedReferralGroups    ReferralGroup[]            @relation("AcceptedReferralRestaurant")
-  referralBenefits          ReferralBenefit[]
-  aiVisibilityScans         AiVisibilityScan[]
-  aiVisibilityOptimizations AiVisibilityOptimization[]
-  aiMarketingCampaigns      AiMarketingCampaign[]
-  marketingPromoCards       MarketingPromoCard[]
-  revenueConversations      RevenueConversation[]
-  posCashRegisters          POSCashRegister[]
-  posDiscounts              POSDiscount[]
-  posReceipts               POSReceipt[]
-  posTableTransfers         POSTableTransfer[]
-  posDiscountCodes          POSDiscountCode[]
-  posCashMovements          POSCashMovement[]
-  productProductionCenters  ProductionCenter[]
-  printJobs                 PrintJob[]
-  printers                  RestaurantPrinter[]
-  printBridgeToken          String?                    @unique
-  printBridgeRestaurants    PrintBridgeRestaurant[]
-  customers                 Customer[]
+  referralAgreements         ReferralAgreement[]
+  referralCommissionRequests ReferralCommissionRequest[]
+  referralOffers             ReferralOffer[]
+  referralDailyCapacities    ReferralDailyCapacity[]
+  acceptedReferralGroups     ReferralGroup[]             @relation("AcceptedReferralRestaurant")
+  referralBenefits           ReferralBenefit[]
+  aiVisibilityScans          AiVisibilityScan[]
+  aiVisibilityOptimizations  AiVisibilityOptimization[]
+  aiMarketingCampaigns       AiMarketingCampaign[]
+  marketingPromoCards        MarketingPromoCard[]
+  revenueConversations       RevenueConversation[]
+  posCashRegisters           POSCashRegister[]
+  posDiscounts               POSDiscount[]
+  posReceipts                POSReceipt[]
+  posTableTransfers          POSTableTransfer[]
+  posDiscountCodes           POSDiscountCode[]
+  posCashMovements           POSCashMovement[]
+  productProductionCenters   ProductionCenter[]
+  printJobs                  PrintJob[]
+  printers                   RestaurantPrinter[]
+  printBridgeToken           String?                     @unique
+  printBridgeRestaurants     PrintBridgeRestaurant[]
+  customers                  Customer[]
 
   @@unique([userId])
   @@index([customDomain])
@@ -1063,10 +1064,11 @@ model ReferralPartner {
   defaultCommissionType   String  @default("PER_PERSON")
   defaultCommissionAmount Decimal @default(1) @db.Decimal(10, 2)
 
-  agreements   ReferralAgreement[]
-  groups       ReferralGroup[]
-  payments     ReferralPayment[]
-  benefitCards ReferralBenefitCard[]
+  agreements         ReferralAgreement[]
+  commissionRequests ReferralCommissionRequest[]
+  groups             ReferralGroup[]
+  payments           ReferralPayment[]
+  benefitCards       ReferralBenefitCard[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1096,6 +1098,27 @@ model ReferralAgreement {
 
   @@unique([partnerId, restaurantId])
   @@index([restaurantId, active])
+}
+
+model ReferralCommissionRequest {
+  id String @id @default(cuid())
+
+  partnerId    String
+  restaurantId String
+
+  partner    ReferralPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  restaurant Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  commissionType   String    @default("PER_PERSON")
+  commissionAmount Decimal   @db.Decimal(10, 2)
+  message          String?
+  status           String    @default("PENDING")
+  respondedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([restaurantId, status, createdAt])
+  @@index([partnerId, restaurantId, status])
 }
 
 model ReferralGroup {
