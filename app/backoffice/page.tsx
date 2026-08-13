@@ -55,7 +55,7 @@ export default async function BackofficeOverview({ searchParams }: { searchParam
         eyebrow={staff.role === "ADMIN" ? "MesaLink HQ · Administração" : "Backoffice comercial · A minha carteira"}
         title={staff.role === "ADMIN" ? "Controlo da operação" : `Bom dia, ${staff.name?.split(" ")[0] || "equipa"}.`}
         description={staff.role === "ADMIN" ? "Negócio, clientes em risco, aprovações, pagamentos e desempenho da equipa num único resumo." : "Os teus clientes, as ações de hoje e a evolução das tuas comissões — sem dados da restante equipa."}
-        action={<Link href="/backoffice/clients" className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#17130F] px-4 text-[13px] font-bold text-white">{staff.role === "ADMIN" ? "Gerir clientes" : "Abrir carteira"} <ArrowRight size={14} /></Link>}
+        action={<Link href="/backoffice/clients" className="inline-flex h-10 items-center gap-2 rounded-full bg-[#17130F] px-5 text-[12px] font-bold text-white shadow-[0_10px_24px_rgba(23,19,15,0.14)]">{staff.role === "ADMIN" ? "Gerir clientes" : "Abrir carteira"} <ArrowRight size={14} /></Link>}
       />
 
       <section className="mt-5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
@@ -72,7 +72,7 @@ export default async function BackofficeOverview({ searchParams }: { searchParam
         </>}
       </section>
 
-      <section className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[#DCC9AA] bg-[#DCC9AA] sm:grid-cols-4">
+      <section className={`mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-[20px] border sm:grid-cols-4 ${staff.role === "ADMIN" ? "border-[#30271E] bg-[#332B23]" : "border-[#304536] bg-[#35503C]"}`}>
         <CompactMetric label="Clientes ativos" value={activeClients.toString()} />
         <CompactMetric label={staff.role === "ADMIN" ? "Inativos há mais de 1 semana" : "A contactar hoje"} value={(staff.role === "ADMIN" ? inactiveClients : highRiskClients).toString()} alert={(staff.role === "ADMIN" ? inactiveClients : highRiskClients) > 0} />
         <CompactMetric label={staff.role === "ADMIN" ? "Comissões do mês" : "Meus pedidos pendentes"} value={staff.role === "ADMIN" ? euroCents(finance?.current.commissionCents || 0) : pendingRequests.toString()} alert={staff.role !== "ADMIN" && pendingRequests > 0} />
@@ -89,7 +89,7 @@ export default async function BackofficeOverview({ searchParams }: { searchParam
       </section>}
 
       <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_340px]">
-        <div className="overflow-hidden rounded-2xl border border-[#DCC9AA] bg-white">
+        <div className="overflow-hidden rounded-[22px] border border-[#DCC9AA] bg-white shadow-[0_12px_34px_rgba(75,52,29,0.04)]">
           <div className="flex items-center justify-between gap-3">
             <div className="px-4 py-3"><p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">{staff.role === "ADMIN" ? "Risco e retenção" : "Prioridades de hoje"}</p><h2 className="mt-1 text-xl font-semibold tracking-[-0.035em]">{staff.role === "ADMIN" ? "Clientes que precisam de atenção" : "Quem contactar agora"}</h2></div>
             <BellRing className="mr-4 text-[#A97936]" size={18} />
@@ -109,7 +109,7 @@ export default async function BackofficeOverview({ searchParams }: { searchParam
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl bg-[#17130F] p-4 text-white">
+          <div className="rounded-[22px] bg-[#17130F] p-4 text-white shadow-[0_16px_38px_rgba(23,19,15,0.14)]">
             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#D7B267]">{staff.role === "ADMIN" ? "Operação" : "O teu dia"}</p>
             <div className="mt-3 grid gap-2">
               <QuickLink href="/backoffice/requests" icon={<BellRing size={17} />} title="Pedidos comerciais" note={`${pendingRequests} aguardam decisão`} />
@@ -142,7 +142,7 @@ function QuickLink({ href, icon, title, note }: { href: string; icon: React.Reac
 }
 
 function CompactMetric({ label, value, alert = false }: { label: string; value: string; alert?: boolean }) {
-  return <div className="flex items-center justify-between gap-3 bg-white px-3.5 py-2.5"><p className="truncate text-[10px] font-bold text-[#6B6258]">{label}</p><p className={`text-sm font-black ${alert ? "text-[#A14E36]" : "text-[#17130F]"}`}>{value}</p></div>;
+  return <div className="flex items-center justify-between gap-3 bg-white/[0.035] px-4 py-3"><p className="truncate text-[9px] font-bold text-white/48">{label}</p><p className={`text-sm font-black ${alert ? "text-[#F0A58D]" : "text-[#F0D28F]"}`}>{value}</p></div>;
 }
 
 function CostRow({ label, value }: { label: string; value: number }) {

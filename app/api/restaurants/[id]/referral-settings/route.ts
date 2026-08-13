@@ -26,11 +26,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const restaurant = await prisma.restaurant.findFirst({
     where: { id, userId: user.id },
-    select: { referralPaymentMethodId: true },
+    select: { referralPaymentMethodId: true, referralPaymentBlockedAt: true },
   });
   if (!restaurant) return NextResponse.json({ error: "Restaurante não encontrado." }, { status: 404 });
   if (autoAcceptEnabled && !restaurant.referralPaymentMethodId) {
     return NextResponse.json({ error: "Valida primeiro o cartão usado para garantir as comissões." }, { status: 409 });
+  }
+  if (autoAcceptEnabled && restaurant.referralPaymentBlockedAt) {
+    return NextResponse.json({ error: "Regulariza primeiro as comissões Partner em atraso com um novo cartão." }, { status: 409 });
   }
 
   const updated = await prisma.restaurant.updateMany({

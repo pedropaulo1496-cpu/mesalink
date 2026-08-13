@@ -6,12 +6,13 @@ export const shortDate = (value: Date | null | undefined) => value ? new Intl.Da
 export const dateTime = (value: Date | null | undefined) => value ? new Intl.DateTimeFormat("pt-PT", { dateStyle: "short", timeStyle: "short" }).format(value) : "—";
 
 export function PageHeading({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: ReactNode }) {
-  return <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">{eyebrow}</p><h1 className="mt-1.5 text-[2rem] font-semibold leading-none tracking-[-0.05em] sm:text-[2.35rem]">{title}</h1><p className="mt-2 max-w-2xl text-[13px] leading-5 text-[#6B6258]">{description}</p></div>{action}</div>;
+  return <div className="relative overflow-hidden rounded-[24px] border border-[#DCC9AA] bg-white px-5 py-5 shadow-[0_12px_38px_rgba(73,50,27,0.045)] sm:px-6"><span className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-[#D7B267] via-[#A97839] to-[#536F58]" /><div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">{eyebrow}</p><h1 className="mt-2 text-[1.9rem] font-semibold leading-none tracking-[-0.05em] sm:text-[2.25rem]">{title}</h1><p className="mt-2 max-w-3xl text-[12px] leading-5 text-[#6B6258]">{description}</p></div>{action && <div className="shrink-0">{action}</div>}</div></div>;
 }
 
 export function StatCard({ label, value, note, tone = "plain" }: { label: string; value: string; note: string; tone?: "plain" | "green" | "red" | "gold" | "blue" }) {
-  const colors = { plain: "bg-white", green: "bg-[#EBF5EA]", red: "bg-[#FFF0EA]", gold: "bg-[#FFF6E5]", blue: "bg-[#EBF4F8]" };
-  return <div className={`min-w-0 rounded-2xl border border-[#DCC9AA] px-3.5 py-3 ${colors[tone]}`}><div className="flex items-start justify-between gap-3"><p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#8A6A42]">{label}</p><p className="truncate text-xl font-semibold leading-none tracking-[-0.04em] sm:text-2xl">{value}</p></div><p className="mt-2 truncate text-[10px] text-[#6B6258]">{note}</p></div>;
+  const colors = { plain: "bg-white", green: "bg-[#F1F8F0]", red: "bg-[#FFF4EF]", gold: "bg-[#FFF8E9]", blue: "bg-[#F0F7FA]" };
+  const dots = { plain: "bg-[#A88A62]", green: "bg-[#5D8A62]", red: "bg-[#B65D45]", gold: "bg-[#BF8A36]", blue: "bg-[#4F7E94]" };
+  return <div className={`relative min-w-0 overflow-hidden rounded-[18px] border border-[#DCC9AA] px-4 py-3.5 shadow-[0_8px_24px_rgba(80,55,30,0.035)] ${colors[tone]}`}><div className="flex items-center gap-2"><span className={`h-2 w-2 rounded-full ${dots[tone]}`} /><p className="truncate text-[8px] font-black uppercase tracking-[0.15em] text-[#80684C]">{label}</p></div><p className="mt-2 truncate text-[1.45rem] font-semibold leading-none tracking-[-0.045em] sm:text-[1.65rem]">{value}</p><p className="mt-2 min-h-4 text-[9px] leading-4 text-[#6B6258]">{note}</p></div>;
 }
 
 export function RiskPill({ level, score }: { level: "LOW" | "MEDIUM" | "HIGH"; score: number }) {

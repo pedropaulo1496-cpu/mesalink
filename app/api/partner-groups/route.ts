@@ -53,6 +53,7 @@ export async function POST(request: Request) {
         referralDefaultCommissionType: true,
         referralDefaultCommissionAmount: true,
         referralPaymentMethodId: true,
+        referralPaymentBlockedAt: true,
         referralProfileCuisine: true,
         websiteCuisine: true,
         referralAgreements: {
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
       },
     });
     const isDemo = Boolean(restaurant?.slug.includes("demo"));
-    if (!restaurant || (!isDemo && (!restaurant.referralNetworkEnabled || !restaurant.referralAutoAcceptEnabled || !restaurant.referralPaymentMethodId))) {
+    if (!restaurant || (!isDemo && (!restaurant.referralNetworkEnabled || !restaurant.referralAutoAcceptEnabled || !restaurant.referralPaymentMethodId || restaurant.referralPaymentBlockedAt))) {
       return NextResponse.json({ error: "Este restaurante já não aceita reservas automáticas." }, { status: 409 });
     }
 

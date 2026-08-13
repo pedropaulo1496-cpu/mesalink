@@ -6,16 +6,29 @@ export async function issueCapturedReferralInvoice(paymentId: string) {
   const payment = await prisma.referralPayment.findUnique({
     where: { id: paymentId },
     include: {
-      group: { select: { publicCode: true, actualGuests: true, guests: true, acceptedRestaurantId: true } },
+      group: {
+        select: {
+          publicCode: true,
+          actualGuests: true,
+          guests: true,
+          acceptedRestaurantId: true,
+          acceptedRestaurant: {
+            select: { user: { select: { subscription: { select: { stripeCustomerId: true } } } } },
+          },
+        },
+      },
     },
   });
-  if (!payment?.stripeCheckoutSessionId || !payment.stripePaymentIntentId) {
+  if (!payment?.stripePaymentIntentId) {
     throw new Error("Faltam os dados Stripe para emitir a fatura do grupo.");
   }
   if (payment.stripeInvoiceId && (payment.stripeInvoicePdfUrl || payment.stripeInvoiceUrl)) return payment;
 
-  const checkout = await stripe.checkout.sessions.retrieve(payment.stripeCheckoutSessionId);
-  const customerId = typeof checkout.customer === "string" ? checkout.customer : checkout.customer?.id;
+  const checkout = payment.stripeCheckoutSessionId
+    ? await stripe.checkout.sessions.retrieve(payment.stripeCheckoutSessionId)
+    : null;
+  const checkoutCustomerId = typeof checkout?.customer === "string" ? checkout.customer : checkout?.customer?.id;
+  const customerId = checkoutCustomerId || payment.group.acceptedRestaurant?.user?.subscription?.stripeCustomerId;
   if (!customerId) throw new Error("O pagamento do grupo não tem cliente Stripe associado.");
 
   const metadata = {

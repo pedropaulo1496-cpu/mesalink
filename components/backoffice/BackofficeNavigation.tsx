@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BadgeEuro, BriefcaseBusiness, Building2, LayoutDashboard, MessageCircle, UsersRound, WalletCards } from "lucide-react";
+import { BadgeEuro, BriefcaseBusiness, Building2, ChevronRight, LayoutDashboard, MessageCircle, UsersRound, WalletCards } from "lucide-react";
 
 const links = [
   { href: "/backoffice", label: "Visão geral", icon: LayoutDashboard },
@@ -20,13 +20,15 @@ export default function BackofficeNavigation({ role, variant }: { role: "ADMIN" 
 
   if (variant === "desktop") {
     return (
-      <nav className="mt-7 space-y-1">
+      <nav className="mt-7 space-y-1.5">
+        <p className="mb-3 px-2 text-[8px] font-black uppercase tracking-[0.24em] text-white/25">Área de trabalho</p>
         {items.map(({ href, label, icon: Icon }) => {
           const active = href === "/backoffice" ? pathname === href : pathname.startsWith(href);
           return (
-            <Link key={href} href={href} className={`flex h-10 items-center gap-3 rounded-xl px-3 text-[13px] font-bold transition ${active ? "bg-[#D7B267] text-[#17130F]" : "text-white/60 hover:bg-white/10 hover:text-white"}`}>
-              <Icon size={16} />
-              {label}
+            <Link key={href} href={href} className={`group flex h-11 items-center gap-3 rounded-[14px] px-2.5 text-[12px] font-bold transition ${active ? "bg-[#D7B267] text-[#17130F] shadow-[0_10px_25px_rgba(0,0,0,0.18)]" : "text-white/56 hover:bg-white/[0.07] hover:text-white"}`}>
+              <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-[11px] ${active ? "bg-[#17130F]/10" : "bg-white/[0.06]"}`}><Icon size={15} /></span>
+              <span className="min-w-0 flex-1 truncate">{label}</span>
+              <ChevronRight size={13} className={`${active ? "opacity-65" : "opacity-0 group-hover:opacity-40"}`} />
             </Link>
           );
         })}

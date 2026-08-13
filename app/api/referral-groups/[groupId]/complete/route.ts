@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { calculatePartnerInvoiceAmounts, calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { issueCapturedReferralInvoice } from "@/lib/referral-invoices";
+import { blockRestaurantReferralPayments } from "@/lib/referral-payment-health";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { checkoutTaxAmount, proportionalTaxAmount } from "@/lib/stripe-tax";
@@ -57,14 +58,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
   });
   const serviceFee = calculateReferralServiceFee(amounts.gross);
   const targetSubtotal = Math.round((amounts.gross + serviceFee) * 100);
+  let targetTax = proportionalTaxAmount({
+    originalSubtotal: Math.max(1, Math.round((Number(group.payment.grossCommission) + Number(group.payment.serviceFee)) * 100)),
+    originalTax: Math.round(Number(group.payment.taxAmount) * 100),
+    targetSubtotal,
+  });
 
   try {
-    if (!group.payment.stripeCheckoutSessionId) throw new Error("CHECKOUT_SESSION_MISSING");
-    const checkout = await stripe.checkout.sessions.retrieve(group.payment.stripeCheckoutSessionId);
-    const originalSubtotal = checkout.amount_subtotal || 0;
-    const originalTax = checkoutTaxAmount(checkout);
-    const originalTotal = checkout.amount_total || originalSubtotal + originalTax;
-    const targetTax = proportionalTaxAmount({ originalSubtotal, originalTax, targetSubtotal });
+    const checkout = group.payment.stripeCheckoutSessionId
+      ? await stripe.checkout.sessions.retrieve(group.payment.stripeCheckoutSessionId)
+      : null;
+    const originalSubtotal = checkout?.amount_subtotal || Math.round((Number(group.payment.grossCommission) + Number(group.payment.serviceFee)) * 100);
+    const originalTax = checkout ? checkoutTaxAmount(checkout) : Math.round(Number(group.payment.taxAmount) * 100);
+    const originalTotal = checkout?.amount_total || originalSubtotal + originalTax;
+    targetTax = proportionalTaxAmount({ originalSubtotal, originalTax, targetSubtotal });
     const partnerInvoice = calculatePartnerInvoiceAmounts({
       partnerNet: amounts.partnerNet,
       grossCommission: amounts.gross,
@@ -104,7 +111,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
           partnerNet: amounts.partnerNet,
           serviceFee,
           taxAmount: targetTax / 100,
-          taxCountry: checkout.customer_details?.address?.country || group.payment.taxCountry,
+          taxCountry: checkout?.customer_details?.address?.country || group.payment.taxCountry,
           partnerInvoiceBase: partnerInvoice.base,
           partnerInvoiceTax: partnerInvoice.tax,
           partnerInvoiceTotal: partnerInvoice.total,
@@ -120,8 +127,35 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
     ]);
   } catch (error) {
     console.error("Capture referral authorization error", error);
-    await prisma.referralPayment.update({ where: { id: group.payment.id }, data: { status: "AUTHORIZATION_EXPIRED", failedAt: new Date(), lastError: error instanceof Error ? error.message.slice(0, 500) : "Capture failed" } });
-    backUrl.searchParams.set("result", "authorization-expired");
+    const message = error instanceof Error ? error.message.slice(0, 500) : "Capture failed";
+    const partnerInvoice = calculatePartnerInvoiceAmounts({
+      partnerNet: amounts.partnerNet,
+      grossCommission: amounts.gross,
+      serviceFee,
+      taxAmount: targetTax / 100,
+    });
+    await prisma.$transaction([
+      prisma.referralGroup.update({ where: { id: group.id }, data: { status: "COMPLETED", actualGuests } }),
+      prisma.referralPayment.update({
+        where: { id: group.payment.id },
+        data: {
+          grossCommission: amounts.gross,
+          platformFee: amounts.platformFee,
+          partnerNet: amounts.partnerNet,
+          serviceFee,
+          taxAmount: targetTax / 100,
+          partnerInvoiceBase: partnerInvoice.base,
+          partnerInvoiceTax: partnerInvoice.tax,
+          partnerInvoiceTotal: partnerInvoice.total,
+          status: "PAYMENT_FAILED",
+          failedAt: new Date(),
+          lastError: message,
+        },
+      }),
+      ...(group.reservationId ? [prisma.reservation.update({ where: { id: group.reservationId }, data: { status: "FINISHED", guests: actualGuests } })] : []),
+    ]);
+    await blockRestaurantReferralPayments(group.acceptedRestaurantId, "Existe uma comissão Partner em atraso. Substitui o cartão para a liquidar e reativar as reservas.");
+    backUrl.searchParams.set("result", "payment-blocked");
     return NextResponse.redirect(backUrl, 303);
   }
 

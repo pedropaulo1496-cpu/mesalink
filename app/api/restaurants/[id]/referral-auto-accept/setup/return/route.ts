@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { recoverRestaurantReferralDebt } from "@/lib/referral-payment-health";
 import { stripe } from "@/lib/stripe";
 import { syncRestaurantBillingDetails } from "@/lib/stripe-billing-details";
 
@@ -35,17 +36,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.redirect(new URL(`/restaurants/${id}/partner-network?result=fiscal-required`, request.url), 303);
   }
 
-  await Promise.all([
-    stripe.customers.update(customerId, { invoice_settings: { default_payment_method: paymentMethodId } }),
-    prisma.restaurant.update({
-      where: { id },
-      data: {
-        referralNetworkEnabled: true,
-        referralPaymentMethodId: paymentMethodId,
-        referralAutoAcceptEnabled: true,
-      },
-    }),
-  ]);
+  await stripe.customers.update(customerId, { invoice_settings: { default_payment_method: paymentMethodId } });
+  const recovery = await recoverRestaurantReferralDebt({ restaurantId: id, customerId, paymentMethodId });
+  if (!recovery.success) {
+    return NextResponse.redirect(new URL(`/restaurants/${id}/partner-network?result=debt-payment-failed`, request.url), 303);
+  }
 
-  return NextResponse.redirect(new URL(`/restaurants/${id}/partner-network?result=auto-accept-ready`, request.url), 303);
+  const result = recovery.recoveredAmount > 0 ? "debt-settled" : "auto-accept-ready";
+  return NextResponse.redirect(new URL(`/restaurants/${id}/partner-network?result=${result}`, request.url), 303);
 }

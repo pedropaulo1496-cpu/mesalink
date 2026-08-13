@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { MESALINK_REFERRAL_FEE_PERCENT, isCommissionType } from "@/lib/referrals";
+import { isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -27,13 +27,23 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!restaurant) return NextResponse.json({ error: "Restaurante não encontrado." }, { status: 404 });
   if (!partner) return NextResponse.json({ error: "Este parceiro ainda não tem conta MesaLink Partners." }, { status: 404 });
 
-  const agreement = await prisma.referralAgreement.upsert({
-    where: { partnerId_restaurantId: { partnerId: partner.id, restaurantId: id } },
-    update: { commissionType, commissionAmount, platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT, active: true, endsAt: null },
-    create: { partnerId: partner.id, restaurantId: id, commissionType, commissionAmount, platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT },
+  const pending = await prisma.referralCommissionRequest.findFirst({
+    where: { partnerId: partner.id, restaurantId: id, status: "PENDING" },
+    select: { id: true, initiator: true },
   });
+  if (pending?.initiator === "PARTNER") {
+    return NextResponse.json({ error: "Este parceiro já te enviou uma proposta. Aceita ou recusa essa proposta antes de enviares outra." }, { status: 409 });
+  }
+  const proposal = pending
+    ? await prisma.referralCommissionRequest.update({
+        where: { id: pending.id },
+        data: { commissionType, commissionAmount, initiator: "RESTAURANT", respondedAt: null },
+      })
+    : await prisma.referralCommissionRequest.create({
+        data: { partnerId: partner.id, restaurantId: id, commissionType, commissionAmount, initiator: "RESTAURANT" },
+      });
 
-  return NextResponse.json({ success: true, agreementId: agreement.id, partner: { businessName: partner.businessName, email: partner.email, partnerCode: partner.partnerCode } });
+  return NextResponse.json({ success: true, requestId: proposal.id, status: proposal.status, partner: { businessName: partner.businessName, email: partner.email, partnerCode: partner.partnerCode } });
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {

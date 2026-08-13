@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { DoneNotice, PageHeading, StatCard, buttonClass, dateTime, euroAmount, inputClass } from "@/components/backoffice/BackofficeUI";
 import { updateCostSettings } from "@/app/admin/actions";
 import { prisma } from "@/lib/prisma";
@@ -63,7 +64,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
                     <div><div className="flex items-center gap-2"><h2 className="text-base font-semibold">{rep.name}</h2><span className={`rounded-full px-2.5 py-1 text-[8px] font-black uppercase ${rep.active ? "bg-[#E3F1E2] text-[#35603A]" : "bg-[#EEE9E2] text-[#6B6258]"}`}>{rep.active ? "Ativo" : "Inativo"}</span></div><p className="mt-0.5 text-[11px] text-[#6B6258]">{rep.email}{rep.phone ? ` · ${rep.phone}` : ""}</p></div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-right sm:grid-cols-4"><Metric label="Clientes" value={String(rep.clients.length)} /><Metric label="Novos" value={String(newClients)} /><Metric label="Vendas mês" value={euroAmount(monthSales)} /><Metric label="Comissão mês" value={euroAmount(monthCommission)} /></div>
                   </div>
-                  <p className="mt-3 border-t border-[#EFE4D4] pt-2.5 text-[10px] text-[#776B5E]">Último acesso: {dateTime(rep.user.lastActiveAt || rep.user.lastLoginAt)} · {euroAmount(repPending)} por faturar · {euroAmount(repPaid)} pago · {pendingRequests} pedidos · {rep.messages.length} mensagens <span className="float-right font-bold text-[#9B6F3B]">Editar ↓</span></p>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#EFE4D4] pt-2.5 text-[10px] text-[#776B5E]"><p>Último acesso: {dateTime(rep.user.lastActiveAt || rep.user.lastLoginAt)} · {euroAmount(repPending)} por faturar · {euroAmount(repPaid)} pago · {pendingRequests} pedidos</p><div className="flex items-center gap-2"><Link href={`/backoffice/chat?rep=${rep.id}`} className="rounded-full bg-[#17130F] px-3 py-1.5 font-bold text-white">Abrir chat{rep.messages.length > 0 ? ` · ${rep.messages.length} nova${rep.messages.length === 1 ? "" : "s"}` : ""}</Link><span className="font-bold text-[#9B6F3B]">Editar ↓</span></div></div>
                 </summary>
                 <form action={updateSalesRepresentative} className="mt-4 grid gap-3 border-t border-[#EFE4D4] pt-4 sm:grid-cols-2 xl:grid-cols-5">
                   <input type="hidden" name="salesRepresentativeId" value={rep.id} />

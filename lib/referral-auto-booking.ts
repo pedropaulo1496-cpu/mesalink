@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { getReferralCapacity } from "@/lib/referral-availability";
+import { blockRestaurantReferralPayments } from "@/lib/referral-payment-health";
 import { calculatePartnerInvoiceAmounts, calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
@@ -23,6 +24,7 @@ export async function finalizeInstantReferralBooking(offerId: string) {
           slug: true,
           referralAutoAcceptEnabled: true,
           referralPaymentMethodId: true,
+          referralPaymentBlockedAt: true,
           referralDefaultDailyCapacity: true,
           billingLegalName: true,
           billingTaxId: true,
@@ -38,7 +40,7 @@ export async function finalizeInstantReferralBooking(offerId: string) {
   if (!offer || offer.group.status !== "OPEN" || offer.group.desiredDate <= new Date()) throw new InstantReferralBookingError("UNAVAILABLE");
 
   const isDemo = offer.restaurant.slug.includes("demo") || offer.group.publicCode.startsWith("DEMO-");
-  if (!isDemo && !offer.restaurant.referralAutoAcceptEnabled) throw new InstantReferralBookingError("UNAVAILABLE");
+  if (!isDemo && (!offer.restaurant.referralAutoAcceptEnabled || offer.restaurant.referralPaymentBlockedAt)) throw new InstantReferralBookingError("UNAVAILABLE");
   const type = isCommissionType(offer.commissionType) ? offer.commissionType : "TOTAL";
   const amounts = calculateReferralCommission({
     guests: offer.group.guests,
@@ -104,10 +106,12 @@ export async function finalizeInstantReferralBooking(offerId: string) {
     }
   } catch (error) {
     console.error("Referral automatic authorization failed", error);
+    await blockRestaurantReferralPayments(offer.restaurantId, "O cartão não permitiu garantir uma nova comissão Partner.");
     throw new InstantReferralBookingError("PAYMENT");
   }
   if (paymentIntent.status !== "requires_capture") {
     await stripe.paymentIntents.cancel(paymentIntent.id).catch(() => undefined);
+    await blockRestaurantReferralPayments(offer.restaurantId, "O cartão deixou de permitir garantir novas comissões Partner.");
     throw new InstantReferralBookingError("PAYMENT");
   }
 

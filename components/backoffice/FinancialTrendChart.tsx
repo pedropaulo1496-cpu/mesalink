@@ -11,7 +11,7 @@ type Month = {
 export default function FinancialTrendChart({ months }: { months: Month[] }) {
   const max = Math.max(1, ...months.flatMap((month) => [month.revenueCents, month.expenseCents, Math.max(0, month.profitCents)]));
   return (
-    <section className="rounded-2xl border border-[#DCC9AA] bg-white p-4">
+    <section className="rounded-[22px] border border-[#DCC9AA] bg-white p-4 shadow-[0_12px_34px_rgba(75,52,29,0.04)]">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div><p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">Últimos 6 meses</p><h2 className="mt-1 text-lg font-semibold">Receita, despesa e lucro</h2></div>
         <div className="flex gap-3 text-[9px] font-bold text-[#6B6258]"><Key color="#B7833B" label="Receita" /><Key color="#C66B52" label="Despesa" /><Key color="#4F8056" label="Lucro" /></div>

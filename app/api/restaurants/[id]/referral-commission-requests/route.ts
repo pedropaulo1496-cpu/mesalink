@@ -14,7 +14,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
   if (!user || !requestId || !action) return NextResponse.json({ error: "Pedido inválido." }, { status: 400 });
   const commissionRequest = await prisma.referralCommissionRequest.findFirst({
-    where: { id: requestId, restaurantId: id, status: "PENDING", restaurant: { userId: user.id } },
+    where: { id: requestId, restaurantId: id, initiator: "PARTNER", status: "PENDING", restaurant: { userId: user.id } },
   });
   if (!commissionRequest) return NextResponse.json({ error: "Pedido já tratado ou não encontrado." }, { status: 404 });
 
@@ -31,5 +31,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       });
     }
   });
-  return NextResponse.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    status: action === "ACCEPT" ? "ACCEPTED" : "REJECTED",
+    commissionType: commissionRequest.commissionType,
+    commissionAmount: Number(commissionRequest.commissionAmount),
+  });
 }

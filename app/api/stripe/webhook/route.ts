@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { recordSalesCommission } from "@/lib/sales-commissions";
 import { finalizeReferralAuthorization } from "@/lib/referral-authorization";
+import { blockRestaurantReferralPayments } from "@/lib/referral-payment-health";
 import { calculatePartnerInvoiceAmounts } from "@/lib/referrals";
 import { syncRestaurantBillingDetails, syncUserRestaurantBillingDetails } from "@/lib/stripe-billing-details";
 import {
@@ -211,6 +212,10 @@ async function settleReferralSession(session: Stripe.Checkout.Session) {
 async function markReferralPaymentFailure(session: Stripe.Checkout.Session, status: string) {
   const referralPaymentId = session.metadata?.referralPaymentId;
   if (!referralPaymentId) return;
+  const payment = await prisma.referralPayment.findUnique({
+    where: { id: referralPaymentId },
+    select: { group: { select: { acceptedRestaurantId: true } } },
+  });
   await prisma.referralPayment.updateMany({
     where: { id: referralPaymentId, status: { notIn: ["TRANSFERRED", "REFUNDED"] } },
     data: {
@@ -220,6 +225,9 @@ async function markReferralPaymentFailure(session: Stripe.Checkout.Session, stat
       ...(status === "PENDING" ? { stripeCheckoutSessionId: null } : {}),
     },
   });
+  if (status === "PAYMENT_FAILED" && payment?.group.acceptedRestaurantId) {
+    await blockRestaurantReferralPayments(payment.group.acceptedRestaurantId, "Existe uma comissão Partner que o cartão não conseguiu pagar.");
+  }
 }
 
 async function handleReferralRefund(charge: Stripe.Charge) {

@@ -402,18 +402,20 @@ model Restaurant {
 
   plan String @default("FREE")
 
-  referralNetworkEnabled          Boolean  @default(false)
-  referralDefaultCommissionType   String   @default("PER_PERSON")
-  referralDefaultCommissionAmount Decimal  @default(1.5) @db.Decimal(10, 2)
-  referralMaxCommissionPerPerson  Decimal? @db.Decimal(10, 2)
-  referralAutoAcceptEnabled       Boolean  @default(false)
+  referralNetworkEnabled          Boolean   @default(false)
+  referralDefaultCommissionType   String    @default("PER_PERSON")
+  referralDefaultCommissionAmount Decimal   @default(1.5) @db.Decimal(10, 2)
+  referralMaxCommissionPerPerson  Decimal?  @db.Decimal(10, 2)
+  referralAutoAcceptEnabled       Boolean   @default(false)
   referralPaymentMethodId         String?
-  referralDefaultDailyCapacity    Int      @default(0)
+  referralPaymentBlockedAt        DateTime?
+  referralPaymentBlockReason      String?
+  referralDefaultDailyCapacity    Int       @default(0)
   referralProfileCuisine          String?
   referralProfileDescription      String?
   referralProfileHeroImage        String?
-  referralProfileGallery          String[] @default([])
-  referralProfileHighlights       String[] @default([])
+  referralProfileGallery          String[]  @default([])
+  referralProfileHighlights       String[]  @default([])
   referralProfileMenuUrl          String?
 
   userId String?
@@ -1113,6 +1115,7 @@ model ReferralCommissionRequest {
   commissionType   String    @default("PER_PERSON")
   commissionAmount Decimal   @db.Decimal(10, 2)
   message          String?
+  initiator        String    @default("PARTNER")
   status           String    @default("PENDING")
   respondedAt      DateTime?
   createdAt        DateTime  @default(now())
@@ -1120,6 +1123,7 @@ model ReferralCommissionRequest {
 
   @@index([restaurantId, status, createdAt])
   @@index([partnerId, restaurantId, status])
+  @@index([partnerId, initiator, status])
 }
 
 model ReferralGroup {

@@ -55,8 +55,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/backoffice-access", request.url));
   }
   if (/^\/(dashboard|restaurants|billing|onboarding|trial-expired)(?:\/|$)/.test(pathname)) {
-    if (token?.accountType === "PARTNER") return NextResponse.redirect(new URL("/partners/app", request.url));
-    if (token?.accountType === "STAFF") return NextResponse.redirect(new URL("/backoffice", request.url));
+    // Cada aplicação tem uma entrada própria. Se o browser/telemóvel ainda tiver
+    // uma sessão Partners ou Staff, a app de Restaurantes pede o login correto em
+    // vez de abrir silenciosamente a outra aplicação.
+    if (token?.accountType === "PARTNER" || token?.accountType === "STAFF") {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search}`);
+      loginUrl.searchParams.set("app", "restaurant");
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
   // LOGGED-IN USER ON THE HOMEPAGE -> STRAIGHT TO THEIR DASHBOARD

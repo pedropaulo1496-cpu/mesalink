@@ -10,6 +10,7 @@ export type PartnerRestaurant = {
   id: string;
   name: string;
   isDemo: boolean;
+  bookingReady: boolean;
   cuisine: string;
   address: string;
   description: string;
@@ -32,8 +33,11 @@ export type PartnerRestaurant = {
   googleMapsUrl: string;
   googleBusinessConnected: boolean;
   negotiationStatus: string | null;
+  negotiationRequestId: string | null;
+  negotiationInitiator: string | null;
   negotiationType: "PER_PERSON" | "TOTAL" | null;
   negotiationAmount: number | null;
+  negotiationMessage: string | null;
 };
 
 export default function NewReferralGroupForm({ restaurants, publishingEnabled = true }: { restaurants: PartnerRestaurant[]; publishingEnabled?: boolean }) {
@@ -58,15 +62,18 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     const normalizedLocation = locationFilter.trim().toLowerCase();
     const matches = restaurants.filter((restaurant) => {
       const remaining = remainingCapacity(restaurant, desiredDate);
-      return remaining >= guests
+      return (!restaurant.bookingReady || remaining >= guests)
         && (cuisineFilter === "ALL" || restaurant.cuisine === cuisineFilter)
         && (!normalizedLocation || restaurant.address.toLowerCase().includes(normalizedLocation))
         && (!normalized || `${restaurant.name} ${restaurant.cuisine} ${restaurant.description} ${restaurant.highlights.join(" ")}`.toLowerCase().includes(normalized));
     });
-    if (!currentPosition) return matches;
-    return [...matches].sort((a, b) => distanceTo(a, currentPosition) - distanceTo(b, currentPosition));
+    return [...matches].sort((a, b) => {
+      if (a.bookingReady !== b.bookingReady) return a.bookingReady ? -1 : 1;
+      if (currentPosition) return distanceTo(a, currentPosition) - distanceTo(b, currentPosition);
+      return a.name.localeCompare(b.name, "pt");
+    });
   }, [restaurants, query, cuisineFilter, locationFilter, currentPosition, desiredDate, guests]);
-  const selectedRestaurant = filtered.find((restaurant) => restaurant.id === selectedRestaurantId) || null;
+  const selectedRestaurant = filtered.find((restaurant) => restaurant.id === selectedRestaurantId && restaurant.bookingReady) || null;
 
   useEffect(() => {
     if (!("geolocation" in navigator)) {
@@ -135,11 +142,11 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   }
 
   return (
-    <form onSubmit={submit} className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_280px]">
+    <form onSubmit={submit} className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
       {!publishingEnabled && <div className="rounded-[18px] border border-[#D8C29E] bg-[#FFF7E8] px-4 py-3 text-xs font-semibold text-[#795D38] xl:col-span-2">Podes explorar os restaurantes. Para confirmares uma reserva e receberes a comissão, adiciona primeiro o IBAN.</div>}
       <div className="space-y-3">
-        <section className="rounded-[20px] border border-[#E1D0B8] bg-white p-3.5 sm:p-4">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]"><ShieldCheck size={14} /> Dados da reserva</div>
+        <section className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 shadow-[0_10px_34px_rgba(83,59,32,0.045)] sm:p-5">
+          <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">01</span> Dados da reserva</div><span className="hidden text-[9px] font-semibold text-[#948679] sm:inline">Cliente e preferências</span></div>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             <Field label="Nome do cliente"><input name="customerName" required maxLength={100} placeholder="Nome da reserva" className={compactInputClass} /></Field>
             <Field label="Telemóvel"><input name="customerPhone" required maxLength={30} placeholder="+351 9…" className={compactInputClass} /></Field>
@@ -153,8 +160,8 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
           <div className="mt-3 flex flex-wrap gap-1.5">{REFERRAL_REQUIREMENT_TAGS.map((tag) => { const active = requirements.includes(tag); return <button key={tag} type="button" onClick={() => toggleRequirement(tag)} className={`rounded-full border px-3 py-1.5 text-[9px] font-bold ${active ? "border-[#8A6130] bg-[#FFF0D3] text-[#69491F]" : "border-[#DCC9AC] bg-white text-[#6E563A]"}`}>{active && <Check size={9} className="mr-1 inline" />}{tag}</button>; })}</div>
         </section>
 
-        <section className="rounded-[20px] border border-[#E1D0B8] bg-white p-3.5 sm:p-4">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">Disponíveis agora</p><h2 className="mt-1 text-xl font-semibold tracking-[-0.04em]">Escolhe um restaurante</h2></div><span className="rounded-full bg-[#F1E6D5] px-3 py-1 text-[10px] font-bold text-[#795D38]">{filtered.length} opções</span></div>
+        <section className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 shadow-[0_10px_34px_rgba(83,59,32,0.045)] sm:p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Escolhe entre os disponíveis</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{filtered.length} opções</span></div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
             <label className="relative block"><Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7E6E]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome ou especialidade" className={compactInputClass} style={{ paddingLeft: "2.25rem" }} /></label>
             <select value={cuisineFilter} onChange={(event) => setCuisineFilter(event.target.value)} className={compactInputClass}><option value="ALL">Todas as cozinhas</option>{cuisines.map((item) => <option key={item} value={item}>{item}</option>)}</select>
@@ -168,30 +175,31 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
               const distance = currentPosition ? distanceTo(restaurant, currentPosition) : null;
               const gross = restaurant.commissionType === "PER_PERSON" ? restaurant.commissionAmount * guests : restaurant.commissionAmount;
               const perPerson = gross / Math.max(1, guests);
-              return <article key={restaurant.id} className={`relative rounded-[17px] border p-2.5 transition ${selected ? "border-[#9E733D] bg-[#FFF7E9] ring-1 ring-[#C8A56A]/25" : "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A]"}`}>
-                <button type="button" aria-pressed={selected} onClick={() => setSelectedRestaurantId(restaurant.id)} className={`absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full border ${selected ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#D3BE9C] bg-white text-transparent"}`}><Check size={15} /></button>
+              return <article key={restaurant.id} className={`relative overflow-hidden rounded-[18px] border p-2.5 transition ${selected ? "border-[#9E733D] bg-[#FFF7E9] shadow-[0_10px_28px_rgba(119,81,34,0.10)] ring-1 ring-[#C8A56A]/25" : restaurant.bookingReady ? "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A] hover:bg-white" : "border-[#E5DBCC] bg-[#FAF7F2]"}`}>{selected && <span className="absolute inset-y-0 left-0 w-1 bg-[#B88745]" />}
+                <button type="button" aria-pressed={selected} aria-label={restaurant.bookingReady ? `Escolher ${restaurant.name}` : `${restaurant.name} ainda não aceita reservas imediatas`} disabled={!restaurant.bookingReady} onClick={() => setSelectedRestaurantId(restaurant.id)} className={`absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full border ${selected ? "border-[#17120D] bg-[#17120D] text-white" : restaurant.bookingReady ? "border-[#D3BE9C] bg-white text-transparent" : "cursor-not-allowed border-[#DFD5C7] bg-[#EFE9E0] text-[#B2A798]"}`}>{restaurant.bookingReady ? <Check size={15} /> : <ShieldCheck size={14} />}</button>
                 <div className="grid grid-cols-[56px_minmax(0,1fr)] items-center gap-2.5 pr-11 sm:grid-cols-[64px_minmax(0,1fr)_150px] sm:gap-3">
                   {restaurant.heroImage ? <div className="h-14 rounded-[12px] bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.heroImage})` }} /> : <div className="grid h-14 place-items-center rounded-[12px] bg-[#EADCC7] text-[#9B7D57]"><ImageIcon size={17} /></div>}
-                  <div className="min-w-0"><div className="flex flex-wrap items-start gap-1.5"><p className="line-clamp-2 break-words text-sm font-semibold leading-4">{restaurant.name}</p>{restaurant.googleBusinessConnected && <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">GOOGLE</span>}{restaurant.isDemo && <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">DEMO</span>}</div><div className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] font-bold"><span className="text-[#80613D]">{restaurant.cuisine}</span>{restaurant.googleRating != null && <span className="text-[#A36D19]">★ {restaurant.googleRating.toFixed(1)} <span className="font-normal text-[#8A7863]">({restaurant.googleReviewCount || 0})</span></span>}{restaurant.googlePriceLevel != null && <span className="tracking-[0.08em] text-[#4F6C4D]">{"€".repeat(Math.min(4, Math.max(1, restaurant.googlePriceLevel)))}</span>}</div><p className="mt-1 flex items-center gap-1 text-[10px] text-[#6B6258]"><MapPin size={11} className="shrink-0 text-[#9B6F3B]" />{distance !== null && Number.isFinite(distance) ? <strong className="shrink-0 text-[#4F6C4D]">{formatDistance(distance)} ·</strong> : null}<span className="line-clamp-1">{restaurant.address || "Portugal"}</span></p></div>
-                  <div className="col-start-2 text-left sm:col-start-auto sm:text-right"><p className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8A7863]">Comissão</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{money(perPerson)} / pessoa</p><p className="text-[9px] text-[#8A7863]">{money(gross)} total</p>{desiredDate && <p className="mt-0.5 text-[8px] font-bold text-[#4F6C4D]">{remainingCapacity(restaurant, desiredDate)} lugares livres</p>}</div>
+                  <div className="min-w-0"><div className="flex flex-wrap items-start gap-1.5"><p className="line-clamp-2 break-words text-sm font-semibold leading-4">{restaurant.name}</p>{restaurant.bookingReady ? <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">RESERVA IMEDIATA</span> : <span className="rounded-full bg-[#F0E9DF] px-1.5 py-0.5 text-[7px] font-black text-[#796B5B]">ATIVAÇÃO PENDENTE</span>}{restaurant.googleBusinessConnected && <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">GOOGLE</span>}{restaurant.isDemo && <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">DEMO</span>}</div><div className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] font-bold"><span className="text-[#80613D]">{restaurant.cuisine}</span>{restaurant.googleRating != null && <span className="text-[#A36D19]">★ {restaurant.googleRating.toFixed(1)} <span className="font-normal text-[#8A7863]">({restaurant.googleReviewCount || 0})</span></span>}{restaurant.googlePriceLevel != null && <span className="tracking-[0.08em] text-[#4F6C4D]">{"€".repeat(Math.min(4, Math.max(1, restaurant.googlePriceLevel)))}</span>}</div><p className="mt-1 flex items-center gap-1 text-[10px] text-[#6B6258]"><MapPin size={11} className="shrink-0 text-[#9B6F3B]" />{distance !== null && Number.isFinite(distance) ? <strong className="shrink-0 text-[#4F6C4D]">{formatDistance(distance)} ·</strong> : null}<span className="line-clamp-1">{restaurant.address || "Portugal"}</span></p></div>
+                  <div className="col-start-2 text-left sm:col-start-auto sm:text-right"><p className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8A7863]">Comissão atual</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{money(perPerson)} / pessoa</p><p className="text-[9px] text-[#8A7863]">{money(gross)} total</p>{desiredDate && restaurant.bookingReady && <p className="mt-0.5 text-[8px] font-bold text-[#4F6C4D]">{remainingCapacity(restaurant, desiredDate)} lugares livres</p>}</div>
                 </div>
+                {!restaurant.bookingReady && <p className="mt-2 rounded-xl bg-[#F1EBE2] px-3 py-2 text-[9px] leading-4 text-[#74695D]">Este restaurante é real e já aparece na rede, mas ainda está a concluir a ativação das reservas automáticas. Podes negociar a comissão entretanto.</p>}
                 <details className="group mt-2 border-t border-[#EEE3D3] pt-2"><summary className="flex cursor-pointer list-none items-center justify-between text-[10px] font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><UtensilsCrossed size={12} /> Mini-perfil, fotografias e menu</span><span className="transition group-open:rotate-180">⌄</span></summary><div className="mt-2 rounded-xl bg-white p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[11px] leading-4 text-[#6B6258]">{restaurant.description}</p>{restaurant.googleBusinessConnected && <span className="rounded-full bg-[#EAF4E8] px-2.5 py-1 text-[8px] font-black uppercase text-[#456846]">Perfil Google Maps integrado</span>}</div>{restaurant.galleryImages.length > 0 && <div className="mt-2 grid grid-cols-3 gap-2">{restaurant.galleryImages.slice(0, 3).map((image) => <div key={image} className="h-14 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />)}</div>}<div className="mt-3 flex flex-wrap gap-3">{restaurant.menuUrl && <a href={restaurant.menuUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Abrir menu <ExternalLink size={12} /></a>}{restaurant.googleMapsUrl && <a href={restaurant.googleMapsUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#4F6C4D]">Abrir no Google Maps <ExternalLink size={12} /></a>}</div></div></details>
                 {!restaurant.isDemo && <CommissionNegotiation restaurant={restaurant} />}
               </article>;
             })}
-            {filtered.length === 0 && <div className="rounded-[20px] border border-dashed border-[#D6C3A5] p-6 text-center text-xs text-[#6B6258]">Não existem restaurantes com capacidade para esta data e tamanho de grupo.</div>}
+            {filtered.length === 0 && <div className="rounded-[20px] border border-dashed border-[#D6C3A5] p-6 text-center text-xs text-[#6B6258]">Não existem restaurantes que correspondam a estes filtros.</div>}
           </div>
         </section>
       </div>
 
-      <aside className="space-y-3 xl:sticky xl:top-5 xl:self-start">
-        <div className="rounded-[20px] border border-[#2C2117] bg-[#17120D] p-4 text-white">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D7B267]">Reserva imediata</p>
+      <aside className="space-y-3 xl:sticky xl:top-20 xl:self-start">
+        <div className="relative overflow-hidden rounded-[22px] border border-[#2C2117] bg-[#17120D] p-5 text-white shadow-[0_18px_42px_rgba(23,18,13,0.14)]" style={{ backgroundImage: "radial-gradient(circle at 100% 0%, rgba(215,178,103,.24), transparent 15rem)" }}>
+          <p className="relative flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-[#D7B267]"><ShieldCheck size={13} /> Resumo da reserva</p>
           {selectedRestaurant ? <><p className="mt-2 text-lg font-semibold">{selectedRestaurant.name}</p><p className="mt-1 text-xs text-white/55">{guests} pessoas · {selectedRestaurant.cuisine}</p><div className="mt-3 border-t border-white/10 pt-3"><MoneyRow label="Comissão / pessoa" value={money((selectedRestaurant.commissionType === "PER_PERSON" ? selectedRestaurant.commissionAmount * guests : selectedRestaurant.commissionAmount) / guests)} /><MoneyRow label="Comissão total" value={money(selectedRestaurant.commissionType === "PER_PERSON" ? selectedRestaurant.commissionAmount * guests : selectedRestaurant.commissionAmount)} strong /></div></> : <p className="mt-2 text-xs leading-5 text-white/55">Escolhe um restaurante para veres a comissão e confirmares.</p>}
           <p className="mt-3 text-[9px] leading-4 text-white/45">O restaurante já definiu a comissão e autorizou a reserva automática. Ao valor aplicam-se impostos, comissão MesaLink e taxas de processamento.</p>
         </div>
         {message && <div className={`rounded-[18px] border p-3 text-xs font-semibold ${success ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{message}</div>}
-        <button disabled={!publishingEnabled || loading || !selectedRestaurant || !desiredDate} className="h-12 w-full rounded-full bg-[#C8A56A] px-5 text-xs font-black text-[#17120D] shadow-[0_14px_35px_rgba(156,112,51,0.18)] disabled:cursor-not-allowed disabled:opacity-45">{!publishingEnabled ? "Adicionar IBAN" : loading ? "A confirmar…" : "Confirmar reserva"}</button>
+        <button disabled={!publishingEnabled || loading || !selectedRestaurant || !desiredDate} className="h-12 w-full rounded-full bg-[#C8A56A] px-5 text-xs font-black text-[#17120D] shadow-[0_14px_35px_rgba(156,112,51,0.18)] transition hover:bg-[#D8BA7D] disabled:cursor-not-allowed disabled:opacity-45">{!publishingEnabled ? "Adicionar IBAN" : loading ? "A confirmar…" : "Confirmar e reservar"}</button>
       </aside>
     </form>
   );
@@ -199,10 +207,14 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
 
 function CommissionNegotiation({ restaurant }: { restaurant: PartnerRestaurant }) {
   const [commissionType, setCommissionType] = useState<"PER_PERSON" | "TOTAL">(restaurant.negotiationType || restaurant.commissionType);
-  const [amount, setAmount] = useState(String(restaurant.negotiationAmount || restaurant.commissionAmount));
+  const [amount, setAmount] = useState(String(restaurant.negotiationAmount ?? restaurant.commissionAmount));
   const [status, setStatus] = useState(restaurant.negotiationStatus);
+  const [initiator, setInitiator] = useState(restaurant.negotiationInitiator);
+  const [requestId, setRequestId] = useState(restaurant.negotiationRequestId);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const incoming = status === "PENDING" && initiator === "RESTAURANT";
+  const outgoing = status === "PENDING" && initiator === "PARTNER";
 
   async function sendRequest() {
     setLoading(true);
@@ -215,18 +227,51 @@ function CommissionNegotiation({ restaurant }: { restaurant: PartnerRestaurant }
     const result = await response.json();
     setLoading(false);
     if (!response.ok) return setMessage(result.error || "Não foi possível enviar o pedido.");
+    setRequestId(result.requestId);
+    setInitiator("PARTNER");
     setStatus("PENDING");
-    setMessage("Pedido enviado ao restaurante.");
+    setMessage("Proposta enviada. A comissão atual mantém-se até o restaurante aceitar.");
   }
 
-  return <details className="group mt-2 border-t border-[#EEE3D3] pt-2">
-    <summary className="flex cursor-pointer list-none items-center justify-between text-[10px] font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><Handshake size={12} /> Negociar comissão com este restaurante {status === "PENDING" ? "· pedido pendente" : status === "ACCEPTED" ? "· aceite" : ""}</span><span className="transition group-open:rotate-180">⌄</span></summary>
-    <div className="mt-2 grid gap-2 rounded-xl bg-white p-2.5 sm:grid-cols-[130px_90px_auto]">
+  async function respond(action: "ACCEPT" | "REJECT") {
+    if (!requestId) return;
+    setLoading(true);
+    setMessage("");
+    const response = await fetch("/api/partners/commission-requests", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestId, action }),
+    });
+    const result = await response.json();
+    setLoading(false);
+    if (!response.ok) return setMessage(result.error || "Não foi possível responder à proposta.");
+    setStatus(result.status);
+    setMessage(action === "ACCEPT" ? "Comissão aceite. Será usada automaticamente nas próximas reservas." : "Proposta recusada. A comissão anterior mantém-se.");
+    if (action === "ACCEPT") window.setTimeout(() => window.location.reload(), 700);
+  }
+
+  const stateLabel = incoming
+    ? "O restaurante enviou uma proposta"
+    : outgoing
+      ? "A aguardar resposta do restaurante"
+      : status === "ACCEPTED"
+        ? "Última alteração aceite"
+        : status === "REJECTED"
+          ? "Última proposta recusada"
+          : "Negociar comissão permanente";
+
+  return <details open={incoming || undefined} className="group mt-2 border-t border-[#EEE3D3] pt-2">
+    <summary className="flex cursor-pointer list-none items-center justify-between text-[10px] font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><Handshake size={12} /> {stateLabel}</span><span className="transition group-open:rotate-180">⌄</span></summary>
+    {incoming ? <div className="mt-2 rounded-xl border border-[#E4CA8C] bg-[#FFF7E2] p-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[8px] font-black uppercase tracking-[0.13em] text-[#8B6738]">Nova comissão proposta</p><p className="mt-1 text-base font-bold">{money(Number(amount))} {commissionType === "PER_PERSON" ? "/ pessoa" : "total"}</p>{restaurant.negotiationMessage && <p className="mt-1 text-[9px] text-[#75695D]">{restaurant.negotiationMessage}</p>}<p className="mt-1 text-[9px] text-[#75695D]">Só será aplicada às reservas futuras se aceitares.</p></div><div className="flex gap-2"><button type="button" onClick={() => respond("REJECT")} disabled={loading} className="h-9 rounded-full border border-[#D5C3A6] bg-white px-4 text-[9px] font-bold disabled:opacity-50">Recusar</button><button type="button" onClick={() => respond("ACCEPT")} disabled={loading} className="h-9 rounded-full bg-[#17120D] px-4 text-[9px] font-bold text-white disabled:opacity-50">{loading ? "A responder…" : "Aceitar comissão"}</button></div></div>
+      {message && <p className="mt-2 text-[9px] font-semibold text-[#4F6C4D]">{message}</p>}
+    </div> : <div className="mt-2 grid gap-2 rounded-xl bg-white p-2.5 sm:grid-cols-[130px_90px_auto]">
       <select value={commissionType} onChange={(event) => setCommissionType(event.target.value as "PER_PERSON" | "TOTAL")} className="input-premium h-9 text-xs"><option value="PER_PERSON">Por pessoa</option><option value="TOTAL">Total</option></select>
       <input value={amount} onChange={(event) => setAmount(event.target.value)} onKeyDown={(event) => event.key === "Enter" && event.preventDefault()} type="number" min="0.5" max="1000" step="0.01" aria-label="Nova comissão" className="input-premium h-9 text-xs" />
-      <button type="button" onClick={sendRequest} disabled={loading} className="h-9 rounded-full bg-[#17120D] px-4 text-[9px] font-bold text-white disabled:opacity-50">{loading ? "A enviar…" : status === "PENDING" ? "Atualizar pedido" : "Enviar pedido"}</button>
+      <button type="button" onClick={sendRequest} disabled={loading} className="h-9 rounded-full bg-[#17120D] px-4 text-[9px] font-bold text-white disabled:opacity-50">{loading ? "A enviar…" : outgoing ? "Atualizar a minha proposta" : "Propor alteração"}</button>
+      <p className="text-[9px] text-[#75695D] sm:col-span-3">Este acordo fica associado ao restaurante e será usado em todas as reservas futuras depois de aceite.</p>
       {message && <p className="text-[9px] font-semibold text-[#4F6C4D] sm:col-span-3">{message}</p>}
-    </div>
+    </div>}
   </details>;
 }
 
