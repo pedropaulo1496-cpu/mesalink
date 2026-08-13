@@ -16,7 +16,7 @@ export default function BackofficeNavigation({ role, variant }: { role: "ADMIN" 
   const pathname = usePathname();
   const items = role === "ADMIN"
     ? [...links, { href: "/backoffice/partner-payouts", label: "Pagamentos", icon: WalletCards }, { href: "/backoffice/team", label: "Comerciais", icon: UsersRound }]
-    : links;
+    : links.map((item) => item.href === "/backoffice/requests" ? { ...item, label: "Os meus pedidos" } : item);
 
   if (variant === "desktop") {
     return (

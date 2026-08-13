@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 
 export const getAdminUser = cache(async () => {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return null;
+  if (session?.user?.accountType !== "STAFF" || !session.user.email) return null;
 
   return prisma.user.findFirst({
     where: { email: session.user.email, isAdmin: true },
@@ -16,7 +16,7 @@ export const getAdminUser = cache(async () => {
 
 export async function requireAdmin() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) redirect("/login");
+  if (session?.user?.accountType !== "STAFF" || !session.user.email) redirect("/backoffice-access");
 
   const admin = await prisma.user.findFirst({
     where: { email: session.user.email, isAdmin: true },

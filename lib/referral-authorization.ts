@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { referralAuthorizationRequiredUntil } from "@/lib/referral-deadlines";
 import { calculatePartnerInvoiceAmounts, calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
@@ -72,7 +73,7 @@ export async function finalizeReferralAuthorization(sessionId: string) {
   const authorizationExpiresAt = cardDetails?.capture_before
     ? new Date(cardDetails.capture_before * 1000)
     : new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);
-  if (authorizationExpiresAt.getTime() < offer.group.desiredDate.getTime() + 4 * 60 * 60 * 1000) {
+  if (authorizationExpiresAt < referralAuthorizationRequiredUntil(offer.group.desiredDate)) {
     await stripe.paymentIntents.cancel(paymentIntent.id).catch(() => undefined);
     return { status: "authorization_too_short" as const, restaurantId: offer.restaurantId };
   }

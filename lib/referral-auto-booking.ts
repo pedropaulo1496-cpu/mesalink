@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { getReferralCapacity } from "@/lib/referral-availability";
+import { referralAuthorizationRequiredUntil } from "@/lib/referral-deadlines";
 import { blockRestaurantReferralPayments } from "@/lib/referral-payment-health";
 import { calculatePartnerInvoiceAmounts, calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
@@ -118,7 +119,7 @@ export async function finalizeInstantReferralBooking(offerId: string) {
   const charge = typeof paymentIntent.latest_charge === "string" || !paymentIntent.latest_charge ? null : paymentIntent.latest_charge as Stripe.Charge;
   const card = charge?.payment_method_details?.card as ({ capture_before?: number }) | undefined;
   const authorizationExpiresAt = card?.capture_before ? new Date(card.capture_before * 1000) : new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);
-  if (authorizationExpiresAt.getTime() < offer.group.desiredDate.getTime() + 4 * 60 * 60 * 1000) {
+  if (authorizationExpiresAt < referralAuthorizationRequiredUntil(offer.group.desiredDate)) {
     await stripe.paymentIntents.cancel(paymentIntent.id).catch(() => undefined);
     throw new InstantReferralBookingError("AUTHORIZATION_TOO_SHORT");
   }

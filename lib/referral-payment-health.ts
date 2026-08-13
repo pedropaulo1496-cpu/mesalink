@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { nextReferralPayoutAt } from "@/lib/referral-deadlines";
 import { issueCapturedReferralInvoice } from "@/lib/referral-invoices";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
@@ -86,7 +87,7 @@ export async function recoverRestaurantReferralDebt({
           failedAt: null,
           capturedAt: new Date(),
           paidAt: new Date(),
-          payoutDueAt: nextMonday(),
+          payoutDueAt: nextReferralPayoutAt(),
           lastError: null,
         },
       });
@@ -125,12 +126,4 @@ export async function recoverRestaurantReferralDebt({
     },
   });
   return { success: true as const, recoveredAmount, remainingPayments: 0 };
-}
-
-function nextMonday() {
-  const date = new Date();
-  const days = ((8 - date.getUTCDay()) % 7) || 7;
-  date.setUTCDate(date.getUTCDate() + days);
-  date.setUTCHours(9, 0, 0, 0);
-  return date;
 }

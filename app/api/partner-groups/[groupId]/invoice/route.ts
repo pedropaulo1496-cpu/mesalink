@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPartnerIdentity } from "@/lib/partner-auth";
+import { referralInvoiceDeadline } from "@/lib/referral-deadlines";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request, { params }: { params: Promise<{ groupId: string }> }) {
@@ -12,15 +13,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
   if (!invoiceUrl || !invoiceNumber) return NextResponse.json({ error: "Indica o número e carrega a fatura em PDF." }, { status: 400 });
 
   const group = await prisma.referralGroup.findFirst({
-    where: { id: groupId, partnerId: partner.id, status: { in: ["COMPLETED", "PAID"] } },
-    select: { desiredDate: true, payment: { select: { id: true } } },
+    where: { id: groupId, partnerId: partner.id },
+    select: {
+      status: true,
+      payment: { select: { id: true, status: true, capturedAt: true, stripeTransferId: true } },
+    },
   });
-  if (!group?.payment) return NextResponse.json({ error: "Este grupo ainda não está pronto para faturação." }, { status: 404 });
-  const invoiceAvailableAt = new Date(group.desiredDate.getTime() + 24 * 60 * 60 * 1000);
-  if (invoiceAvailableAt > new Date()) {
+  if (!group?.payment) return NextResponse.json({ error: "Reserva Partner não encontrada." }, { status: 404 });
+  if (group.status === "REFUNDED" || group.payment.status === "REFUNDED_INVOICE_EXPIRED") {
+    return NextResponse.json({ error: "O prazo de faturação terminou e o valor já foi devolvido ao restaurante." }, { status: 410 });
+  }
+  if (!["COMPLETED", "PAID"].includes(group.status) || !group.payment.capturedAt) {
+    return NextResponse.json({ error: "A fatura fica disponível assim que o restaurante confirmar a visita ou terminar o prazo de 3 dias." }, { status: 409 });
+  }
+  if (group.payment.stripeTransferId || ["TRANSFERRED", "PAID"].includes(group.payment.status)) {
+    return NextResponse.json({ error: "Este pagamento já foi processado." }, { status: 409 });
+  }
+  const invoiceDeadline = referralInvoiceDeadline(group.payment.capturedAt);
+  if (invoiceDeadline <= new Date()) {
     return NextResponse.json({
-      error: `A fatura fica disponível 24h após a reserva, em ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(invoiceAvailableAt)}.`,
-    }, { status: 409 });
+      error: "O prazo de 30 dias terminou. O valor será devolvido ao restaurante e deixa de estar disponível para pagamento.",
+    }, { status: 410 });
   }
 
   await prisma.referralPayment.update({

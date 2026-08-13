@@ -73,7 +73,8 @@
       "required": "Required",
       "optional": "Optional"
     },
-    "birthDateNote": "Your date of birth is optional and may be used by the restaurant for birthday offers and personalized perks.",
+    "birthDateOptionalLabel": "optional for birthday offers",
+    "birthDateNote": "Optional. If you provide it, the restaurant may use this date to send you birthday offers and personalized promotional campaigns.",
     "submitProcessing": "Processing...",
     "submitRequest": "Send request",
     "submitConfirm": "Confirm booking",

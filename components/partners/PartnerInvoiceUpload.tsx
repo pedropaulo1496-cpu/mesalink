@@ -14,7 +14,7 @@ type InvoiceRecipient = {
   country?: string | null;
 };
 
-export default function PartnerInvoiceUpload({ groupId, recipient, amount }: { groupId: string; recipient?: InvoiceRecipient; amount: { base: number; tax: number; total: number; currency: string } }) {
+export default function PartnerInvoiceUpload({ groupId, deadline, recipient, amount }: { groupId: string; deadline: string; recipient?: InvoiceRecipient; amount: { base: number; tax: number; total: number; currency: string } }) {
   const [invoiceUrl, setInvoiceUrl] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +40,7 @@ export default function PartnerInvoiceUpload({ groupId, recipient, amount }: { g
   return <div className="mt-3 rounded-2xl border border-[#E2CDA9] bg-[#FFF7E8] p-3">
     <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-[#7A592F]"><FileText size={14} /> Fatura obrigatória</div>
     <p className="mt-1 text-[11px] leading-4 text-[#74685B]">O Stripe processa o pagamento, mas não emite esta fatura fiscal por ti. Emite-a ao restaurante no Portal das Finanças ou no teu software de faturação e anexa aqui o PDF para entrar no pagamento semanal.</p>
+    <p className="mt-2 rounded-xl border border-[#E8C97D] bg-white px-3 py-2 text-[10px] font-bold leading-4 text-[#715023]">Prazo: {new Intl.DateTimeFormat("pt-PT", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(new Date(deadline))}. Sem uma fatura válida até esta data, o valor é devolvido ao restaurante e deixa de poder ser recebido.</p>
     <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl border border-[#D9C5A3] bg-white p-3 text-center"><div><p className="text-[8px] font-black uppercase tracking-[0.1em] text-[#8A7863]">Base a faturar</p><p className="mt-1 text-sm font-bold">{formatAmount(amount.base, amount.currency)}</p></div><div><p className="text-[8px] font-black uppercase tracking-[0.1em] text-[#8A7863]">Imposto</p><p className="mt-1 text-sm font-bold">{formatAmount(amount.tax, amount.currency)}</p></div><div><p className="text-[8px] font-black uppercase tracking-[0.1em] text-[#8A7863]">Total da fatura</p><p className="mt-1 text-sm font-bold text-[#6C4B25]">{formatAmount(amount.total, amount.currency)}</p></div></div>
     <p className="mt-2 text-[10px] leading-4 text-[#74685B]">A base corresponde ao teu valor líquido após os 7% MesaLink. Confirma sempre o IVA ou a isenção aplicável ao teu regime fiscal antes de emitir.</p>
     {recipient?.legalName && recipient.taxId ? <div className="mt-3 rounded-xl border border-[#E1D0B8] bg-white p-3 text-[11px] leading-5 text-[#5F554A]"><p className="font-black uppercase tracking-[0.1em] text-[#7A592F]">Dados do cliente da fatura</p><p className="mt-1 font-bold">{recipient.legalName}</p><p>NIF/IVA: {recipient.taxId}</p><p>{[recipient.addressLine1, recipient.postalCode, recipient.city, recipient.country].filter(Boolean).join(" · ")}</p></div> : <p className="mt-3 rounded-xl border border-[#E8C8B9] bg-[#FFF0EA] p-3 text-[11px] font-semibold text-[#934A35]">A ficha fiscal do restaurante ainda está a sincronizar com o Stripe. Contacta o MesaLink antes de emitir.</p>}

@@ -73,7 +73,8 @@
       "required": "Pflichtfeld",
       "optional": "Optional"
     },
-    "birthDateNote": "Das Geburtsdatum ist optional und kann vom Restaurant für Geburtstagsaktionen und personalisierte Vorteile genutzt werden.",
+    "birthDateOptionalLabel": "optional für Geburtstagsangebote",
+    "birthDateNote": "Optional. Wenn du es angibst, kann das Restaurant dieses Datum für Geburtstagsangebote und personalisierte Werbeaktionen verwenden.",
     "submitProcessing": "Wird verarbeitet...",
     "submitRequest": "Anfrage senden",
     "submitConfirm": "Reservierung bestätigen",

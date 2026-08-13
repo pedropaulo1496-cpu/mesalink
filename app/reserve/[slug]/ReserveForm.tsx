@@ -330,7 +330,7 @@ export default function ReserveForm({
                   </CompactField>
                 </div>
                 <details className="group mt-3 rounded-[15px] border border-[#E4D7C6] bg-[#FBF8F4]">
-                  <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-[10px] font-bold text-[#786D61] [&::-webkit-details-marker]:hidden"><span>{t("fields.birthDate")} · {t("fields.optional")}</span><ChevronDown size={14} className="transition group-open:rotate-180" /></summary>
+                  <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-[10px] font-bold text-[#786D61] [&::-webkit-details-marker]:hidden"><span>{t("fields.birthDate")} · {t("birthDateOptionalLabel")}</span><ChevronDown size={14} className="transition group-open:rotate-180" /></summary>
                   <div className="border-t border-[#E8DDCF] p-3"><input name="birthDate" type="date" className={inputClass} /><p className="mt-2 px-1 text-[9px] leading-4 text-[#8F8275]">{t("birthDateNote")}</p></div>
                 </details>
 

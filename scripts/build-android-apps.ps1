@@ -19,7 +19,7 @@ function Stop-AndroidGradle {
 function Set-AndroidAppLinks {
   param(
     [Parameter(Mandatory = $true)][string]$ManifestPath,
-    [Parameter(Mandatory = $true)][string[]]$Paths
+    [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Paths
   )
 
   [xml]$document = Get-Content -LiteralPath $ManifestPath
@@ -30,6 +30,10 @@ function Set-AndroidAppLinks {
 
   foreach ($filter in $filters) {
     @($filter.SelectNodes("data")) | ForEach-Object { [void]$filter.RemoveChild($_) }
+    if ($Paths.Count -eq 0) {
+      [void]$filter.ParentNode.RemoveChild($filter)
+      continue
+    }
     foreach ($path in $Paths) {
       $data = $document.CreateElement("data")
       $data.SetAttribute("scheme", $androidNamespace, "https")
@@ -65,9 +69,11 @@ if (-not (Test-Path -LiteralPath $keystoreFile)) {
 
 $restaurantPaths = @("/login", "/dashboard", "/restaurants", "/billing", "/onboarding", "/trial-expired")
 $variants = @(
-  @{ Manifest = $restaurantManifest; Output = "MesaLink-Restaurantes-v1.1.2.apk"; Paths = $restaurantPaths },
-  @{ Manifest = (Join-Path $androidRoot "partners-manifest.json"); Output = "MesaLink-Parceiros-v1.0.2.apk"; Paths = @("/partners/login", "/partners/register", "/partners/app") },
-  @{ Manifest = (Join-Path $androidRoot "backoffice-manifest.json"); Output = "MesaLink-Backoffice-v1.0.2.apk"; Paths = @("/backoffice", "/backoffice-access") }
+  @{ Manifest = $restaurantManifest; Output = "MesaLink-Restaurantes-v1.1.3.apk"; Paths = $restaurantPaths },
+  # Partners e HQ abrem pelo ícone. Sem App Links, nunca capturam páginas públicas
+  # como /reserve/... que pertencem ao browser e aos clientes do restaurante.
+  @{ Manifest = (Join-Path $androidRoot "partners-manifest.json"); Output = "MesaLink-Parceiros-v1.0.3.apk"; Paths = @() },
+  @{ Manifest = (Join-Path $androidRoot "backoffice-manifest.json"); Output = "MesaLink-Backoffice-v1.0.3.apk"; Paths = @() }
 )
 
 $iconServer = Start-Process python -ArgumentList @(

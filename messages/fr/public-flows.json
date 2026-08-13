@@ -73,7 +73,8 @@
       "required": "Obligatoire",
       "optional": "Facultatif"
     },
-    "birthDateNote": "La date de naissance est facultative et peut être utilisée par le restaurant pour des offres d'anniversaire et des avantages personnalisés.",
+    "birthDateOptionalLabel": "facultatif pour les offres d’anniversaire",
+    "birthDateNote": "Facultatif. Si vous la renseignez, le restaurant peut l’utiliser pour vous envoyer des offres d’anniversaire et des campagnes promotionnelles personnalisées.",
     "submitProcessing": "Traitement en cours...",
     "submitRequest": "Envoyer la demande",
     "submitConfirm": "Confirmer la réservation",

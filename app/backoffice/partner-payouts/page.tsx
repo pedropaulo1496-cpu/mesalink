@@ -1,5 +1,6 @@
 import { CircleDollarSign, Clock3, FileCheck2, FileWarning, Landmark, Send } from "lucide-react";
 import { DoneNotice, PageHeading, StatCard, euroAmount } from "@/components/backoffice/BackofficeUI";
+import { referralInvoiceDeadline } from "@/lib/referral-deadlines";
 import { prisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff-auth";
 import { confirmPartnerPayout, processDuePartnerPayments, processPartnerPayment, reviewPartnerInvoice } from "./actions";
@@ -10,7 +11,7 @@ export default async function PartnerPayoutsPage({ searchParams }: { searchParam
   const staff = await requireStaff();
   const { done, count } = await searchParams;
   const payments = await prisma.referralPayment.findMany({
-    where: { status: { in: ["CAPTURED_AWAITING_PAYOUT", "TRANSFER_FAILED", "TRANSFERRED", "PAID"] } },
+    where: { status: { in: ["CAPTURED_AWAITING_PAYOUT", "TRANSFER_FAILED", "TRANSFERRED", "PAID", "REFUNDED_INVOICE_EXPIRED"] } },
     include: {
       partner: { select: { businessName: true, contactName: true, email: true, stripeOnboardingComplete: true } },
       group: { include: { acceptedRestaurant: { select: { name: true, billingLegalName: true, billingTaxId: true } } } },
@@ -23,6 +24,7 @@ export default async function PartnerPayoutsPage({ searchParams }: { searchParam
   const blocked = awaiting.filter((payment) => payment.partnerInvoiceStatus !== "VERIFIED" || !payment.partnerInvoiceUrl);
   const transferred = payments.filter((payment) => payment.status === "TRANSFERRED");
   const paid = payments.filter((payment) => payment.status === "PAID");
+  const refunded = payments.filter((payment) => payment.status === "REFUNDED_INVOICE_EXPIRED");
   const sum = (items: typeof payments) => items.reduce((total, item) => total + Number(item.partnerInvoiceTotal || item.partnerNet), 0);
 
   return <>
@@ -30,7 +32,7 @@ export default async function PartnerPayoutsPage({ searchParams }: { searchParam
     <PageHeading eyebrow="Partner Network" title="Pagamentos a parceiros" description="Verifica faturas e processa apenas os valores prontos para pagamento." action={staff.role === "ADMIN" ? <form action={processDuePartnerPayments}><button className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#17130F] px-4 text-[13px] font-bold text-white"><Send size={14} /> Processar prontos</button></form> : undefined} />
     <section className="mt-5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard label="Prontos a pagar" value={euroAmount(sum(ready))} note={`${ready.length} com fatura verificada`} tone="green" />
-      <StatCard label="Bloqueados" value={euroAmount(sum(blocked))} note={`${blocked.length} sem verificação`} tone="red" />
+      <StatCard label="Bloqueados" value={euroAmount(sum(blocked))} note={`${blocked.length} sem verificação · ${refunded.length} devolvidos`} tone="red" />
       <StatCard label="No Stripe" value={euroAmount(sum(transferred))} note={`${transferred.length} por confirmar`} tone="gold" />
       <StatCard label="Recebido" value={euroAmount(sum(paid))} note={`${paid.length} confirmados`} tone="blue" />
     </section>
@@ -52,6 +54,7 @@ export default async function PartnerPayoutsPage({ searchParams }: { searchParam
               {payment.partnerInvoiceUrl ? <a href={payment.partnerInvoiceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-sm font-bold text-[#6C4B25] underline">{payment.partnerInvoiceNumber || "Abrir PDF"}</a> : <p className="mt-2 text-xs text-[#8A7863]">O hotel ainda não anexou a fatura.</p>}
               {payment.partnerInvoiceRejectionReason && <p className="mt-2 text-xs font-semibold text-[#A14E36]">Motivo: {payment.partnerInvoiceRejectionReason}</p>}
               <p className="mt-2 text-[11px] text-[#75695C]">Destinatário: {payment.group.acceptedRestaurant?.billingLegalName || payment.group.acceptedRestaurant?.name || "—"} · NIF {payment.group.acceptedRestaurant?.billingTaxId || "por sincronizar"}</p>
+              {payment.capturedAt && <p className="mt-1 text-[11px] font-semibold text-[#76572F]">Prazo da fatura: {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(referralInvoiceDeadline(payment.capturedAt))}</p>}
             </div>
             {staff.role === "ADMIN" && payment.partnerInvoiceUrl && payment.partnerInvoiceStatus !== "VERIFIED" && !["TRANSFERRED", "PAID"].includes(payment.status) && <div className="flex flex-col gap-2 sm:min-w-72"><form action={reviewPartnerInvoice}><input type="hidden" name="paymentId" value={payment.id} /><input type="hidden" name="decision" value="VERIFY" /><button className="h-10 w-full rounded-full bg-[#3F6A4D] px-4 text-xs font-bold text-white">Verifiquei · aprovar fatura</button></form><form action={reviewPartnerInvoice} className="flex gap-2"><input type="hidden" name="paymentId" value={payment.id} /><input type="hidden" name="decision" value="REJECT" /><input name="reason" placeholder="Motivo da rejeição" className="h-10 min-w-0 flex-1 rounded-full border border-[#D8C6A9] bg-white px-3 text-xs" /><button className="h-10 rounded-full border border-[#E0B7A8] bg-[#FFF0EA] px-3 text-xs font-bold text-[#934A35]">Rejeitar</button></form></div>}
           </div>
@@ -64,6 +67,7 @@ export default async function PartnerPayoutsPage({ searchParams }: { searchParam
 }
 
 function PaymentState({ status, dueAt }: { status: string; dueAt: Date | null }) {
+  if (status === "REFUNDED_INVOICE_EXPIRED") return <span className="text-xs font-bold text-[#A14E36]">Devolvido · prazo da fatura</span>;
   if (status === "PAID") return <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#3F6A4D]"><Landmark size={14} /> Recebido</span>;
   if (status === "TRANSFERRED") return <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#7A5B31]"><CircleDollarSign size={14} /> Enviado ao Stripe</span>;
   if (status === "TRANSFER_FAILED") return <span className="text-xs font-bold text-[#A14E36]">Falhou · repetir</span>;

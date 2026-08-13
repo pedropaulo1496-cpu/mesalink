@@ -73,7 +73,8 @@
       "required": "必填",
       "optional": "选填"
     },
-    "birthDateNote": "出生日期为选填项，餐厅可能会用它为您提供生日优惠和专属福利。",
+    "birthDateOptionalLabel": "选填，用于生日优惠",
+    "birthDateNote": "选填。填写后，餐厅可使用此日期向您发送生日优惠和个性化促销活动。",
     "submitProcessing": "处理中...",
     "submitRequest": "发送预订请求",
     "submitConfirm": "确认预订",
