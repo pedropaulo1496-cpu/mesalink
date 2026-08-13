@@ -78,7 +78,7 @@ $variants = @(
   # Partners e HQ abrem pelo ícone. Sem App Links, nunca capturam páginas públicas
   # como /reserve/... que pertencem ao browser e aos clientes do restaurante.
   @{ Name = "Partners"; Manifest = (Join-Path $androidRoot "partners-manifest.json"); Output = "MesaLink-Parceiros-v1.0.3.apk"; Paths = @() },
-  @{ Name = "HQ"; Manifest = (Join-Path $androidRoot "backoffice-manifest.json"); Output = "MesaLink-HQ-v1.1.0.apk"; Paths = @() }
+  @{ Name = "HQ"; Manifest = (Join-Path $androidRoot "backoffice-manifest.json"); Output = "MesaLink-HQ-v1.1.1.apk"; Paths = @() }
 )
 if ($Only -ne "All") {
   $variants = @($variants | Where-Object { $_.Name -eq $Only })

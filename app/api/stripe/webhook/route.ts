@@ -4,6 +4,7 @@ import { getAiCreditPack, grantPurchasedAiCredits, revokeRefundedAiCredits, type
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { recordSalesCommission } from "@/lib/sales-commissions";
+import { monthlyEmailAllowance, nextMonthlyEmailReset } from "@/lib/email-billing";
 import { finalizeReferralAuthorization } from "@/lib/referral-authorization";
 import { blockRestaurantReferralPayments } from "@/lib/referral-payment-health";
 import { calculatePartnerInvoiceAmounts } from "@/lib/referrals";
@@ -383,6 +384,23 @@ export async function POST(req: Request) {
 
         if (session.metadata?.restaurantId) await syncRestaurantBillingDetails(session, session.metadata.restaurantId);
 
+        const activatedAt = new Date();
+        const stripeSubscriptionId = session.subscription?.toString();
+        const currentSubscription = await prisma.subscription.findUnique({
+          where: { userId },
+          select: { plan: true, status: true, stripeSubscriptionId: true },
+        });
+        const startsNewAllowanceCycle = !currentSubscription ||
+          currentSubscription.plan !== product ||
+          currentSubscription.status !== "ACTIVE" ||
+          currentSubscription.stripeSubscriptionId !== stripeSubscriptionId;
+        const allowanceCycle = {
+          emailBalance: monthlyEmailAllowance(product),
+          emailsSent: 0,
+          emailAllowanceAnchorAt: activatedAt,
+          emailAllowanceResetAt: nextMonthlyEmailReset(activatedAt, activatedAt),
+        };
+
         await prisma.subscription.upsert({
           where: { userId },
           create: {
@@ -393,7 +411,8 @@ export async function POST(req: Request) {
             restaurantLimit: 1,
             priceMonthly: getPriceMonthly(product),
             stripeCustomerId: session.customer?.toString(),
-            stripeSubscriptionId: session.subscription?.toString(),
+            stripeSubscriptionId,
+            ...allowanceCycle,
           },
           update: {
             plan: product,
@@ -402,7 +421,8 @@ export async function POST(req: Request) {
             restaurantLimit: 1,
             priceMonthly: getPriceMonthly(product),
             stripeCustomerId: session.customer?.toString(),
-            stripeSubscriptionId: session.subscription?.toString(),
+            stripeSubscriptionId,
+            ...(startsNewAllowanceCycle ? allowanceCycle : {}),
           },
         });
       }
@@ -466,11 +486,23 @@ export async function POST(req: Request) {
     if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as Stripe.Subscription;
       const product = subscriptionProduct(subscription);
+      const existingSubscription = await prisma.subscription.findFirst({
+        where: { stripeSubscriptionId: subscription.id },
+        select: { plan: true },
+      });
+      const planChanged = Boolean(product && existingSubscription && existingSubscription.plan !== product);
+      const changedAt = new Date();
       await prisma.subscription.updateMany({
         where: { stripeSubscriptionId: subscription.id },
         data: {
           status: event.type === "customer.subscription.deleted" ? "CANCELED" : subscriptionStatus(subscription.status),
           ...(product ? { plan: product, priceMonthly: getPriceMonthly(product) } : {}),
+          ...(planChanged && product ? {
+            emailBalance: monthlyEmailAllowance(product),
+            emailsSent: 0,
+            emailAllowanceAnchorAt: changedAt,
+            emailAllowanceResetAt: nextMonthlyEmailReset(changedAt, changedAt),
+          } : {}),
         },
       });
     }

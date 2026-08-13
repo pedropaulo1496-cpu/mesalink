@@ -121,7 +121,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
     emailsRemaining = allowance.emailBalance;
   } catch (error) {
     if (error instanceof InsufficientEmailAllowanceError) {
-      return NextResponse.json({ error: "Os 1.000 emails incluídos terminaram e não existem créditos AI. Cada crédito disponibiliza 75 emails.", code: "INSUFFICIENT_EMAIL_ALLOWANCE", emailsRemaining: error.emailBalance, aiCredits: error.aiCredits }, { status: 402 });
+      return NextResponse.json({ error: "O saldo mensal de emails terminou e não existem créditos AI. Cada crédito disponibiliza 75 emails.", code: "INSUFFICIENT_EMAIL_ALLOWANCE", emailsRemaining: error.emailBalance, aiCredits: error.aiCredits }, { status: 402 });
     }
     throw error;
   }

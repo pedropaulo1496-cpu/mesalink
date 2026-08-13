@@ -74,7 +74,7 @@
           "Réseau Partenaires et commissions vérifiées",
           "Cartes et offres digitales",
           "Sans commission par réservation",
-          "1 000 e-mails inclus"
+          "750 e-mails par mois · non cumulables"
         ]
       },
       "growth": {
@@ -90,7 +90,8 @@
           "Plus de visites récurrentes",
           "Revenue AI et boîte d'opportunités",
           "Visibilité IA / GEO",
-          "Utilisation AI avec crédits prépayés"
+          "Utilisation AI avec crédits prépayés",
+          "1 000 e-mails par mois · non cumulables"
         ],
         "upgrade": {
           "kicker": "Mise à niveau",
@@ -102,7 +103,7 @@
     "credits": {
       "kicker": "Utilisation prépayée",
       "title": "Solde : {credits} crédits AI",
-      "description": "Chaque compte reçoit 1 000 e-mails. Ensuite, 1 crédit AI ajoute automatiquement 75 e-mails ou 8 messages WhatsApp. Chaque envoi coûte environ 0,03€; les messages reçus sont gratuits.",
+      "description": "Essentials reçoit 750 e-mails par mois et Growth 1 000. Le solde inclus est renouvelé chaque mois et n'est pas cumulable. Ensuite, 1 crédit AI ajoute automatiquement 75 e-mails ou 8 messages WhatsApp. Chaque envoi coûte environ 0,03€; les messages reçus sont gratuits.",
       "success": "Paiement confirmé. Les crédits seront disponibles après traitement par Stripe.",
       "buy": "Acheter avec Stripe",
       "taxNote": "Prix hors TVA. Stripe calcule la taxe applicable lors du paiement.",

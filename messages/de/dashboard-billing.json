@@ -74,7 +74,7 @@
           "Partnernetzwerk und verifizierte Provisionen",
           "Digitale Karten und Angebote",
           "Keine Provision pro Reservierung",
-          "1.000 E-Mails inklusive"
+          "750 E-Mails pro Monat · nicht übertragbar"
         ]
       },
       "growth": {
@@ -90,7 +90,8 @@
           "Mehr wiederkehrende Besuche",
           "Revenue AI und Chancen-Inbox",
           "KI-Sichtbarkeit / GEO",
-          "AI-Nutzung mit Prepaid-Guthaben"
+          "AI-Nutzung mit Prepaid-Guthaben",
+          "1.000 E-Mails pro Monat · nicht übertragbar"
         ],
         "upgrade": {
           "kicker": "Upgrade",
@@ -102,7 +103,7 @@
     "credits": {
       "kicker": "Vorausbezahlte Nutzung",
       "title": "Guthaben: {credits} AI-Credits",
-      "description": "Jedes Konto erhält 1.000 E-Mails. Danach fügt 1 AI-Credit automatisch 75 E-Mails oder 8 WhatsApp-Nachrichten hinzu. Jede gesendete Nachricht kostet etwa 0,03€; eingehende Nachrichten sind kostenlos.",
+      "description": "Essentials erhält 750 E-Mails pro Monat, Growth 1.000. Das enthaltene Guthaben wird monatlich erneuert und nicht übertragen. Danach fügt 1 AI-Credit automatisch 75 E-Mails oder 8 WhatsApp-Nachrichten hinzu. Jede gesendete Nachricht kostet etwa 0,03€; eingehende Nachrichten sind kostenlos.",
       "success": "Zahlung bestätigt. Die Credits werden nach Abschluss der Stripe-Verarbeitung verfügbar.",
       "buy": "Mit Stripe kaufen",
       "taxNote": "Preise ohne MwSt. Stripe berechnet die anwendbare Steuer beim Checkout.",

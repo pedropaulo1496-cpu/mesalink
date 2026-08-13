@@ -222,7 +222,7 @@ async function runRecovery(restaurantId: unknown, offerInput: unknown) {
           data: { status: "FAILED", failureReason: error instanceof Error ? error.message.slice(0, 500) : "Email delivery failed" },
         });
         if (error instanceof InsufficientEmailAllowanceError) {
-          return NextResponse.json({ success: false, error: "Os 1.000 emails incluídos terminaram e não existem créditos AI. Cada crédito disponibiliza mais 75 emails.", code: "INSUFFICIENT_EMAIL_ALLOWANCE", emailsRemaining: error.emailBalance, aiCredits: error.aiCredits, emailsSent }, { status: 402 });
+          return NextResponse.json({ success: false, error: "O saldo mensal de emails terminou e não existem créditos AI. Cada crédito disponibiliza mais 75 emails.", code: "INSUFFICIENT_EMAIL_ALLOWANCE", emailsRemaining: error.emailBalance, aiCredits: error.aiCredits, emailsSent }, { status: 402 });
         }
       }
     }

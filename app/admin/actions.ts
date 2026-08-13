@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { assertAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { monthlyEmailAllowance, nextMonthlyEmailReset } from "@/lib/email-billing";
 
 function boundedInteger(value: FormDataEntryValue | null, min: number, max: number) {
   const parsed = Number.parseInt(String(value || ""), 10);
@@ -150,6 +151,8 @@ export async function updateSubscription(formData: FormData) {
         ? before.trialEndsAt
         : new Date(Date.now() + 7 * 86_400_000)
       : null;
+  const planChangedAt = new Date();
+  const planChanged = before.plan !== plan;
 
   await prisma.$transaction([
     prisma.subscription.update({
@@ -160,6 +163,12 @@ export async function updateSubscription(formData: FormData) {
         trialEndsAt,
         priceMonthly: plan === "GROWTH" ? 75 : 55,
         restaurantLimit: 1,
+        ...(planChanged ? {
+          emailBalance: monthlyEmailAllowance(plan),
+          emailsSent: 0,
+          emailAllowanceAnchorAt: planChangedAt,
+          emailAllowanceResetAt: nextMonthlyEmailReset(planChangedAt, planChangedAt),
+        } : {}),
       },
     }),
     prisma.adminAuditLog.create({

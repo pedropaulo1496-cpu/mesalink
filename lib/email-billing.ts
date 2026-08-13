@@ -1,8 +1,67 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-export const FREE_EMAIL_ALLOWANCE = 1000;
+export const MONTHLY_EMAIL_ALLOWANCES = {
+  ESSENTIALS: 750,
+  GROWTH: 1000,
+} as const;
 export const EMAILS_PER_AI_CREDIT = 75;
+
+export function monthlyEmailAllowance(plan: string | null | undefined) {
+  return String(plan || "ESSENTIALS").toUpperCase() === "GROWTH"
+    ? MONTHLY_EMAIL_ALLOWANCES.GROWTH
+    : MONTHLY_EMAIL_ALLOWANCES.ESSENTIALS;
+}
+
+export function nextMonthlyEmailReset(anchor: Date, after: Date) {
+  const anchorYear = anchor.getUTCFullYear();
+  const anchorMonth = anchor.getUTCMonth();
+  let monthOffset = (after.getUTCFullYear() - anchorYear) * 12 + (after.getUTCMonth() - anchorMonth);
+  let candidate = monthlyAnniversary(anchor, monthOffset);
+  if (candidate <= after) candidate = monthlyAnniversary(anchor, monthOffset += 1);
+  return candidate;
+}
+
+export async function ensureMonthlyEmailAllowance(userId: string, now = new Date()) {
+  const subscription = await prisma.subscription.findUnique({ where: { userId } });
+  if (!subscription) return null;
+  if (subscription.emailAllowanceResetAt && subscription.emailAllowanceResetAt > now) return subscription;
+
+  const anchor = subscription.emailAllowanceAnchorAt || subscription.createdAt;
+  const nextReset = nextMonthlyEmailReset(anchor, now);
+  await prisma.subscription.updateMany({
+    where: {
+      userId,
+      OR: [
+        { emailAllowanceResetAt: null },
+        { emailAllowanceResetAt: { lte: now } },
+      ],
+    },
+    data: {
+      emailBalance: monthlyEmailAllowance(subscription.plan),
+      emailsSent: 0,
+      emailAllowanceAnchorAt: anchor,
+      emailAllowanceResetAt: nextReset,
+    },
+  });
+  return prisma.subscription.findUnique({ where: { userId } });
+}
+
+function monthlyAnniversary(anchor: Date, monthOffset: number) {
+  const absoluteMonth = anchor.getUTCMonth() + Math.max(0, monthOffset);
+  const year = anchor.getUTCFullYear() + Math.floor(absoluteMonth / 12);
+  const month = absoluteMonth % 12;
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(
+    year,
+    month,
+    Math.min(anchor.getUTCDate(), lastDay),
+    anchor.getUTCHours(),
+    anchor.getUTCMinutes(),
+    anchor.getUTCSeconds(),
+    anchor.getUTCMilliseconds(),
+  ));
+}
 
 export class InsufficientEmailAllowanceError extends Error {
   constructor(
@@ -20,6 +79,7 @@ export async function reserveEmailSend(input: {
   reference: string;
   category: string;
 }) {
+  await ensureMonthlyEmailAllowance(input.userId);
   return withSerializableRetry(() =>
     prisma.$transaction(
       async (tx) => {

@@ -384,7 +384,7 @@
     "messageLabel": "Nachricht",
     "messagePlaceholder": "Schreiben Sie die Kampagnennachricht...",
     "submit": "Kampagne senden",
-    "emailRate": "1.000 E-Mails pro Konto inklusive · danach 1 Credit = 75 E-Mails",
+    "emailRate": "Growth: 1.000 E-Mails pro Monat, nicht übertragbar · danach 1 Credit = 75 E-Mails",
     "segmentTemplates": {
       "vip": {
         "subject": "Exklusive Einladung für VIP-Kunden",

@@ -384,7 +384,7 @@
     "messageLabel": "内容",
     "messagePlaceholder": "撰写营销活动内容...",
     "submit": "发送营销活动",
-    "emailRate": "每个账户包含 1,000 封邮件 · 之后 1 点 = 75 封邮件",
+    "emailRate": "Growth：每月 1,000 封邮件，不结转 · 之后 1 点 = 75 封邮件",
     "segmentTemplates": {
       "vip": {
         "subject": "VIP 客户专属邀请",

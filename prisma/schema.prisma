@@ -275,8 +275,10 @@ model Subscription {
   restaurantLimit        Int @default(1)
   priceMonthly           Int @default(0)
   aiCredits              Int @default(0)
-  emailBalance           Int @default(1000)
+  emailBalance           Int @default(750)
   emailsSent             Int @default(0)
+  emailAllowanceAnchorAt DateTime?
+  emailAllowanceResetAt  DateTime?
   whatsappMessageBalance Int @default(0)
   whatsappMessagesSent   Int @default(0)
 

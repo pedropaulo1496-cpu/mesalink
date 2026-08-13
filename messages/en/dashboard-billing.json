@@ -80,7 +80,7 @@
           "Partner Network and verified commissions",
           "Digital cards and offers",
           "No commission per reservation",
-          "1,000 included emails"
+          "750 emails per month · no rollover"
         ]
       },
       "growth": {
@@ -96,7 +96,8 @@
           "More repeat visits",
           "Revenue AI opportunity inbox",
           "AI Visibility / GEO",
-          "Prepaid credits for AI usage"
+          "Prepaid credits for AI usage",
+          "1,000 emails per month · no rollover"
         ],
         "upgrade": {
           "kicker": "Upgrade",
@@ -108,7 +109,7 @@
     "credits": {
       "kicker": "Prepaid usage",
       "title": "Balance: {credits} AI credits",
-      "description": "Every account receives 1,000 emails. After that, 1 AI credit automatically adds 75 emails or 8 WhatsApp messages. Each outgoing WhatsApp message costs about €0.03; incoming messages are free.",
+      "description": "Essentials receives 750 emails per month and Growth 1,000. The included balance renews monthly and does not roll over. After that, 1 AI credit automatically adds 75 emails or 8 WhatsApp messages. Each outgoing WhatsApp message costs about €0.03; incoming messages are free.",
       "success": "Payment confirmed. Credits become available as soon as Stripe completes processing.",
       "buy": "Buy with Stripe",
       "taxNote": "Prices exclude VAT. Applicable tax is calculated by Stripe at checkout. Credits do not expire while the account is active.",

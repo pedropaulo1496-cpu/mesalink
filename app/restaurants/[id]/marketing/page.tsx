@@ -632,46 +632,46 @@ export default async function MarketingPage({
             />
           </section>
 
-          <details className="group mt-5 rounded-[24px] border border-[#E1D0B8] bg-white">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-bold"><span>Clientes VIP e histórico de campanhas</span><span className="text-xs text-[#9B6F3B] group-open:hidden">Ver detalhes ↓</span><span className="hidden text-xs text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
-            <div className="border-t border-[#E8DCCB] p-5">
+          <details className="group mt-5 overflow-hidden rounded-[24px] border border-[#E1D0B8] bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-bold sm:px-5 sm:py-4"><span className="min-w-0">Clientes VIP e histórico de campanhas</span><span className="shrink-0 text-[11px] text-[#9B6F3B] group-open:hidden sm:text-xs">Abrir ↓</span><span className="hidden shrink-0 text-[11px] text-[#9B6F3B] group-open:block sm:text-xs">Fechar ↑</span></summary>
+            <div className="border-t border-[#E8DCCB] p-3 sm:p-5">
           <section>
-            <Panel compact>
+            <div className="rounded-[20px] border border-[#E1D0B8] bg-[#FFFDFC] p-4 sm:p-5">
               <SectionLabel>{t("main.vipClub.eyebrow")}</SectionLabel>
 
-              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
+              <h2 className="mt-2 text-xl font-semibold tracking-[-0.045em] sm:text-3xl sm:tracking-[-0.055em]">
                 {t("main.vipClub.title")}
               </h2>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-4">
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-4 md:grid-cols-4">
                 <VipTierCard label={t("main.vipClub.tiers.platinum")} count={platinumCustomers} min={t("main.vipClub.minVisits", { count: 50 })} />
                 <VipTierCard label={t("main.vipClub.tiers.gold")} count={goldCustomers} min={t("main.vipClub.minVisits", { count: 20 })} />
                 <VipTierCard label={t("main.vipClub.tiers.silver")} count={silverCustomers} min={t("main.vipClub.minVisits", { count: 10 })} />
                 <VipTierCard label={t("main.vipClub.tiers.bronze")} count={bronzeCustomers} min={t("main.vipClub.minVisits", { count: 5 })} />
               </div>
-            </Panel>
+            </div>
           </section>
 
           <section className="mt-5">
-            <Panel compact>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="rounded-[20px] border border-[#E1D0B8] bg-[#FFFDFC] p-4 sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <SectionLabel>{t("main.timeline.eyebrow")}</SectionLabel>
 
-                  <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">
+                  <h2 className="mt-2 text-xl font-semibold tracking-[-0.045em] sm:text-3xl sm:tracking-[-0.055em]">
                     {t("main.timeline.title")}
                   </h2>
                 </div>
 
                 <Link
                   href={`/restaurants/${id}/marketing/campaigns/new`}
-                  className="w-fit rounded-full bg-[#16120E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+                  className="w-full rounded-full bg-[#16120E] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#2A2118] sm:w-fit"
                 >
                   {t("main.actions.newCampaign")}
                 </Link>
               </div>
 
-              <div className="mt-6 overflow-hidden rounded-[28px] border border-[#E8DCCB] bg-[#FFF9F0]">
+              <div className="mt-4 overflow-hidden rounded-[20px] border border-[#E8DCCB] bg-[#FFF9F0] sm:mt-6 sm:rounded-[28px]">
                 {recentCampaigns.map((campaign) => (
                   <CampaignHistoryCard
                     key={`${campaign.type}:${campaign.id}`}
@@ -701,7 +701,7 @@ export default async function MarketingPage({
                   <EmptyLine text={t("main.timeline.empty")} />
                 )}
               </div>
-            </Panel>
+            </div>
           </section>
             </div>
           </details>
@@ -910,16 +910,17 @@ function VipTierCard({
   min: string;
 }) {
   return (
-    <div className="rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-5">
-      <p className="text-xs font-black uppercase tracking-[0.22em] text-[#9B6F3B]">
-        {label}
-      </p>
+    <div className="rounded-[18px] border border-[#E1D0B8] bg-[#FFF9F0] p-3.5 sm:rounded-[24px] sm:p-5">
+      <div className="flex items-start justify-between gap-2 sm:block">
+        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#9B6F3B] sm:text-xs sm:tracking-[0.22em]">
+          {label}
+        </p>
+        <p className="text-2xl font-semibold leading-none tracking-[-0.055em] sm:mt-4 sm:text-4xl">
+          {count}
+        </p>
+      </div>
 
-      <p className="mt-4 text-4xl font-semibold tracking-[-0.055em]">
-        {count}
-      </p>
-
-      <p className="mt-2 text-sm text-[#6B6258]">
+      <p className="mt-2 text-[11px] leading-4 text-[#6B6258] sm:text-sm">
         {min}
       </p>
     </div>
@@ -1001,11 +1002,16 @@ function CampaignHistoryCard({
 
   return (
     <details className="group border-b border-[#E8DCCB] bg-[#FFFDFC] last:border-b-0">
-      <summary className="grid cursor-pointer list-none gap-4 px-4 py-4 sm:grid-cols-[minmax(210px,1fr)_repeat(3,minmax(72px,auto))_auto] sm:items-center sm:px-5">
+      <summary className="grid cursor-pointer list-none gap-3 px-3.5 py-3.5 sm:grid-cols-[minmax(210px,1fr)_repeat(3,minmax(72px,auto))_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-4">
         <div className="min-w-0"><div className="flex items-center gap-2"><span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#C8A56A]" /><p className="truncate font-semibold">{typeLabel}</p></div><p className="ml-[18px] mt-1 text-xs text-[#6B6258]">{new Intl.DateTimeFormat(intlLocale, { dateStyle: "medium", timeStyle: "short" }).format(campaign.sentAt)} · {statusLabel}</p></div>
         <HistorySummaryMetric label="Enviados" value={String(sent)} />
         <HistorySummaryMetric label="Abriram" value={`${opened} · ${openRate}%`} />
         <HistorySummaryMetric label="Cliques" value={`${clicked} · ${clickRate}%`} />
+        <div className="grid grid-cols-3 gap-2 sm:hidden">
+          <MobileHistoryMetric label="Enviados" value={String(sent)} />
+          <MobileHistoryMetric label="Abriram" value={`${opened} · ${openRate}%`} />
+          <MobileHistoryMetric label="Cliques" value={`${clicked} · ${clickRate}%`} />
+        </div>
         <span className="justify-self-start rounded-full border border-[#DCCCAD] bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.09em] text-[#805E34] sm:justify-self-end"><span className="group-open:hidden">Ver resultados ↓</span><span className="hidden group-open:inline">Fechar ↑</span></span>
       </summary>
       <div className="border-t border-[#E8DCCB] bg-white p-4 sm:p-5">
@@ -1017,7 +1023,17 @@ function CampaignHistoryCard({
           <CampaignMetric label="Cartões usados" value={`${redeemed}/${campaign.cards.length}`} detail={`${campaign.cards.length} emitidos`} />
           <CampaignMetric label="Receita atribuída" value={`${revenue.toFixed(0)}€`} detail="Reservas convertidas" />
         </div>
-        <div className="mt-4 overflow-hidden rounded-[18px] border border-[#E8DCCB]"><div className="grid grid-cols-[minmax(150px,1fr)_80px_70px_90px] gap-3 bg-[#FFF9F0] px-3 py-2 text-[9px] font-black uppercase tracking-[0.1em] text-[#806D56]"><span>Cliente</span><span>Aberturas</span><span>Cliques</span><span>Resultado</span></div>{campaign.actions.slice(0, 50).map((action) => <div key={action.id} className="grid grid-cols-[minmax(150px,1fr)_80px_70px_90px] items-center gap-3 border-t border-[#EEE3D3] px-3 py-2.5 text-xs"><div className="min-w-0"><p className="truncate font-semibold">{action.customer?.name || "Cliente"}</p><p className="truncate text-[10px] text-[#8A7C6D]">{action.customer?.email || "Sem email"}</p></div><span>{action.openCount}</span><span>{action.clickCount}</span><span className="truncate font-semibold text-[#74532C]">{statusLabels[action.status] ?? (action.status === "FAILED" ? "Falhou" : statusLabels.DEFAULT)}</span></div>)}</div>
+        <div className="mt-4 overflow-hidden rounded-[18px] border border-[#E8DCCB]">
+          <div className="hidden grid-cols-[minmax(150px,1fr)_80px_70px_90px] gap-3 bg-[#FFF9F0] px-3 py-2 text-[9px] font-black uppercase tracking-[0.1em] text-[#806D56] sm:grid"><span>Cliente</span><span>Aberturas</span><span>Cliques</span><span>Resultado</span></div>
+          {campaign.actions.slice(0, 50).map((action) => (
+            <div key={action.id} className="grid gap-2 border-t border-[#EEE3D3] px-3 py-3 text-xs first:border-t-0 sm:grid-cols-[minmax(150px,1fr)_80px_70px_90px] sm:items-center sm:gap-3 sm:py-2.5">
+              <div className="min-w-0"><p className="truncate font-semibold">{action.customer?.name || "Cliente"}</p><p className="truncate text-[10px] text-[#8A7C6D]">{action.customer?.email || "Sem email"}</p></div>
+              <MobileResultValue label="Aberturas" value={String(action.openCount)} />
+              <MobileResultValue label="Cliques" value={String(action.clickCount)} />
+              <MobileResultValue label="Resultado" value={statusLabels[action.status] ?? (action.status === "FAILED" ? "Falhou" : statusLabels.DEFAULT)} emphasized />
+            </div>
+          ))}
+        </div>
         {campaign.actions.length > 50 && <p className="mt-2 text-xs text-[#8A7C6D]">A mostrar os primeiros 50 de {campaign.actions.length} destinatários.</p>}
       </div>
     </details>
@@ -1026,6 +1042,14 @@ function CampaignHistoryCard({
 
 function HistorySummaryMetric({ label, value }: { label: string; value: string }) {
   return <div className="hidden sm:block"><p className="text-sm font-semibold">{value}</p><p className="mt-0.5 text-[9px] font-black uppercase tracking-[0.08em] text-[#8A7C6D]">{label}</p></div>;
+}
+
+function MobileHistoryMetric({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-xl bg-[#FFF9F0] px-2.5 py-2"><p className="text-xs font-semibold">{value}</p><p className="mt-0.5 truncate text-[8px] font-black uppercase tracking-[0.07em] text-[#8A7C6D]">{label}</p></div>;
+}
+
+function MobileResultValue({ label, value, emphasized = false }: { label: string; value: string; emphasized?: boolean }) {
+  return <div className="flex items-center justify-between gap-3 sm:block"><span className="text-[9px] font-black uppercase tracking-[0.08em] text-[#8A7C6D] sm:hidden">{label}</span><span className={emphasized ? "truncate font-semibold text-[#74532C]" : "font-medium"}>{value}</span></div>;
 }
 
 function CampaignMetric({ label, value, detail }: { label: string; value: string; detail: string }) {

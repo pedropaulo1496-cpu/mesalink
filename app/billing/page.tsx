@@ -7,6 +7,7 @@ import RestaurantSidebar from "@/components/RestaurantSidebar";
 import { authOptions } from "@/lib/auth";
 import { listMesaLinkInvoices, type MesaLinkInvoiceDocument } from "@/lib/billing-documents";
 import { prisma } from "@/lib/prisma";
+import { ensureMonthlyEmailAllowance } from "@/lib/email-billing";
 import { getServerSession } from "next-auth";
 import { Download, ExternalLink, FileCheck2, ReceiptText } from "lucide-react";
 import Link from "next/link";
@@ -57,7 +58,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
     redirect("/login");
   }
 
-  const subscription =
+  const initialSubscription =
     user.subscription ??
     (await prisma.subscription.create({
       data: {
@@ -69,6 +70,8 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
         priceMonthly: 0,
       },
     }));
+  const subscription =
+    (await ensureMonthlyEmailAllowance(user.id)) ?? initialSubscription;
 
   const now = new Date();
 

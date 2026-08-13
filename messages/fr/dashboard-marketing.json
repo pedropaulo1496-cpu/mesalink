@@ -384,7 +384,7 @@
     "messageLabel": "Message",
     "messagePlaceholder": "Rédigez le message de la campagne...",
     "submit": "Envoyer la campagne",
-    "emailRate": "1 000 e-mails inclus par compte · puis 1 crédit = 75 e-mails",
+    "emailRate": "Growth : 1 000 e-mails par mois, non cumulables · puis 1 crédit = 75 e-mails",
     "segmentTemplates": {
       "vip": {
         "subject": "Invitation exclusive pour nos clients VIP",

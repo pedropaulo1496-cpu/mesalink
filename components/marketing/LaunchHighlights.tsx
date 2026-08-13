@@ -28,7 +28,7 @@ const copy = {
       { title: "Revenue AI", label: "Recuperar vendas", text: "Responde a chamadas não atendidas, leads, cancelamentos e clientes inativos. Mostra receita recuperada, não métricas vazias.", result: "Follow-up por email e WhatsApp" },
       { title: "AI Visibility / GEO", label: "Aparecer nas pesquisas por IA", text: "Mede como ChatGPT e outros motores entendem o restaurante, encontra falhas e transforma o diagnóstico em melhorias concretas.", result: "AI Visibility Score 0–100" },
       { title: "Website Builder AI", label: "Website preenchido pela IA", text: "Cria textos, especialidades, páginas locais, menu estruturado, FAQ e sinais SEO. Com domínio próprio e reservas diretas.", result: "Publicação profissional, sem código" },
-      { title: "Marketing Autopilot", label: "Campanhas que trabalham sozinhas", text: "A IA escolhe públicos, aniversários, dias fracos, pedidos de review e cartões promocionais em PNG ou PDF.", result: "1.000 emails incluídos por conta" },
+      { title: "Marketing Autopilot", label: "Campanhas que trabalham sozinhas", text: "A IA escolhe públicos, aniversários, dias fracos, pedidos de review e cartões promocionais em PNG ou PDF.", result: "Growth: 1.000 emails por mês" },
       { title: "Rede de Parceiros", label: "Hotéis que enviam clientes", text: "Grupos anónimos, comissões acordadas, restaurantes por cozinha e cartões de parceria com descontos e benefícios.", result: "MesaLink gere cobrança e comissão" },
     ],
     whatsapp: "WhatsApp simples e previsível",
@@ -42,7 +42,7 @@ const copy = {
     apps: [
       { name: "MesaLink Restaurantes", audience: "Para restaurantes", text: "Reservas, serviço do dia, clientes, marketing, Revenue AI, website, visibilidade e operação diária.", version: "v1.1.3", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk", icon: "/icons/apps/restaurant-192.png" },
       { name: "MesaLink Parceiros", audience: "Para parceiros", text: "Escolher restaurantes disponíveis, confirmar reservas imediatas e acompanhar comissões, faturas e pagamentos.", version: "v1.0.3", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk", icon: "/icons/apps/partners-192.png" },
-      { name: "MesaLink HQ", audience: "Para administração e comerciais", text: "Clientes atribuídos, risco, custos, comissões, pedidos, promoções e chat interno.", version: "v1.1.0", href: "/downloads/MesaLink-HQ-v1.1.0.apk", icon: "/icons/apps/backoffice-192.png" },
+      { name: "MesaLink HQ", audience: "Para administração e comerciais", text: "Clientes atribuídos, risco, custos, comissões, pedidos, promoções e chat interno.", version: "v1.1.1", href: "/downloads/MesaLink-HQ-v1.1.1.apk", icon: "/icons/apps/backoffice-192.png" },
     ],
   },
   en: {
@@ -56,7 +56,7 @@ const copy = {
       { title: "Revenue AI", label: "Win back sales", text: "Responds to missed calls, leads, cancellations and inactive customers. It shows recovered revenue instead of vanity metrics.", result: "Email and WhatsApp follow-up" },
       { title: "AI Visibility / GEO", label: "Be found in AI search", text: "Measures how ChatGPT and other engines understand the restaurant, finds gaps and turns the diagnosis into practical improvements.", result: "AI Visibility Score 0–100" },
       { title: "AI Website Builder", label: "A website completed by AI", text: "Creates copy, specialties, local pages, structured menu, FAQs and SEO signals, with custom domain and direct bookings.", result: "Professional publishing, no code" },
-      { title: "Marketing Autopilot", label: "Campaigns that run themselves", text: "AI chooses audiences, birthdays, quiet days, review requests and promotional cards in PNG or PDF.", result: "1,000 emails included per account" },
+      { title: "Marketing Autopilot", label: "Campaigns that run themselves", text: "AI chooses audiences, birthdays, quiet days, review requests and promotional cards in PNG or PDF.", result: "Growth: 1,000 emails per month" },
       { title: "Partner Network", label: "Hotels sending customers", text: "Anonymous groups, agreed commissions, cuisine matching and partnership cards with discounts and benefits.", result: "MesaLink manages payment and commission" },
     ],
     whatsapp: "Simple, predictable WhatsApp",
@@ -70,7 +70,7 @@ const copy = {
     apps: [
       { name: "MesaLink Restaurants", audience: "For restaurants", text: "Bookings, daily service, customers, marketing, Revenue AI, website, visibility and daily operations.", version: "v1.1.3", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk", icon: "/icons/apps/restaurant-192.png" },
       { name: "MesaLink Partners", audience: "For partners", text: "Choose available restaurants, confirm instant bookings, and track commissions, invoices, and payouts.", version: "v1.0.3", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk", icon: "/icons/apps/partners-192.png" },
-      { name: "MesaLink HQ", audience: "For admin and sales", text: "Assigned clients, risk, costs, commissions, requests, promotions and internal chat.", version: "v1.1.0", href: "/downloads/MesaLink-HQ-v1.1.0.apk", icon: "/icons/apps/backoffice-192.png" },
+      { name: "MesaLink HQ", audience: "For admin and sales", text: "Assigned clients, risk, costs, commissions, requests, promotions and internal chat.", version: "v1.1.1", href: "/downloads/MesaLink-HQ-v1.1.1.apk", icon: "/icons/apps/backoffice-192.png" },
     ],
   },
 } as const;
