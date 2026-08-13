@@ -802,6 +802,7 @@ model DiningExperience {
   servicePeriods    String[]  @default(["LUNCH", "DINNER"])
   scheduleType      String    @default("FLEXIBLE")
   paymentMode       String    @default("AT_RESTAURANT")
+  depositPerPerson  Decimal?  @db.Decimal(10, 2)
   startsAt          DateTime?
   durationMinutes   Int       @default(120)
   salesCloseAt      DateTime?

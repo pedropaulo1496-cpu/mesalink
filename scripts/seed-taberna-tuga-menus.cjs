@@ -199,6 +199,7 @@ async function main() {
       servicePeriods: menu.servicePeriods,
       scheduleType: "FLEXIBLE",
       paymentMode: "AT_RESTAURANT",
+      depositPerPerson: null,
       startsAt: null,
       durationMinutes: 120,
       salesCloseAt: null,

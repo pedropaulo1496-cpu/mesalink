@@ -53,8 +53,9 @@ export async function createExperience(restaurantId: string, formData: FormData)
   if (!restaurant) throw new Error("Restaurante não encontrado.");
 
   const scheduleType = formData.get("scheduleType") === "FIXED" ? "FIXED" : "FLEXIBLE";
-  const paymentMode = formData.get("paymentMode") === "PREPAID" ? "PREPAID" : "AT_RESTAURANT";
-  if (paymentMode === "PREPAID" && (!restaurant.paymentsStripeAccountId || !restaurant.paymentsStripeOnboardingComplete)) {
+  const requestedPaymentMode = String(formData.get("paymentMode") || "AT_RESTAURANT");
+  const paymentMode = ["DEPOSIT", "PREPAID"].includes(requestedPaymentMode) ? requestedPaymentMode : "AT_RESTAURANT";
+  if (paymentMode !== "AT_RESTAURANT" && (!restaurant.paymentsStripeAccountId || !restaurant.paymentsStripeOnboardingComplete)) {
     redirect(`/restaurants/${restaurantId}/revenue?tab=experiences&result=connect-required`);
   }
 
@@ -65,8 +66,9 @@ export async function createExperience(restaurantId: string, formData: FormData)
   const startsAt = scheduleType === "FIXED" ? lisbonLocalToUtc(String(formData.get("startsAt") || "")) : null;
   const pricePerPerson = boundedNumber(formData.get("pricePerPerson"), 1, 5000, 0);
   const capacity = boundedInt(formData.get("capacity"), 1, 1000, 0);
+  const depositPerPerson = paymentMode === "DEPOSIT" ? boundedNumber(formData.get("depositPerPerson"), 1, 500, 0) : null;
   const cancellationHours = boundedInt(formData.get("cancellationHours"), 1, 336, 48);
-  if (!title || !summary || !servicePeriods.length || (scheduleType === "FIXED" && (!startsAt || startsAt <= new Date())) || !pricePerPerson || !capacity) {
+  if (!title || !summary || !servicePeriods.length || (scheduleType === "FIXED" && (!startsAt || startsAt <= new Date())) || !pricePerPerson || !capacity || (paymentMode === "DEPOSIT" && (!depositPerPerson || depositPerPerson > pricePerPerson))) {
     redirect(`/restaurants/${restaurantId}/revenue?tab=experiences&result=invalid`);
   }
 
@@ -86,6 +88,7 @@ export async function createExperience(restaurantId: string, formData: FormData)
       servicePeriods,
       scheduleType,
       paymentMode,
+      depositPerPerson,
       startsAt,
       durationMinutes: boundedInt(formData.get("durationMinutes"), 30, 720, 120),
       pricePerPerson,
@@ -98,6 +101,35 @@ export async function createExperience(restaurantId: string, formData: FormData)
   revalidatePath(`/restaurants/${restaurantId}/revenue`);
   revalidatePath(`/reserve/${restaurant.slug}`);
   redirect(`/restaurants/${restaurantId}/revenue?tab=experiences&result=created`);
+}
+
+export async function updateExperiencePayment(restaurantId: string, formData: FormData) {
+  await assertRestaurantOwner(restaurantId);
+  const experienceId = String(formData.get("experienceId") || "");
+  const requestedPaymentMode = String(formData.get("paymentMode") || "AT_RESTAURANT");
+  const paymentMode = ["DEPOSIT", "PREPAID"].includes(requestedPaymentMode) ? requestedPaymentMode : "AT_RESTAURANT";
+  const depositPerPerson = paymentMode === "DEPOSIT" ? boundedNumber(formData.get("depositPerPerson"), 1, 500, 0) : null;
+  const [restaurant, experience] = await Promise.all([
+    prisma.restaurant.findUnique({
+      where: { id: restaurantId },
+      select: { paymentsStripeOnboardingComplete: true, paymentsStripeAccountId: true, slug: true },
+    }),
+    prisma.diningExperience.findFirst({ where: { id: experienceId, restaurantId }, select: { id: true, pricePerPerson: true } }),
+  ]);
+  if (!restaurant || !experience) throw new Error("Menu não encontrado.");
+  if (paymentMode !== "AT_RESTAURANT" && (!restaurant.paymentsStripeAccountId || !restaurant.paymentsStripeOnboardingComplete)) {
+    redirect(`/restaurants/${restaurantId}/revenue?tab=experiences&result=connect-required`);
+  }
+  if (paymentMode === "DEPOSIT" && (!depositPerPerson || depositPerPerson > Number(experience.pricePerPerson))) {
+    redirect(`/restaurants/${restaurantId}/revenue?tab=experiences&result=invalid`);
+  }
+  await prisma.diningExperience.update({
+    where: { id: experience.id },
+    data: { paymentMode, depositPerPerson },
+  });
+  revalidatePath(`/restaurants/${restaurantId}/revenue`);
+  revalidatePath(`/reserve/${restaurant.slug}`);
+  redirect(`/restaurants/${restaurantId}/revenue?tab=experiences&result=payment-updated`);
 }
 
 export async function updateExperienceState(restaurantId: string, formData: FormData) {

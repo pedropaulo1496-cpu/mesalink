@@ -397,7 +397,7 @@ export default async function DayPage({
                 {t("row.offerApplied")}
               </span>
             )}
-            {reservation.payment?.status === "PAID" && <span className="rounded-full bg-[#EAF6EA] px-2.5 py-1 text-[10px] font-semibold text-[#3F6A4D]">{reservation.payment.kind === "DEPOSIT" ? "Depósito pago" : "Pré-pago"}</span>}
+            {reservation.payment?.status === "PAID" && <span className="rounded-full bg-[#EAF6EA] px-2.5 py-1 text-[10px] font-semibold text-[#3F6A4D]">{reservation.payment.kind === "MENU_DEPOSIT" ? "Entrada paga" : reservation.payment.kind === "DEPOSIT" ? "Depósito pago" : "Pré-pago"}</span>}
           </div>
 
           <p className="mt-1 truncate text-xs text-[#6B6258]">
@@ -410,7 +410,7 @@ export default async function DayPage({
 </p>
 
 {reservation.marketingPromoCard && <div className="mt-2 rounded-2xl border border-[#E2C58D] bg-[#FFF6E5] px-3 py-2 text-xs"><p className="font-bold text-[#6F4D26]">{t("row.offerApplied")}: {reservation.marketingPromoCard.title} · {marketingBenefitValue(reservation.marketingPromoCard.benefitType, reservation.marketingPromoCard.value == null ? null : Number(reservation.marketingPromoCard.value), reservation.marketingPromoCard.benefitLabel)}</p><p className="mt-1 font-mono text-[10px] text-[#806D56]">{reservation.marketingPromoCard.publicCode} · {t("row.offerSingleUse")}</p></div>}
-{reservation.payment?.status === "PAID" && <div className="mt-2 rounded-2xl border border-[#B8D7B9] bg-[#EFF9EF] px-3 py-2 text-xs text-[#315C3B]"><p className="font-bold">{reservation.experience ? reservation.experience.title : "No-Show Protect"} · {new Intl.NumberFormat("pt-PT", { style: "currency", currency: reservation.payment.currency }).format(Number(reservation.payment.baseAmount) + Number(reservation.payment.addOnsAmount))} já pago</p><p className="mt-1 text-[10px]">{reservation.payment.kind === "DEPOSIT" ? "Descontar este depósito na conta final." : "Experiência e extras pagos na reserva."}{reservation.experienceAddOns.length ? ` Extras: ${reservation.experienceAddOns.map((item) => `${item.nameSnapshot} × ${item.quantity}`).join(", ")}.` : ""}</p></div>}
+{reservation.payment?.status === "PAID" && <div className="mt-2 rounded-2xl border border-[#B8D7B9] bg-[#EFF9EF] px-3 py-2 text-xs text-[#315C3B]"><p className="font-bold">{reservation.experience ? reservation.experience.title : "No-Show Protect"} · {new Intl.NumberFormat("pt-PT", { style: "currency", currency: reservation.payment.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(reservation.payment.baseAmount) + Number(reservation.payment.addOnsAmount))} já pago</p><p className="mt-1 text-[10px]">{reservation.payment.kind === "MENU_DEPOSIT" ? "Entrada do menu: descontar este valor na conta final." : reservation.payment.kind === "DEPOSIT" ? "Descontar este depósito na conta final." : "Menu e extras pagos na reserva."}{reservation.experienceAddOns.length ? ` Extras: ${reservation.experienceAddOns.map((item) => `${item.nameSnapshot} × ${item.quantity}`).join(", ")}.` : ""}</p></div>}
 
 <details className="group mt-2">
   <summary className="cursor-pointer list-none text-xs font-semibold text-[#9B6F3B] transition hover:text-[#16120E]">

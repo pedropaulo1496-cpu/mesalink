@@ -29,10 +29,16 @@ export async function createReservationCheckout(paymentId: string, slug: string)
       unit_amount: Math.round(Number(payment.baseAmount) * 100),
       tax_behavior: "inclusive",
       product_data: {
-        name: payment.kind === "EXPERIENCE" ? payment.reservation.experience?.title || "Experiência" : `Depósito · ${payment.restaurant.name}`,
+        name: payment.kind === "EXPERIENCE"
+          ? payment.reservation.experience?.title || "Experiência"
+          : payment.kind === "MENU_DEPOSIT"
+            ? `Entrada · ${payment.reservation.experience?.title || payment.restaurant.name}`
+            : `Depósito · ${payment.restaurant.name}`,
         description: payment.kind === "EXPERIENCE"
           ? `${payment.reservation.guests} pessoa(s) · preço final definido pelo restaurante`
-          : `${payment.reservation.guests} pessoa(s) · descontado na conta final`,
+          : payment.kind === "MENU_DEPOSIT"
+            ? `${payment.reservation.guests} pessoa(s) · entrada descontada no valor do menu`
+            : `${payment.reservation.guests} pessoa(s) · descontado na conta final`,
       },
     },
   }];
@@ -117,6 +123,11 @@ export async function settleReservationCheckoutSession(sessionOrId: Stripe.Check
     ? session.payment_intent as Stripe.PaymentIntent
     : await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ["latest_charge"] });
   const chargeId = typeof paymentIntent.latest_charge === "string" ? paymentIntent.latest_charge : paymentIntent.latest_charge?.id;
+  const settledRevenue = payment.kind === "EXPERIENCE"
+    ? Number(payment.baseAmount) + Number(payment.addOnsAmount)
+    : payment.kind === "MENU_DEPOSIT"
+      ? Number(payment.reservation.estimatedRevenue || payment.reservation.guests * Number(payment.reservation.restaurant?.averageTicket || 25))
+      : payment.reservation.guests * Number(payment.reservation.restaurant?.averageTicket || 25);
 
   if (payment.status !== "PAID") {
     await prisma.$transaction(async (tx) => {
@@ -128,9 +139,7 @@ export async function settleReservationCheckoutSession(sessionOrId: Stripe.Check
         where: { id: payment.reservationId },
         data: {
           status: payment.confirmationStatus,
-          estimatedRevenue: payment.kind === "EXPERIENCE"
-            ? Number(payment.baseAmount) + Number(payment.addOnsAmount)
-            : payment.reservation.guests * Number(payment.reservation.restaurant?.averageTicket || 25),
+          estimatedRevenue: settledRevenue,
         },
       });
       if (payment.offerCode) {
@@ -157,9 +166,7 @@ export async function settleReservationCheckoutSession(sessionOrId: Stripe.Check
             bookedAt: new Date(),
             convertedAt: new Date(),
             reservationId: payment.reservationId,
-            estimatedRevenue: payment.kind === "EXPERIENCE"
-              ? Number(payment.baseAmount) + Number(payment.addOnsAmount)
-              : payment.reservation.guests * Number(payment.reservation.restaurant?.averageTicket || 25),
+            estimatedRevenue: settledRevenue,
           },
         });
       }

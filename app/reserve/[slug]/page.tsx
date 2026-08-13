@@ -87,7 +87,8 @@ async function createPublicReservation(formData: FormData) {
       const requestedPeriod = requestedHour < 17 ? "LUNCH" : "DINNER";
       if (!experience.servicePeriods.includes(requestedPeriod)) redirect(errorRedirect("experience"));
     }
-    if (experience.paymentMode === "PREPAID" && (!restaurant.paymentsStripeOnboardingComplete || !restaurant.paymentsStripeAccountId)) redirect(errorRedirect("payment"));
+    if (experience.paymentMode !== "AT_RESTAURANT" && (!restaurant.paymentsStripeOnboardingComplete || !restaurant.paymentsStripeAccountId)) redirect(errorRedirect("payment"));
+    if (experience.paymentMode === "DEPOSIT" && !experience.depositPerPerson) redirect(errorRedirect("payment"));
   }
   if (Number.isNaN(date.getTime()) || date < new Date()) redirect(errorRedirect("past"));
 
@@ -180,10 +181,17 @@ async function createPublicReservation(formData: FormData) {
     paymentsReady: Boolean(restaurant.paymentsStripeAccountId && restaurant.paymentsStripeOnboardingComplete),
   }, date, guests) : null;
   const prepaidExperience = experience?.paymentMode === "PREPAID";
-  const paymentKind = prepaidExperience ? "EXPERIENCE" : depositQuote ? "DEPOSIT" : null;
-  const paymentBase = prepaidExperience ? experienceBase : depositQuote?.baseAmount || 0;
+  const menuDeposit = experience?.paymentMode === "DEPOSIT"
+    ? Math.round(Number(experience.depositPerPerson || 0) * guests * 100) / 100
+    : 0;
+  const paymentKind = prepaidExperience ? "EXPERIENCE" : menuDeposit > 0 ? "MENU_DEPOSIT" : depositQuote ? "DEPOSIT" : null;
+  const paymentBase = prepaidExperience ? experienceBase : menuDeposit || depositQuote?.baseAmount || 0;
   const chargedAddOns = prepaidExperience ? addOnsAmount : 0;
-  const paymentServiceFee = prepaidExperience ? reservationServiceFee(experienceBase + addOnsAmount) : depositQuote?.serviceFee || 0;
+  const paymentServiceFee = prepaidExperience
+    ? reservationServiceFee(experienceBase + addOnsAmount)
+    : menuDeposit > 0
+      ? reservationServiceFee(menuDeposit)
+      : depositQuote?.serviceFee || 0;
   const paymentTotal = Math.round((paymentBase + chargedAddOns + paymentServiceFee) * 100) / 100;
 
   const startDate = date;
@@ -479,7 +487,7 @@ async function createPublicReservation(formData: FormData) {
           bookedAt: new Date(),
           convertedAt: new Date(),
           reservationId: finalReservation.id,
-          estimatedRevenue: guests * (restaurant.averageTicket ?? 25),
+          estimatedRevenue: experience ? experienceBase + addOnsAmount : guests * (restaurant.averageTicket ?? 25),
         },
       });
     }
@@ -570,13 +578,14 @@ export default async function PublicReservePage({
         servicePeriods: experience.servicePeriods,
         scheduleType: experience.scheduleType,
         paymentMode: experience.paymentMode,
+        depositPerPerson: experience.depositPerPerson == null ? null : Number(experience.depositPerPerson),
         startsAt: experience.startsAt?.toISOString() || null,
         pricePerPerson: Number(experience.pricePerPerson),
         capacityRemaining: experience.scheduleType === "FIXED"
           ? Math.max(0, experience.capacity - experience.reservations.reduce((sum, reservation) => sum + reservation.guests, 0))
           : experience.capacity,
         addOns: experience.addOns.map((addOn) => ({ id: addOn.id, name: addOn.name, description: addOn.description, price: Number(addOn.price), perGuest: addOn.perGuest })),
-      })).filter((experience) => experience.capacityRemaining > 0 && (experience.paymentMode !== "PREPAID" || Boolean(restaurant.paymentsStripeAccountId && restaurant.paymentsStripeOnboardingComplete)));
+      })).filter((experience) => experience.capacityRemaining > 0 && (experience.paymentMode === "AT_RESTAURANT" || Boolean(restaurant.paymentsStripeAccountId && restaurant.paymentsStripeOnboardingComplete)));
   const noShowRule = {
     enabled: restaurant.noShowProtectionEnabled,
     minGuests: restaurant.noShowMinGuests,
