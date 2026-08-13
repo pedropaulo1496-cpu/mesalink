@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/validation";
+import { createPartnerCode } from "@/lib/partner-code";
 
 const partnerTypes = new Set(["HOTEL", "CONCIERGE", "INFLUENCER", "GUIDE", "AGENCY", "COMPANY", "OTHER"]);
 
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
         data: {
           userId: user.id,
           businessName,
+          partnerCode: createPartnerCode(),
           contactName,
           email,
           passwordHash,

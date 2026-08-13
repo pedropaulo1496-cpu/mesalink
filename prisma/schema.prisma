@@ -1044,6 +1044,7 @@ model ReferralPartner {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   businessName String
+  partnerCode  String    @unique
   partnerType  String    @default("OTHER")
   contactName  String?
   email        String    @unique

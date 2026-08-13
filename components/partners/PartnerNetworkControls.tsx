@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { CalendarDays, Check, CloudOff, ExternalLink, MapPin, RefreshCw, ShieldCheck, UsersRound, X } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { CalendarDays, Check, CloudOff, ExternalLink, Loader2, MapPin, RefreshCw, Search, ShieldCheck, UsersRound, X } from "lucide-react";
 
 export function ReferralBookingSettingsForm({
   restaurantId,
@@ -100,22 +100,57 @@ export function ReferralAgreementForm({
   initialRequests,
 }: {
   restaurantId: string;
-  initialAgreements: Array<{ id: string; partnerName: string; partnerEmail: string; commissionType: "PER_PERSON" | "TOTAL"; commissionAmount: number }>;
+  initialAgreements: Array<{ id: string; partnerName: string; partnerEmail: string; partnerCode: string; commissionType: "PER_PERSON" | "TOTAL"; commissionAmount: number }>;
   initialRequests: Array<{ id: string; partnerName: string; partnerEmail: string; commissionType: "PER_PERSON" | "TOTAL"; commissionAmount: number }>;
 }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
+  const [partnerQuery, setPartnerQuery] = useState("");
+  const [partnerResults, setPartnerResults] = useState<PartnerSearchResult[]>([]);
+  const [selectedPartner, setSelectedPartner] = useState<PartnerSearchResult | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+
+  useEffect(() => {
+    if (selectedPartner && partnerQuery === selectedPartner.businessName) {
+      return;
+    }
+    const query = partnerQuery.trim();
+    if (!query) {
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setPartnerResults([]);
+      setSearchLoading(true);
+      try {
+        const response = await fetch(`/api/restaurants/${restaurantId}/referral-partners?q=${encodeURIComponent(query)}`, { signal: controller.signal });
+        const result = await response.json();
+        if (response.ok) setPartnerResults(result.partners || []);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) setPartnerResults([]);
+      } finally {
+        if (!controller.signal.aborted) setSearchLoading(false);
+      }
+    }, 180);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [partnerQuery, restaurantId, selectedPartner]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!selectedPartner) {
+      setSuccess(false);
+      setMessage("Seleciona um parceiro da lista de sugestões.");
+      return;
+    }
     setLoading(true);
     setMessage("");
     const data = new FormData(event.currentTarget);
     const response = await fetch(`/api/restaurants/${restaurantId}/referral-agreements`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(data.entries())),
+      body: JSON.stringify({ ...Object.fromEntries(data.entries()), partnerId: selectedPartner.id }),
     });
     const result = await response.json();
     setSuccess(response.ok);
@@ -129,12 +164,21 @@ export function ReferralAgreementForm({
       {initialRequests.length > 0 && <div><div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#A36D19]">A tua decisão</p><h3 className="mt-1 text-base font-semibold">Pedidos de negociação</h3></div><span className="grid h-8 min-w-8 place-items-center rounded-full bg-[#FFF0CB] px-2 text-[10px] font-black text-[#7A592F]">{initialRequests.length}</span></div><div className="grid gap-3 lg:grid-cols-2">{initialRequests.map((request) => <div key={request.id} className="rounded-[18px] border border-[#E5CF9D] bg-[#FFF8E8] p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-bold">{request.partnerName}</p><p className="mt-1 truncate text-[9px] text-[#806B50]">{request.partnerEmail}</p></div><span className="rounded-full bg-white px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.1em] text-[#8B6738]">Proposta</span></div><div className="mt-4 flex items-end justify-between gap-3"><div><p className="text-[9px] uppercase tracking-[0.12em] text-[#8A7863]">Nova comissão</p><p className="mt-1 text-xl font-semibold tracking-[-0.04em]">{request.commissionAmount.toLocaleString("pt-PT", { minimumFractionDigits: 2 })} € <span className="text-[10px] font-normal text-[#75695D]">{request.commissionType === "PER_PERSON" ? "/ pessoa" : "total"}</span></p></div><div className="flex gap-2"><button type="button" onClick={() => respondToCommissionRequest(restaurantId, request.id, "REJECT")} className="h-9 rounded-full border border-[#D8C6A9] bg-white px-4 text-[9px] font-bold">Recusar</button><button type="button" onClick={() => respondToCommissionRequest(restaurantId, request.id, "ACCEPT")} className="h-9 rounded-full bg-[#17120D] px-4 text-[9px] font-bold text-white">Aceitar</button></div></div></div>)}</div></div>}
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,.7fr)]">
-        <div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#9B6F3B]">Adicionar exceção</p><h3 className="mt-1 text-base font-semibold">Condição especial para um parceiro</h3><p className="mt-1 text-[10px] leading-5 text-[#75695D]">Usa o email da conta MesaLink Partner. Este valor substitui a comissão normal apenas para essa conta.</p><form onSubmit={submit} className="mt-4 grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_110px] sm:items-end"><label className="min-w-0 text-[9px] font-bold text-[#75695D] sm:col-span-2">Conta do parceiro<input name="partnerEmail" type="email" required placeholder="parceiro@email.com" className="mt-1 h-10 min-w-0 w-full rounded-xl border border-[#DDCDB5] bg-[#FBF8F3] px-3 text-xs outline-none" /></label><label className="min-w-0 text-[9px] font-bold text-[#75695D]">Tipo<select name="commissionType" defaultValue="PER_PERSON" className="mt-1 h-10 min-w-0 w-full rounded-xl border border-[#DDCDB5] bg-[#FBF8F3] px-3 text-xs font-bold outline-none"><option value="PER_PERSON">Por pessoa</option><option value="TOTAL">Total</option></select></label><label className="min-w-0 text-[9px] font-bold text-[#75695D]">Valor (€)<input name="commissionAmount" type="number" min="0.5" max="1000" step="0.01" defaultValue="1.5" required className="mt-1 h-10 min-w-0 w-full rounded-xl border border-[#DDCDB5] bg-[#FBF8F3] px-3 text-xs font-bold outline-none" /></label><button disabled={loading} className="h-10 justify-self-start rounded-full bg-[#17120D] px-5 text-[9px] font-bold text-white disabled:opacity-50 sm:col-span-2">{loading ? "A guardar…" : "Adicionar parceiro"}</button></form>{message && <p className={`mt-2 text-[9px] font-semibold ${success ? "text-[#3F6A4D]" : "text-[#A14E36]"}`}>{message}</p>}</div>
-        <div className="rounded-[18px] bg-[#F4ECE1] p-4"><div className="flex items-center justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-[0.14em] text-[#8B6738]">Acordos ativos</p><p className="mt-1 text-2xl font-semibold">{initialAgreements.length}</p></div><span className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#8B6738]"><UsersRound size={17} /></span></div>{initialAgreements.length === 0 ? <p className="mt-3 text-[10px] leading-5 text-[#75695D]">Todos os parceiros estão a usar a comissão padrão.</p> : <div className="mt-3 space-y-2">{initialAgreements.map((agreement) => <div key={agreement.id} className="flex items-center justify-between gap-2 rounded-[12px] bg-white px-3 py-2.5"><div className="min-w-0"><p className="truncate text-[10px] font-bold">{agreement.partnerName}</p><p className="mt-0.5 text-[9px] text-[#7A6C5D]">{agreement.commissionAmount.toLocaleString("pt-PT", { minimumFractionDigits: 2 })} € {agreement.commissionType === "PER_PERSON" ? "/ pessoa" : "total"}</p></div><button type="button" onClick={async () => { const response = await fetch(`/api/restaurants/${restaurantId}/referral-agreements`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agreementId: agreement.id }) }); if (response.ok) window.location.reload(); }} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#F7EEE3] text-[#9A563F]" aria-label={`Remover exceção de ${agreement.partnerName}`}><X size={12} /></button></div>)}</div>}</div>
+        <div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#9B6F3B]">Adicionar exceção</p><h3 className="mt-1 text-base font-semibold">Condição especial para um parceiro</h3><p className="mt-1 text-[10px] leading-5 text-[#75695D]">Pesquisa a conta por nome, email ou código. Este valor substitui a comissão normal apenas para o parceiro selecionado.</p><form onSubmit={submit} className="mt-4 grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_110px] sm:items-end"><div className="relative min-w-0 sm:col-span-2"><label htmlFor="partner-search" className="text-[9px] font-bold text-[#75695D]">Parceiro</label><div className={`mt-1 flex h-11 items-center gap-2 rounded-xl border bg-[#FBF8F3] px-3 ${selectedPartner ? "border-[#9FC89F] ring-2 ring-[#DDEEDD]" : "border-[#DDCDB5]"}`}><Search size={14} className="shrink-0 text-[#9B6F3B]" /><input id="partner-search" value={partnerQuery} onFocus={() => setSearchFocused(true)} onBlur={() => window.setTimeout(() => setSearchFocused(false), 150)} onChange={(event) => { setPartnerQuery(event.target.value); setSelectedPartner(null); setSearchFocused(true); }} autoComplete="off" placeholder="Começa a escrever o nome, email ou código…" className="h-full min-w-0 flex-1 bg-transparent text-xs outline-none" />{searchLoading && <Loader2 size={14} className="animate-spin text-[#9B6F3B]" />}{selectedPartner && <Check size={14} className="text-[#4F7653]" />}</div>{searchFocused && partnerQuery.trim() && !selectedPartner && <div className="absolute left-0 right-0 top-full z-30 mt-1.5 overflow-hidden rounded-[16px] border border-[#D8C6A9] bg-white shadow-[0_16px_45px_rgba(49,34,18,0.16)]">{partnerResults.map((partner) => <button key={partner.id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setSelectedPartner(partner); setPartnerQuery(partner.businessName); setPartnerResults([]); setSearchFocused(false); }} className="flex w-full items-center justify-between gap-3 border-b border-[#F0E8DC] px-3.5 py-3 text-left last:border-0 hover:bg-[#FFF8EC]"><div className="min-w-0"><p className="truncate text-xs font-bold">{partner.businessName}</p><p className="mt-0.5 truncate text-[9px] text-[#75695D]">{partner.email}{partner.contactName ? ` · ${partner.contactName}` : ""}</p></div><span className="shrink-0 rounded-full bg-[#F3E8D7] px-2.5 py-1 font-mono text-[9px] font-bold text-[#76542F]">{partner.partnerCode}</span></button>)}{!searchLoading && partnerResults.length === 0 && <p className="px-4 py-3 text-[10px] text-[#75695D]">Nenhum parceiro encontrado. Confirma o nome, email ou código.</p>}</div>}</div><label className="min-w-0 text-[9px] font-bold text-[#75695D]">Tipo<select name="commissionType" defaultValue="PER_PERSON" className="mt-1 h-10 min-w-0 w-full rounded-xl border border-[#DDCDB5] bg-[#FBF8F3] px-3 text-xs font-bold outline-none"><option value="PER_PERSON">Por pessoa</option><option value="TOTAL">Total</option></select></label><label className="min-w-0 text-[9px] font-bold text-[#75695D]">Valor (€)<input name="commissionAmount" type="number" min="0.5" max="1000" step="0.01" defaultValue="1.5" required className="mt-1 h-10 min-w-0 w-full rounded-xl border border-[#DDCDB5] bg-[#FBF8F3] px-3 text-xs font-bold outline-none" /></label><button disabled={loading || !selectedPartner} className="h-10 justify-self-start rounded-full bg-[#17120D] px-5 text-[9px] font-bold text-white disabled:opacity-40 sm:col-span-2">{loading ? "A guardar…" : "Adicionar parceiro"}</button></form>{message && <p className={`mt-2 text-[9px] font-semibold ${success ? "text-[#3F6A4D]" : "text-[#A14E36]"}`}>{message}</p>}</div>
+        <div className="rounded-[18px] bg-[#F4ECE1] p-4"><div className="flex items-center justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-[0.14em] text-[#8B6738]">Acordos ativos</p><p className="mt-1 text-2xl font-semibold">{initialAgreements.length}</p></div><span className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#8B6738]"><UsersRound size={17} /></span></div>{initialAgreements.length === 0 ? <p className="mt-3 text-[10px] leading-5 text-[#75695D]">Todos os parceiros estão a usar a comissão padrão.</p> : <div className="mt-3 space-y-2">{initialAgreements.map((agreement) => <div key={agreement.id} className="flex items-center justify-between gap-2 rounded-[12px] bg-white px-3 py-2.5"><div className="min-w-0"><p className="truncate text-[10px] font-bold">{agreement.partnerName}</p><p className="mt-0.5 truncate text-[8px] font-semibold text-[#9B6F3B]">{agreement.partnerCode} · {agreement.partnerEmail}</p><p className="mt-0.5 text-[9px] text-[#7A6C5D]">{agreement.commissionAmount.toLocaleString("pt-PT", { minimumFractionDigits: 2 })} € {agreement.commissionType === "PER_PERSON" ? "/ pessoa" : "total"}</p></div><button type="button" onClick={async () => { const response = await fetch(`/api/restaurants/${restaurantId}/referral-agreements`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agreementId: agreement.id }) }); if (response.ok) window.location.reload(); }} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#F7EEE3] text-[#9A563F]" aria-label={`Remover exceção de ${agreement.partnerName}`}><X size={12} /></button></div>)}</div>}</div>
       </div>
     </div>
   );
 }
+
+type PartnerSearchResult = {
+  id: string;
+  businessName: string;
+  contactName: string | null;
+  email: string;
+  partnerCode: string;
+  partnerType: string;
+};
 
 export function PartnerProfileSettingsForm({
   restaurantId,

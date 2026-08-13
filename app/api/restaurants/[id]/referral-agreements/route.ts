@@ -10,18 +10,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!session?.user?.email) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const body = await request.json().catch(() => null);
-  const partnerEmail = typeof body?.partnerEmail === "string" ? body.partnerEmail.trim().toLowerCase() : "";
+  const partnerId = typeof body?.partnerId === "string" ? body.partnerId.trim() : "";
   const commissionType = isCommissionType(body?.commissionType) ? body.commissionType : null;
   const commissionAmount = Number(body?.commissionAmount);
 
-  if (!partnerEmail || !commissionType || !Number.isFinite(commissionAmount) || commissionAmount <= 0 || commissionAmount > 1000) {
+  if (!partnerId || !commissionType || !Number.isFinite(commissionAmount) || commissionAmount <= 0 || commissionAmount > 1000) {
     return NextResponse.json({ error: "Revê o parceiro e a comissão." }, { status: 400 });
   }
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
   const [restaurant, partner] = await Promise.all([
     user ? prisma.restaurant.findFirst({ where: { id, userId: user.id }, select: { id: true } }) : null,
-    prisma.referralPartner.findUnique({ where: { email: partnerEmail }, select: { id: true, businessName: true, email: true } }),
+    prisma.referralPartner.findUnique({ where: { id: partnerId }, select: { id: true, businessName: true, email: true, partnerCode: true } }),
   ]);
 
   if (!restaurant) return NextResponse.json({ error: "Restaurante não encontrado." }, { status: 404 });
@@ -33,7 +33,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     create: { partnerId: partner.id, restaurantId: id, commissionType, commissionAmount, platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT },
   });
 
-  return NextResponse.json({ success: true, agreementId: agreement.id, partner: { businessName: partner.businessName, email: partner.email } });
+  return NextResponse.json({ success: true, agreementId: agreement.id, partner: { businessName: partner.businessName, email: partner.email, partnerCode: partner.partnerCode } });
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -4,6 +4,7 @@ import { ArrowUpRight, BarChart3, Clock3, Euro, FileText, Landmark, ShieldCheck,
 import NewReferralGroupForm from "@/components/partners/NewReferralGroupForm";
 import PartnerInvoiceUpload from "@/components/partners/PartnerInvoiceUpload";
 import PartnerSignOutButton from "@/components/partners/PartnerSignOutButton";
+import PartnerCodeCopy from "@/components/partners/PartnerCodeCopy";
 import { requirePartner } from "@/lib/partner-auth";
 import { buildPartnerProfile } from "@/lib/partner-profile";
 import { calculateReferralCommission, isCommissionType } from "@/lib/referrals";
@@ -203,7 +204,7 @@ export default async function PartnerAppPage({
       <header className="sticky top-0 z-40 border-b border-[#E1D0B8] bg-[#F5EFE6]/92 px-4 py-4 backdrop-blur-2xl sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <Link href="/partners/app" className="text-2xl font-black tracking-[-0.08em] sm:text-3xl"><span className="text-[#C8A56A]">Mesa</span>Link <span className="text-xs font-semibold tracking-normal text-[#8A6130]">Partners</span></Link>
-          <div className="flex items-center gap-3"><div className="hidden text-right sm:block"><p className="text-sm font-semibold">{partner.businessName}</p><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#8A7863]">{partner.status === "ACTIVE" ? "Verificado" : "Verificação pendente"}</p></div><PartnerSignOutButton /></div>
+          <div className="flex items-center gap-2 sm:gap-3"><PartnerCodeCopy code={partner.partnerCode} /><div className="hidden text-right lg:block"><p className="text-sm font-semibold">{partner.businessName}</p><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#8A7863]">{partner.status === "ACTIVE" ? "Verificado" : "Verificação pendente"}</p></div><PartnerSignOutButton /></div>
         </div>
       </header>
 

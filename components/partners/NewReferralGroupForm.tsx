@@ -220,7 +220,7 @@ function CommissionNegotiation({ restaurant }: { restaurant: PartnerRestaurant }
   }
 
   return <details className="group mt-2 border-t border-[#EEE3D3] pt-2">
-    <summary className="flex cursor-pointer list-none items-center justify-between text-[10px] font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><Handshake size={12} /> Pedir outra comissão {status === "PENDING" ? "· pendente" : status === "ACCEPTED" ? "· aceite" : ""}</span><span className="transition group-open:rotate-180">⌄</span></summary>
+    <summary className="flex cursor-pointer list-none items-center justify-between text-[10px] font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><Handshake size={12} /> Negociar comissão com este restaurante {status === "PENDING" ? "· pedido pendente" : status === "ACCEPTED" ? "· aceite" : ""}</span><span className="transition group-open:rotate-180">⌄</span></summary>
     <div className="mt-2 grid gap-2 rounded-xl bg-white p-2.5 sm:grid-cols-[130px_90px_auto]">
       <select value={commissionType} onChange={(event) => setCommissionType(event.target.value as "PER_PERSON" | "TOTAL")} className="input-premium h-9 text-xs"><option value="PER_PERSON">Por pessoa</option><option value="TOTAL">Total</option></select>
       <input value={amount} onChange={(event) => setAmount(event.target.value)} onKeyDown={(event) => event.key === "Enter" && event.preventDefault()} type="number" min="0.5" max="1000" step="0.01" aria-label="Nova comissão" className="input-premium h-9 text-xs" />
