@@ -5,7 +5,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { isValidEmail } from "@/lib/validation";
 
@@ -23,6 +23,18 @@ export default function RegisterPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [commercialInvite, setCommercialInvite] = useState("");
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const invitedEmail = query.get("email");
+    const invite = query.get("commercialInvite");
+    const timer = window.setTimeout(() => {
+      if (invitedEmail) setEmailAddress(invitedEmail);
+      if (invite) setCommercialInvite(invite);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -49,7 +61,7 @@ export default function RegisterPage() {
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email: emailAddress, password }),
+        body: JSON.stringify({ name, email: emailAddress, password, commercialInvite }),
       });
 
       const data = await response.json();
@@ -113,7 +125,7 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <input value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder={t("namePlaceholder")} className={inputClass} required />
-                <input value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} type="email" placeholder={t("emailPlaceholder")} className={inputClass} required />
+                <input value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} readOnly={Boolean(commercialInvite)} type="email" placeholder={t("emailPlaceholder")} className={`${inputClass} ${commercialInvite ? "cursor-not-allowed opacity-75" : ""}`} required />
                 <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder={t("passwordPlaceholder")} className={inputClass} required />
                 <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" placeholder={t("confirmPasswordPlaceholder")} className={inputClass} required />
               </div>

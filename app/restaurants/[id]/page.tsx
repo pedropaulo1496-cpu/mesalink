@@ -30,6 +30,7 @@ import { canAccessApp, getUserWithSubscription } from "@/lib/check-subscription"
 import { parsePriceBenchmark } from "@/lib/ai-visibility-pricing";
 import { marketingBenefitValue } from "@/lib/marketing-card-themes";
 import { prisma } from "@/lib/prisma";
+import { publicReservationUrl } from "@/lib/public-links";
 
 type TFunc = (key: string, values?: Record<string, string | number>) => string;
 
@@ -304,8 +305,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
         : null;
   const partnerPaymentBlocked = Boolean(restaurant.referralPaymentBlockedAt);
   const attentionCount = pendingToday.length + pendingPartnerNegotiations + openRevenueConversations + qrOrdersOpen + (partnerPaymentBlocked ? 1 : 0);
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.mesalink.pt";
-  const reservationUrl = `${appUrl}/reserve/${restaurant.slug}`;
+  const reservationUrl = publicReservationUrl(restaurant.slug);
   const websiteUrl = restaurant.customDomainVerified && restaurant.customDomain
     ? `https://${restaurant.customDomain}`
     : `https://${restaurant.slug}.mesalink.pt`;

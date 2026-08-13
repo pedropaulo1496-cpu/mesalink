@@ -1,7 +1,7 @@
 {
-  "packageId": "pt.mesalink.backoffice",
+  "packageId": "pt.mesalink.hq",
   "host": "www.mesalink.pt",
-  "name": "MesaLink Backoffice",
+  "name": "MesaLink HQ",
   "launcherName": "MesaLink HQ",
   "display": "standalone",
   "themeColor": "#C8A56A",
@@ -20,8 +20,8 @@
     "path": "../.android-signing/mesalink-release.keystore",
     "alias": "mesalink"
   },
-  "appVersionCode": 4,
-  "appVersion": "1.0.3",
+  "appVersionCode": 5,
+  "appVersion": "1.1.0",
   "generatorApp": "bubblewrap-cli",
   "fallbackType": "customtabs",
   "enableSiteSettingsShortcut": true,

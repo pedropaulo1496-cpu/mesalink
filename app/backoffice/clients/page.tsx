@@ -1,20 +1,21 @@
 import Link from "next/link";
-import { ExternalLink, Search } from "lucide-react";
+import { ExternalLink, MailPlus, Search } from "lucide-react";
 import { extendTrial, grantAiCredits, grantEmails, updateSubscription } from "@/app/admin/actions";
 import { DoneNotice, PageHeading, RiskPill, StatCard, buttonClass, dateTime, euroCents, inputClass, shortDate } from "@/components/backoffice/BackofficeUI";
 import { type BackofficeClient, getBackofficeClients } from "@/lib/backoffice-data";
 import { prisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff-auth";
-import { assignClient, sendPromotionDirectly } from "../actions";
+import { assignClient, inviteRestaurantClient, sendPromotionDirectly } from "../actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function BackofficeClientsPage({ searchParams }: { searchParams: Promise<{ q?: string; done?: string }> }) {
   const staff = await requireStaff();
   const { q = "", done } = await searchParams;
-  const [clients, representatives] = await Promise.all([
+  const [clients, representatives, invitations] = await Promise.all([
     getBackofficeClients(staff, q),
     staff.role === "ADMIN" ? prisma.salesRepresentative.findMany({ where: { active: true }, orderBy: { name: "asc" } }) : Promise.resolve([]),
+    staff.role === "SALES" ? prisma.salesClientInvitation.findMany({ where: { salesRepresentativeId: staff.salesRepresentativeId! }, orderBy: { createdAt: "desc" }, take: 5 }) : Promise.resolve([]),
   ]);
   const highRisk = clients.filter((client) => client.health.riskLevel === "HIGH").length;
   const inactive = clients.filter((client) => client.health.inactiveDays !== null && client.health.inactiveDays >= 14).length;
@@ -24,6 +25,15 @@ export default async function BackofficeClientsPage({ searchParams }: { searchPa
     <>
       <DoneNotice done={done} />
       <PageHeading eyebrow="Carteira" title="Clientes" description={staff.role === "ADMIN" ? "Todos os restaurantes, atividade, risco, consumo, rentabilidade e comercial responsável." : "Os teus clientes, sinais de risco e próxima ação recomendada."} />
+      {staff.role === "SALES" && (
+        <section className="mt-5 rounded-2xl border border-[#D7B267] bg-[#FFF9EF] p-3.5 sm:p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#17130F] text-[#D7B267]"><MailPlus size={18} /></span><div><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">Novo restaurante</p><h2 className="text-base font-semibold">Convidar e associar à minha carteira</h2><p className="text-[10px] text-[#75695C]">O restaurante recebe um email para entrar ou criar conta. A associação é automática.</p></div></div>
+            <form action={inviteRestaurantClient} className="flex w-full gap-2 lg:max-w-lg"><input name="email" type="email" required placeholder="email@restaurante.pt" className={`${inputClass} min-w-0 flex-1`} /><button className={`${buttonClass} shrink-0`}>Enviar convite</button></form>
+          </div>
+          {invitations.length > 0 && <div className="mt-3 flex flex-wrap gap-2 border-t border-[#E8D7BA] pt-3">{invitations.map((invitation) => { const status = invitation.acceptedAt ? "Associado" : invitation.expiresAt <= new Date() ? "Expirado" : "Enviado"; return <span key={invitation.id} className="rounded-full border border-[#E2D3BC] bg-white px-3 py-1.5 text-[10px]"><strong>{invitation.email}</strong> · {status}</span>; })}</div>}
+        </section>
+      )}
       <section className="mt-5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Na carteira" value={clients.length.toString()} note="até 100 resultados" />
         <StatCard label="Risco alto" value={highRisk.toString()} note="contactar hoje" tone={highRisk ? "red" : "green"} />

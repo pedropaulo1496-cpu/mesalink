@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { publicReservationUrl } from "@/lib/public-links";
 
 type PageProps = {
   params: Promise<{
@@ -18,5 +19,5 @@ export default async function PublicReserveRedirectPage({ params }: PageProps) {
     redirect("/");
   }
 
-  redirect(`/reserve/${restaurant.slug}`);
+  redirect(publicReservationUrl(restaurant.slug));
 }

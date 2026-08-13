@@ -6,6 +6,7 @@ import { calculatePartnerInvoiceAmounts, calculateReferralCommission, calculateR
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { checkoutTaxAmount, proportionalTaxAmount } from "@/lib/stripe-tax";
+import { recordSalesCommission } from "@/lib/sales-commissions";
 
 export type ReferralAttendanceOutcome = "ATTENDED" | "NO_SHOW";
 
@@ -33,7 +34,11 @@ export async function settleReferralAttendance({
       id: groupId,
       ...(restaurantUserId ? { acceptedRestaurant: { userId: restaurantUserId } } : {}),
     },
-    include: { reservation: true, payment: true },
+    include: {
+      reservation: true,
+      payment: true,
+      acceptedRestaurant: { select: { userId: true } },
+    },
   });
 
   if (!group?.acceptedRestaurantId || !group.payment?.stripePaymentIntentId) {
@@ -148,6 +153,21 @@ export async function settleReferralAttendance({
       }),
       ...(group.reservationId ? [prisma.reservation.update({ where: { id: group.reservationId }, data: { status: "FINISHED", guests: confirmedGuests } })] : []),
     ]);
+
+    // Extras dos comerciais incidem apenas sobre a receita MesaLink da rede
+    // (a taxa de plataforma). Custos Stripe/serviço e impostos nunca entram na
+    // base de comissão.
+    if (group.acceptedRestaurant?.userId && amounts.platformFee > 0) {
+      await recordSalesCommission({
+        userId: group.acceptedRestaurant.userId,
+        sourceType: "PARTNER_NETWORK",
+        sourceId: group.payment.id,
+        description: `Rede de Parceiros · margem MesaLink ${Number(group.platformFeePercent)}% · ${group.publicCode}`,
+        grossCents: Math.round(amounts.platformFee * 100),
+        currency: group.payment.currency,
+        earnedAt: capturedAt,
+      }).catch((error) => console.error("Record referral sales commission error", error));
+    }
 
     await issueCapturedReferralInvoice(group.payment.id).catch(async (error) => {
       console.error("Issue captured referral invoice error", error);

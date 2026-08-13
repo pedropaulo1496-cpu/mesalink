@@ -15,6 +15,20 @@ export function isClosedCommissionPeriod(period: string, now = new Date()) {
   return period < commissionPeriod(now);
 }
 
+export function commissionInvoiceDeadline(period: string) {
+  const { end } = commissionPeriodBounds(period);
+  return new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth() + 1, 1));
+}
+
+export function isCommissionInvoiceExpired(period: string, now = new Date()) {
+  return now >= commissionInvoiceDeadline(period);
+}
+
+export function commissionInvoiceDeadlineLabel(period: string) {
+  const deadline = new Date(commissionInvoiceDeadline(period).getTime() - 1);
+  return new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(deadline);
+}
+
 export function commissionPeriodLabel(period: string) {
   const { start } = commissionPeriodBounds(period);
   return new Intl.DateTimeFormat("pt-PT", { month: "long", year: "numeric", timeZone: "UTC" }).format(start);

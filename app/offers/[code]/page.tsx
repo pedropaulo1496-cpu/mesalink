@@ -5,6 +5,7 @@ import { CheckCircle2, Clock3, Copy, Gift, ShieldCheck, Sparkles } from "lucide-
 import { notFound } from "next/navigation";
 import { getMarketingCardTheme, marketingBenefitValue } from "@/lib/marketing-card-themes";
 import { prisma } from "@/lib/prisma";
+import { publicReservationUrl } from "@/lib/public-links";
 
 export const metadata: Metadata = {
   title: "Cartão digital MesaLink",
@@ -30,7 +31,7 @@ export default async function MarketingOfferCardPage({ params, searchParams }: {
   const expiry = card.expiresAt ? new Intl.DateTimeFormat("pt-PT", { dateStyle: "long" }).format(card.expiresAt) : null;
   const reservationParams = new URLSearchParams({ offer: card.publicCode });
   if (marketingAction && /^[a-f0-9]{48}$/.test(marketingAction)) reservationParams.set("ml_action", marketingAction);
-  const reservationUrl = `/reserve/${card.restaurant.slug}?${reservationParams.toString()}`;
+  const reservationUrl = `${publicReservationUrl(card.restaurant.slug)}?${reservationParams.toString()}`;
 
   return (
     <main className="min-h-screen bg-[#F2ECE2] px-4 py-8 text-[#17120D] sm:py-12">

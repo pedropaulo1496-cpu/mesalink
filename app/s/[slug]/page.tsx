@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PublicWebsite } from "./PublicWebsite";
 import { getFaqItems } from "./utils";
+import { publicReservationUrl } from "@/lib/public-links";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +65,7 @@ export default async function PublicRestaurantWebsitePage({ params }: PageProps)
   const canonical = restaurant.customDomainVerified && restaurant.customDomain
     ? `https://${restaurant.customDomain.replace(/^https?:\/\//, "").replace(/\/$/, "")}`
     : `https://www.mesalink.pt/s/${restaurant.slug}`;
-  const reserveUrl = `https://www.mesalink.pt/reserve/${restaurant.slug}`;
+  const reserveUrl = publicReservationUrl(restaurant.slug);
   const menuSections = restaurant.orderingCategories
     .filter((category) => category.products.length > 0)
     .map((category) => ({

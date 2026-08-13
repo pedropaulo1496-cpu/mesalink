@@ -3,6 +3,7 @@ import AiCreditCheckoutButton from "@/components/AiCreditCheckoutButton";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
 import UpgradeToGrowthButton from "@/components/UpgradeToGrowthButton";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import RestaurantSidebar from "@/components/RestaurantSidebar";
 import { authOptions } from "@/lib/auth";
 import { listMesaLinkInvoices, type MesaLinkInvoiceDocument } from "@/lib/billing-documents";
 import { prisma } from "@/lib/prisma";
@@ -105,6 +106,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
   const selectedRestaurants = restaurantId
     ? user.restaurants.filter((restaurant) => restaurant.id === restaurantId)
     : user.restaurants;
+  const sidebarRestaurant = selectedRestaurants[0] || user.restaurants[0];
   const restaurantIds = selectedRestaurants.map((restaurant) => restaurant.id);
   const referralPayments = restaurantIds.length
     ? await prisma.referralPayment.findMany({
@@ -161,7 +163,9 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
-      <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
+      <div className={sidebarRestaurant ? "grid min-h-screen lg:grid-cols-[286px_1fr]" : "min-h-screen"}>
+        {sidebarRestaurant && <RestaurantSidebar id={sidebarRestaurant.id} restaurantName={sidebarRestaurant.name} active="billing" />}
+      <section className="mx-auto w-full min-w-0 max-w-7xl px-5 py-8 sm:px-8">
         <div className="flex items-center justify-between gap-4">
           <Link
             href={backHref}
@@ -432,6 +436,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
         </section>
       </section>
+      </div>
     </main>
   );
 }

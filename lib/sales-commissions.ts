@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-export type CommissionSourceType = "PLAN" | "AI_CREDITS" | "CUSTOM_DOMAIN" | "MANUAL";
+export type CommissionSourceType = "PLAN" | "AI_CREDITS" | "CUSTOM_DOMAIN" | "PARTNER_NETWORK" | "MANUAL";
 
 export async function recordSalesCommission(input: {
   userId: string;

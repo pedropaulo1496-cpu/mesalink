@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyReservationManagementToken } from "@/lib/reservation-management";
 import { sendReservationLifecycleEmail } from "@/lib/send-reservation-lifecycle-email";
+import { publicReservationUrl } from "@/lib/public-links";
 
 export const metadata: Metadata = { title: "Gerir reserva — MesaLink", robots: { index: false, follow: false } };
 const ACTIVE_STATUSES = ["PENDING", "CONFIRMED"];
@@ -126,7 +127,7 @@ export default async function ManageReservationPage({ params, searchParams }: { 
   const local = lisbonInputParts(reservation.date);
   const resultMessage = manageResultMessage(query.result, reservation.status);
   const errorMessage = manageErrorMessage(query.error);
-  const rebookUrl = `/reserve/${reservation.restaurant.slug}`;
+  const rebookUrl = publicReservationUrl(reservation.restaurant.slug);
 
   return <main className="min-h-screen bg-[#F5EFE6] px-4 py-8 text-[#17120D] sm:px-6 lg:py-14">
     <div className="mx-auto max-w-5xl">

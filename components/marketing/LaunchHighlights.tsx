@@ -42,7 +42,7 @@ const copy = {
     apps: [
       { name: "MesaLink Restaurantes", audience: "Para restaurantes", text: "Reservas, serviço do dia, clientes, marketing, Revenue AI, website, visibilidade e operação diária.", version: "v1.1.3", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk", icon: "/icons/apps/restaurant-192.png" },
       { name: "MesaLink Parceiros", audience: "Para parceiros", text: "Escolher restaurantes disponíveis, confirmar reservas imediatas e acompanhar comissões, faturas e pagamentos.", version: "v1.0.3", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk", icon: "/icons/apps/partners-192.png" },
-      { name: "MesaLink Backoffice", audience: "Para administração e comerciais", text: "Clientes atribuídos, risco, custos, comissões, pedidos, promoções e chat interno.", version: "v1.0.3", href: "/downloads/MesaLink-Backoffice-v1.0.3.apk", icon: "/icons/apps/backoffice-192.png" },
+      { name: "MesaLink HQ", audience: "Para administração e comerciais", text: "Clientes atribuídos, risco, custos, comissões, pedidos, promoções e chat interno.", version: "v1.1.0", href: "/downloads/MesaLink-HQ-v1.1.0.apk", icon: "/icons/apps/backoffice-192.png" },
     ],
   },
   en: {
@@ -70,7 +70,7 @@ const copy = {
     apps: [
       { name: "MesaLink Restaurants", audience: "For restaurants", text: "Bookings, daily service, customers, marketing, Revenue AI, website, visibility and daily operations.", version: "v1.1.3", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk", icon: "/icons/apps/restaurant-192.png" },
       { name: "MesaLink Partners", audience: "For partners", text: "Choose available restaurants, confirm instant bookings, and track commissions, invoices, and payouts.", version: "v1.0.3", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk", icon: "/icons/apps/partners-192.png" },
-      { name: "MesaLink Backoffice", audience: "For admin and sales", text: "Assigned clients, risk, costs, commissions, requests, promotions and internal chat.", version: "v1.0.3", href: "/downloads/MesaLink-Backoffice-v1.0.3.apk", icon: "/icons/apps/backoffice-192.png" },
+      { name: "MesaLink HQ", audience: "For admin and sales", text: "Assigned clients, risk, costs, commissions, requests, promotions and internal chat.", version: "v1.1.0", href: "/downloads/MesaLink-HQ-v1.1.0.apk", icon: "/icons/apps/backoffice-192.png" },
     ],
   },
 } as const;

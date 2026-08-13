@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { Resend } from "resend";
 import { cookies } from "next/headers";
+import { publicReservationUrl } from "@/lib/public-links";
 import { getLocale, getTranslations } from "next-intl/server";
 import { isLocale, defaultLocale } from "@/i18n/locales";
 import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
@@ -163,10 +164,7 @@ if (status === "FINISHED" && previousReservation.status !== "FINISHED" && reserv
         ? reservation.restaurant.silverVipOffer
         : reservation.restaurant.bronzeVipOffer;
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
-  const reserveUrl = `${baseUrl}/reserve/${reservation.restaurant.slug}`;
+  const reserveUrl = publicReservationUrl(reservation.restaurant.slug);
 
   const cookieStore = await cookies();
   const rawLocale = cookieStore.get("NEXT_LOCALE")?.value;

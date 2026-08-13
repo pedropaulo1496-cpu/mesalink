@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getStaffIdentity } from "@/lib/staff-auth";
-import { commissionPeriodBounds, isClosedCommissionPeriod } from "@/lib/sales-commission-statements";
+import { commissionInvoiceDeadlineLabel, commissionPeriodBounds, isClosedCommissionPeriod, isCommissionInvoiceExpired } from "@/lib/sales-commission-statements";
 
 export async function POST(request: Request) {
   const staff = await getStaffIdentity();
@@ -13,6 +13,7 @@ export async function POST(request: Request) {
   const invoiceNumber = typeof body?.invoiceNumber === "string" ? body.invoiceNumber.trim().slice(0, 80) : "";
   if (!invoiceUrl || !invoiceNumber) return NextResponse.json({ error: "Indica o número e carrega a fatura em PDF." }, { status: 400 });
   if (!isClosedCommissionPeriod(period)) return NextResponse.json({ error: "A fatura só pode ser emitida depois de o mês terminar." }, { status: 409 });
+  if (isCommissionInvoiceExpired(period)) return NextResponse.json({ error: `O prazo terminou em ${commissionInvoiceDeadlineLabel(period)}. Este saldo já não é elegível para pagamento.` }, { status: 410 });
   const { start, end } = commissionPeriodBounds(period);
   const totals = await prisma.salesCommission.aggregate({
     where: { salesRepresentativeId: staff.salesRepresentativeId, status: "PENDING", earnedAt: { gte: start, lt: end } },

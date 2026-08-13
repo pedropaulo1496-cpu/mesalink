@@ -1,5 +1,6 @@
 import { InsufficientAiCreditsError, spendAiCredits } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
+import { publicReservationUrl } from "@/lib/public-links";
 import {
   getRevenueChannelStatus,
   getVoiceCredits,
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
       const whatsappReference = `revenue_whatsapp_missed_call:${callSid}`;
       try {
         await reserveWhatsAppSend({ userId: restaurant.userId!, restaurantId, category: "MISSED_CALL_FOLLOW_UP", reference: whatsappReference });
-        const bookingUrl = `${(process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/+$/, "")}/reserve/${restaurant.slug}`;
+        const bookingUrl = publicReservationUrl(restaurant.slug);
         const reply = `Olá${customer?.name ? ` ${customer.name.split(/\s+/)[0]}` : ""}! Tentou ligar para o ${restaurant.name} e não conseguimos atender. Se quiser reservar, pode fazê-lo aqui: ${bookingUrl}\n\nSe for outro assunto, responda a esta mensagem e encaminhamos para a equipa.`;
         const delivery = await sendRevenueWhatsapp({
           from: restaurant.revenueWhatsappNumber,

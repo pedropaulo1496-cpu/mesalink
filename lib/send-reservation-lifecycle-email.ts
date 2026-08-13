@@ -4,6 +4,7 @@ import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/emai
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { prisma } from "@/lib/prisma";
 import { reservationManagementUrl } from "@/lib/reservation-management";
+import { publicReservationUrl } from "@/lib/public-links";
 
 const dateLocales: Record<string, string> = { pt: "pt-PT", en: "en-GB", es: "es-ES", fr: "fr-FR", de: "de-DE", zh: "zh-CN" };
 
@@ -35,7 +36,7 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
     const intlLocale = dateLocales[locale] || "pt-PT";
     const manageUrl = reservationManagementUrl(reservation.id, reservation.email);
     const cancelUrl = reservationManagementUrl(reservation.id, reservation.email, "cancel");
-    const rebookUrl = `${(process.env.NEXT_PUBLIC_APP_URL || "https://www.mesalink.pt").replace(/\/+$/, "")}/reserve/${reservation.restaurant.slug}`;
+    const rebookUrl = publicReservationUrl(reservation.restaurant.slug);
     const pending = reservation.status === "PENDING";
 
     const subject = type === "CANCELLED"

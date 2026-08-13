@@ -112,9 +112,7 @@ export default async function ReservationSuccessPage({
             {t("cta")}
           </a>
 
-          <p className="mt-6 text-center text-xs text-[#9B8F82]">
-            {t("poweredBy")}
-          </p>
+          <div className="mt-4 text-center"><a href="https://mesalink.pt" className="inline-flex min-h-9 items-center rounded-full px-3 text-sm font-semibold text-[#8B7863] transition hover:bg-[#F5EBDD] hover:text-[#17120D]">{t("poweredBy")}</a></div>
         </div>
       </section>
     </main>

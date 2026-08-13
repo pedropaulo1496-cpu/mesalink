@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import QRCode from "qrcode";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { publicReservationUrl } from "@/lib/public-links";
 
 export default async function QRPage({
   params,
@@ -24,7 +25,7 @@ export default async function QRPage({
     );
   }
 
-  const reservationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reserve/${restaurant.slug}`;
+  const reservationUrl = publicReservationUrl(restaurant.slug);
 
   const qrCode = await QRCode.toDataURL(reservationUrl, {
     margin: 2,

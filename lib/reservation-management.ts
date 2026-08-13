@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { publicCustomerOrigin } from "@/lib/public-links";
 
 function managementSecret() {
   const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
@@ -21,8 +22,7 @@ export function verifyReservationManagementToken(reservationId: string, email: s
 }
 
 export function reservationManagementUrl(reservationId: string, email: string, intent?: "cancel") {
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.mesalink.pt").replace(/\/+$/, "");
   const params = new URLSearchParams({ token: createReservationManagementToken(reservationId, email) });
   if (intent) params.set("intent", intent);
-  return `${baseUrl}/reservation/${reservationId}/manage?${params.toString()}`;
+  return `${publicCustomerOrigin()}/reservation/${reservationId}/manage?${params.toString()}`;
 }

@@ -18,6 +18,7 @@ export async function createAndSendAdminPromotion(input: {
   expiresInDays?: number;
   requestedCode?: string;
   note?: string;
+  sendEmail?: boolean;
 }) {
   const target = await prisma.user.findUnique({
     where: { id: input.targetUserId },
@@ -46,16 +47,20 @@ export async function createAndSendAdminPromotion(input: {
   if (existingCode) throw new Error("Este código promocional já existe.");
 
   let promotionCodeId: string | null = null;
+  let couponId: string | null = null;
   let databasePromotionId: string | null = null;
   try {
     const coupon = await stripe.coupons.create({
-      name: `MesaLink ${input.percentOff}% · ${target.email}`,
+      // Stripe limits coupon names to 40 characters. Keep customer identity in
+      // metadata, where the full value is safe, instead of the visible name.
+      name: `MesaLink ${input.percentOff}% · oferta HQ`.slice(0, 40),
       percent_off: input.percentOff,
       duration: input.duration.toLowerCase() as "once" | "repeating" | "forever",
       ...(durationMonths ? { duration_in_months: durationMonths } : {}),
       redeem_by: Math.floor(expiresAt.getTime() / 1000),
       metadata: { targetUserId: target.id, createdById: input.createdById, source: "MESALINK_BACKOFFICE" },
     });
+    couponId = coupon.id;
     const promotionCode = await stripe.promotionCodes.create({
       code,
       promotion: { type: "coupon", coupon: coupon.id },
@@ -82,26 +87,42 @@ export async function createAndSendAdminPromotion(input: {
     });
     databasePromotionId = promotion.id;
 
-    const delivery = await resend.emails.send({
-      from: "MesaLink <noreply@mesalink.pt>",
-      to: target.email,
-      subject: `Oferta MesaLink: ${input.percentOff}% de desconto`,
-      html: promotionEmailHtml({
-        name: target.name || target.restaurants[0]?.name || "Olá",
-        code,
-        percentOff: input.percentOff,
-        duration: input.duration,
-        durationMonths,
-        expiresAt,
-        note: input.note,
-      }),
-    });
-    const deliveryId = requireAcceptedEmail(delivery);
+    // Requests proposed by a commercial are deliberately handed back to that
+    // commercial. The customer only receives the code when the commercial
+    // decides to share it; direct HQ promotions keep the normal email flow.
+    if (input.sendEmail === false) return promotion;
 
-    return await prisma.adminPromotion.update({
-      where: { id: promotion.id },
-      data: { status: "SENT", sentAt: new Date(), emailDeliveryId: deliveryId },
-    });
+    try {
+      const delivery = await resend.emails.send({
+        from: "MesaLink <noreply@mesalink.pt>",
+        to: target.email,
+        subject: `Oferta MesaLink: ${input.percentOff}% de desconto`,
+        html: promotionEmailHtml({
+          name: target.name || target.restaurants[0]?.name || "Olá",
+          code,
+          percentOff: input.percentOff,
+          duration: input.duration,
+          durationMonths,
+          expiresAt,
+          note: input.note,
+        }),
+      });
+      const deliveryId = requireAcceptedEmail(delivery);
+      return await prisma.adminPromotion.update({
+        where: { id: promotion.id },
+        data: { status: "SENT", sentAt: new Date(), emailDeliveryId: deliveryId, failureReason: null },
+      });
+    } catch (emailError) {
+      // The Stripe code remains valid and visible in HQ even if email delivery
+      // has a temporary issue. Approval must not destroy a valid promotion.
+      return await prisma.adminPromotion.update({
+        where: { id: promotion.id },
+        data: {
+          status: "EMAIL_FAILED",
+          failureReason: emailError instanceof Error ? emailError.message.slice(0, 500) : "Falha no envio do email.",
+        },
+      });
+    }
   } catch (error) {
     if (promotionCodeId) {
       await stripe.promotionCodes.update(promotionCodeId, { active: false }).catch(() => null);
@@ -114,6 +135,8 @@ export async function createAndSendAdminPromotion(input: {
           failureReason: error instanceof Error ? error.message.slice(0, 500) : "Falha no envio",
         },
       }).catch(() => null);
+    } else if (couponId) {
+      await stripe.coupons.del(couponId).catch(() => null);
     }
     throw error;
   }

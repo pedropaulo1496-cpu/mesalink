@@ -480,39 +480,41 @@ export default async function CustomersPage({
 
                 <CsvUploadField required />
 
-               <div className="overflow-hidden rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0]">
-  <div className="grid grid-cols-6 border-b border-[#E1D0B8] bg-white text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-    <div className="px-3 py-2">name</div>
-    <div className="px-3 py-2">email</div>
-    <div className="px-3 py-2">phone</div>
-    <div className="px-3 py-2">birthday</div>
-    <div className="px-3 py-2">notes</div>
-    <div className="px-3 py-2">tags</div>
-  </div>
+                <div className="overflow-hidden rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0]">
+                  <div className="hidden sm:block">
+                    <div className="grid grid-cols-6 border-b border-[#E1D0B8] bg-white text-[10px] font-semibold uppercase tracking-[0.1em] text-[#9B6F3B]">
+                      {['name', 'email', 'phone', 'birthday', 'notes', 'tags'].map((field) => <div key={field} className="min-w-0 truncate px-2 py-2">{field}</div>)}
+                    </div>
+                    <div className="grid grid-cols-6 text-[11px] font-semibold text-[#6B6258]">
+                      {['João Silva', 'joao@email.com', '912345678', '1990-05-12', 'Cliente VIP', 'VIP|Aniversário'].map((value) => <div key={value} className="min-w-0 truncate px-2 py-3" title={value}>{value}</div>)}
+                    </div>
+                  </div>
 
-  <div className="grid grid-cols-6 text-xs font-semibold text-[#6B6258]">
-    <div className="px-3 py-3">João Silva</div>
-    <div className="px-3 py-3">joao@email.com</div>
-    <div className="px-3 py-3">912345678</div>
-    <div className="px-3 py-3">1990-05-12</div>
-    <div className="px-3 py-3">Cliente VIP</div>
-    <div className="px-3 py-3">VIP|Aniversário</div>
-  </div>
+                  <div className="grid gap-2 p-3 sm:hidden">
+                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">Exemplo de uma linha</p>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded-xl bg-white p-3 text-[10px]">
+                      <CsvSample label="Nome" value="João Silva" />
+                      <CsvSample label="Email" value="joao@email.com" />
+                      <CsvSample label="Telefone" value="912345678" />
+                      <CsvSample label="Aniversário" value="1990-05-12" />
+                      <CsvSample label="Notas" value="Cliente VIP" />
+                      <CsvSample label="Tags" value="VIP | Aniversário" />
+                    </div>
+                  </div>
 
-  <div className="flex items-center justify-between gap-3 border-t border-[#E1D0B8] bg-white px-4 py-3">
-    <p className="text-xs text-[#6B6258]">
-      {t("importForm.formatHelp.prefix")} <strong>|</strong>{t("importForm.formatHelp.suffix")}
-    </p>
-
-    <a
-      href={`data:text/csv;charset=utf-8,${encodeURIComponent(sampleCsv)}`}
-      download="modelo-clientes-mesalink.csv"
-      className="shrink-0 rounded-full bg-[#16120E] px-4 py-2 text-xs font-semibold text-white"
-    >
-      {t("importForm.downloadSample")}
-    </a>
-  </div>
-</div>
+                  <div className="flex flex-col gap-2 border-t border-[#E1D0B8] bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+                    <p className="text-xs text-[#6B6258]">
+                      {t("importForm.formatHelp.prefix")} <strong>|</strong>{t("importForm.formatHelp.suffix")}
+                    </p>
+                    <a
+                      href={`data:text/csv;charset=utf-8,${encodeURIComponent(sampleCsv)}`}
+                      download="modelo-clientes-mesalink.csv"
+                      className="inline-flex w-full shrink-0 items-center justify-center rounded-full bg-[#16120E] px-4 py-2 text-xs font-semibold text-white sm:w-auto"
+                    >
+                      {t("importForm.downloadSample")}
+                    </a>
+                  </div>
+                </div>
 
                 <button className="h-12 w-full rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white">
                   {t("importForm.submit")}
@@ -743,4 +745,8 @@ function MetricCard({
       <span className={`h-3 w-3 rounded-full ${dot}`} />
     </div>
   );
+}
+
+function CsvSample({ label, value }: { label: string; value: string }) {
+  return <div className="min-w-0"><p className="text-[8px] font-black uppercase tracking-[0.1em] text-[#9B6F3B]">{label}</p><p className="mt-0.5 truncate font-semibold text-[#51473D]" title={value}>{value}</p></div>;
 }

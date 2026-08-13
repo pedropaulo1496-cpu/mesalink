@@ -91,10 +91,13 @@ model SalesRepresentative {
   active                        Boolean @default(true)
   defaultPlanCommissionPercent  Decimal @default(10) @db.Decimal(5, 2)
   defaultExtraCommissionPercent Decimal @default(5) @db.Decimal(5, 2)
+  stripeAccountId               String? @unique
+  stripeOnboardingComplete      Boolean @default(false)
 
   clients              User[]                     @relation("AssignedClientAccounts")
   commissions          SalesCommission[]
   commissionStatements SalesCommissionStatement[]
+  clientInvitations    SalesClientInvitation[]
   requests             CommercialRequest[]
   messages             CommercialMessage[]
 
@@ -154,6 +157,7 @@ model SalesCommissionStatement {
   invoiceVerifiedBy      String?
   invoiceRejectedAt      DateTime?
   invoiceRejectionReason String?
+  stripeTransferId       String?   @unique
   paidAt                 DateTime?
 
   createdAt DateTime @default(now())
@@ -161,6 +165,22 @@ model SalesCommissionStatement {
 
   @@unique([salesRepresentativeId, period])
   @@index([status, period])
+}
+
+model SalesClientInvitation {
+  id String @id @default(cuid())
+
+  salesRepresentativeId String
+  salesRepresentative   SalesRepresentative @relation(fields: [salesRepresentativeId], references: [id], onDelete: Cascade)
+
+  email      String
+  token      String   @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([salesRepresentativeId, createdAt])
+  @@index([email, expiresAt])
 }
 
 model CommercialRequest {

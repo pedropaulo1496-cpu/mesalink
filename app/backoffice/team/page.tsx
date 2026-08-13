@@ -41,11 +41,6 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
         <StatCard label="Comissões pagas" value={euroAmount(paid)} note="histórico acumulado" tone="gold" />
       </section>
 
-      <section className="mt-4 rounded-2xl border border-dashed border-[#C9A66B] bg-[#FFF9F0] p-3.5">
-        <div className="flex items-center justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">Demonstração</p><h2 className="mt-1 text-base font-semibold">Exemplo dos resultados por comercial</h2></div><span className="rounded-full bg-white px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-[#8A6130]">Dados fictícios</span></div>
-        <div className="mt-3 grid gap-2.5 md:grid-cols-3">{demoCommercials.map((demo) => <DemoCommercial key={demo.name} {...demo} />)}</div>
-      </section>
-
       <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_360px]">
         <div className="space-y-2.5">
           {representatives.map((rep) => {
@@ -101,14 +96,4 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
 
 function Metric({ label, value }: { label: string; value: string }) {
   return <div><p className="text-[8px] font-black uppercase tracking-wider text-[#9B6F3B]">{label}</p><p className="mt-1 text-sm font-bold">{value}</p></div>;
-}
-
-const demoCommercials = [
-  { name: "Ana Martins", clients: 14, newClients: 3, sales: "1 485 €", commission: "148,50 €", conversion: "31%" },
-  { name: "Miguel Costa", clients: 9, newClients: 2, sales: "920 €", commission: "92 €", conversion: "24%" },
-  { name: "Sofia Almeida", clients: 18, newClients: 5, sales: "2 160 €", commission: "216 €", conversion: "38%" },
-];
-
-function DemoCommercial({ name, clients, newClients, sales, commission, conversion }: { name: string; clients: number; newClients: number; sales: string; commission: string; conversion: string }) {
-  return <div className="rounded-xl border border-[#E2D3BC] bg-white p-3"><div className="flex items-center justify-between gap-2"><p className="text-[12px] font-bold">{name}</p><span className="rounded-full bg-[#EDF5EA] px-2 py-1 text-[8px] font-black text-[#3F6A4D]">{conversion} conversão</span></div><div className="mt-3 grid grid-cols-2 gap-2"><Metric label="Clientes" value={String(clients)} /><Metric label="Novos" value={String(newClients)} /><Metric label="Vendas mês" value={sales} /><Metric label="Comissão" value={commission} /></div></div>;
 }

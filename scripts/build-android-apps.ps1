@@ -1,3 +1,8 @@
+param(
+  [ValidateSet("All", "Restaurant", "Partners", "HQ")]
+  [string]$Only = "All"
+)
+
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path $PSScriptRoot -Parent
@@ -69,12 +74,15 @@ if (-not (Test-Path -LiteralPath $keystoreFile)) {
 
 $restaurantPaths = @("/login", "/dashboard", "/restaurants", "/billing", "/onboarding", "/trial-expired")
 $variants = @(
-  @{ Manifest = $restaurantManifest; Output = "MesaLink-Restaurantes-v1.1.3.apk"; Paths = $restaurantPaths },
+  @{ Name = "Restaurant"; Manifest = $restaurantManifest; Output = "MesaLink-Restaurantes-v1.1.3.apk"; Paths = $restaurantPaths },
   # Partners e HQ abrem pelo ícone. Sem App Links, nunca capturam páginas públicas
   # como /reserve/... que pertencem ao browser e aos clientes do restaurante.
-  @{ Manifest = (Join-Path $androidRoot "partners-manifest.json"); Output = "MesaLink-Parceiros-v1.0.3.apk"; Paths = @() },
-  @{ Manifest = (Join-Path $androidRoot "backoffice-manifest.json"); Output = "MesaLink-Backoffice-v1.0.3.apk"; Paths = @() }
+  @{ Name = "Partners"; Manifest = (Join-Path $androidRoot "partners-manifest.json"); Output = "MesaLink-Parceiros-v1.0.3.apk"; Paths = @() },
+  @{ Name = "HQ"; Manifest = (Join-Path $androidRoot "backoffice-manifest.json"); Output = "MesaLink-HQ-v1.1.0.apk"; Paths = @() }
 )
+if ($Only -ne "All") {
+  $variants = @($variants | Where-Object { $_.Name -eq $Only })
+}
 
 $iconServer = Start-Process python -ArgumentList @(
   "-m", "http.server", "8765", "--bind", "127.0.0.1", "--directory", $publicRoot

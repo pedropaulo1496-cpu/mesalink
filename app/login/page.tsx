@@ -5,7 +5,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { isValidEmail } from "@/lib/validation";
 
@@ -21,6 +21,12 @@ export default function LoginPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const invitedEmail = new URLSearchParams(window.location.search).get("email");
+    const timer = window.setTimeout(() => { if (invitedEmail) setEmailAddress(invitedEmail); }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

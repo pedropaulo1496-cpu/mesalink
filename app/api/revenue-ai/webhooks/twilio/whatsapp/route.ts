@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { publicReservationUrl } from "@/lib/public-links";
 import { Resend } from "resend";
 import {
   emptyTwimlResponse,
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
 
     if (!restaurant.revenueWhatsappAutoReply || !restaurant.userId) return emptyTwimlResponse();
     const intent = await classifyInboundWhatsappIntent(content);
-    const bookingUrl = `${(process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/+$/, "")}/reserve/${restaurant.slug}`;
+    const bookingUrl = publicReservationUrl(restaurant.slug);
     const handoffRecipient = restaurant.email || restaurant.billingEmail || restaurant.user?.email || null;
     const handoffEmailSent = intent === "OTHER"
       ? await sendRestaurantHandoffEmail({

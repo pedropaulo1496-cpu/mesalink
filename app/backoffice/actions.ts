@@ -93,6 +93,58 @@ export async function resendSalesInvitation(formData: FormData) {
   finish("/backoffice/team", "invite-sent");
 }
 
+export async function inviteRestaurantClient(formData: FormData) {
+  const staff = await assertStaff();
+  if (staff.role !== "SALES" || !staff.salesRepresentativeId) {
+    throw new Error("Apenas comerciais podem enviar convites a restaurantes.");
+  }
+  const email = clean(formData.get("email"), 200).toLowerCase();
+  if (!isValidEmail(email)) throw new Error("Introduza um email válido.");
+  if (email === staff.email.toLowerCase()) throw new Error("Utilize o email do restaurante, não o seu email de equipa.");
+
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    select: { salesRepresentativeId: true, restaurants: { select: { id: true }, take: 1 }, subscription: { select: { id: true } } },
+  });
+  if (existing?.salesRepresentativeId && existing.salesRepresentativeId !== staff.salesRepresentativeId) {
+    throw new Error("Este restaurante já está associado a outro comercial.");
+  }
+  if (existing?.salesRepresentativeId === staff.salesRepresentativeId && (existing.subscription || existing.restaurants.length)) {
+    throw new Error("Este restaurante já pertence à sua carteira.");
+  }
+
+  const token = randomBytes(32).toString("hex");
+  const invitation = await prisma.$transaction(async (tx) => {
+    await tx.salesClientInvitation.deleteMany({
+      where: { salesRepresentativeId: staff.salesRepresentativeId!, email, acceptedAt: null },
+    });
+    return tx.salesClientInvitation.create({
+      data: {
+        salesRepresentativeId: staff.salesRepresentativeId!,
+        email,
+        token,
+        expiresAt: new Date(Date.now() + 7 * 86_400_000),
+      },
+    });
+  });
+
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.mesalink.pt").replace(/\/+$/, "");
+  const invitationUrl = `${baseUrl}/api/commercial-invitations/${token}/accept`;
+  try {
+    const delivery = await resend.emails.send({
+      from: "MesaLink <noreply@mesalink.pt>",
+      to: email,
+      subject: `${staff.name || "A equipa MesaLink"} convidou o seu restaurante para o MesaLink`,
+      html: `<div style="font-family:Arial,sans-serif;background:#F4ECDF;padding:32px 14px;color:#17130F"><div style="max-width:600px;margin:auto;background:#fff;border:1px solid #DCC9AA;border-radius:28px;padding:34px"><p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9B6F3B;font-weight:800">Convite MesaLink</p><h1 style="font-size:32px;line-height:1.1">O seu restaurante foi convidado.</h1><p style="font-size:16px;line-height:1.7;color:#62584E"><strong>${escapeHtml(staff.name || "Um comercial MesaLink")}</strong> enviou-lhe acesso ao MesaLink. Entre numa conta existente ou crie a conta do restaurante; a associação ao comercial é feita automaticamente.</p><a href="${invitationUrl}" style="display:inline-block;margin-top:20px;background:#17130F;color:white;text-decoration:none;padding:15px 24px;border-radius:999px;font-weight:800">Aceitar convite e entrar</a><p style="margin-top:24px;font-size:12px;color:#8A7C6D">Este convite é pessoal, válido por 7 dias e destinado a ${escapeHtml(email)}.</p></div></div>`,
+    });
+    requireAcceptedEmail(delivery);
+  } catch (error) {
+    await prisma.salesClientInvitation.delete({ where: { id: invitation.id } }).catch(() => undefined);
+    throw error;
+  }
+  finish("/backoffice/clients", "restaurant-invite-sent");
+}
+
 async function sendSalesInvitation(input: { userId: string; name: string; email: string }) {
   const token = randomBytes(32).toString("hex");
   await prisma.$transaction([
@@ -238,8 +290,9 @@ export async function decideCommercialRequest(formData: FormData) {
 
   try {
     const amount = Number(request.amount || 0);
+    let approvedNote = adminNote;
     if (request.type === "DISCOUNT") {
-      await createAndSendAdminPromotion({
+      const promotion = await createAndSendAdminPromotion({
         targetUserId: request.targetUserId,
         createdById: admin.userId,
         requestId: request.id,
@@ -247,7 +300,12 @@ export async function decideCommercialRequest(formData: FormData) {
         duration: (request.duration || "ONCE") as "ONCE" | "REPEATING" | "FOREVER",
         durationMonths: request.durationMonths || undefined,
         note: adminNote || `Oferta solicitada pelo comercial MesaLink para ${request.targetUser.email}.`,
+        sendEmail: false,
       });
+      approvedNote = [
+        adminNote,
+        `Código promocional Stripe: ${promotion.code}. Copia e envia ao cliente quando estiveres pronto.`,
+      ].filter(Boolean).join("\n");
     } else if (request.type === "TRIAL") {
       const subscription = await prisma.subscription.findUniqueOrThrow({
         where: { userId: request.targetUserId },
@@ -285,19 +343,34 @@ export async function decideCommercialRequest(formData: FormData) {
       });
     }
 
-    await prisma.commercialRequest.update({ where: { id: request.id }, data: { status: "APPROVED" } });
+    await prisma.commercialRequest.update({
+      where: { id: request.id },
+      data: { status: "APPROVED", adminNote: approvedNote },
+    });
     await audit({
       actorId: admin.userId,
       targetUserId: request.targetUserId,
       action: "COMMERCIAL_REQUEST_APPROVED",
-      details: { requestId, type: request.type, amount },
+      details: { requestId, type: request.type, amount, approvalNote: approvedNote },
     });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message.slice(0, 500) : "Falha ao executar pedido";
     await prisma.commercialRequest.update({
       where: { id: request.id },
-      data: { status: "ERROR", adminNote: error instanceof Error ? error.message.slice(0, 500) : "Falha ao executar pedido" },
+      data: {
+        status: "PENDING",
+        adminNote: `Não foi possível aprovar: ${errorMessage}. Corrige o problema e tenta novamente.`,
+        decidedById: null,
+        decidedAt: null,
+      },
     });
-    throw error;
+    await audit({
+      actorId: admin.userId,
+      targetUserId: request.targetUserId,
+      action: "COMMERCIAL_REQUEST_APPROVAL_FAILED",
+      details: { requestId, type: request.type, error: errorMessage },
+    });
+    finish("/backoffice/requests", "request-error");
   }
   finish("/backoffice/requests", "request-approved");
 }
