@@ -14,7 +14,7 @@ export type StaffIdentity = {
 
 export const getStaffIdentity = cache(async (): Promise<StaffIdentity | null> => {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return null;
+  if (session?.user?.accountType !== "STAFF" || !session.user.email) return null;
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
@@ -53,9 +53,9 @@ export const getStaffIdentity = cache(async (): Promise<StaffIdentity | null> =>
 
 export async function requireStaff() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) redirect("/login");
+  if (session?.user?.accountType !== "STAFF" || !session.user.email) redirect("/backoffice-access");
   const staff = await getStaffIdentity();
-  if (!staff) redirect("/backoffice-access");
+  if (!staff) redirect("/backoffice-access?error=access");
   return staff;
 }
 

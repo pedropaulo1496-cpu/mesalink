@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
-const inputClass = "h-13 w-full rounded-2xl border border-[#DED1BD] bg-[#FFF9F0] px-4 text-sm outline-none transition focus:border-[#B98A45]";
+const inputClass = "h-11 w-full rounded-xl border border-[#DED1BD] bg-[#FFF9F0] px-3.5 text-sm outline-none transition focus:border-[#B98A45]";
 
 export default function PartnerRegisterPage() {
   const router = useRouter();
@@ -33,14 +33,14 @@ export default function PartnerRegisterPage() {
         return;
       }
 
-      const result = await signIn("credentials", {
+      const result = await signIn("partner-credentials", {
         email: payload.email,
         password: payload.password,
         redirect: false,
       });
 
       if (result?.error) {
-        router.push("/login?callbackUrl=/partners/app");
+        router.push("/partners/login");
         return;
       }
 
@@ -87,12 +87,12 @@ export default function PartnerRegisterPage() {
               </select>
               <div className="relative"><input name="commissionAmount" type="number" min="1" max="1000" step="0.01" defaultValue="1" required className={`${inputClass} pr-10`} /><span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-[#8A6130]">€</span></div>
             </div>
-            <div className="rounded-2xl border border-[#E4D2B4] bg-[#FFF9ED] p-4 text-xs leading-5 text-[#6B6258]">O MesaLink retém 15% da comissão. Os restantes 85% entram no pagamento semanal apenas depois da refeição e da fatura do parceiro ser anexada e verificada.</div>
+            <div className="rounded-xl border border-[#E4D2B4] bg-[#FFF9ED] px-3.5 py-3 text-[11px] leading-4 text-[#6B6258]">O valor a receber é apresentado líquido, após a comissão MesaLink, taxas e impostos aplicáveis. Os pagamentos são processados após a refeição e a verificação da fatura.</div>
             <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedTerms" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Aceito os <Link href="/terms" target="_blank" className="font-bold text-[#17120D] underline">Termos e Condições</Link> do MesaLink.</span></label>
             <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedPrivacy" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Li a <Link href="/privacy" target="_blank" className="font-bold text-[#17120D] underline">Política de Privacidade</Link> e confirmo que tenho autorização para fornecer o contacto necessário à reserva.</span></label>
             {error && <p className="rounded-2xl bg-[#FFF0EA] px-4 py-3 text-sm font-semibold text-[#A14E36]">{error}</p>}
             <button disabled={loading} className="h-13 w-full rounded-full bg-[#17120D] px-6 text-sm font-black text-white disabled:opacity-50">{loading ? "A criar conta…" : "Criar conta Partner"}</button>
-            <p className="text-center text-xs text-[#766C61]">Já tens conta? <Link href="/login?callbackUrl=/partners/app" className="font-bold text-[#17120D]">Entrar</Link></p>
+            <p className="text-center text-xs text-[#766C61]">Já tens conta? <Link href="/partners/login" className="font-bold text-[#17120D]">Entrar em Partners</Link></p>
           </form>
         </div>
       </div>

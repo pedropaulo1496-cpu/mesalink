@@ -9,15 +9,18 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  name         String?
-  email        String    @unique
-  passwordHash String?
-  isAdmin      Boolean   @default(false)
-  lastLoginAt  DateTime?
-  lastActiveAt DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  name              String?
+  email             String    @unique
+  passwordHash      String?
+  staffPasswordHash String?
+  isAdmin           Boolean   @default(false)
+  lastLoginAt       DateTime?
+  lastActiveAt      DateTime?
+  staffLastLoginAt  DateTime?
+  staffLastActiveAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   salesRepresentativeId       String?
   salesRepresentative         SalesRepresentative? @relation("AssignedClientAccounts", fields: [salesRepresentativeId], references: [id], onDelete: SetNull)
@@ -288,12 +291,12 @@ model WhatsAppUsage {
 }
 
 model Restaurant {
-  id      String  @id @default(cuid())
-  name    String
-  slug    String  @unique
-  email   String?
-  phone   String?
-  address String?
+  id        String  @id @default(cuid())
+  name      String
+  slug      String  @unique
+  email     String?
+  phone     String?
+  address   String?
   latitude  Float?
   longitude Float?
 
@@ -701,6 +704,7 @@ model PasswordResetToken {
   token     String   @unique
   userId    String
   expiresAt DateTime
+  purpose   String   @default("RESTAURANT")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -965,14 +969,14 @@ model MarketingPromoCard {
   reviewFeedbackId String? @unique
   campaignId       String?
 
-  title       String
-  description String?
-  benefitType String   @default("PERCENT")
+  title        String
+  description  String?
+  benefitType  String   @default("PERCENT")
   benefitLabel String?
-  value       Decimal? @db.Decimal(10, 2)
-  minSpend    Decimal? @db.Decimal(10, 2)
-  terms       String?
-  template    String   @default("GOLD")
+  value        Decimal? @db.Decimal(10, 2)
+  minSpend     Decimal? @db.Decimal(10, 2)
+  terms        String?
+  template     String   @default("GOLD")
 
   status     String    @default("ACTIVE")
   expiresAt  DateTime?
@@ -994,11 +998,14 @@ model ReferralPartner {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   businessName String
-  partnerType  String  @default("HOTEL")
+  partnerType  String    @default("HOTEL")
   contactName  String?
-  email        String  @unique
+  email        String    @unique
+  passwordHash String?
   phone        String?
   city         String?
+  lastLoginAt  DateTime?
+  lastActiveAt DateTime?
 
   status                   String  @default("PENDING")
   stripeAccountId          String? @unique
@@ -1338,14 +1345,14 @@ model ReferralBenefit {
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
-  title       String
-  description String?
-  benefitType String   @default("PERCENT")
+  title        String
+  description  String?
+  benefitType  String   @default("PERCENT")
   benefitLabel String?
-  value       Decimal? @db.Decimal(10, 2)
-  minSpend    Decimal? @db.Decimal(10, 2)
-  terms       String?
-  template    String   @default("GOLD")
+  value        Decimal? @db.Decimal(10, 2)
+  minSpend     Decimal? @db.Decimal(10, 2)
+  terms        String?
+  template     String   @default("GOLD")
 
   active         Boolean   @default(true)
   validFrom      DateTime  @default(now())

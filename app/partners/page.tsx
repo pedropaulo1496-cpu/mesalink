@@ -20,7 +20,7 @@ export default async function PartnersLandingPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link href="/" className="text-3xl font-black tracking-[-0.08em]"><span className="text-[#C8A56A]">Mesa</span>Link <span className="text-sm font-semibold tracking-normal text-[#8A6130]">Partners</span></Link>
           <div className="flex items-center gap-2">
-            <Link href="/login?callbackUrl=/partners/app" className="hidden rounded-full px-4 py-2 text-sm font-semibold sm:inline-flex">Entrar</Link>
+            <Link href="/partners/login" className="hidden rounded-full px-4 py-2 text-sm font-semibold sm:inline-flex">Entrar</Link>
             <Link href="/partners/register" className="inline-flex h-11 items-center rounded-full bg-[#17120D] px-5 text-sm font-bold text-white">Criar conta</Link>
           </div>
         </div>
@@ -34,7 +34,7 @@ export default async function PartnersLandingPage() {
             <p className="mt-6 max-w-2xl text-base leading-7 text-[#62594F]">Publica um grupo, escolhe restaurantes por cozinha e localização e acompanha a reserva, a fatura e a comissão numa única app. O contacto só é revelado ao restaurante que aceitar.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/partners/register" className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-[#17120D] px-7 text-sm font-black text-white">Começar como parceiro <ArrowRight size={17} /></Link>
-              <Link href="/login?callbackUrl=/partners/app" className="inline-flex h-13 items-center justify-center rounded-full border border-[#D6C3A5] bg-white px-7 text-sm font-bold">Já tenho conta</Link>
+              <Link href="/partners/login" className="inline-flex h-13 items-center justify-center rounded-full border border-[#D6C3A5] bg-white px-7 text-sm font-bold">Já tenho conta</Link>
             </div>
           </div>
 
@@ -44,7 +44,7 @@ export default async function PartnersLandingPage() {
               <Metric label="Pessoas" value="12" />
               <Metric label="Cozinha" value="Portuguesa" />
               <Metric label="Comissão" value="€6 / pessoa" />
-              <Metric label="Parceiro recebe" value="€61,20" />
+              <Metric label="Estado" value="Garantida" />
             </div>
             <div className="mt-4 rounded-[24px] border border-white/10 bg-white/[0.05] p-4 text-sm text-white/65"><span className="font-semibold text-white">ML-8F3A12BC</span><br />Sábado · 20:30 · centro de Lisboa</div>
             <div className="mt-5 flex items-center gap-2 text-xs text-[#AEE0AD]"><CheckCircle2 size={16} /> 3 restaurantes selecionados</div>
@@ -62,9 +62,9 @@ export default async function PartnersLandingPage() {
 
       <section className="px-5 py-14 sm:py-20">
         <div className="mx-auto max-w-4xl rounded-[40px] bg-[#D7B267] p-8 text-[#17120D] sm:p-12">
-          <p className="text-xs font-black uppercase tracking-[0.28em]">Regra simples</p>
-          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">85% para o parceiro. 15% para o MesaLink.</h2>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-[#4A3822]">O cartão do restaurante garante a comissão. Depois do serviço, o parceiro anexa a fatura ao grupo; o MesaLink verifica-a e só então inclui os 85% no pagamento semanal.</p>
+          <p className="text-xs font-black uppercase tracking-[0.28em]">Tudo transparente</p>
+          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">Define a comissão. O MesaLink trata do resto.</h2>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-[#4A3822]">O cartão do restaurante garante a comissão. Depois do serviço, anexas a fatura e acompanhas o valor líquido; a comissão MesaLink, as taxas e os impostos aplicáveis aparecem descontados no detalhe.</p>
         </div>
       </section>
     </main>

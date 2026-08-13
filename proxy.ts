@@ -39,15 +39,35 @@ export async function proxy(request: NextRequest) {
     hostname.endsWith(`.${ROOT_DOMAIN}`) &&
     hostname !== `www.${ROOT_DOMAIN}`;
 
+  const needsAccountRouting =
+    pathname === "/" ||
+    pathname.startsWith("/partners/app") ||
+    /^\/backoffice(?:\/|$)/.test(pathname) ||
+    /^\/(dashboard|restaurants|billing|onboarding|trial-expired)(?:\/|$)/.test(pathname);
+  const token = needsAccountRouting
+    ? await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
+    : null;
+
+  if (pathname.startsWith("/partners/app") && token?.accountType !== "PARTNER") {
+    return NextResponse.redirect(new URL("/partners/login", request.url));
+  }
+  if (/^\/backoffice(?:\/|$)/.test(pathname) && token?.accountType !== "STAFF") {
+    return NextResponse.redirect(new URL("/backoffice-access", request.url));
+  }
+  if (/^\/(dashboard|restaurants|billing|onboarding|trial-expired)(?:\/|$)/.test(pathname)) {
+    if (token?.accountType === "PARTNER") return NextResponse.redirect(new URL("/partners/app", request.url));
+    if (token?.accountType === "STAFF") return NextResponse.redirect(new URL("/backoffice", request.url));
+  }
+
   // LOGGED-IN USER ON THE HOMEPAGE -> STRAIGHT TO THEIR DASHBOARD
   if (pathname === "/" && (isRootDomain || isLocalhost || isVercelPreview)) {
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-
     if (token) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      const destination = token.accountType === "PARTNER"
+        ? "/partners/app"
+        : token.accountType === "STAFF"
+          ? "/backoffice"
+          : "/dashboard";
+      return NextResponse.redirect(new URL(destination, request.url));
     }
   }
 

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default function MesaLinkHqShortcut() {
+export default function LegacyBackofficeLoginPage() {
   redirect("/backoffice-access");
 }
+

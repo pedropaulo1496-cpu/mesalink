@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function getCurrentUser() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return null;
+  if (session?.user?.accountType !== "RESTAURANT" || !session.user.email) return null;
   return prisma.user.findUnique({
     where: { email: session.user.email },
     select: { id: true, email: true, isAdmin: true },

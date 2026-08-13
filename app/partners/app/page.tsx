@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { ArrowUpRight, BarChart3, Clock3, Euro, FileText, Landmark, ShieldCheck, UsersRound } from "lucide-react";
 import NewReferralGroupForm from "@/components/partners/NewReferralGroupForm";
 import PartnerInvoiceUpload from "@/components/partners/PartnerInvoiceUpload";
-import PartnerOnboardingForm from "@/components/partners/PartnerOnboardingForm";
-import { authOptions } from "@/lib/auth";
+import PartnerSignOutButton from "@/components/partners/PartnerSignOutButton";
+import { requirePartner } from "@/lib/partner-auth";
 import { buildPartnerProfile } from "@/lib/partner-profile";
 import { calculateReferralCommission, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
@@ -17,46 +16,22 @@ export default async function PartnerAppPage({
 }) {
   const { connect, tab: requestedTab } = await searchParams;
   const tab = ["groups", "history", "stats", "account"].includes(requestedTab || "") ? requestedTab! : "groups";
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) redirect("/login?callbackUrl=/partners/app");
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+  const identity = await requirePartner();
+  const partner = await prisma.referralPartner.findUnique({
+    where: { id: identity.id },
     include: {
-      referralPartner: {
+      groups: {
+        orderBy: { createdAt: "desc" },
+        take: 50,
         include: {
-          groups: {
-            orderBy: { createdAt: "desc" },
-            take: 50,
-            include: {
-              acceptedRestaurant: { select: { name: true, billingLegalName: true, billingTaxId: true, billingAddressLine1: true, billingPostalCode: true, billingCity: true, billingCountry: true } },
-              payment: true,
-              offers: { select: { status: true } },
-            },
-          },
+          acceptedRestaurant: { select: { name: true, billingLegalName: true, billingTaxId: true, billingAddressLine1: true, billingPostalCode: true, billingCity: true, billingCountry: true } },
+          payment: true,
+          offers: { select: { status: true } },
         },
       },
     },
   });
-
-  if (!user) redirect("/login?callbackUrl=/partners/app");
-  const partner = user.referralPartner;
-
-  if (!partner) {
-    return (
-      <main className="min-h-screen bg-[#F5EFE6] px-4 py-8 text-[#17120D]">
-        <div className="mx-auto max-w-xl">
-          <Link href="/partners" className="text-3xl font-black tracking-[-0.08em]"><span className="text-[#C8A56A]">Mesa</span>Link <span className="text-sm font-semibold tracking-normal text-[#8A6130]">Partners</span></Link>
-          <div className="mt-8 rounded-[36px] border border-[#E1D0B8] bg-white p-7 shadow-[0_28px_90px_rgba(80,55,30,0.1)] sm:p-9">
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">Ativar Partner</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.06em]">Cria o perfil da tua organização.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#6B6258]">Esta conta já existe no MesaLink. Só precisamos dos dados profissionais e da comissão sugerida.</p>
-            <PartnerOnboardingForm />
-          </div>
-        </div>
-      </main>
-    );
-  }
+  if (!partner) redirect("/partners/login");
 
   const requestTime = new Date();
   const invoiceCutoff = new Date(requestTime.getTime() - 24 * 60 * 60 * 1000);
@@ -163,20 +138,20 @@ export default async function PartnerAppPage({
       <header className="sticky top-0 z-40 border-b border-[#E1D0B8] bg-[#F5EFE6]/92 px-4 py-4 backdrop-blur-2xl sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <Link href="/partners/app" className="text-2xl font-black tracking-[-0.08em] sm:text-3xl"><span className="text-[#C8A56A]">Mesa</span>Link <span className="text-xs font-semibold tracking-normal text-[#8A6130]">Partners</span></Link>
-          <div className="flex items-center gap-3"><div className="hidden text-right sm:block"><p className="text-sm font-semibold">{partner.businessName}</p><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#8A7863]">{partner.status === "ACTIVE" ? "Verificado" : "Verificação pendente"}</p></div><Link href="/dashboard" className="rounded-full border border-[#D8C6A9] bg-white px-4 py-2 text-xs font-bold">MesaLink</Link></div>
+          <div className="flex items-center gap-3"><div className="hidden text-right sm:block"><p className="text-sm font-semibold">{partner.businessName}</p><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#8A7863]">{partner.status === "ACTIVE" ? "Verificado" : "Verificação pendente"}</p></div><PartnerSignOutButton /></div>
         </div>
       </header>
 
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-7 sm:px-6">
-        <nav className="mb-7 grid grid-cols-2 gap-1 rounded-[20px] border border-[#D9C7AA] bg-white p-1.5 sm:inline-grid sm:grid-cols-4 sm:rounded-full">
+        <nav className="mb-6 grid grid-cols-2 gap-1.5 rounded-[22px] border border-[#D9C7AA] bg-[#EDE2D1] p-1.5 shadow-[0_10px_30px_rgba(79,56,32,0.06)] sm:grid-cols-4 lg:w-fit">
           {[
-            { id: "groups", label: "Grupos", icon: <UsersRound size={14} /> },
-            { id: "history", label: "Histórico e faturas", icon: <FileText size={14} /> },
-            { id: "stats", label: "Estatísticas", icon: <BarChart3 size={14} /> },
-            { id: "account", label: "Conta e IBAN", icon: <Landmark size={14} /> },
+            { id: "groups", label: "Novo pedido", icon: <UsersRound size={14} /> },
+            { id: "history", label: "Reservas", icon: <FileText size={14} /> },
+            { id: "stats", label: "Resultados", icon: <BarChart3 size={14} /> },
+            { id: "account", label: "Pagamentos", icon: <Landmark size={14} /> },
           ].map((item) => (
-            <Link key={item.id} href={`/partners/app?tab=${item.id}`} className={`flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[11px] font-bold transition ${tab === item.id ? "bg-[#17120D] text-white" : "text-[#6B6258] hover:bg-[#F7F0E5]"}`}>
-              {item.icon}{item.label}
+            <Link key={item.id} href={`/partners/app?tab=${item.id}`} className={`relative flex min-h-11 items-center gap-2 rounded-[16px] px-3 py-2 text-[11px] font-bold transition ${tab === item.id ? "bg-[#17120D] text-white shadow-[0_8px_20px_rgba(23,18,13,0.18)]" : "bg-white/45 text-[#6B6258] hover:bg-white"}`}>
+              <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-xl ${tab === item.id ? "bg-[#D7B267] text-[#17120D]" : "bg-white text-[#8A6130]"}`}>{item.icon}</span><span className="truncate">{item.label}</span>
               {item.id === "account" && !partner.stripeOnboardingComplete && <span className="h-2 w-2 rounded-full bg-[#D79A4A]" />}
             </Link>
           ))}
@@ -186,7 +161,7 @@ export default async function PartnerAppPage({
           <section className="mb-6 flex flex-col gap-4 rounded-[28px] border border-[#2C2117] bg-[#17120D] p-5 text-white sm:flex-row sm:items-center sm:justify-between sm:p-6">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.23em] text-[#D7B267]">Pagamentos</p>
-              <h2 className="mt-2 text-xl font-semibold">Ativa a conta verificada para receber os 85%.</h2>
+              <h2 className="mt-2 text-xl font-semibold">Ativa a conta para receber os pagamentos.</h2>
               <p className="mt-1 text-xs leading-5 text-white/50">Introduz o teu IBAN no ambiente seguro Stripe Connect. O MesaLink nunca mostra os teus dados bancários aos restaurantes e os pagamentos são processados semanalmente.</p>
               {connect === "pending" && <p className="mt-2 text-xs font-semibold text-[#E8C985]">Ainda faltam dados no processo de verificação.</p>}
             </div>
@@ -205,7 +180,7 @@ export default async function PartnerAppPage({
 
         {tab === "groups" && <>
         <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div><p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">Partner app</p><h1 className="mt-2 text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">Encontra o restaurante certo para cada grupo.</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6258]">Sem partilhar a identidade do cliente. O restaurante vê apenas o que precisa para aceitar e preparar o serviço.</p></div>
+          <div><p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">Partner app</p><h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">Encontra o restaurante certo para cada grupo.</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">Sem partilhar a identidade do cliente. O restaurante vê apenas o que precisa para aceitar e preparar o serviço.</p></div>
           <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Privacidade ativa</div>
         </section>
 
@@ -215,7 +190,7 @@ export default async function PartnerAppPage({
         {tab === "stats" && <>
         <section className="flex flex-col gap-2">
           <p className="text-xs font-black uppercase tracking-[0.28em] text-[#9B6F3B]">Desempenho</p>
-          <h1 className="text-4xl font-semibold tracking-[-0.065em] sm:text-5xl">O que já geraste com a rede.</h1>
+          <h1 className="text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">O que já geraste com a rede.</h1>
           <p className="max-w-2xl text-sm leading-6 text-[#6B6258]">Valores de faturação, pagamentos e grupos num resumo simples.</p>
         </section>
         <section className="mt-6 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
@@ -227,7 +202,7 @@ export default async function PartnerAppPage({
           <Kpi icon={<Clock3 size={15} />} label="A aguardar" value={String(pendingGroupsCount)} />
         </section>
         <section className="mt-5 grid gap-3 md:grid-cols-3">
-          <StatDetail title="Taxa do parceiro" value="85%" note="Do valor de comissão aceite, antes do imposto aplicável." />
+          <StatDetail title="Valor líquido" value="Automático" note="Comissão MesaLink, taxas e impostos são descontados no cálculo final." />
           <StatDetail title="Pagamento" value="Semanal" note="Inclui apenas faturas anexadas e verificadas." />
           <StatDetail title="Faturas por tratar" value={formatMoney(toInvoiceRevenue)} note="Ficam disponíveis 24h após a reserva." />
         </section>
@@ -242,7 +217,7 @@ export default async function PartnerAppPage({
               const accepted = group.acceptedRestaurant?.name;
               return <div key={group.id} className="grid gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-4 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} /></div><p className="mt-2 text-sm text-[#6B6258]">{group.actualGuests != null ? `${group.actualGuests} pessoas confirmadas · pedido inicial ${group.guests}` : groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · {accepted || `${group.offers.filter((offer) => offer.status === "PENDING").length} respostas pendentes`}</p><PartnerInvoiceState group={group} /></div>
-                <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">{partnerPaymentLabel(group.payment?.status)}</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(Number(group.payment?.partnerInvoiceTotal || group.payment?.partnerNet || amounts.partnerNet))}</p><p className="text-[9px] text-[#8A7863]">total a faturar/receber</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
+                <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">{partnerPaymentLabel(group.payment?.status)}</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(Number(group.payment?.partnerInvoiceTotal || group.payment?.partnerNet || amounts.partnerNet))}</p><p className="text-[9px] text-[#8A7863]">líquido · comissão e taxas descontadas</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
               </div>;
             })}
             {partner.groups.length === 0 && <div className="rounded-[24px] border border-dashed border-[#D6C3A5] bg-[#FFF9F0] p-8 text-center text-sm text-[#6B6258]">O primeiro grupo que publicares aparece aqui.</div>}
@@ -250,7 +225,7 @@ export default async function PartnerAppPage({
         </section>}
 
         {tab === "account" && <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-[30px] border border-[#E1D0B8] bg-white p-6 sm:p-7">
+          <div className="rounded-[26px] border border-[#E1D0B8] bg-white p-5">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Dados de pagamento</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Conta bancária e verificação</h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-[#6B6258]">O IBAN e os documentos são recolhidos diretamente pelo Stripe. O MesaLink não guarda nem mostra os teus dados bancários.</p>
@@ -259,11 +234,11 @@ export default async function PartnerAppPage({
               <span className={`rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.12em] ${partner.stripeOnboardingComplete ? "bg-[#E7F4E7] text-[#3F6A4D]" : "bg-[#FFF0CB] text-[#7A592F]"}`}>{partner.stripeOnboardingComplete ? "Verificado" : "Pendente"}</span>
             </div>
           </div>
-          <div className="rounded-[30px] border border-[#2C2117] bg-[#17120D] p-6 text-white sm:p-7">
+          <div className="rounded-[26px] border border-[#2C2117] bg-[#17120D] p-5 text-white">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-[#D7B267]">Pagamentos</p>
-            <p className="mt-4 text-4xl font-semibold tracking-[-0.06em]">85%</p>
-            <p className="mt-2 text-sm leading-6 text-white/60">Recebes 85% da comissão acordada. O MesaLink retém 15% e o imposto aplicável é calculado separadamente.</p>
-            <div className="mt-5 border-t border-white/10 pt-4 text-xs leading-5 text-white/55">Pagamentos semanais, após a visita e a verificação da respetiva fatura.</div>
+            <p className="mt-3 text-2xl font-semibold tracking-[-0.045em]">Pagamento semanal</p>
+            <p className="mt-2 text-xs leading-5 text-white/55">O valor líquido considera a comissão MesaLink, taxas de processamento e impostos aplicáveis.</p>
+            <div className="mt-4 border-t border-white/10 pt-3 text-xs leading-5 text-white/55">Disponível após a visita e a verificação da respetiva fatura.</div>
           </div>
         </section>}
       </div>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import BackofficeNavigation from "@/components/backoffice/BackofficeNavigation";
-import SignOutButton from "@/components/SignOutButton";
+import BackofficeSignOutButton from "@/components/backoffice/BackofficeSignOutButton";
 import { requireStaff } from "@/lib/staff-auth";
 
 export const metadata: Metadata = {
@@ -25,7 +25,7 @@ export default async function BackofficeLayout({ children }: { children: ReactNo
         <div className="mt-auto rounded-2xl border border-white/10 bg-white/[0.05] p-3">
           <p className="truncate text-sm font-bold">{staff.name || staff.email}</p>
           <p className="mt-1 truncate text-[10px] text-white/40">{staff.role === "ADMIN" ? "Administração" : "Comercial"}</p>
-          <div className="mt-3"><SignOutButton /></div>
+          <div className="mt-3"><BackofficeSignOutButton /></div>
         </div>
       </aside>
 

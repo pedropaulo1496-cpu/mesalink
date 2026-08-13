@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 export async function requireActiveSubscription() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.email) {
+  if (session?.user?.accountType !== "RESTAURANT" || !session.user.email) {
     return {
       ok: false,
       status: 401,

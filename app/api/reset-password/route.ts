@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       id: resetToken.userId,
     },
     data: {
-      passwordHash,
+      ...(resetToken.purpose === "STAFF" ? { staffPasswordHash: passwordHash } : { passwordHash }),
     },
   });
 
@@ -49,5 +49,6 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     success: true,
+    destination: resetToken.purpose === "STAFF" ? "/backoffice-access" : "/login",
   });
 }

@@ -9,52 +9,57 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: Request) {
   try {
     const { name, email, password } = await request.json();
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return NextResponse.json(
         { error: "Email e password são obrigatórios." },
         { status: 400 },
       );
     }
 
-    if (!isValidEmail(String(email))) {
+    if (!isValidEmail(normalizedEmail)) {
       return NextResponse.json(
         { error: "Introduza um email válido." },
         { status: 400 },
       );
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      include: { subscription: { select: { id: true } }, _count: { select: { restaurants: true } } },
+    });
 
-    if (existingUser) {
+    if (existingUser && (existingUser.subscription || existingUser._count.restaurants > 0)) {
       return NextResponse.json(
-        { error: "Já existe uma conta com este email." },
+        { error: "Já existe uma conta MesaLink Restaurante com este email." },
         { status: 400 },
       );
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    await prisma.user.create({
-      data: {
-        name,
-        email,
-        passwordHash,
-        subscription: {
-          create: {
-            plan: "ESSENTIALS",
-            status: "TRIAL",
-            trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            restaurantLimit: 1,
-            priceMonthly: 0,
-          },
-        },
-      },
-    });
+    const subscription = {
+      plan: "ESSENTIALS",
+      status: "TRIAL",
+      trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      restaurantLimit: 1,
+      priceMonthly: 0,
+    };
+    if (existingUser) {
+      await prisma.user.update({
+        where: { id: existingUser.id },
+        data: { name: name || existingUser.name, passwordHash, subscription: { create: subscription } },
+      });
+    } else {
+      await prisma.user.create({
+        data: { name, email: normalizedEmail, passwordHash, subscription: { create: subscription } },
+      });
+    }
 
     await resend.emails.send({
       from: "MesaLink <noreply@mesalink.pt>",
-      to: email,
+      to: normalizedEmail,
       subject: "Bem-vindo ao MesaLink",
       html: `
         <div style="font-family: Arial, sans-serif; background:#070504; padding:32px; color:#fff7ea;">

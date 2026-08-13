@@ -1,22 +1,20 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
+import { getPartnerIdentity } from "@/lib/partner-auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request, { params }: { params: Promise<{ groupId: string }> }) {
   const { groupId } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const partner = await getPartnerIdentity();
+  if (!partner) return NextResponse.json({ error: "Não autenticado na app Partners." }, { status: 401 });
   const body = await request.json().catch(() => null);
   const invoiceUrl = safeUrl(body?.invoiceUrl);
   const invoiceNumber = typeof body?.invoiceNumber === "string" ? body.invoiceNumber.trim().slice(0, 80) : "";
   if (!invoiceUrl || !invoiceNumber) return NextResponse.json({ error: "Indica o número e carrega a fatura em PDF." }, { status: 400 });
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { referralPartner: { select: { id: true } } } });
-  const group = user?.referralPartner ? await prisma.referralGroup.findFirst({
-    where: { id: groupId, partnerId: user.referralPartner.id, status: { in: ["COMPLETED", "PAID"] } },
+  const group = await prisma.referralGroup.findFirst({
+    where: { id: groupId, partnerId: partner.id, status: { in: ["COMPLETED", "PAID"] } },
     select: { desiredDate: true, payment: { select: { id: true } } },
-  }) : null;
+  });
   if (!group?.payment) return NextResponse.json({ error: "Este grupo ainda não está pronto para faturação." }, { status: 404 });
   const invoiceAvailableAt = new Date(group.desiredDate.getTime() + 24 * 60 * 60 * 1000);
   if (invoiceAvailableAt > new Date()) {

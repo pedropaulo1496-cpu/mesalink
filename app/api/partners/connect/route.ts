@@ -1,20 +1,11 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
+import { getPartnerIdentity } from "@/lib/partner-auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return NextResponse.redirect(new URL("/login?callbackUrl=/partners/app", request.url), 303);
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { referralPartner: true },
-  });
-  const partner = user?.referralPartner;
-
-  if (!partner) return NextResponse.redirect(new URL("/partners/app", request.url), 303);
+  const partner = await getPartnerIdentity();
+  if (!partner) return NextResponse.redirect(new URL("/partners/login", request.url), 303);
 
   try {
     let accountId = partner.stripeAccountId;

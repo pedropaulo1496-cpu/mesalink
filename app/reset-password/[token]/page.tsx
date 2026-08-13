@@ -49,7 +49,7 @@ export default function ResetPasswordPage() {
       setMessage(t("successMessage"));
 
       setTimeout(() => {
-        router.push("/login");
+        router.push(data.destination || "/login");
       }, 2000);
     } finally {
       setLoading(false);

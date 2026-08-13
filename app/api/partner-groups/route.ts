@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
+import { getPartnerIdentity } from "@/lib/partner-auth";
 import { prisma } from "@/lib/prisma";
 import {
   REFERRAL_ACCESSIBILITY_TAGS,
@@ -17,8 +16,8 @@ import {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    const partner = await getPartnerIdentity();
+    if (!partner) return NextResponse.json({ error: "Não autenticado na app Partners." }, { status: 401 });
 
     const body = await request.json().catch(() => null);
     const submittedRestaurantIds: string[] = Array.isArray(body?.restaurantIds)
@@ -33,6 +32,7 @@ export async function POST(request: Request) {
     const targetMode = ["ALL", "FILTERED", "SELECTED"].includes(body?.targetMode) ? body.targetMode : "SELECTED";
     const restaurantQuery = typeof body?.restaurantQuery === "string" ? body.restaurantQuery.trim().slice(0, 100) : "";
     const restaurantCuisine = typeof body?.restaurantCuisine === "string" && body.restaurantCuisine !== "ALL" ? body.restaurantCuisine.trim().slice(0, 80) : "";
+    const restaurantLocation = typeof body?.restaurantLocation === "string" ? body.restaurantLocation.trim().slice(0, 100) : "";
     const legacyGuests = Number(body?.guests);
     const requestedAdults = Number(body?.adults);
     const requestedChildren = Number(body?.children);
@@ -81,13 +81,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Revê a data, o grupo, a cidade, o tipo de cozinha, a comissão e os restaurantes." }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { referralPartner: true },
-    });
-    const partner = user?.referralPartner;
-
-    if (!partner || partner.status === "SUSPENDED") {
+    if (partner.status === "SUSPENDED") {
       return NextResponse.json({ error: "A conta Partner não está disponível." }, { status: 403 });
     }
 
@@ -102,10 +96,13 @@ export async function POST(request: Request) {
       ? { id: { in: submittedRestaurantIds } }
       : {
           AND: [
-            ...(restaurantCuisine ? [{ OR: [
+            ...(targetMode === "FILTERED" && restaurantCuisine ? [{ OR: [
               { websiteCuisine: { contains: restaurantCuisine, mode: "insensitive" as const } },
               { referralProfileCuisine: { contains: restaurantCuisine, mode: "insensitive" as const } },
             ] }] : []),
+            ...(targetMode === "FILTERED" && restaurantLocation ? [{
+              address: { contains: restaurantLocation, mode: "insensitive" as const },
+            }] : []),
             ...(targetMode === "FILTERED" && restaurantQuery ? [{ OR: [
               { name: { contains: restaurantQuery, mode: "insensitive" as const } },
               { websiteCuisine: { contains: restaurantQuery, mode: "insensitive" as const } },
@@ -154,7 +151,7 @@ export async function POST(request: Request) {
         customerPhone,
         customerEmail: customerEmail || null,
         targetMode,
-        targetSummary: targetMode === "ALL" ? "Todos os restaurantes MesaLink" : targetMode === "FILTERED" ? `${restaurantCuisine || "Todas as cozinhas"}${restaurantQuery ? ` · ${restaurantQuery}` : ""}` : `${restaurantIds.length} restaurantes selecionados`,
+        targetSummary: targetMode === "ALL" ? "Todos os restaurantes MesaLink" : targetMode === "FILTERED" ? [restaurantCuisine || "Todas as cozinhas", restaurantLocation, restaurantQuery].filter(Boolean).join(" · ") : `${restaurantIds.length} restaurantes selecionados`,
         cuisineTypes,
         city,
         area: typeof body?.area === "string" ? body.area.trim().slice(0, 120) || null : null,

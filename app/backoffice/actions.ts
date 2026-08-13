@@ -51,14 +51,13 @@ export async function createSalesRepresentative(formData: FormData) {
 
   let user = await prisma.user.findUnique({
     where: { email },
-    include: { salesProfile: true, _count: { select: { restaurants: true } } },
+    include: { salesProfile: true },
   });
   if (user?.salesProfile) throw new Error("Este email já pertence a um comercial.");
-  if (user && user._count.restaurants > 0) throw new Error("Este email pertence a uma conta de restaurante.");
 
   user = user || await prisma.user.create({
     data: { name, email },
-    include: { salesProfile: true, _count: { select: { restaurants: true } } },
+    include: { salesProfile: true },
   });
 
   const salesRepresentative = await prisma.salesRepresentative.create({
@@ -97,13 +96,13 @@ export async function resendSalesInvitation(formData: FormData) {
 async function sendSalesInvitation(input: { userId: string; name: string; email: string }) {
   const token = randomBytes(32).toString("hex");
   await prisma.$transaction([
-    prisma.passwordResetToken.deleteMany({ where: { userId: input.userId } }),
+    prisma.passwordResetToken.deleteMany({ where: { userId: input.userId, purpose: "STAFF" } }),
     prisma.passwordResetToken.create({
-      data: { token, userId: input.userId, expiresAt: new Date(Date.now() + 7 * 86_400_000) },
+      data: { token, userId: input.userId, purpose: "STAFF", expiresAt: new Date(Date.now() + 7 * 86_400_000) },
     }),
   ]);
   const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.mesalink.pt").replace(/\/+$/, "");
-  const inviteUrl = `${baseUrl}/reset-password/${token}`;
+  const inviteUrl = `${baseUrl}/reset-password/${token}?app=hq`;
   const delivery = await resend.emails.send({
     from: "MesaLink <noreply@mesalink.pt>",
     to: input.email,

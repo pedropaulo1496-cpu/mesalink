@@ -30,37 +30,41 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "A comissão indicada não é válida." }, { status: 400 });
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      return NextResponse.json({ error: "Já existe uma conta com este email." }, { status: 409 });
-    }
-
     const passwordHash = await bcrypt.hash(password, 10);
+    await prisma.$transaction(async (tx) => {
+      const existingPartner = await tx.referralPartner.findUnique({ where: { email } });
+      if (existingPartner) throw new Error("PARTNER_EXISTS");
 
-    await prisma.user.create({
-      data: {
-        name: contactName,
-        email,
-        passwordHash,
-        referralPartner: {
-          create: {
-            businessName,
-            contactName,
-            email,
-            partnerType,
-            status: "PENDING",
-            defaultCommissionType: commissionType,
-            defaultCommissionAmount: commissionAmount,
-            termsAcceptedAt: new Date(),
-            privacyAcceptedAt: new Date(),
-            termsVersion: "partners-v1-2026-08-11",
-          },
+      let user = await tx.user.findUnique({ where: { email } });
+      if (!user) {
+        user = await tx.user.create({ data: { name: contactName, email } });
+      } else if (!user.name) {
+        user = await tx.user.update({ where: { id: user.id }, data: { name: contactName } });
+      }
+
+      await tx.referralPartner.create({
+        data: {
+          userId: user.id,
+          businessName,
+          contactName,
+          email,
+          passwordHash,
+          partnerType,
+          status: "PENDING",
+          defaultCommissionType: commissionType,
+          defaultCommissionAmount: commissionAmount,
+          termsAcceptedAt: new Date(),
+          privacyAcceptedAt: new Date(),
+          termsVersion: "partners-v1-2026-08-11",
         },
-      },
+      });
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof Error && error.message === "PARTNER_EXISTS") {
+      return NextResponse.json({ error: "Já existe uma conta MesaLink Partners com este email." }, { status: 409 });
+    }
     console.error("Partner registration error:", error);
     return NextResponse.json({ error: "Não foi possível criar a conta." }, { status: 500 });
   }

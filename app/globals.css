@@ -244,6 +244,16 @@ select.input-premium {
   cursor: pointer;
 }
 
+.partner-compact-input.input-premium {
+  min-height: 40px;
+  height: 40px;
+  border-radius: 12px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 12px;
+  box-shadow: none;
+}
+
 .PhoneInput {
   display: flex;
   align-items: center;
