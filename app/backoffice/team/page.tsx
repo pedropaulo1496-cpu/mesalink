@@ -33,24 +33,24 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
     <>
       <DoneNotice done={done} />
       <PageHeading eyebrow="Gestão de acessos" title="Equipa comercial" description="Cria acessos privados, define comissões por omissão e acompanha atividade, carteira, pedidos e valores de cada comercial." />
-      <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="mt-5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Comerciais ativos" value={String(active)} note={`${representatives.length} perfis criados`} tone="green" />
         <StatCard label="Clientes atribuídos" value={String(clients)} note="carteira comercial" tone="blue" />
         <StatCard label="Comissões pendentes" value={euroAmount(pending)} note="a liquidar" tone="red" />
         <StatCard label="Comissões pagas" value={euroAmount(paid)} note="histórico acumulado" tone="gold" />
       </section>
 
-      <section className="mt-6 grid gap-5 xl:grid-cols-[1fr_420px]">
-        <div className="space-y-4">
+      <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_360px]">
+        <div className="space-y-2.5">
           {representatives.map((rep) => {
             const repPending = rep.commissions.filter((item) => item.status === "PENDING").reduce((sum, item) => sum + Number(item.commissionAmount), 0);
             const repPaid = rep.commissions.filter((item) => item.status === "PAID").reduce((sum, item) => sum + Number(item.commissionAmount), 0);
             const pendingRequests = rep.requests.filter((item) => item.status === "PENDING").length;
             return (
-              <details key={rep.id} className="group rounded-[28px] border border-[#DCC9AA] bg-white p-5" open={representatives.length === 1}>
+              <details key={rep.id} className="group rounded-2xl border border-[#DCC9AA] bg-white p-4">
                 <summary className="cursor-pointer list-none">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div><div className="flex items-center gap-2"><h2 className="text-xl font-semibold">{rep.name}</h2><span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase ${rep.active ? "bg-[#E3F1E2] text-[#35603A]" : "bg-[#EEE9E2] text-[#6B6258]"}`}>{rep.active ? "Ativo" : "Inativo"}</span></div><p className="mt-1 text-xs text-[#6B6258]">{rep.email}{rep.phone ? ` · ${rep.phone}` : ""}</p></div>
+                    <div><div className="flex items-center gap-2"><h2 className="text-base font-semibold">{rep.name}</h2><span className={`rounded-full px-2.5 py-1 text-[8px] font-black uppercase ${rep.active ? "bg-[#E3F1E2] text-[#35603A]" : "bg-[#EEE9E2] text-[#6B6258]"}`}>{rep.active ? "Ativo" : "Inativo"}</span></div><p className="mt-0.5 text-[11px] text-[#6B6258]">{rep.email}{rep.phone ? ` · ${rep.phone}` : ""}</p></div>
                     <div className="grid grid-cols-3 gap-4 text-right"><Metric label="Clientes" value={String(rep.clients.length)} /><Metric label="Pendente" value={euroAmount(repPending)} /><Metric label="Pago" value={euroAmount(repPaid)} /></div>
                   </div>
                   <p className="mt-4 border-t border-[#EFE4D4] pt-3 text-[11px] text-[#776B5E]">Último acesso: {dateTime(rep.user.lastActiveAt || rep.user.lastLoginAt)} · {pendingRequests} pedidos pendentes · {rep.messages.length} mensagens por ler <span className="float-right font-bold text-[#9B6F3B]">Editar ↓</span></p>
@@ -69,19 +69,19 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
               </details>
             );
           })}
-          {!representatives.length && <div className="rounded-[28px] border border-dashed border-[#C9A66B] bg-white/50 p-10 text-center text-sm text-[#6B6258]">Ainda não há comerciais. Cria o primeiro perfil no formulário ao lado.</div>}
+          {!representatives.length && <div className="rounded-2xl border border-dashed border-[#C9A66B] bg-white/50 p-7 text-center text-[13px] text-[#6B6258]">Ainda não há comerciais. Cria o primeiro perfil ao lado.</div>}
         </div>
 
-        <div className="space-y-5">
-          <form action={createSalesRepresentative} className="rounded-[28px] border border-[#D7B267] bg-[#FFF6E5] p-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Novo acesso</p><h2 className="mt-2 text-2xl font-semibold">Convidar comercial</h2><p className="mt-2 text-xs leading-5 text-[#6B6258]">A pessoa recebe um email MesaLink para definir a password. Não vê dados administrativos nem clientes de outros comerciais.</p>
-            <div className="mt-4 space-y-3"><input name="name" placeholder="Nome completo" className={inputClass} required /><input name="email" type="email" placeholder="email@empresa.pt" className={inputClass} required /><input name="phone" placeholder="Telefone (opcional)" className={inputClass} /><div className="grid grid-cols-2 gap-2"><label className="text-[10px] font-bold text-[#776B5E]">Planos %<input name="planPercent" type="number" min="0" max="100" step="0.01" defaultValue="10" className={`${inputClass} mt-1`} required /></label><label className="text-[10px] font-bold text-[#776B5E]">Extras %<input name="extraPercent" type="number" min="0" max="100" step="0.01" defaultValue="5" className={`${inputClass} mt-1`} required /></label></div><button className={`${buttonClass} w-full`}>Criar acesso e enviar convite</button></div>
-          </form>
+        <div className="space-y-3">
+          <details className="rounded-2xl border border-[#D7B267] bg-[#FFF6E5]">
+            <summary className="cursor-pointer list-none px-4 py-3"><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">Novo acesso</p><div className="mt-1 flex items-center justify-between"><h2 className="text-base font-semibold">Convidar comercial</h2><span className="text-[10px] font-bold text-[#8A6130]">Abrir ↓</span></div></summary>
+            <form action={createSalesRepresentative} className="space-y-2.5 border-t border-[#E5D3B8] p-4"><p className="text-[11px] leading-4 text-[#6B6258]">Envia um convite privado por email.</p><input name="name" placeholder="Nome completo" className={inputClass} required /><input name="email" type="email" placeholder="email@empresa.pt" className={inputClass} required /><input name="phone" placeholder="Telefone (opcional)" className={inputClass} /><div className="grid grid-cols-2 gap-2"><label className="text-[10px] font-bold text-[#776B5E]">Planos %<input name="planPercent" type="number" min="0" max="100" step="0.01" defaultValue="10" className={`${inputClass} mt-1`} required /></label><label className="text-[10px] font-bold text-[#776B5E]">Extras %<input name="extraPercent" type="number" min="0" max="100" step="0.01" defaultValue="5" className={`${inputClass} mt-1`} required /></label></div><button className={`${buttonClass} w-full`}>Criar e convidar</button></form>
+          </details>
 
-          <form action={updateCostSettings} className="rounded-[28px] border border-[#DCC9AA] bg-white p-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Margem real</p><h2 className="mt-2 text-2xl font-semibold">Custos internos</h2><p className="mt-2 text-xs leading-5 text-[#6B6258]">Valores privados usados para calcular custo e margem de cada cliente. Nunca aparecem ao restaurante.</p>
-            <div className="mt-4 space-y-3"><label className="text-[10px] font-bold text-[#776B5E]">Custo por email (€)<input name="emailCost" type="number" min="0" step="0.000001" defaultValue={(settings?.emailCostMicros ?? 400) / 1_000_000} className={`${inputClass} mt-1`} required /></label><label className="text-[10px] font-bold text-[#776B5E]">Custo por crédito IA (€)<input name="aiCreditCost" type="number" min="0" step="0.000001" defaultValue={(settings?.aiCreditCostMicros ?? 10000) / 1_000_000} className={`${inputClass} mt-1`} required /></label><label className="text-[10px] font-bold text-[#776B5E]">Custo por WhatsApp (€)<input name="whatsappCost" type="number" min="0" step="0.000001" defaultValue={(settings?.whatsappCostMicros ?? 5000) / 1_000_000} className={`${inputClass} mt-1`} required /></label><button className={`${buttonClass} w-full`}>Atualizar custos</button></div>
-          </form>
+          <details className="rounded-2xl border border-[#DCC9AA] bg-white">
+            <summary className="cursor-pointer list-none px-4 py-3"><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">Configuração</p><div className="mt-1 flex items-center justify-between"><h2 className="text-base font-semibold">Custos internos</h2><span className="text-[10px] font-bold text-[#8A6130]">Abrir ↓</span></div></summary>
+            <form action={updateCostSettings} className="space-y-2.5 border-t border-[#E8DDCD] p-4"><p className="text-[11px] leading-4 text-[#6B6258]">Valores privados usados para calcular a margem real.</p><label className="text-[10px] font-bold text-[#776B5E]">Custo por email (€)<input name="emailCost" type="number" min="0" step="0.000001" defaultValue={(settings?.emailCostMicros ?? 400) / 1_000_000} className={`${inputClass} mt-1`} required /></label><label className="text-[10px] font-bold text-[#776B5E]">Custo por crédito IA (€)<input name="aiCreditCost" type="number" min="0" step="0.000001" defaultValue={(settings?.aiCreditCostMicros ?? 10000) / 1_000_000} className={`${inputClass} mt-1`} required /></label><label className="text-[10px] font-bold text-[#776B5E]">Custo por WhatsApp (€)<input name="whatsappCost" type="number" min="0" step="0.000001" defaultValue={(settings?.whatsappCostMicros ?? 5000) / 1_000_000} className={`${inputClass} mt-1`} required /></label><button className={`${buttonClass} w-full`}>Guardar custos</button></form>
+          </details>
         </div>
       </section>
     </>

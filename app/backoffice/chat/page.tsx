@@ -69,14 +69,14 @@ export default async function CommercialChatPage({
       />
 
       {!selected ? (
-        <section className="mt-6 rounded-[28px] border border-[#DCC9AA] bg-white p-10 text-center">
+        <section className="mt-5 rounded-2xl border border-[#DCC9AA] bg-white p-7 text-center">
           <MessageCircleMore className="mx-auto text-[#A97936]" size={34} />
           <h2 className="mt-3 text-2xl font-semibold">Ainda não há comerciais ativos</h2>
           <p className="mt-2 text-sm text-[#6B6258]">Cria o primeiro comercial na área Equipa para abrir uma conversa.</p>
           {staff.role === "ADMIN" && <Link href="/backoffice/team" className="mt-5 inline-flex rounded-xl bg-[#17130F] px-5 py-3 text-sm font-bold text-white">Criar comercial</Link>}
         </section>
       ) : (
-        <section className="mt-6 grid min-h-[650px] overflow-hidden rounded-[28px] border border-[#DCC9AA] bg-white lg:grid-cols-[300px_1fr]">
+        <section className="mt-5 grid min-h-[540px] overflow-hidden rounded-2xl border border-[#DCC9AA] bg-white lg:grid-cols-[260px_1fr]">
           {staff.role === "ADMIN" && (
             <aside className="border-b border-[#E2D3BC] bg-[#FFF9F0] p-3 lg:border-b-0 lg:border-r">
               <p className="px-2 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">Conversas</p>
@@ -94,12 +94,12 @@ export default async function CommercialChatPage({
             </aside>
           )}
 
-          <div className="flex min-h-[560px] flex-col">
-            <header className="border-b border-[#E2D3BC] px-5 py-4">
+          <div className="flex min-h-[500px] flex-col">
+            <header className="border-b border-[#E2D3BC] px-4 py-3">
               <p className="font-bold">{selected.name}</p>
               <p className="mt-0.5 text-xs text-[#776B5E]">{selected.email} · {selected._count.clients} clientes</p>
             </header>
-            <div className="flex-1 space-y-3 overflow-y-auto bg-[#FFFCF7] p-4 sm:p-6">
+            <div className="flex-1 space-y-2.5 overflow-y-auto bg-[#FFFCF7] p-4">
               {!messages.length && <div className="mx-auto mt-20 max-w-sm text-center text-sm leading-6 text-[#776B5E]">Ainda não há mensagens. Usa este espaço para pedidos, acompanhamento de clientes e apoio comercial.</div>}
               {messages.map((message) => {
                 const own = message.senderUserId === staff.userId;

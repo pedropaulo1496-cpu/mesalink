@@ -24,21 +24,21 @@ export default async function BackofficeClientsPage({ searchParams }: { searchPa
     <>
       <DoneNotice done={done} />
       <PageHeading eyebrow="Carteira" title="Clientes" description={staff.role === "ADMIN" ? "Todos os restaurantes, atividade, risco, consumo, rentabilidade e comercial responsável." : "Os teus clientes, sinais de risco e próxima ação recomendada."} />
-      <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="mt-5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Na carteira" value={clients.length.toString()} note="até 100 resultados" />
         <StatCard label="Risco alto" value={highRisk.toString()} note="contactar hoje" tone={highRisk ? "red" : "green"} />
         <StatCard label="Inativos 14d" value={inactive.toString()} note="sem utilização recente" tone={inactive ? "gold" : "green"} />
         <StatCard label="Receita observada" value={euroCents(revenue)} note="pagamentos Stripe" tone="green" />
       </section>
 
-      <form className="mt-5 flex max-w-2xl gap-2" action="/backoffice/clients">
+      <form className="mt-4 flex max-w-xl gap-2" action="/backoffice/clients">
         <label className="relative flex-1"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9B6F3B]" size={17} /><input name="q" defaultValue={q} placeholder="Nome, email ou restaurante" className={`${inputClass} pl-11`} /></label>
         <button className={buttonClass}>Procurar</button>
       </form>
 
-      <section className="mt-6 space-y-4">
+      <section className="mt-4 space-y-2.5">
         {clients.map((client) => <ClientCard key={client.id} client={client} staffRole={staff.role} representatives={representatives} />)}
-        {!clients.length && <div className="rounded-[28px] border border-[#DCC9AA] bg-white p-8 text-center text-sm text-[#6B6258]">Nenhum cliente encontrado.</div>}
+        {!clients.length && <div className="rounded-2xl border border-[#DCC9AA] bg-white p-6 text-center text-[13px] text-[#6B6258]">Nenhum cliente encontrado.</div>}
       </section>
     </>
   );
@@ -49,12 +49,12 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
   const planPercent = Number(client.salesPlanCommissionPercent ?? client.salesRepresentative?.defaultPlanCommissionPercent ?? 10);
   const extraPercent = Number(client.salesExtraCommissionPercent ?? client.salesRepresentative?.defaultExtraCommissionPercent ?? 5);
   return (
-    <details className="group rounded-[28px] border border-[#DCC9AA] bg-white open:shadow-[0_20px_60px_rgba(80,55,30,0.07)]">
-      <summary className="cursor-pointer list-none p-4 sm:p-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <details className="group rounded-2xl border border-[#DCC9AA] bg-white open:shadow-[0_12px_35px_rgba(80,55,30,0.06)]">
+      <summary className="cursor-pointer list-none p-3.5 sm:p-4">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2"><h2 className="truncate text-xl font-bold">{client.restaurant?.name || client.name || "Sem restaurante"}</h2><RiskPill level={client.health.riskLevel} score={client.health.riskScore} /><Status status={subscription?.status || "SEM PLANO"} /></div>
-            <p className="mt-1 truncate text-sm text-[#6B6258]">{client.email} · {client.salesRepresentative?.name || "sem comercial"}</p>
+            <div className="flex flex-wrap items-center gap-2"><h2 className="truncate text-base font-bold">{client.restaurant?.name || client.name || "Sem restaurante"}</h2><RiskPill level={client.health.riskLevel} score={client.health.riskScore} /><Status status={subscription?.status || "SEM PLANO"} /></div>
+            <p className="mt-0.5 truncate text-[11px] text-[#6B6258]">{client.email} · {client.salesRepresentative?.name || "sem comercial"}</p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Mini label="Inatividade" value={client.health.inactiveDays === null ? "Nunca entrou" : `${client.health.inactiveDays} dias`} />
@@ -65,7 +65,7 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
         </div>
       </summary>
 
-      <div className="border-t border-[#E5D7C3] p-4 sm:p-5">
+      <div className="border-t border-[#E5D7C3] p-3.5 sm:p-4">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <Info label="Última atividade" value={client.health.lastActivityAt ? dateTime(client.health.lastActivityAt) : "Sem atividade registada"} />
           <Info label="Conta" value={`Criada ${shortDate(client.createdAt)} · ${subscription?.plan || "sem plano"}`} />
@@ -76,7 +76,9 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
         {client.health.factors.length > 0 && <p className="mt-3 rounded-2xl bg-[#FFF5E7] px-4 py-3 text-xs font-semibold text-[#805D2E]">Sinais: {client.health.factors.join(" · ")}</p>}
 
         {staffRole === "ADMIN" ? (
-          <div className="mt-5 space-y-4">
+          <details className="mt-4 rounded-xl border border-[#E2D3BC] bg-[#FFFCF7]">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-3.5 py-3 text-[12px] font-bold">Ações administrativas <span className="text-[10px] text-[#9B6F3B]">Abrir ferramentas ↓</span></summary>
+            <div className="space-y-3 border-t border-[#E8DDCD] p-3.5">
             <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-4">
               <SmallForm title="Aumentar trial" action={extendTrial} userId={client.id}><input name="days" type="number" min="1" max="365" defaultValue="7" className={inputClass} /><button className={buttonClass}>Adicionar dias</button></SmallForm>
               <SmallForm title="Oferecer créditos IA" action={grantAiCredits} userId={client.id}><input name="amount" type="number" min="1" max="100000" defaultValue="100" className={inputClass} /><input name="reason" defaultValue="Oferta comercial" className={inputClass} /><button className={buttonClass}>Dar créditos</button></SmallForm>
@@ -100,8 +102,9 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
                 <button className={`${buttonClass} mt-3`}>Criar e enviar promoção</button>
               </form>
             </div>
-            <p className="text-xs text-[#6B6258]">Custo observado: {euroCents(client.totalCostCents)} · margem estimada: {client.payments.connected ? euroCents(client.marginCents) : "—"} · comissão pendente: {euroCents(client.pendingCommissionCents)}</p>
-          </div>
+              <p className="text-[11px] text-[#6B6258]">Custo observado: {euroCents(client.totalCostCents)} · margem estimada: {client.payments.connected ? euroCents(client.marginCents) : "—"} · comissão pendente: {euroCents(client.pendingCommissionCents)}</p>
+            </div>
+          </details>
         ) : (
           <div className="mt-5 flex flex-wrap gap-2"><Link href={`/backoffice/requests?client=${client.id}`} className={buttonClass}>Pedir desconto ou benefício</Link><Link href={`/backoffice/chat`} className="inline-flex h-11 items-center rounded-xl border border-[#D7B267] px-4 text-sm font-bold">Falar com administração</Link></div>
         )}
@@ -113,9 +116,9 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
 }
 
 function SmallForm({ title, action, userId, children }: { title: string; action: (formData: FormData) => Promise<void>; userId: string; children: React.ReactNode }) {
-  return <form action={action} className="rounded-2xl border border-[#E2D3BC] bg-[#FFF9F0] p-3"><input type="hidden" name="userId" value={userId} /><p className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-[#7B5528]">{title}</p><div className="space-y-2">{children}</div></form>;
+  return <form action={action} className="rounded-xl border border-[#E2D3BC] bg-[#FFF9F0] p-3"><input type="hidden" name="userId" value={userId} /><p className="mb-2 text-[10px] font-black uppercase tracking-[0.12em] text-[#7B5528]">{title}</p><div className="space-y-2">{children}</div></form>;
 }
 
-function Mini({ label, value }: { label: string; value: string }) { return <div className="min-w-[92px] rounded-2xl border border-[#E2D3BC] bg-[#FFF9F0] px-3 py-2"><p className="text-[9px] font-black uppercase tracking-wider text-[#9B6F3B]">{label}</p><p className="mt-1 truncate text-sm font-bold">{value}</p></div>; }
-function Info({ label, value }: { label: string; value: string }) { return <div className="rounded-2xl bg-[#F7F0E5] p-3"><p className="text-[9px] font-black uppercase tracking-wider text-[#9B6F3B]">{label}</p><p className="mt-1 text-xs font-semibold leading-5">{value}</p></div>; }
+function Mini({ label, value }: { label: string; value: string }) { return <div className="min-w-[88px] rounded-xl bg-[#F8F2E9] px-2.5 py-2"><p className="text-[8px] font-black uppercase tracking-wider text-[#9B6F3B]">{label}</p><p className="mt-0.5 truncate text-[12px] font-bold">{value}</p></div>; }
+function Info({ label, value }: { label: string; value: string }) { return <div className="rounded-xl bg-[#F7F0E5] p-2.5"><p className="text-[8px] font-black uppercase tracking-wider text-[#9B6F3B]">{label}</p><p className="mt-1 text-[11px] font-semibold leading-4">{value}</p></div>; }
 function Status({ status }: { status: string }) { const active = status === "ACTIVE" || status === "TRIAL"; return <span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider ${active ? "bg-[#E5F3E4] text-[#37613C]" : "bg-[#F8E2D9] text-[#964A35]"}`}>{status}</span>; }
