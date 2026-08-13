@@ -71,12 +71,13 @@
     },
     "summary": {
       "today": { "eyebrow": "Heutiger Betrieb", "title": "Das Wesentliche jetzt", "openDay": "Service öffnen", "reservations": "Reservierungen", "guests": "Gäste", "pending": "Ausstehend", "qrOrders": "QR-Bestellungen", "occupancy": "Erwartete Belegung" },
-      "attention": { "eyebrow": "Handlungsbedarf", "title": "Benötigt Ihre Aufmerksamkeit", "reservations": "Reservierungen bestätigen", "groups": "Partnergruppen beantworten", "conversations": "Revenue-AI-Gespräche", "qrOrders": "QR-Bestellungen in Arbeit", "clear": "Alles erledigt. Keine offenen Aufgaben." },
+      "attention": { "eyebrow": "Handlungsbedarf", "title": "Benötigt Ihre Aufmerksamkeit", "reservations": "Reservierungen bestätigen", "groups": "Provisionsverhandlungen beantworten", "partnerPayment": "Überfällige Partner-Zahlung", "conversations": "Revenue-AI-Gespräche", "qrOrders": "QR-Bestellungen in Arbeit", "clear": "Alles erledigt. Keine offenen Aufgaben." },
       "upcoming": { "eyebrow": "Agenda", "title": "Nächste Reservierungen", "all": "Alle anzeigen", "guests": "{count, plural, one {# Gast} other {# Gäste}}", "pending": "zu bestätigen", "empty": "Noch keine kommenden Reservierungen.", "offerApplied": "Angebot angewendet" },
       "growth": { "eyebrow": "Wachstum", "title": "Restaurant-Puls", "active": "Aktiv", "available": "Mit Growth verfügbar" },
       "marketing": { "eyebrow": "Marketing & Loyalität", "performance": "{sent} Kontakte diesen Monat · {rate}% geöffnet", "empty": "Diesen Monat wurden noch keine Kontakte gesendet.", "interventionsEyebrow": "Marketing · sinnvolle Aktion", "interventionsTitle": "Kunden, die jetzt kontaktiert werden sollten", "opportunities": "{count, plural, one {# Chance} other {# Chancen}}", "inactive": "{count, plural, one {# Kunde war seit über 60 Tagen nicht da} other {# Kunden waren seit über 60 Tagen nicht da}}", "birthdays": "{count, plural, one {# Kunde hat in den nächsten 7 Tagen Geburtstag} other {# Kunden haben in den nächsten 7 Tagen Geburtstag}}", "poorReviews": "{count, plural, one {# Bewertung mit 1 bis 4 Sternen ist noch offen} other {# Bewertungen mit 1 bis 4 Sternen sind noch offen}}", "chooseReward": "Prämie wählen", "reviewAction": "Jetzt bearbeiten" },
+      "revenue": { "eyebrow": "Revenue AI", "title": "{count, plural, =0 {Alles automatisiert} one {# aktives Gespräch} other {# aktive Gespräche}}", "description": "Stornierungen, No-shows und verpasste Anrufe werden automatisch bearbeitet." },
       "ai": { "eyebrow": "KI-Sichtbarkeit", "noScan": "Nicht gemessen", "performance": "{mentions}% Präsenz · {sources} Quellen", "runScan": "Erste echte Diagnose starten.", "priceBelow": "Preis unter dem Gebiet", "priceAbove": "Preis über dem Gebiet", "priceAligned": "Preis passend zum Gebiet" },
-      "partners": { "eyebrow": "Partnernetzwerk", "pending": "{count, plural, one {# neue Gruppe} other {# neue Gruppen}}", "clear": "Keine neuen Anfragen", "booked": "{count, plural, =0 {Keine zukünftigen Gruppen} one {# Gruppe bereits gebucht} other {# Gruppen bereits gebucht}}" },
+      "partners": { "eyebrow": "Partnernetzwerk", "pending": "{count, plural, one {# Provision zu verhandeln} other {# Provisionen zu verhandeln}}", "active": "Automatische Buchungen aktiv", "setup": "Noch zu aktivieren", "paymentBlocked": "Offline · Zahlung fällig", "booked": "{count, plural, =0 {Keine zukünftigen Partner-Buchungen} one {# zukünftige Partner-Buchung} other {# zukünftige Partner-Buchungen}}" },
       "website": { "eyebrow": "Website", "published": "Veröffentlicht", "draft": "Nicht fertig", "finish": "Website fertigstellen und veröffentlichen." },
       "quick": { "eyebrow": "Kurzbefehle", "title": "Häufige Aktionen", "newReservation": "Neue Reservierung", "day": "Heutiger Service", "bookingPage": "Reservierungsseite", "website": "Website öffnen" }
     },
@@ -87,6 +88,8 @@
       "active": "Aktiv",
       "urlLabel": "Reservierungs-URL",
       "open": "Öffnen",
+      "copyForGoogle": "Für Google kopieren",
+      "copied": "Link kopiert",
       "howToUse": "So verwenden Sie ihn",
       "steps": {
         "googleMaps": { "title": "Google Maps", "text": "In den Reservierungs-Button Ihres Google Business-Profils einfügen." },

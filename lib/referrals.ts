@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 
-export const MESALINK_REFERRAL_FEE_PERCENT = 15;
+export const MESALINK_REFERRAL_FEE_PERCENT = 7;
 export const MESALINK_REFERRAL_SERVICE_PERCENT = 5;
 export const MESALINK_REFERRAL_SERVICE_FIXED = 0.35;
 

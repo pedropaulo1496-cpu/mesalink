@@ -71,12 +71,13 @@
     },
     "summary": {
       "today": { "eyebrow": "今日运营", "title": "当前重点", "openDay": "打开今日服务", "reservations": "预订", "guests": "客人", "pending": "待处理", "qrOrders": "二维码订单", "occupancy": "预计上座率" },
-      "attention": { "eyebrow": "需要处理", "title": "需要您的关注", "reservations": "待确认预订", "groups": "待回复合作伙伴团体", "conversations": "Revenue AI 对话", "qrOrders": "制作中的二维码订单", "clear": "全部处理完毕，没有待办事项。" },
+      "attention": { "eyebrow": "需要处理", "title": "需要您的关注", "reservations": "待确认预订", "groups": "待回复佣金协商", "partnerPayment": "逾期 Partner 付款", "conversations": "Revenue AI 对话", "qrOrders": "制作中的二维码订单", "clear": "全部处理完毕，没有待办事项。" },
       "upcoming": { "eyebrow": "日程", "title": "即将到来的预订", "all": "查看全部", "guests": "{count} 位客人", "pending": "待确认", "empty": "暂无即将到来的预订。", "offerApplied": "已用优惠" },
       "growth": { "eyebrow": "增长", "title": "餐厅增长脉搏", "active": "已启用", "available": "Growth 可用" },
       "marketing": { "eyebrow": "营销与忠诚度", "performance": "本月联系 {sent} 人 · {rate}% 已打开", "empty": "本月尚未发送联系。", "interventionsEyebrow": "营销 · 有效行动", "interventionsTitle": "现在值得联系的客户", "opportunities": "{count} 个机会", "inactive": "{count} 位客户超过 60 天未到店", "birthdays": "{count} 位客户将在未来 7 天生日", "poorReviews": "{count} 条 1 至 4 星评价尚未跟进", "chooseReward": "选择奖励", "reviewAction": "立即处理" },
+      "revenue": { "eyebrow": "Revenue AI", "title": "{count} 个活跃对话", "description": "自动处理取消、未到店和未接来电。" },
       "ai": { "eyebrow": "AI 可见度", "noScan": "尚未测量", "performance": "{mentions}% 出现率 · {sources} 个来源", "runScan": "运行首次真实诊断。", "priceBelow": "价格低于当地", "priceAbove": "价格高于当地", "priceAligned": "价格符合当地水平" },
-      "partners": { "eyebrow": "合作伙伴网络", "pending": "{count} 个新团体", "clear": "暂无新请求", "booked": "已有 {count} 个未来团体预订" },
+      "partners": { "eyebrow": "合作伙伴网络", "pending": "{count} 个佣金待协商", "active": "自动预订已启用", "setup": "尚未启用", "paymentBlocked": "离线 · 待付款", "booked": "{count} 个未来 Partner 预订" },
       "website": { "eyebrow": "网站", "published": "已发布", "draft": "待完成", "finish": "完成并发布网站。" },
       "quick": { "eyebrow": "快捷操作", "title": "常用操作", "newReservation": "新建预订", "day": "今日服务", "bookingPage": "预订页面", "website": "打开网站" }
     },
@@ -87,6 +88,8 @@
       "active": "已启用",
       "urlLabel": "预订链接",
       "open": "打开",
+      "copyForGoogle": "复制到 Google",
+      "copied": "链接已复制",
       "howToUse": "使用方法",
       "steps": {
         "googleMaps": { "title": "Google 地图", "text": "粘贴到您 Google 商家资料的预订按钮中。" },

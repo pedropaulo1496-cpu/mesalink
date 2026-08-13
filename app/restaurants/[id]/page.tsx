@@ -12,6 +12,8 @@ import {
   Clock3,
   Globe2,
   Handshake,
+  MessageCircle,
+  MapPin,
   Plus,
   QrCode,
   Sparkles,
@@ -19,6 +21,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import CopyButton from "@/components/CopyButton";
 import RecoveryOfferButton from "@/components/marketing/RecoveryOfferButton";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import SignOutButton from "@/components/SignOutButton";
@@ -139,7 +142,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   const [
     marketingActions,
     latestScan,
-    pendingPartnerOffers,
+    pendingPartnerNegotiations,
     bookedPartnerGroups,
     openRevenueConversations,
     inactiveMarketingCustomers,
@@ -164,8 +167,8 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       orderBy: { createdAt: "desc" },
       select: { overallScore: true, mentionRate: true, sourceCount: true, priceBenchmark: true, completedAt: true },
     }),
-    prisma.referralOffer.count({
-      where: { restaurantId: id, status: "PENDING", group: { status: "OPEN" } },
+    prisma.referralCommissionRequest.count({
+      where: { restaurantId: id, initiator: "PARTNER", status: "PENDING" },
     }),
     prisma.referralGroup.count({
       where: { acceptedRestaurantId: id, status: "BOOKED", desiredDate: { gte: now } },
@@ -299,7 +302,8 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       : priceBenchmark?.position === "ALIGNED"
         ? t("summary.ai.priceAligned")
         : null;
-  const attentionCount = pendingToday.length + pendingPartnerOffers + openRevenueConversations + qrOrdersOpen;
+  const partnerPaymentBlocked = Boolean(restaurant.referralPaymentBlockedAt);
+  const attentionCount = pendingToday.length + pendingPartnerNegotiations + openRevenueConversations + qrOrdersOpen + (partnerPaymentBlocked ? 1 : 0);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.mesalink.pt";
   const reservationUrl = `${appUrl}/reserve/${restaurant.slug}`;
   const websiteUrl = restaurant.customDomainVerified && restaurant.customDomain
@@ -355,11 +359,14 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
               restaurantId={id}
               total={attentionCount}
               pendingReservations={pendingToday.length}
-              partnerOffers={pendingPartnerOffers}
+              partnerNegotiations={pendingPartnerNegotiations}
+              partnerPaymentBlocked={partnerPaymentBlocked}
               conversations={openRevenueConversations}
               qrOrders={qrOrdersOpen}
             />
           </section>
+
+          <ReservationLinkCard t={t} reservationUrl={reservationUrl} />
 
           <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(320px,0.72fr)_minmax(0,1.28fr)]">
             <UpcomingReservations t={t} intlLocale={intlLocale} restaurantId={id} reservations={nextReservations} />
@@ -369,10 +376,11 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
                 <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">{t("summary.growth.eyebrow")}</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">{t("summary.growth.title")}</h2></div>
                 <span className={`rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.11em] ${growthAccess ? "bg-[#ECF7EC] text-[#3F6A4D]" : "bg-[#F1E6D5] text-[#795D38]"}`}>{growthAccess ? t("summary.growth.active") : t("summary.growth.available")}</span>
               </div>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
                 <GrowthTile href={`/restaurants/${id}/marketing`} icon={<CircleDollarSign size={18} />} eyebrow={t("summary.marketing.eyebrow")} title={formatMoney(attributedRevenue, intlLocale)} description={sentActions.length ? t("summary.marketing.performance", { sent: sentActions.length, rate: openRate }) : t("summary.marketing.empty")} tone="gold" />
+                <GrowthTile href={`/restaurants/${id}/revenue-ai`} icon={<MessageCircle size={18} />} eyebrow={t("summary.revenue.eyebrow")} title={t("summary.revenue.title", { count: openRevenueConversations })} description={t("summary.revenue.description")} alert={openRevenueConversations > 0} tone="cream" />
                 <GrowthTile href={`/restaurants/${id}/ai-visibility`} icon={<Sparkles size={18} />} eyebrow={t("summary.ai.eyebrow")} title={latestScan?.overallScore != null ? `${latestScan.overallScore}/100` : t("summary.ai.noScan")} description={latestScan ? t("summary.ai.performance", { mentions: latestScan.mentionRate || 0, sources: latestScan.sourceCount || 0 }) : t("summary.ai.runScan")} badge={pricePosition} tone="blue" />
-                <GrowthTile href={`/restaurants/${id}/partner-network`} icon={<Handshake size={18} />} eyebrow={t("summary.partners.eyebrow")} title={pendingPartnerOffers ? t("summary.partners.pending", { count: pendingPartnerOffers }) : t("summary.partners.clear")} description={t("summary.partners.booked", { count: bookedPartnerGroups })} alert={pendingPartnerOffers > 0} tone="green" />
+                <GrowthTile href={`/restaurants/${id}/partner-network`} icon={<Handshake size={18} />} eyebrow={t("summary.partners.eyebrow")} title={partnerPaymentBlocked ? t("summary.partners.paymentBlocked") : pendingPartnerNegotiations ? t("summary.partners.pending", { count: pendingPartnerNegotiations }) : restaurant.referralAutoAcceptEnabled ? t("summary.partners.active") : t("summary.partners.setup")} description={t("summary.partners.booked", { count: bookedPartnerGroups })} alert={partnerPaymentBlocked || pendingPartnerNegotiations > 0} tone="green" />
                 <GrowthTile href={`/restaurants/${id}/website`} icon={<Globe2 size={18} />} eyebrow={t("summary.website.eyebrow")} title={restaurant.websiteEnabled ? t("summary.website.published") : t("summary.website.draft")} description={restaurant.websiteEnabled ? websiteUrl.replace(/^https?:\/\//, "") : t("summary.website.finish")} tone="cream" />
               </div>
             </div>
@@ -423,10 +431,35 @@ function birthdayWithinNextDays(birthDate: Date, today: Date, days: number) {
   return birthday.getTime() - start.getTime() <= days * 24 * 60 * 60 * 1000;
 }
 
-function AttentionCard({ t, restaurantId, total, pendingReservations, partnerOffers, conversations, qrOrders }: { t: TFunc; restaurantId: string; total: number; pendingReservations: number; partnerOffers: number; conversations: number; qrOrders: number }) {
+function ReservationLinkCard({ t, reservationUrl }: { t: TFunc; reservationUrl: string }) {
+  return (
+    <section className="mt-4 overflow-hidden rounded-[24px] border border-[#D9C49F] bg-[#FFF8EB] shadow-[0_14px_42px_rgba(80,55,30,0.045)]">
+      <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.75fr)] lg:items-center">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#17120D] text-[#D7B267]"><MapPin size={18} /></span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2"><p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">{t("reservationLink.steps.googleMaps.title")}</p><span className="rounded-full bg-[#EAF5E8] px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-[#4A704E]">{t("reservationLink.active")}</span></div>
+            <h2 className="mt-1 text-lg font-semibold tracking-[-0.035em]">{t("reservationLink.title")}</h2>
+            <p className="mt-1 text-[11px] leading-5 text-[#6B6258]">{t("reservationLink.steps.googleMaps.text")}</p>
+          </div>
+        </div>
+        <div className="min-w-0 rounded-[18px] border border-[#DFCBAA] bg-white p-2.5">
+          <p className="truncate px-2 text-[11px] font-semibold text-[#5E5143]">{reservationUrl}</p>
+          <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+            <CopyButton text={reservationUrl} label={t("reservationLink.copyForGoogle")} copiedLabel={t("reservationLink.copied")} compact />
+            <Link href={reservationUrl} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#D8C6A9] bg-white px-4 text-xs font-bold text-[#5E4B36] transition hover:border-[#B99056]">{t("reservationLink.open")} <ArrowUpRight size={13} /></Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AttentionCard({ t, restaurantId, total, pendingReservations, partnerNegotiations, partnerPaymentBlocked, conversations, qrOrders }: { t: TFunc; restaurantId: string; total: number; pendingReservations: number; partnerNegotiations: number; partnerPaymentBlocked: boolean; conversations: number; qrOrders: number }) {
   const items = [
     { count: pendingReservations, label: t("summary.attention.reservations"), href: `/restaurants/${restaurantId}/day` },
-    { count: partnerOffers, label: t("summary.attention.groups"), href: `/restaurants/${restaurantId}/partner-network` },
+    { count: partnerNegotiations, label: t("summary.attention.groups"), href: `/restaurants/${restaurantId}/partner-network` },
+    { count: partnerPaymentBlocked ? 1 : 0, label: t("summary.attention.partnerPayment"), href: `/restaurants/${restaurantId}/partner-network` },
     { count: conversations, label: t("summary.attention.conversations"), href: `/restaurants/${restaurantId}/revenue-ai/inbox` },
     { count: qrOrders, label: t("summary.attention.qrOrders"), href: `/restaurants/${restaurantId}/ordering` },
   ].filter((item) => item.count > 0);

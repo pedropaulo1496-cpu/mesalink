@@ -128,7 +128,7 @@
       },
       "partnerNetwork": {
         "title": "3-A. Partner Network y comisiones",
-        "text": "En la Partner Network, los socios profesionales pueden enviar grupos con el contacto necesario para la reserva. Antes de la aceptación, el restaurante solo ve el código, fecha, número de personas y preferencias; el contacto se revela únicamente al restaurante que autoriza la tarjeta y confirma la reserva. Tras el servicio, MesaLink retiene el 15 % de la comisión bruta y el 85 % queda a pagar al socio. El socio debe emitir su factura al restaurante y adjuntarla al grupo. El pago semanal solo se procesa después de que MesaLink verifique la factura."
+        "text": "En la Partner Network, los socios profesionales pueden enviar grupos con el contacto necesario para la reserva. Antes de la aceptación, el restaurante solo ve el código, fecha, número de personas y preferencias; el contacto se revela únicamente al restaurante que autoriza la tarjeta y confirma la reserva. Tras el servicio, MesaLink retiene el 7 % de la comisión bruta y el 93 % queda a pagar al socio. El socio debe emitir su factura al restaurante y adjuntarla al grupo. El pago semanal solo se procesa después de que MesaLink verifique la factura."
       },
       "cancellation": {
         "title": "4. Cancelación",
