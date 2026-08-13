@@ -26,7 +26,7 @@ export default async function PartnerAppPage({
         include: {
           groups: {
             orderBy: { createdAt: "desc" },
-            take: 12,
+            take: 50,
             include: {
               acceptedRestaurant: { select: { name: true, billingLegalName: true, billingTaxId: true, billingAddressLine1: true, billingPostalCode: true, billingCity: true, billingCountry: true } },
               payment: true,
@@ -185,7 +185,7 @@ export default async function PartnerAppPage({
               const amounts = calculateReferralCommission({ guests: group.guests, commissionType: type, commissionAmount: Number(group.commissionAmount) });
               const accepted = group.acceptedRestaurant?.name;
               return <div key={group.id} className="grid gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} /></div><p className="mt-2 text-sm text-[#6B6258]">{groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · {accepted || `${group.offers.filter((offer) => offer.status === "PENDING").length} respostas pendentes`}</p><PartnerInvoiceState group={group} /></div>
+                <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} /></div><p className="mt-2 text-sm text-[#6B6258]">{group.actualGuests != null ? `${group.actualGuests} pessoas confirmadas · pedido inicial ${group.guests}` : groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · {accepted || `${group.offers.filter((offer) => offer.status === "PENDING").length} respostas pendentes`}</p><PartnerInvoiceState group={group} /></div>
                 <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">{partnerPaymentLabel(group.payment?.status)}</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(Number(group.payment?.partnerNet || amounts.partnerNet))}</p><p className="text-[9px] text-[#8A7863]">base · impostos conforme fatura</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
               </div>;
             })}
@@ -200,6 +200,8 @@ export default async function PartnerAppPage({
 type PartnerHistoryGroup = {
   id: string;
   status: string;
+  desiredDate: Date;
+  actualGuests: number | null;
   payment: null | {
     partnerInvoiceStatus: string;
     partnerInvoiceUrl: string | null;
@@ -218,7 +220,14 @@ type PartnerHistoryGroup = {
 
 function PartnerInvoiceState({ group }: { group: PartnerHistoryGroup }) {
   const payment = group.payment;
-  if (!["COMPLETED", "PAID"].includes(group.status) || !payment) return null;
+  if (!payment) return null;
+  const invoiceAvailableAt = new Date(group.desiredDate.getTime() + 24 * 60 * 60 * 1000);
+  if (invoiceAvailableAt > new Date()) {
+    return <div className="mt-3 w-fit rounded-full border border-[#D8C6A9] bg-[#FFF9F0] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">Fatura disponível após {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(invoiceAvailableAt)} · tempo para o restaurante confirmar as pessoas</div>;
+  }
+  if (!["COMPLETED", "PAID"].includes(group.status)) {
+    return <div className="mt-3 w-fit rounded-full border border-[#E4D2B4] bg-[#FFF3DC] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">24h concluídas · a aguardar o restaurante confirmar o número final de pessoas</div>;
+  }
   const recipient = group.acceptedRestaurant ? {
     legalName: group.acceptedRestaurant.billingLegalName,
     taxId: group.acceptedRestaurant.billingTaxId,

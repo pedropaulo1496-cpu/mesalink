@@ -15,9 +15,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { referralPartner: { select: { id: true } } } });
   const group = user?.referralPartner ? await prisma.referralGroup.findFirst({
     where: { id: groupId, partnerId: user.referralPartner.id, status: { in: ["COMPLETED", "PAID"] } },
-    select: { payment: { select: { id: true } } },
+    select: { desiredDate: true, payment: { select: { id: true } } },
   }) : null;
   if (!group?.payment) return NextResponse.json({ error: "Este grupo ainda não está pronto para faturação." }, { status: 404 });
+  const invoiceAvailableAt = new Date(group.desiredDate.getTime() + 24 * 60 * 60 * 1000);
+  if (invoiceAvailableAt > new Date()) {
+    return NextResponse.json({
+      error: `A fatura fica disponível 24h após a reserva, em ${new Intl.DateTimeFormat("pt-PT", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(invoiceAvailableAt)}.`,
+    }, { status: 409 });
+  }
 
   await prisma.referralPayment.update({
     where: { id: group.payment.id },
