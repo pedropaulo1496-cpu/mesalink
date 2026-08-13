@@ -89,7 +89,7 @@ export default async function PartnerNetworkPage({
 
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
           <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div><div className="flex flex-wrap items-center gap-3"><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Rede de Parceiros</p><span className="rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#3F6A4D]">Ativa</span></div><h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">Grupos enviados por hotéis e parceiros.</h1><p className="mt-2 max-w-2xl text-sm leading-5 text-[#6B6258]">Aceita os grupos que interessam. A comissão e o pagamento ficam tratados no MesaLink.</p></div>
+            <div><div className="flex flex-wrap items-center gap-3"><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Rede de Parceiros</p><span className="rounded-full border border-[#9CCB9B] bg-[#ECF7EC] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#3F6A4D]">Ativa</span></div><h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em] sm:text-4xl">Grupos enviados por parceiros MesaLink.</h1><p className="mt-2 max-w-2xl text-sm leading-5 text-[#6B6258]">Aceita os grupos que interessam. A comissão e o pagamento ficam tratados no MesaLink.</p></div>
             <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Contacto oculto até aceitar</div>
           </header>
 
@@ -158,7 +158,7 @@ export default async function PartnerNetworkPage({
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-bold"><span>Perfil e regras da parceria</span><span className="text-xs text-[#9B6F3B] group-open:hidden">Configurar ↓</span><span className="hidden text-xs text-[#9B6F3B] group-open:block">Fechar ↑</span></summary>
             <div className="border-t border-[#E8DCCB] p-5">
           <section className="rounded-[24px] border border-[#E1D0B8] bg-white p-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Perfil para parceiros</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">O teu mini-perfil na app dos hotéis.</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-[#6B6258]">Já o preenchemos com a cozinha, descrição, fotografias e menu do Website Builder. Podes ajustar este perfil sem alterar o teu website público.</p></div><span className="w-fit rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.13em] text-[#3F6A4D]">Preenchido automaticamente</span></div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Perfil para parceiros</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">O teu mini-perfil na app Partners.</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-[#6B6258]">Já o preenchemos com a cozinha, descrição, fotografias e menu do Website Builder. Podes ajustar este perfil sem alterar o teu website público.</p></div><span className="w-fit rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.13em] text-[#3F6A4D]">Preenchido automaticamente</span></div>
             <PartnerProfileSettingsForm restaurantId={id} restaurantName={restaurant.name} cuisine={partnerProfile.cuisine} description={partnerProfile.description} heroImage={partnerProfile.heroImage} gallery={partnerProfile.galleryImages} highlights={partnerProfile.highlights} menuUrl={partnerProfile.menuUrl} />
           </section>
 
@@ -205,9 +205,11 @@ function groupPeople(group: { guests: number; adults: number | null; children: n
 function partnerType(value: string) {
   if (value === "HOTEL") return "Hotel";
   if (value === "CONCIERGE") return "Concierge";
+  if (value === "INFLUENCER") return "Influencer";
   if (value === "GUIDE") return "Guia";
   if (value === "AGENCY") return "Agência";
-  return "Empresa";
+  if (value === "COMPANY") return "Empresa";
+  return "Particular";
 }
 
 function groupStatus(value: string) {

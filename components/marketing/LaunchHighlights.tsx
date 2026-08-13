@@ -41,7 +41,7 @@ const copy = {
     installNote: "Ao instalar por APK, o Android pode pedir autorização para instalar aplicações deste browser. Os ficheiros abaixo são assinados oficialmente pela MesaLink.",
     apps: [
       { name: "MesaLink Restaurantes", audience: "Para restaurantes", text: "Reservas, serviço do dia, clientes, marketing, Revenue AI, website, visibilidade e operação diária.", version: "v1.1.1", href: "/downloads/MesaLink-Restaurantes-v1.1.1.apk", icon: "/icons/apps/restaurant-192.png" },
-      { name: "MesaLink Parceiros", audience: "Para hotéis e adquirentes", text: "Enviar grupos anónimos, escolher restaurantes, acompanhar respostas, cartões e comissões.", version: "v1.0.1", href: "/downloads/MesaLink-Parceiros-v1.0.1.apk", icon: "/icons/apps/partners-192.png" },
+      { name: "MesaLink Parceiros", audience: "Para parceiros e adquirentes", text: "Enviar grupos anónimos, escolher restaurantes, acompanhar respostas, faturas e comissões.", version: "v1.0.1", href: "/downloads/MesaLink-Parceiros-v1.0.1.apk", icon: "/icons/apps/partners-192.png" },
       { name: "MesaLink Backoffice", audience: "Para administração e comerciais", text: "Clientes atribuídos, risco, custos, comissões, pedidos, promoções e chat interno.", version: "v1.0.1", href: "/downloads/MesaLink-Backoffice-v1.0.1.apk", icon: "/icons/apps/backoffice-192.png" },
     ],
   },

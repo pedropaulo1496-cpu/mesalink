@@ -61,20 +61,23 @@ export default function PartnerRegisterPage() {
           <div className="bg-[#17120D] p-7 text-white sm:p-9">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D7B267]">Conta de parceiro</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.06em]">Começa a enviar grupos.</h1>
-            <p className="mt-3 text-sm leading-6 text-white/60">Para hotéis, concierges, guias, agências e empresas. Cada parceiro tem conta pessoal, IBAN verificado e histórico próprio.</p>
+            <p className="mt-3 text-sm leading-6 text-white/60">Para hotéis, concierges, influencers, guias, empresas ou particulares. Cada parceiro tem conta pessoal, IBAN verificado e histórico próprio.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 p-6 sm:p-8">
             <div className="grid gap-4 sm:grid-cols-2">
-              <input name="businessName" required placeholder="Nome do hotel ou empresa" className={inputClass} />
+              <input name="businessName" required placeholder="Nome do parceiro, projeto ou empresa" className={inputClass} />
               <input name="contactName" required placeholder="O teu nome" className={inputClass} />
             </div>
-            <select name="partnerType" className={inputClass} defaultValue="HOTEL">
+            <select name="partnerType" className={inputClass} defaultValue="" required>
+              <option value="" disabled>Escolhe o tipo de parceiro</option>
               <option value="HOTEL">Hotel / alojamento</option>
               <option value="CONCIERGE">Concierge</option>
+              <option value="INFLUENCER">Influencer / criador de conteúdo</option>
               <option value="GUIDE">Guia turístico</option>
-              <option value="AGENCY">Agência</option>
+              <option value="AGENCY">Agência / operador turístico</option>
               <option value="COMPANY">Empresa</option>
+              <option value="OTHER">Outro / particular</option>
             </select>
             <div className="grid gap-4 sm:grid-cols-2">
               <input name="email" type="email" required placeholder="Email profissional" className={inputClass} />

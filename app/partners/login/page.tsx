@@ -49,7 +49,7 @@ export default function PartnerLoginPage() {
         <section className="mt-7 overflow-hidden rounded-[30px] border border-[#DCCAAF] bg-white shadow-[0_24px_70px_rgba(70,45,20,0.1)]">
           <div className="flex items-center gap-3 bg-[#17120D] px-6 py-5 text-white">
             <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#D7B267] text-[#17120D]"><Building2 size={19} /></span>
-            <div><p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#D7B267]">Acesso separado</p><p className="mt-0.5 font-semibold">Conta de hotel ou parceiro</p></div>
+            <div><p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#D7B267]">Acesso separado</p><p className="mt-0.5 font-semibold">Conta de parceiro</p></div>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 sm:p-7">
@@ -73,4 +73,3 @@ export default function PartnerLoginPage() {
     </main>
   );
 }
-

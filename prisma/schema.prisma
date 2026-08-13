@@ -998,7 +998,7 @@ model ReferralPartner {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   businessName String
-  partnerType  String    @default("HOTEL")
+  partnerType  String    @default("OTHER")
   contactName  String?
   email        String    @unique
   passwordHash String?

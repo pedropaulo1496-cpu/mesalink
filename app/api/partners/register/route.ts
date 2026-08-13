@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/validation";
 import { isCommissionType } from "@/lib/referrals";
 
-const partnerTypes = new Set(["HOTEL", "CONCIERGE", "GUIDE", "AGENCY", "COMPANY"]);
+const partnerTypes = new Set(["HOTEL", "CONCIERGE", "INFLUENCER", "GUIDE", "AGENCY", "COMPANY", "OTHER"]);
 
 export async function POST(request: Request) {
   try {
@@ -13,15 +13,15 @@ export async function POST(request: Request) {
     const contactName = typeof body?.contactName === "string" ? body.contactName.trim().slice(0, 100) : "";
     const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
     const password = typeof body?.password === "string" ? body.password : "";
-    const partnerType = partnerTypes.has(body?.partnerType) ? body.partnerType : "HOTEL";
+    const partnerType = partnerTypes.has(body?.partnerType) ? body.partnerType : "";
     const commissionType = isCommissionType(body?.commissionType) ? body.commissionType : "PER_PERSON";
     const commissionAmount = Number(body?.commissionAmount);
     const acceptedTerms = body?.acceptedTerms === "on" || body?.acceptedTerms === true;
     const acceptedPrivacy = body?.acceptedPrivacy === "on" || body?.acceptedPrivacy === true;
 
-    if (!businessName || !contactName || !isValidEmail(email) || password.length < 8 || !acceptedTerms || !acceptedPrivacy) {
+    if (!businessName || !contactName || !partnerType || !isValidEmail(email) || password.length < 8 || !acceptedTerms || !acceptedPrivacy) {
       return NextResponse.json(
-        { error: "Preenche os dados e usa uma password com pelo menos 8 caracteres." },
+        { error: "Preenche os dados, escolhe o tipo de parceiro e usa uma password com pelo menos 8 caracteres." },
         { status: 400 },
       );
     }

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "MesaLink Partners — Envie grupos para restaurantes",
-  description: "Rede profissional para hotéis, concierges, guias e empresas enviarem grupos a restaurantes e receberem comissões semanais verificadas.",
+  description: "Rede profissional para parceiros enviarem grupos a restaurantes e receberem comissões semanais verificadas.",
   robots: { index: true, follow: true },
 };
 
@@ -29,7 +29,7 @@ export default async function PartnersLandingPage() {
       <section className="px-5 py-14 sm:py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.08fr_0.92fr]">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Hotel → restaurante → comissão</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Parceiro → restaurante → comissão</p>
             <h1 className="mt-5 max-w-4xl text-5xl font-semibold leading-[0.92] tracking-[-0.075em] sm:text-7xl">Transforma recomendações em receita.</h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-[#62594F]">Publica um grupo, escolhe restaurantes por cozinha e localização e acompanha a reserva, a fatura e a comissão numa única app. O contacto só é revelado ao restaurante que aceitar.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -56,7 +56,7 @@ export default async function PartnersLandingPage() {
         <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-3">
           <Feature icon={<UtensilsCrossed size={21} />} title={`${restaurantCount} restaurantes disponíveis`} text="Pesquisa por tipo de cozinha, localização, preço e capacidade do grupo." />
           <Feature icon={<ShieldCheck size={21} />} title="Contacto protegido" text="Antes da aceitação, a oferta mostra apenas código, data, pessoas e preferências. O contacto é revelado apenas ao restaurante que garante a reserva." />
-          <Feature icon={<Building2 size={21} />} title="Acordos recorrentes" text="Hotel e restaurante podem deixar uma comissão total ou por pessoa pré-definida." />
+          <Feature icon={<Building2 size={21} />} title="Acordos recorrentes" text="Parceiro e restaurante podem deixar uma comissão total ou por pessoa pré-definida." />
         </div>
       </section>
 
