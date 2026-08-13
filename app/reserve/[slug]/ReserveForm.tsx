@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import {
   CalendarDays,
   Check,
@@ -341,7 +342,7 @@ export default function ReserveForm({
                   </div>
                   <button type="submit" disabled={!canSubmit || isSubmitting} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[15px] bg-[#D7B267] px-6 text-sm font-black text-[#17120D] transition hover:bg-[#E4C47F] disabled:cursor-not-allowed disabled:bg-white/12 disabled:text-white/35 sm:w-auto sm:min-w-[210px]">{isSubmitting ? t("submitProcessing") : isPendingRequest ? t("submitRequest") : t("submitConfirm")} {!isSubmitting && <Check size={16} />}</button>
                 </div>
-                <div className="mt-2 text-center"><a href="https://mesalink.pt" aria-label="Visitar MesaLink" className="inline-flex min-h-9 items-center rounded-full px-3 text-[11px] font-bold text-[#8B7863] transition hover:bg-[#F5EBDD] hover:text-[#17120D]">{t("poweredBy")}</a></div>
+                <div className="mt-2 text-center"><Link href="/" aria-label="Visitar MesaLink" className="inline-flex min-h-9 items-center rounded-full px-3 text-[11px] font-bold text-[#8B7863] transition hover:bg-[#F5EBDD] hover:text-[#17120D]">{t("poweredBy")}</Link></div>
               </form>
             </div>
           </section>

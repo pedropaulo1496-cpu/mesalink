@@ -40,7 +40,6 @@ export async function proxy(request: NextRequest) {
     hostname !== `www.${ROOT_DOMAIN}`;
 
   const needsAccountRouting =
-    pathname === "/" ||
     pathname.startsWith("/partners/app") ||
     /^\/backoffice(?:\/|$)/.test(pathname) ||
     /^\/(dashboard|restaurants|billing|onboarding|trial-expired)(?:\/|$)/.test(pathname);
@@ -63,18 +62,6 @@ export async function proxy(request: NextRequest) {
       loginUrl.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search}`);
       loginUrl.searchParams.set("app", "restaurant");
       return NextResponse.redirect(loginUrl);
-    }
-  }
-
-  // LOGGED-IN USER ON THE HOMEPAGE -> STRAIGHT TO THEIR DASHBOARD
-  if (pathname === "/" && (isRootDomain || isLocalhost || isVercelPreview)) {
-    if (token) {
-      const destination = token.accountType === "PARTNER"
-        ? "/partners/app"
-        : token.accountType === "STAFF"
-          ? "/backoffice"
-          : "/dashboard";
-      return NextResponse.redirect(new URL(destination, request.url));
     }
   }
 

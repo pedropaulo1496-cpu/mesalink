@@ -7,7 +7,7 @@
     "hero": {
       "kicker": "Growth. Visibility. Control.",
       "title": "Choose the right plan to grow your restaurant.",
-      "description": "All plans include Website, Reservations, QR Ordering, CRM, Reviews and integrated operations. Growth unlocks Revenue AI, AI Visibility and the Partner Network; variable usage is prepaid."
+      "description": "All plans include Website, Reservations, QR Ordering, CRM, Reviews, Partner Network, digital cards and integrated operations. Growth unlocks Revenue AI, AI Visibility and automated Marketing; variable usage is prepaid."
     },
     "stats": {
       "currentPlan": {
@@ -77,12 +77,14 @@
           "Google Reviews",
           "Table map",
           "Essential reports",
+          "Partner Network and verified commissions",
+          "Digital cards and offers",
           "No commission per reservation",
           "1,000 included emails"
         ]
       },
       "growth": {
-        "description": "For restaurants that want to recover revenue, gain visibility in AI search and activate local partners.",
+        "description": "For restaurants that want to recover revenue, gain visibility in AI search and automate Marketing.",
         "features": [
           "Everything in Essentials",
           "MesaLink Marketing included",
@@ -94,7 +96,6 @@
           "More repeat visits",
           "Revenue AI opportunity inbox",
           "AI Visibility / GEO",
-          "Partner Network and verified commissions",
           "Prepaid credits for AI usage"
         ],
         "upgrade": {

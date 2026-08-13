@@ -15,7 +15,7 @@
       "essentials": {
         "name": "Essentials",
         "badge": "7 jours gratuits",
-        "description": "Pour les restaurants qui veulent centraliser réservations, site web, QR Ordering, CRM, avis clients et gestion dans un seul système.",
+        "description": "Pour les restaurants qui veulent centraliser réservations, site web, QR Ordering, CRM, avis, partenaires, cartes digitales et gestion dans un seul système.",
         "features": [
           "Plus de réservations directes",
           "Site web premium inclus",
@@ -24,6 +24,8 @@
           "Avis Google",
           "Plan de salle",
           "Rapports essentiels",
+          "Réseau Partenaires et commissions vérifiées",
+          "Cartes et offres digitales",
           "Sans commission par réservation"
         ]
       },

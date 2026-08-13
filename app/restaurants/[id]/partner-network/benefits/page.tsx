@@ -8,7 +8,7 @@ import RestaurantSidebar from "@/components/RestaurantSidebar";
 import { BenefitToggleButton, CreatePartnerBenefitForm, DeleteBenefitButton, RedeemBenefitCardForm } from "@/components/partners/PartnerBenefitControls";
 import SendCardToCustomersButton from "@/components/marketing/SendCardToCustomersButton";
 import { authOptions } from "@/lib/auth";
-import { hasGrowthAccess } from "@/lib/ai-billing";
+import { hasAppAccess } from "@/lib/ai-billing";
 import { getMarketingCardTheme, marketingBenefitValue } from "@/lib/marketing-card-themes";
 import { prisma } from "@/lib/prisma";
 
@@ -18,7 +18,7 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
   if (!session?.user?.email) redirect("/login");
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
-  if (!hasGrowthAccess(user?.subscription)) redirect(`/billing?restaurantId=${id}`);
+  if (!hasAppAccess(user?.subscription)) redirect(`/billing?restaurantId=${id}`);
   const restaurant = user ? await prisma.restaurant.findFirst({
     where: { id, userId: user.id },
     include: {
@@ -68,9 +68,9 @@ export default async function RestaurantBenefitsPage({ params }: { params: Promi
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]">
       <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
-        <RestaurantSidebar id={id} restaurantName={restaurant.name} active="marketing" />
+        <RestaurantSidebar id={id} restaurantName={restaurant.name} active="cardsOffers" />
         <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-7">
-          <header><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Marketing & Fidelização</p><h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">Cartões que fazem os clientes voltar.</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">Cria cartões privados, escolhe um ou vários clientes do sistema e acompanha os envios e utilizações. Esta área é do restaurante e não pertence à Rede de Parceiros.</p></header>
+          <header><p className="text-xs font-black uppercase tracking-[0.3em] text-[#9B6F3B]">Cartões e ofertas · Essentials</p><h1 className="mt-3 text-4xl font-semibold leading-[0.96] tracking-[-0.065em] sm:text-5xl">Cartões que fazem os clientes voltar.</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B6258]">Cria cartões privados, escolhe um ou vários clientes do sistema e acompanha os envios e utilizações. Esta área é do restaurante e não pertence à Rede de Parceiros.</p></header>
           <MarketingLoyaltyTabs id={id} />
 
           <section className="mt-7 grid grid-cols-2 gap-3 xl:grid-cols-4">

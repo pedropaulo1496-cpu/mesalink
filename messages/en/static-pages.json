@@ -15,7 +15,7 @@
       "essentials": {
         "name": "Essentials",
         "badge": "7-day free trial",
-        "description": "For restaurants that want to centralize reservations, website, QR Ordering, CRM, reviews and operations in a single system.",
+        "description": "For restaurants that want to centralize reservations, website, QR Ordering, CRM, reviews, partners, digital cards and operations in a single system.",
         "features": [
           "More direct reservations",
           "Premium website included",
@@ -24,6 +24,8 @@
           "Google Reviews",
           "Table map",
           "Essential reports",
+          "Partner Network and verified commissions",
+          "Digital cards and offers",
           "No commission per reservation"
         ]
       },

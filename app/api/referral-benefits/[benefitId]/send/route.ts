@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { authOptions } from "@/lib/auth";
-import { hasGrowthAccess } from "@/lib/ai-billing";
+import { hasAppAccess } from "@/lib/ai-billing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { getMarketingCardTheme, marketingBenefitSentence, marketingBenefitValue } from "@/lib/marketing-card-themes";
@@ -20,7 +20,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ ben
   if (customerIds.length === 0) return NextResponse.json({ error: "Escolhe pelo menos um cliente." }, { status: 400 });
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
-  if (!user || !hasGrowthAccess(user.subscription)) return NextResponse.json({ error: "Esta funcionalidade requer o plano Growth." }, { status: 403 });
+  if (!user || !hasAppAccess(user.subscription)) return NextResponse.json({ error: "É necessário um plano MesaLink ativo." }, { status: 403 });
   const benefit = await prisma.referralBenefit.findFirst({ where: { id: benefitId, restaurant: { userId: user.id } }, include: { restaurant: { select: { id: true, name: true } } } });
   if (!benefit) return NextResponse.json({ error: "Cartão não encontrado." }, { status: 404 });
   const now = new Date();

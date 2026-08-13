@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import Link from "next/link";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const successDateLocales: Record<string, string> = {
@@ -112,7 +113,7 @@ export default async function ReservationSuccessPage({
             {t("cta")}
           </a>
 
-          <div className="mt-4 text-center"><a href="https://mesalink.pt" className="inline-flex min-h-9 items-center rounded-full px-3 text-sm font-semibold text-[#8B7863] transition hover:bg-[#F5EBDD] hover:text-[#17120D]">{t("poweredBy")}</a></div>
+          <div className="mt-4 text-center"><Link href="/" className="inline-flex min-h-9 items-center rounded-full px-3 text-sm font-semibold text-[#8B7863] transition hover:bg-[#F5EBDD] hover:text-[#17120D]">{t("poweredBy")}</Link></div>
         </div>
       </section>
     </main>

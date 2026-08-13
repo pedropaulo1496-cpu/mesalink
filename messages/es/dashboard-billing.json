@@ -7,7 +7,7 @@
     "hero": {
       "kicker": "Growth. Visibility. Control.",
       "title": "Elige el plan adecuado para hacer crecer el restaurante.",
-      "description": "Todos los planes incluyen Website, Reservas, QR Ordering, CRM, Reseñas y operación integrada. Growth añade Marketing para recuperar clientes y aumentar las visitas recurrentes."
+      "description": "Todos los planes incluyen Website, Reservas, QR Ordering, CRM, Reseñas, Red de Socios, tarjetas digitales y operación integrada. Growth añade Revenue AI, Visibilidad IA y Marketing automático."
     },
     "stats": {
       "currentPlan": {
@@ -71,6 +71,8 @@
           "Reseñas de Google",
           "Mapa de mesas",
           "Informes esenciales",
+          "Red de Socios y comisiones verificadas",
+          "Tarjetas y ofertas digitales",
           "Sin comisiones por reserva",
           "1.000 emails incluidos"
         ]
@@ -85,7 +87,10 @@
           "Clientes en riesgo",
           "Cumpleaños automáticos",
           "Fidelización VIP",
-          "Más visitas recurrentes"
+          "Más visitas recurrentes",
+          "Revenue AI y bandeja de oportunidades",
+          "Visibilidad IA / GEO",
+          "Consumo AI con créditos prepago"
         ],
         "upgrade": {
           "kicker": "Mejora",

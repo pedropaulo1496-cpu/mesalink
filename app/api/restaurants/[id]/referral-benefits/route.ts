@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { hasGrowthAccess } from "@/lib/ai-billing";
+import { hasAppAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 import { MARKETING_CARD_THEMES } from "@/lib/marketing-card-themes";
 
@@ -45,7 +45,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  if (!hasGrowthAccess(user.subscription)) return NextResponse.json({ error: "Os cartões e promoções estão disponíveis no plano Growth." }, { status: 403 });
+  if (!hasAppAccess(user.subscription)) return NextResponse.json({ error: "É necessário um plano MesaLink ativo." }, { status: 403 });
 
   const restaurant = await prisma.restaurant.findFirst({ where: { id, userId: user.id }, select: { id: true } });
   if (!restaurant) return NextResponse.json({ error: "Restaurante não encontrado." }, { status: 404 });

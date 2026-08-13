@@ -16,6 +16,7 @@ import {
   MegaphoneIcon,
   RevenueAiIcon,
   PartnerNetworkIcon,
+  GiftIcon,
   AiVisibilityIcon,
   GlobeIcon,
   SettingsIcon,
@@ -83,6 +84,11 @@ export default function BottomNav({ id }: { id: string }) {
       href: `/restaurants/${id}/partner-network`,
       icon: PartnerNetworkIcon,
       label: t("moreSheet.partnerNetwork"),
+    },
+    {
+      href: `/restaurants/${id}/marketing/loyalty`,
+      icon: GiftIcon,
+      label: t("moreSheet.cardsOffers"),
     },
     {
       href: `/restaurants/${id}/marketing`,

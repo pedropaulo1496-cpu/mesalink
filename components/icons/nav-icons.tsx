@@ -147,6 +147,18 @@ export function PartnerNetworkIcon() {
   );
 }
 
+export function GiftIcon() {
+  return (
+    <IconSvg>
+      <rect x="4" y="10" width="16" height="10" rx="2" />
+      <path d="M3 7h18v4H3z" />
+      <path d="M12 7v13" />
+      <path d="M12 7H8.5a2.5 2.5 0 1 1 2.2-3.7L12 7Z" />
+      <path d="M12 7h3.5a2.5 2.5 0 1 0-2.2-3.7L12 7Z" />
+    </IconSvg>
+  );
+}
+
 export function PosIcon() {
   return (
     <IconSvg>

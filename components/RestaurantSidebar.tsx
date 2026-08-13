@@ -15,6 +15,7 @@ import {
   MegaphoneIcon,
   RevenueAiIcon,
   PartnerNetworkIcon,
+  GiftIcon,
   AiVisibilityIcon,
   MenuIcon,
   BillingIcon,
@@ -129,6 +130,12 @@ export default function RestaurantSidebar({
           name: t("items.partnerNetwork"),
           href: `/restaurants/${id}/partner-network`,
           icon: PartnerNetworkIcon,
+        },
+        {
+          key: "cardsOffers",
+          name: t("items.cardsOffers"),
+          href: `/restaurants/${id}/marketing/loyalty`,
+          icon: GiftIcon,
         },
         {
           key: "customers",

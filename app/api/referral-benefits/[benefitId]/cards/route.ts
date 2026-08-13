@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { hasGrowthAccess } from "@/lib/ai-billing";
+import { hasAppAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 import { createBenefitCardCode } from "@/lib/referrals";
 
@@ -41,7 +41,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ ben
     },
   });
 
-  if (!benefit || !hasGrowthAccess(benefit.restaurant.user?.subscription) || (benefit.maxRedemptions != null && benefit.redemptions >= benefit.maxRedemptions)) {
+  if (!benefit || !hasAppAccess(benefit.restaurant.user?.subscription) || (benefit.maxRedemptions != null && benefit.redemptions >= benefit.maxRedemptions)) {
     return NextResponse.json({ error: "Este benefício já não está disponível." }, { status: 409 });
   }
 

@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { hasGrowthAccess } from "@/lib/ai-billing";
+import { hasAppAccess } from "@/lib/ai-billing";
 import { prisma } from "@/lib/prisma";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ benefitId: string }> }) {
@@ -14,7 +14,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ be
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  if (!hasGrowthAccess(user.subscription)) return NextResponse.json({ error: "Os cartões e promoções estão disponíveis no plano Growth." }, { status: 403 });
+  if (!hasAppAccess(user.subscription)) return NextResponse.json({ error: "É necessário um plano MesaLink ativo." }, { status: 403 });
 
   const result = await prisma.referralBenefit.updateMany({
     where: { id: benefitId, restaurant: { userId: user.id } },
@@ -32,7 +32,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { subscription: true } });
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  if (!hasGrowthAccess(user.subscription)) return NextResponse.json({ error: "Os cartões e promoções estão disponíveis no plano Growth." }, { status: 403 });
+  if (!hasAppAccess(user.subscription)) return NextResponse.json({ error: "É necessário um plano MesaLink ativo." }, { status: 403 });
 
   const benefit = await prisma.referralBenefit.findFirst({ where: { id: benefitId, restaurant: { userId: user.id } }, select: { id: true } });
   if (!benefit) return NextResponse.json({ error: "Cartão não encontrado." }, { status: 404 });
