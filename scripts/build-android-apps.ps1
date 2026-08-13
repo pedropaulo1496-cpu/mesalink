@@ -16,6 +16,36 @@ function Stop-AndroidGradle {
   }
 }
 
+function Set-AndroidAppLinks {
+  param(
+    [Parameter(Mandatory = $true)][string]$ManifestPath,
+    [Parameter(Mandatory = $true)][string[]]$Paths
+  )
+
+  [xml]$document = Get-Content -LiteralPath $ManifestPath
+  $androidNamespace = "http://schemas.android.com/apk/res/android"
+  $namespaces = New-Object System.Xml.XmlNamespaceManager($document.NameTable)
+  $namespaces.AddNamespace("android", $androidNamespace)
+  $filters = $document.SelectNodes("//activity/intent-filter[action[@android:name='android.intent.action.VIEW']]", $namespaces)
+
+  foreach ($filter in $filters) {
+    @($filter.SelectNodes("data")) | ForEach-Object { [void]$filter.RemoveChild($_) }
+    foreach ($path in $Paths) {
+      $data = $document.CreateElement("data")
+      $data.SetAttribute("scheme", $androidNamespace, "https")
+      $data.SetAttribute("host", $androidNamespace, "@string/hostName")
+      $data.SetAttribute("pathPrefix", $androidNamespace, $path)
+      [void]$filter.AppendChild($data)
+    }
+  }
+
+  $settings = New-Object System.Xml.XmlWriterSettings
+  $settings.Indent = $true
+  $settings.Encoding = New-Object System.Text.UTF8Encoding($false)
+  $writer = [System.Xml.XmlWriter]::Create($ManifestPath, $settings)
+  try { $document.Save($writer) } finally { $writer.Dispose() }
+}
+
 & node (Join-Path $PSScriptRoot "generate-app-icons.mjs")
 if ($LASTEXITCODE -ne 0) { throw "MesaLink app icon generation failed." }
 
@@ -33,10 +63,11 @@ if (-not (Test-Path -LiteralPath $keystoreFile)) {
   throw "Missing Android signing key: $keystoreFile"
 }
 
+$restaurantPaths = @("/login", "/dashboard", "/restaurants", "/billing", "/onboarding", "/trial-expired")
 $variants = @(
-  @{ Manifest = $restaurantManifest; Output = "MesaLink-Restaurantes-v1.1.1.apk" },
-  @{ Manifest = (Join-Path $androidRoot "partners-manifest.json"); Output = "MesaLink-Parceiros-v1.0.1.apk" },
-  @{ Manifest = (Join-Path $androidRoot "backoffice-manifest.json"); Output = "MesaLink-Backoffice-v1.0.1.apk" }
+  @{ Manifest = $restaurantManifest; Output = "MesaLink-Restaurantes-v1.1.2.apk"; Paths = $restaurantPaths },
+  @{ Manifest = (Join-Path $androidRoot "partners-manifest.json"); Output = "MesaLink-Parceiros-v1.0.2.apk"; Paths = @("/partners/login", "/partners/register", "/partners/app") },
+  @{ Manifest = (Join-Path $androidRoot "backoffice-manifest.json"); Output = "MesaLink-Backoffice-v1.0.2.apk"; Paths = @("/backoffice", "/backoffice-access") }
 )
 
 $iconServer = Start-Process python -ArgumentList @(
@@ -52,6 +83,8 @@ try {
       & npx bubblewrap update --skipVersionUpgrade --manifest $variant.Manifest
       if ($LASTEXITCODE -ne 0) { throw "Bubblewrap update failed for $($variant.Output)." }
 
+      Set-AndroidAppLinks -ManifestPath (Join-Path $androidRoot "app\src\main\AndroidManifest.xml") -Paths $variant.Paths
+
       & node (Join-Path $PSScriptRoot "generate-android-splash.mjs") $androidRoot
       if ($LASTEXITCODE -ne 0) { throw "Android splash generation failed for $($variant.Output)." }
 
@@ -66,6 +99,7 @@ try {
     Stop-AndroidGradle
     & npx bubblewrap update --skipVersionUpgrade --manifest $restaurantManifest
     if ($LASTEXITCODE -eq 0) {
+      Set-AndroidAppLinks -ManifestPath (Join-Path $androidRoot "app\src\main\AndroidManifest.xml") -Paths $restaurantPaths
       & node (Join-Path $PSScriptRoot "generate-android-splash.mjs") $androidRoot
     }
     Pop-Location

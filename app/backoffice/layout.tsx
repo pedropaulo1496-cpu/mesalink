@@ -30,7 +30,10 @@ export default async function BackofficeLayout({ children }: { children: ReactNo
         <header className="sticky top-0 z-30 border-b border-[#DCC9AA] bg-[#F4ECDF]/90 px-4 py-3 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between gap-3">
             <Link href="/backoffice" className="text-xl font-semibold tracking-[-0.05em]"><span className="text-[#A97936]">Mesa</span>Link <span className="text-xs tracking-normal text-[#776B5E]">{staff.role === "ADMIN" ? "HQ" : "Staff"}</span></Link>
-            {staff.role === "ADMIN" && <Link href="/backoffice/team" className="rounded-full border border-[#D7B267] px-3 py-2 text-xs font-bold">Equipa</Link>}
+            <div className="flex items-center gap-2">
+              {staff.role === "ADMIN" && <Link href="/backoffice/team" className="hidden rounded-full border border-[#D7B267] px-3 py-2 text-xs font-bold sm:inline-flex">Equipa</Link>}
+              <BackofficeSignOutButton compact />
+            </div>
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1420px] px-4 pb-28 pt-5 sm:px-6 sm:pt-6 lg:pb-10">{children}</main>

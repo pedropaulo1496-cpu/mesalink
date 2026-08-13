@@ -47,7 +47,9 @@
     },
     "closedDay": "餐厅当日休息。",
     "otherNumber": "其他人数",
+    "otherDate": "其他日期",
     "guestsPlaceholder": "用餐人数",
+    "guestCount": "{count} 位",
     "noTables": {
       "title": "暂无可用桌位",
       "text": "此时段没有可容纳 {guests} 位客人的桌位。"

@@ -9,6 +9,7 @@ export async function issueCapturedReferralInvoice(paymentId: string) {
       group: {
         select: {
           publicCode: true,
+          platformFeePercent: true,
           actualGuests: true,
           guests: true,
           acceptedRestaurantId: true,
@@ -47,24 +48,26 @@ export async function issueCapturedReferralInvoice(paymentId: string) {
     auto_advance: false,
     automatic_tax: { enabled: true },
     pending_invoice_items_behavior: "exclude",
-    description: `MesaLink Partner · grupo ${payment.group.publicCode}`,
+    description: `Serviço MesaLink Partners · reserva ${payment.group.publicCode}`,
     custom_fields: [{ name: "Grupo", value: payment.group.publicCode }],
-    footer: "Pagamento cobrado após confirmação da presença no restaurante.",
+    footer: "Documento emitido automaticamente. A comissão líquida do parceiro é documentada separadamente pelo parceiro.",
     metadata,
-  }, { idempotencyKey: `referral_invoice_${payment.id}` });
+  }, { idempotencyKey: `referral_invoice_v2_${payment.id}` });
 
-  const grossCents = Math.round(Number(payment.grossCommission) * 100);
+  const platformCents = Math.round(Number(payment.platformFee) * 100);
   const serviceCents = Math.round(Number(payment.serviceFee) * 100);
-  await stripe.invoiceItems.create({
-    customer: customerId,
-    invoice: invoice.id,
-    amount: grossCents,
-    currency,
-    description: `Comissão do grupo ${payment.group.publicCode} · ${payment.group.actualGuests || payment.group.guests} pessoas`,
-    tax_behavior: "exclusive",
-    tax_code: MESALINK_SERVICE_TAX_CODE,
-    metadata,
-  }, { idempotencyKey: `referral_invoice_commission_${payment.id}` });
+  if (platformCents > 0) {
+    await stripe.invoiceItems.create({
+      customer: customerId,
+      invoice: invoice.id,
+      amount: platformCents,
+      currency,
+      description: `Taxa MesaLink de ${Number(payment.group.platformFeePercent || 7)}% · reserva ${payment.group.publicCode}`,
+      tax_behavior: "exclusive",
+      tax_code: MESALINK_SERVICE_TAX_CODE,
+      metadata,
+    }, { idempotencyKey: `referral_invoice_platform_v2_${payment.id}` });
+  }
   if (serviceCents > 0) {
     await stripe.invoiceItems.create({
       customer: customerId,
@@ -75,14 +78,14 @@ export async function issueCapturedReferralInvoice(paymentId: string) {
       tax_behavior: "exclusive",
       tax_code: MESALINK_SERVICE_TAX_CODE,
       metadata,
-    }, { idempotencyKey: `referral_invoice_service_${payment.id}` });
+    }, { idempotencyKey: `referral_invoice_service_v2_${payment.id}` });
   }
 
-  invoice = await stripe.invoices.finalizeInvoice(invoice.id, {}, { idempotencyKey: `referral_invoice_finalize_${payment.id}` });
+  invoice = await stripe.invoices.finalizeInvoice(invoice.id, {}, { idempotencyKey: `referral_invoice_finalize_v2_${payment.id}` });
   if (invoice.status === "open") {
-    invoice = await stripe.invoices.attachPayment(invoice.id, {
-      payment_intent: payment.stripePaymentIntentId,
-    }, { idempotencyKey: `referral_invoice_payment_${payment.id}` });
+    invoice = await stripe.invoices.pay(invoice.id, {
+      paid_out_of_band: true,
+    }, { idempotencyKey: `referral_invoice_payment_v2_${payment.id}` });
   }
 
   return prisma.referralPayment.update({

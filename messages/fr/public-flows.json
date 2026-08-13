@@ -47,7 +47,9 @@
     },
     "closedDay": "Le restaurant est fermé ce jour-là.",
     "otherNumber": "Autre nombre",
+    "otherDate": "Autre date",
     "guestsPlaceholder": "Nombre de personnes",
+    "guestCount": "{count, plural, one {# personne} other {# personnes}}",
     "noTables": {
       "title": "Aucune table disponible",
       "text": "Aucune table n'est disponible pour {guests, plural, one {# personne} other {# personnes}} à cet horaire."

@@ -4,8 +4,10 @@ import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
 import UpgradeToGrowthButton from "@/components/UpgradeToGrowthButton";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { authOptions } from "@/lib/auth";
+import { listMesaLinkInvoices, type MesaLinkInvoiceDocument } from "@/lib/billing-documents";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+import { Download, ExternalLink, FileCheck2, ReceiptText } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -37,7 +39,17 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    include: { subscription: true },
+    include: {
+      subscription: true,
+      restaurants: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          billingEmail: true,
+        },
+      },
+    },
   });
 
   if (!user) {
@@ -90,6 +102,62 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
   const backHref = restaurantId ? `/restaurants/${restaurantId}` : "/dashboard";
   const trialProgress = trialActive ? Math.min(100, Math.round(((7 - trialDaysLeft) / 7) * 100)) : 0;
+  const selectedRestaurants = restaurantId
+    ? user.restaurants.filter((restaurant) => restaurant.id === restaurantId)
+    : user.restaurants;
+  const restaurantIds = selectedRestaurants.map((restaurant) => restaurant.id);
+  const referralPayments = restaurantIds.length
+    ? await prisma.referralPayment.findMany({
+        where: { group: { acceptedRestaurantId: { in: restaurantIds } } },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        include: {
+          partner: { select: { businessName: true, partnerCode: true } },
+          group: {
+            select: {
+              publicCode: true,
+              desiredDate: true,
+              acceptedRestaurant: { select: { name: true } },
+            },
+          },
+        },
+      })
+    : [];
+  const mesaLinkInvoices = await listMesaLinkInvoices({
+    stripeCustomerId: subscription.stripeCustomerId,
+    emails: [user.email, ...selectedRestaurants.flatMap((restaurant) => [restaurant.email, restaurant.billingEmail])],
+    referralInvoices: referralPayments
+      .filter((payment) => Boolean(payment.stripeInvoiceId))
+      .map((payment) => ({
+        id: payment.stripeInvoiceId!,
+        createdAt: payment.capturedAt || payment.createdAt,
+        description: `Serviço MesaLink Partners · reserva ${payment.group.publicCode}`,
+        totalCents: Math.round((
+          Number(payment.platformFee)
+          + Number(payment.serviceFee)
+          + Math.max(0, Number(payment.taxAmount) - Number(payment.partnerInvoiceTax))
+        ) * 100),
+        currency: payment.currency,
+        status: payment.status === "FAILED" ? "uncollectible" : "paid",
+        hostedUrl: payment.stripeInvoiceUrl,
+        pdfUrl: payment.stripeInvoicePdfUrl,
+      })),
+  });
+  const partnerInvoices = referralPayments
+    .filter((payment) => Boolean(payment.partnerInvoiceUrl))
+    .map((payment) => ({
+      id: payment.id,
+      number: payment.partnerInvoiceNumber || payment.group.publicCode,
+      createdAt: payment.partnerInvoiceUploadedAt || payment.createdAt,
+      visitDate: payment.group.desiredDate,
+      restaurant: payment.group.acceptedRestaurant?.name || "Restaurante",
+      partner: payment.partner.businessName,
+      partnerCode: payment.partner.partnerCode,
+      total: Number(payment.partnerInvoiceTotal),
+      currency: payment.currency,
+      status: payment.partnerInvoiceStatus,
+      url: payment.partnerInvoiceUrl!,
+    }));
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
@@ -202,6 +270,13 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
         </section>
 
         {creditsPurchased && <div className="mt-6 rounded-[24px] border border-[#9CCB9B] bg-[#ECF7EC] px-5 py-4 text-sm font-semibold text-[#31583D]">{t("credits.success")}</div>}
+
+        <InvoiceArchive
+          locale={locale}
+          mesaLinkInvoices={mesaLinkInvoices}
+          partnerInvoices={partnerInvoices}
+          showStripePortal={hasActiveSubscription}
+        />
 
         <section className="mt-7 grid gap-5 lg:grid-cols-2">
           <PlanCard
@@ -558,6 +633,120 @@ function MiniFeature({ title, text }: { title: string; text: string }) {
       <p className="mt-1 text-sm text-[#6B6258]">{text}</p>
     </div>
   );
+}
+
+type PartnerInvoiceDocument = {
+  id: string;
+  number: string;
+  createdAt: Date;
+  visitDate: Date;
+  restaurant: string;
+  partner: string;
+  partnerCode: string;
+  total: number;
+  currency: string;
+  status: string;
+  url: string;
+};
+
+function InvoiceArchive({
+  locale,
+  mesaLinkInvoices,
+  partnerInvoices,
+  showStripePortal,
+}: {
+  locale: string;
+  mesaLinkInvoices: MesaLinkInvoiceDocument[];
+  partnerInvoices: PartnerInvoiceDocument[];
+  showStripePortal: boolean;
+}) {
+  return (
+    <section className="mt-7 overflow-hidden rounded-[34px] border border-[#D8C5A5] bg-white shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
+      <div className="flex flex-col gap-4 border-b border-[#E8DAC5] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+        <div>
+          <div className="flex items-center gap-2 text-[#9B6F3B]"><ReceiptText size={17} /><p className="text-[10px] font-black uppercase tracking-[0.24em]">Faturação</p></div>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Todos os documentos num só lugar.</h2>
+          <p className="mt-1 text-sm text-[#6B6258]">As faturas MesaLink são emitidas automaticamente pelo Stripe. As dos parceiros aparecem quando são anexadas à reserva.</p>
+        </div>
+        {showStripePortal && <div className="shrink-0"><ManageSubscriptionButton /></div>}
+      </div>
+
+      <div className="grid lg:grid-cols-2">
+        <InvoiceColumn
+          title="Faturas MesaLink"
+          note="Planos, créditos, domínios e serviços Partners"
+          empty="Ainda não existem faturas MesaLink emitidas."
+        >
+          {mesaLinkInvoices.map((invoice) => (
+            <InvoiceRow
+              key={invoice.id}
+              title={invoice.description}
+              number={invoice.number}
+              date={formatInvoiceDate(invoice.createdAt, locale)}
+              amount={invoice.totalCents == null ? null : formatInvoiceMoney(invoice.totalCents / 100, invoice.currency, locale)}
+              status={stripeInvoiceStatus(invoice.status)}
+              url={invoice.pdfUrl || invoice.hostedUrl}
+              secondaryUrl={invoice.pdfUrl && invoice.hostedUrl ? invoice.hostedUrl : null}
+            />
+          ))}
+          {mesaLinkInvoices.length === 0 && <InvoiceEmpty text="Ainda não existem faturas MesaLink emitidas." />}
+        </InvoiceColumn>
+
+        <InvoiceColumn
+          title="Faturas dos parceiros"
+          note="Documentos emitidos pelos parceiros após cada visita"
+          empty="Ainda não foram anexadas faturas de parceiros."
+          bordered
+        >
+          {partnerInvoices.map((invoice) => (
+            <InvoiceRow
+              key={invoice.id}
+              title={`${invoice.partner} · ${invoice.restaurant}`}
+              number={invoice.number}
+              date={`${formatInvoiceDate(invoice.createdAt, locale)} · visita ${formatInvoiceDate(invoice.visitDate, locale)}`}
+              amount={formatInvoiceMoney(invoice.total, invoice.currency, locale)}
+              status={partnerInvoiceStatus(invoice.status)}
+              url={invoice.url}
+            />
+          ))}
+          {partnerInvoices.length === 0 && <InvoiceEmpty text="Ainda não foram anexadas faturas de parceiros." />}
+        </InvoiceColumn>
+      </div>
+    </section>
+  );
+}
+
+function InvoiceColumn({ title, note, children, bordered }: { title: string; note: string; empty: string; children: React.ReactNode; bordered?: boolean }) {
+  return <div className={`p-5 sm:p-7 ${bordered ? "border-t border-[#E8DAC5] lg:border-l lg:border-t-0" : ""}`}><div className="mb-4"><p className="font-semibold">{title}</p><p className="mt-1 text-xs text-[#7B7065]">{note}</p></div><div className="space-y-2">{children}</div></div>;
+}
+
+function InvoiceRow({ title, number, date, amount, status, url, secondaryUrl }: { title: string; number: string; date: string; amount: string | null; status: string; url: string | null; secondaryUrl?: string | null }) {
+  return <div className="flex flex-col gap-3 rounded-[18px] border border-[#E7D8C0] bg-[#FFFDFC] p-3 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-bold">{title}</p><span className="rounded-full bg-[#EDF5EA] px-2 py-1 text-[8px] font-black uppercase tracking-[0.11em] text-[#477052]">{status}</span></div><p className="mt-1 text-[10px] text-[#817568]">{number} · {date}</p></div><div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end"><p className="text-sm font-black text-[#6C4B25]">{amount || "Ver documento"}</p>{url ? <a href={url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#17130F] px-3 text-[10px] font-bold text-white"><Download size={12} /> PDF</a> : <span className="text-[10px] font-bold text-[#9A8D7D]">A preparar</span>}{secondaryUrl && <a href={secondaryUrl} target="_blank" rel="noreferrer" aria-label="Abrir fatura online" className="grid h-9 w-9 place-items-center rounded-full border border-[#D8C5A5] text-[#795D38]"><ExternalLink size={13} /></a>}</div></div>;
+}
+
+function InvoiceEmpty({ text }: { text: string }) {
+  return <div className="flex items-center gap-3 rounded-[18px] border border-dashed border-[#D8C5A5] bg-[#FFF9F0] p-4 text-xs text-[#75695D]"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#9B6F3B]"><FileCheck2 size={16} /></span>{text}</div>;
+}
+
+function formatInvoiceDate(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, { day: "2-digit", month: "short", year: "numeric" }).format(date);
+}
+
+function formatInvoiceMoney(value: number, currency: string, locale: string) {
+  return new Intl.NumberFormat(locale, { style: "currency", currency: currency.toUpperCase() }).format(value);
+}
+
+function stripeInvoiceStatus(status: string) {
+  if (status === "paid") return "Paga";
+  if (status === "void") return "Anulada";
+  if (status === "uncollectible") return "Por regularizar";
+  return "Emitida";
+}
+
+function partnerInvoiceStatus(status: string) {
+  if (status === "VERIFIED") return "Verificada";
+  if (status === "REJECTED") return "A corrigir";
+  return "Em verificação";
 }
 
 function CreditUsageGroup({ title, rows, note }: { title: string; rows: Array<{ label: string; value: string }>; note?: string }) {

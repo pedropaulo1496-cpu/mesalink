@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowUpRight, BarChart3, CalendarPlus2, CheckCircle2, Clock3, Euro, FileText, Landmark, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
+import { ArrowUpRight, BarChart3, CalendarPlus2, CheckCircle2, Clock3, Euro, FileCheck2, FileText, Landmark, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import NewReferralGroupForm from "@/components/partners/NewReferralGroupForm";
 import PartnerInvoiceUpload from "@/components/partners/PartnerInvoiceUpload";
 import PartnerSignOutButton from "@/components/partners/PartnerSignOutButton";
@@ -328,6 +328,9 @@ type PartnerHistoryGroup = {
   desiredDate: Date;
   actualGuests: number | null;
   payment: null | {
+    stripeInvoiceId: string | null;
+    stripeInvoiceUrl: string | null;
+    stripeInvoicePdfUrl: string | null;
     partnerInvoiceStatus: string;
     partnerInvoiceUrl: string | null;
     partnerInvoiceNumber: string | null;
@@ -350,12 +353,14 @@ type PartnerHistoryGroup = {
 function PartnerInvoiceState({ group }: { group: PartnerHistoryGroup }) {
   const payment = group.payment;
   if (!payment) return null;
+  const mesaLinkInvoiceUrl = payment.stripeInvoicePdfUrl || payment.stripeInvoiceUrl;
+  const mesaLinkDocument = mesaLinkInvoiceUrl ? <a href={mesaLinkInvoiceUrl} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#D9C6A8] bg-white px-3 text-[10px] font-black text-[#6C4B25]"><FileText size={12} /> Fatura MesaLink · PDF</a> : null;
   const invoiceAvailableAt = new Date(group.desiredDate.getTime() + 24 * 60 * 60 * 1000);
   if (invoiceAvailableAt > new Date()) {
-    return <div className="mt-3 w-fit rounded-full border border-[#D8C6A9] bg-[#FFF9F0] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">Fatura disponível após {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(invoiceAvailableAt)} · tempo para o restaurante confirmar as pessoas</div>;
+    return <div className="mt-3 flex flex-wrap items-center gap-2">{mesaLinkDocument}<div className="w-fit rounded-full border border-[#D8C6A9] bg-[#FFF9F0] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">A tua fatura fica disponível após {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(invoiceAvailableAt)}</div></div>;
   }
   if (!["COMPLETED", "PAID"].includes(group.status)) {
-    return <div className="mt-3 w-fit rounded-full border border-[#E4D2B4] bg-[#FFF3DC] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">24h concluídas · a aguardar o restaurante confirmar o número final de pessoas</div>;
+    return <div className="mt-3 flex flex-wrap items-center gap-2">{mesaLinkDocument}<div className="w-fit rounded-full border border-[#E4D2B4] bg-[#FFF3DC] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">A aguardar o restaurante confirmar o número final de pessoas</div></div>;
   }
   const recipient = group.acceptedRestaurant ? {
     legalName: group.acceptedRestaurant.billingLegalName,
@@ -365,9 +370,9 @@ function PartnerInvoiceState({ group }: { group: PartnerHistoryGroup }) {
     city: group.acceptedRestaurant.billingCity,
     country: group.acceptedRestaurant.billingCountry,
   } : undefined;
-  if (payment.partnerInvoiceStatus === "VERIFIED") return <div className="mt-3 flex flex-wrap items-center gap-2"><a href={payment.partnerInvoiceUrl} target="_blank" rel="noreferrer" className="text-xs font-black text-[#3F6A4D] underline">Fatura {payment.partnerInvoiceNumber} · abrir PDF</a><span className="rounded-full bg-[#E7F4E7] px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-[#3F6A4D]">Verificada · pagamento autorizado</span></div>;
-  if (payment.partnerInvoiceStatus === "PENDING") return <div className="mt-3 flex flex-wrap items-center gap-2"><a href={payment.partnerInvoiceUrl} target="_blank" rel="noreferrer" className="text-xs font-black text-[#6C4B25] underline">Fatura {payment.partnerInvoiceNumber} · abrir PDF</a><span className="rounded-full bg-[#FFF0CB] px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-[#7A592F]">Em verificação</span></div>;
-  return <>{payment.partnerInvoiceStatus === "REJECTED" && <p className="mt-3 rounded-xl border border-[#E8C8B9] bg-[#FFF0EA] p-3 text-xs font-semibold text-[#934A35]">Fatura rejeitada: {payment.partnerInvoiceRejectionReason || "corrige os dados e volta a anexar."}</p>}<PartnerInvoiceUpload groupId={group.id} recipient={recipient} amount={{ base: Number(payment.partnerInvoiceBase), tax: Number(payment.partnerInvoiceTax), total: Number(payment.partnerInvoiceTotal), currency: payment.currency }} /></>;
+  if (payment.partnerInvoiceStatus === "VERIFIED") return <div className="mt-3 flex flex-wrap items-center gap-2">{mesaLinkDocument}<a href={payment.partnerInvoiceUrl || "#"} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#BFD8C2] bg-[#F3FAF2] px-3 text-[10px] font-black text-[#3F6A4D]"><FileCheck2 size={12} /> A tua fatura {payment.partnerInvoiceNumber} · PDF</a><span className="rounded-full bg-[#E7F4E7] px-2 py-1 text-[8px] font-black uppercase tracking-[0.1em] text-[#3F6A4D]">Verificada</span></div>;
+  if (payment.partnerInvoiceStatus === "PENDING") return <div className="mt-3 flex flex-wrap items-center gap-2">{mesaLinkDocument}<a href={payment.partnerInvoiceUrl || "#"} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#D9C6A8] bg-white px-3 text-[10px] font-black text-[#6C4B25]"><FileText size={12} /> A tua fatura {payment.partnerInvoiceNumber} · PDF</a><span className="rounded-full bg-[#FFF0CB] px-2 py-1 text-[8px] font-black uppercase tracking-[0.1em] text-[#7A592F]">Em verificação</span></div>;
+  return <div className="mt-3">{mesaLinkDocument && <div className="mb-2">{mesaLinkDocument}</div>}{payment.partnerInvoiceStatus === "REJECTED" && <p className="mb-2 rounded-xl border border-[#E8C8B9] bg-[#FFF0EA] p-3 text-xs font-semibold text-[#934A35]">Fatura rejeitada: {payment.partnerInvoiceRejectionReason || "corrige os dados e volta a anexar."}</p>}<PartnerInvoiceUpload groupId={group.id} recipient={recipient} amount={{ base: Number(payment.partnerInvoiceBase), tax: Number(payment.partnerInvoiceTax), total: Number(payment.partnerInvoiceTotal), currency: payment.currency }} /></div>;
 }
 
 function Kpi({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
