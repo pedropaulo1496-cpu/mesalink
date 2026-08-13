@@ -36,7 +36,7 @@ export async function createReservationCheckout(paymentId: string, slug: string)
       },
     },
   }];
-  for (const addOn of payment.reservation.experienceAddOns) {
+  for (const addOn of payment.kind === "EXPERIENCE" ? payment.reservation.experienceAddOns : []) {
     lineItems.push({
       quantity: 1,
       price_data: {

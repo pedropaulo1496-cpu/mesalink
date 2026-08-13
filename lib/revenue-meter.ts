@@ -67,13 +67,13 @@ export async function getRevenueMeter(restaurantId: string, from: Date, to: Date
   let total = 0;
   const marketingReservationIds = new Set(marketingActions.map((action) => action.reservationId).filter(Boolean));
   for (const reservation of reservations) {
-    const paidExperience = reservation.experienceId && reservation.payment?.status === "PAID"
+    const paidExperience = reservation.experienceId && reservation.payment?.status === "PAID" && reservation.payment.kind === "EXPERIENCE"
       ? Number(reservation.payment.baseAmount) + Number(reservation.payment.addOnsAmount)
       : 0;
     const value = paidExperience || Number(reservation.estimatedRevenue || reservation.guests * averageTicket);
     total += value;
     if (reservation.source === "PARTNER_NETWORK") partners += value;
-    else if (paidExperience > 0) experiences += paidExperience;
+    else if (reservation.experienceId) experiences += value;
     else if (reservation.source === "PUBLIC" && !marketingReservationIds.has(reservation.id)) direct += value;
   }
 

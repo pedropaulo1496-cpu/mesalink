@@ -32,7 +32,8 @@ async function createPublicReservation(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const birthDateValue = String(formData.get("birthDate") || "").trim();
   const guests = Number(formData.get("guests"));
-  let date = new Date(String(formData.get("date")));
+  const requestedDateValue = String(formData.get("date"));
+  let date = new Date(requestedDateValue);
   const reservationMode = String(formData.get("reservationMode") ?? "TABLES");
 
   if (!customerName || !phone || !email) {
@@ -62,7 +63,12 @@ async function createPublicReservation(formData: FormData) {
   await releaseExpiredReservationPayments(restaurant.id);
 
   const experience = experienceIdValue ? await prisma.diningExperience.findFirst({
-    where: { id: experienceIdValue, restaurantId: restaurant.id, active: true, startsAt: { gt: new Date() } },
+    where: {
+      id: experienceIdValue,
+      restaurantId: restaurant.id,
+      active: true,
+      OR: [{ scheduleType: "FLEXIBLE" }, { scheduleType: "FIXED", startsAt: { gt: new Date() } }],
+    },
     include: {
       addOns: { where: { active: true } },
       reservations: { where: { status: { notIn: ["CANCELLED", "REJECTED", "NO_SHOW"] } }, select: { guests: true } },
@@ -70,10 +76,18 @@ async function createPublicReservation(formData: FormData) {
   }) : null;
   if (experienceIdValue && !experience) redirect(errorRedirect("experience"));
   if (experience) {
-    date = experience.startsAt;
-    const sold = experience.reservations.reduce((sum, reservation) => sum + reservation.guests, 0);
-    if (sold + guests > experience.capacity) redirect(errorRedirect("capacity"));
-    if (!restaurant.paymentsStripeOnboardingComplete || !restaurant.paymentsStripeAccountId) redirect(errorRedirect("payment"));
+    if (experience.scheduleType === "FIXED") {
+      if (!experience.startsAt) redirect(errorRedirect("experience"));
+      date = experience.startsAt;
+      const sold = experience.reservations.reduce((sum, reservation) => sum + reservation.guests, 0);
+      if (sold + guests > experience.capacity) redirect(errorRedirect("capacity"));
+    } else {
+      if (guests > experience.capacity) redirect(errorRedirect("capacity"));
+      const requestedHour = Number(requestedDateValue.match(/T(\d{2}):/)?.[1] ?? date.getHours());
+      const requestedPeriod = requestedHour < 17 ? "LUNCH" : "DINNER";
+      if (!experience.servicePeriods.includes(requestedPeriod)) redirect(errorRedirect("experience"));
+    }
+    if (experience.paymentMode === "PREPAID" && (!restaurant.paymentsStripeOnboardingComplete || !restaurant.paymentsStripeAccountId)) redirect(errorRedirect("payment"));
   }
   if (Number.isNaN(date.getTime()) || date < new Date()) redirect(errorRedirect("past"));
 
@@ -165,10 +179,12 @@ async function createPublicReservation(formData: FormData) {
     creditOnLateCancellation: restaurant.noShowCreditOnLateCancellation,
     paymentsReady: Boolean(restaurant.paymentsStripeAccountId && restaurant.paymentsStripeOnboardingComplete),
   }, date, guests) : null;
-  const paymentKind = experience ? "EXPERIENCE" : depositQuote ? "DEPOSIT" : null;
-  const paymentBase = experience ? experienceBase : depositQuote?.baseAmount || 0;
-  const paymentServiceFee = experience ? reservationServiceFee(experienceBase + addOnsAmount) : depositQuote?.serviceFee || 0;
-  const paymentTotal = Math.round((paymentBase + addOnsAmount + paymentServiceFee) * 100) / 100;
+  const prepaidExperience = experience?.paymentMode === "PREPAID";
+  const paymentKind = prepaidExperience ? "EXPERIENCE" : depositQuote ? "DEPOSIT" : null;
+  const paymentBase = prepaidExperience ? experienceBase : depositQuote?.baseAmount || 0;
+  const chargedAddOns = prepaidExperience ? addOnsAmount : 0;
+  const paymentServiceFee = prepaidExperience ? reservationServiceFee(experienceBase + addOnsAmount) : depositQuote?.serviceFee || 0;
+  const paymentTotal = Math.round((paymentBase + chargedAddOns + paymentServiceFee) * 100) / 100;
 
   const startDate = date;
   const endDate = new Date(startDate);
@@ -367,7 +383,7 @@ async function createPublicReservation(formData: FormData) {
           marketingTrackingToken: marketingToken,
           offerCode,
           baseAmount: paymentBase,
-          addOnsAmount,
+          addOnsAmount: chargedAddOns,
           serviceFee: paymentServiceFee,
           totalAmount: paymentTotal,
           applicationFee: paymentServiceFee,
@@ -380,7 +396,7 @@ async function createPublicReservation(formData: FormData) {
           marketingTrackingToken: marketingToken,
           offerCode,
           baseAmount: paymentBase,
-          addOnsAmount,
+          addOnsAmount: chargedAddOns,
           serviceFee: paymentServiceFee,
           totalAmount: paymentTotal,
           applicationFee: paymentServiceFee,
@@ -404,6 +420,27 @@ async function createPublicReservation(formData: FormData) {
     const checkoutUrl = await createReservationCheckout(payment.id, slug);
     if (checkoutUrl) redirect(checkoutUrl);
     redirect(`/reserve/${slug}/success?reservationId=${encodeURIComponent(finalReservation.id)}`);
+  }
+
+  if (experience && !alreadyBooked) {
+    await prisma.$transaction(async (tx) => {
+      await tx.reservationExperienceAddOn.deleteMany({ where: { reservationId: finalReservation.id } });
+      if (selectedAddOns.length) {
+        await tx.reservationExperienceAddOn.createMany({
+          data: selectedAddOns.map((addOn) => {
+            const quantity = addOn.perGuest ? guests : 1;
+            return {
+              reservationId: finalReservation.id,
+              addOnId: addOn.id,
+              nameSnapshot: addOn.name,
+              unitPrice: addOn.price,
+              quantity,
+              totalAmount: Number(addOn.price) * quantity,
+            };
+          }),
+        });
+      }
+    });
   }
 
   if (offerCard) {
@@ -455,7 +492,7 @@ async function createPublicReservation(formData: FormData) {
       customerName,
     )}&guests=${finalReservation.guests}&date=${encodeURIComponent(
       date.toISOString(),
-    )}&status=${finalReservation.status}${alreadyBooked ? "&already=1" : ""}${offerCard ? `&offer=${encodeURIComponent(`${offerCard.title} · ${marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value), offerCard.benefitLabel)}`)}` : ""}`,
+    )}&status=${finalReservation.status}${alreadyBooked ? "&already=1" : ""}${experience ? `&experience=${encodeURIComponent(experience.title)}` : ""}${offerCard ? `&offer=${encodeURIComponent(`${offerCard.title} · ${marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value), offerCard.benefitLabel)}`)}` : ""}`,
   );
 }
 
@@ -486,7 +523,10 @@ export default async function PublicReservePage({
         orderBy: { number: "asc" },
       },
       diningExperiences: {
-        where: { active: true, startsAt: { gt: new Date() } },
+        where: {
+          active: true,
+          OR: [{ scheduleType: "FLEXIBLE" }, { scheduleType: "FIXED", startsAt: { gt: new Date() } }],
+        },
         include: {
           addOns: { where: { active: true }, orderBy: { createdAt: "asc" } },
           reservations: { where: { status: { notIn: ["CANCELLED", "REJECTED", "NO_SHOW"] } }, select: { guests: true } },
@@ -522,17 +562,21 @@ export default async function PublicReservePage({
     minSpend: offerCard.minSpend ? `Consumo mínimo: ${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(Number(offerCard.minSpend))}` : null,
     terms: offerCard.terms,
   } : undefined;
-  const experiences = restaurant.paymentsStripeAccountId && restaurant.paymentsStripeOnboardingComplete
-    ? restaurant.diningExperiences.map((experience) => ({
+  const experiences = restaurant.diningExperiences.map((experience) => ({
         id: experience.id,
         title: experience.title,
         summary: experience.summary,
-        startsAt: experience.startsAt.toISOString(),
+        details: experience.details,
+        servicePeriods: experience.servicePeriods,
+        scheduleType: experience.scheduleType,
+        paymentMode: experience.paymentMode,
+        startsAt: experience.startsAt?.toISOString() || null,
         pricePerPerson: Number(experience.pricePerPerson),
-        capacityRemaining: Math.max(0, experience.capacity - experience.reservations.reduce((sum, reservation) => sum + reservation.guests, 0)),
+        capacityRemaining: experience.scheduleType === "FIXED"
+          ? Math.max(0, experience.capacity - experience.reservations.reduce((sum, reservation) => sum + reservation.guests, 0))
+          : experience.capacity,
         addOns: experience.addOns.map((addOn) => ({ id: addOn.id, name: addOn.name, description: addOn.description, price: Number(addOn.price), perGuest: addOn.perGuest })),
-      })).filter((experience) => experience.capacityRemaining > 0)
-    : [];
+      })).filter((experience) => experience.capacityRemaining > 0 && (experience.paymentMode !== "PREPAID" || Boolean(restaurant.paymentsStripeAccountId && restaurant.paymentsStripeOnboardingComplete)));
   const noShowRule = {
     enabled: restaurant.noShowProtectionEnabled,
     minGuests: restaurant.noShowMinGuests,

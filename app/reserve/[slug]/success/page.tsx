@@ -25,12 +25,13 @@ export default async function ReservationSuccessPage({
     status?: string;
     already?: string;
     offer?: string;
+    experience?: string;
     session_id?: string;
     reservationId?: string;
   }>;
 }) {
   const { slug } = await params;
-  const { name, guests, date, status, already, offer, session_id: sessionId, reservationId } = await searchParams;
+  const { name, guests, date, status, already, offer, experience, session_id: sessionId, reservationId } = await searchParams;
 
   let paidReservationId = reservationId || null;
   if (sessionId && /^cs_/.test(sessionId)) {
@@ -126,7 +127,7 @@ export default async function ReservationSuccessPage({
               value={isPending ? t("statusPending") : t("statusConfirmed")}
               highlight
             />
-            {verifiedPaidReservation?.experience && <InfoRow label="Experiência" value={verifiedPaidReservation.experience.title} highlight />}
+            {(verifiedPaidReservation?.experience?.title || experience) && <InfoRow label="Menu" value={verifiedPaidReservation?.experience?.title || experience || ""} highlight />}
             {verifiedPaidReservation?.payment?.status === "PAID" && <InfoRow label="Pagamento" value={`${new Intl.NumberFormat(intlLocale, { style: "currency", currency: verifiedPaidReservation.payment.currency }).format(Number(verifiedPaidReservation.payment.totalAmount))} · pago`} highlight />}
             {offer && <InfoRow label={t("labels.offer")} value={offer} highlight />}
           </div>

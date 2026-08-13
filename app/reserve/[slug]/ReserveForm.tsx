@@ -85,7 +85,11 @@ type DiningExperience = {
   id: string;
   title: string;
   summary: string;
-  startsAt: string;
+  details: string | null;
+  servicePeriods: string[];
+  scheduleType: "FLEXIBLE" | "FIXED" | string;
+  paymentMode: "AT_RESTAURANT" | "PREPAID" | string;
+  startsAt: string | null;
   pricePerPerson: number;
   capacityRemaining: number;
   addOns: { id: string; name: string; description: string | null; price: number; perGuest: boolean }[];
@@ -169,6 +173,11 @@ function dateFromValue(value: string) {
   return new Date(year, month - 1, day);
 }
 
+function servicePeriodForHour(hour: string) {
+  const value = Number(hour.split(":")[0]);
+  return Number.isFinite(value) && value < 17 ? "LUNCH" : "DINNER";
+}
+
 export default function ReserveForm({
   restaurant,
   error,
@@ -210,14 +219,21 @@ export default function ReserveForm({
     () => getAvailableHoursForDay(restaurant, selectedDay),
     [restaurant, selectedDay],
   );
-  const selectedExperience = experiences.find((experience) => experience.id === selectedExperienceId) || null;
-  const experienceDate = selectedExperience ? new Date(selectedExperience.startsAt) : null;
+  const requestedExperience = experiences.find((experience) => experience.id === selectedExperienceId) || null;
+  const fixedExperience = requestedExperience?.scheduleType === "FIXED" ? requestedExperience : null;
+  const experienceDate = fixedExperience?.startsAt ? new Date(fixedExperience.startsAt) : null;
   const experienceDay = experienceDate ? localDateValue(experienceDate) : "";
   const experienceHour = experienceDate ? `${String(experienceDate.getHours()).padStart(2, "0")}:${String(experienceDate.getMinutes()).padStart(2, "0")}` : "";
-  const resolvedHour = selectedExperience ? experienceHour : availableHours.includes(selectedHour) ? selectedHour : availableHours[0] ?? "";
-  const effectiveSelectedDay = selectedExperience ? experienceDay : selectedDay;
+  const normalResolvedHour = availableHours.includes(selectedHour) ? selectedHour : availableHours[0] ?? "";
+  const resolvedHour = fixedExperience ? experienceHour : normalResolvedHour;
+  const selectedExperience = requestedExperience && (
+    requestedExperience.scheduleType === "FIXED"
+    || requestedExperience.servicePeriods.includes(servicePeriodForHour(resolvedHour))
+  ) ? requestedExperience : null;
+  const effectiveSelectedDay = fixedExperience ? experienceDay : selectedDay;
   const selectedDateValue = resolvedHour ? `${effectiveSelectedDay}T${resolvedHour}` : "";
-  const isCapacityMode = restaurant.reservationMode === "CAPACITY" || Boolean(selectedExperience);
+  const isCapacityMode = restaurant.reservationMode === "CAPACITY" || selectedExperience?.scheduleType === "FIXED";
+  const availableExperiences = experiences.filter((experience) => experience.scheduleType === "FIXED" || experience.servicePeriods.includes(servicePeriodForHour(normalResolvedHour)));
 
   const freeTables = (() => {
     if (!resolvedHour) return [];
@@ -241,11 +257,13 @@ export default function ReserveForm({
   const selectedAddOns = selectedExperience?.addOns.filter((addOn) => selectedAddOnIds.includes(addOn.id)) || [];
   const experienceBase = selectedExperience ? selectedExperience.pricePerPerson * guests : 0;
   const experienceAddOns = selectedAddOns.reduce((sum, addOn) => sum + addOn.price * (addOn.perGuest ? guests : 1), 0);
-  const experienceFee = selectedExperience ? reservationServiceFee(experienceBase + experienceAddOns) : 0;
-  const experienceTotal = experienceBase + experienceAddOns + experienceFee;
+  const experienceSubtotal = experienceBase + experienceAddOns;
+  const experienceFee = selectedExperience?.paymentMode === "PREPAID" ? reservationServiceFee(experienceSubtotal) : 0;
+  const experienceTotal = experienceSubtotal + experienceFee;
   const depositQuote = !selectedExperience && selectedDateValue
     ? noShowDepositForReservation(noShowRule, new Date(`${selectedDateValue}:00`), guests)
     : null;
+  const requiresPayment = selectedExperience?.paymentMode === "PREPAID" || Boolean(depositQuote);
 
   if (!restaurant.onlineReservationsEnabled) {
     return <PublicShell restaurant={restaurant}>
@@ -290,12 +308,13 @@ export default function ReserveForm({
               {error === "capacity" && <Alert tone="red" title={t("errors.capacity.title")} text={t("errors.capacity.text")} />}
               {error === "email" && <Alert tone="red" title={t("errors.email.title")} text={t("errors.email.text")} />}
               {error === "payment" && <Alert tone="red" title="Pagamento não concluído" text="A reserva ainda não foi confirmada. Tenta novamente ou escolhe uma reserva normal." />}
-              {error === "experience" && <Alert tone="red" title="Experiência indisponível" text="Entretanto esta experiência ficou sem lugares ou deixou de estar à venda." />}
+              {error === "experience" && <Alert tone="red" title="Menu indisponível" text="Entretanto este menu ficou indisponível para esta data ou serviço." />}
 
-              {experiences.length > 0 && <section className="mb-4"><div className="mb-2 flex items-center justify-between"><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#A27438]">Escolhe como reservar</p><span className="text-[10px] text-[#8A7C6D]">Experiências com pagamento seguro</span></div><div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><button type="button" onClick={() => { setSelectedExperienceId(""); setSelectedAddOnIds([]); }} className={`min-w-[150px] rounded-[18px] border p-3 text-left transition ${!selectedExperience ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#E1D0B8] bg-white"}`}><CalendarDays size={16} className={!selectedExperience ? "text-[#D7B267]" : "text-[#9B6F3B]"}/><p className="mt-3 text-sm font-bold">Reserva normal</p><p className={`mt-1 text-[10px] ${!selectedExperience ? "text-white/55" : "text-[#827568]"}`}>Escolher data e hora</p></button>{experiences.map((experience) => { const active = selectedExperienceId === experience.id; const starts = new Date(experience.startsAt); return <button key={experience.id} type="button" onClick={() => { setSelectedExperienceId(experience.id); setSelectedAddOnIds([]); setGuests((current) => Math.min(current, experience.capacityRemaining)); }} className={`min-w-[220px] rounded-[18px] border p-3 text-left transition ${active ? "border-[#A97C42] bg-[#FFF3D8] shadow-sm" : "border-[#E1D0B8] bg-white"}`}><div className="flex items-center justify-between gap-2"><Gift size={16} className="text-[#9B6F3B]"/><strong className="text-sm text-[#9B6F3B]">{formatMoney(experience.pricePerPerson)} / pessoa</strong></div><p className="mt-3 line-clamp-1 text-sm font-bold">{experience.title}</p><p className="mt-1 text-[10px] text-[#827568]">{starts.toLocaleDateString(locale, { day: "numeric", month: "short" })} · {starts.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })} · {experience.capacityRemaining} lugares</p></button>; })}</div></section>}
+              {experiences.length > 0 && <section className="mb-4"><div className="mb-2 flex flex-wrap items-end justify-between gap-1"><div><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#A27438]">Menus disponíveis</p><p className="mt-1 text-xs font-semibold text-[#6F6255]">Escolher um menu é opcional.</p></div><span className="text-[10px] text-[#8A7C6D]">Preço definido por pessoa</span></div><div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><button type="button" onClick={() => { setSelectedExperienceId(""); setSelectedAddOnIds([]); }} className={`min-w-[150px] rounded-[18px] border p-3 text-left transition ${!selectedExperience ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#E1D0B8] bg-white"}`}><CalendarDays size={16} className={!selectedExperience ? "text-[#D7B267]" : "text-[#9B6F3B]"}/><p className="mt-3 text-sm font-bold">Sem menu</p><p className={`mt-1 text-[10px] ${!selectedExperience ? "text-white/55" : "text-[#827568]"}`}>Reservar apenas a mesa</p></button>{availableExperiences.map((experience) => { const active = selectedExperience?.id === experience.id; const starts = experience.startsAt ? new Date(experience.startsAt) : null; const period = experience.servicePeriods.length === 1 ? experience.servicePeriods[0] === "LUNCH" ? "Só almoços" : "Só jantares" : "Almoço e jantar"; return <button key={experience.id} type="button" onClick={() => { setSelectedExperienceId(experience.id); setSelectedAddOnIds([]); setGuests((current) => Math.min(current, experience.capacityRemaining)); }} className={`min-w-[232px] rounded-[18px] border p-3 text-left transition ${active ? "border-[#A97C42] bg-[#FFF3D8] shadow-sm" : "border-[#E1D0B8] bg-white"}`}><div className="flex items-center justify-between gap-2"><Gift size={16} className="text-[#9B6F3B]"/><strong className="text-sm text-[#9B6F3B]">{formatMoney(experience.pricePerPerson)} / pessoa</strong></div><p className="mt-3 line-clamp-1 text-sm font-bold">{experience.title}</p><p className="mt-1 text-[10px] text-[#827568]">{starts ? `${starts.toLocaleDateString(locale, { day: "numeric", month: "short" })} · ${starts.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}` : period} · {experience.paymentMode === "PREPAID" ? "pré-pago" : "paga no restaurante"}</p></button>; })}</div></section>}
 
               <div className="rounded-[22px] border border-[#E4D7C6] bg-[#FBF8F4] p-3.5 sm:p-5">
-                {selectedExperience ? <div className="rounded-[18px] border border-[#D8C29D] bg-[#FFF8EC] p-4"><div className="flex items-start justify-between gap-4"><div><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#9B6F3B]">Experiência selecionada</p><h2 className="mt-1 text-xl font-semibold tracking-[-.04em]">{selectedExperience.title}</h2><p className="mt-1 text-xs leading-5 text-[#756A60]">{selectedExperience.summary}</p></div><TicketBadge /></div><div className="mt-3 flex flex-wrap gap-2"><span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold">{fullSelectedDate}</span><span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold">{resolvedHour}</span></div></div> : <>
+                {selectedExperience && <div className="mb-4 rounded-[18px] border border-[#D8C29D] bg-[#FFF8EC] p-4"><div className="flex items-start justify-between gap-4"><div><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#9B6F3B]">Menu selecionado</p><h2 className="mt-1 text-xl font-semibold tracking-[-.04em]">{selectedExperience.title}</h2><p className="mt-1 text-xs leading-5 text-[#756A60]">{selectedExperience.summary}</p></div><TicketBadge /></div>{selectedExperience.details && <details className="mt-3 rounded-[14px] border border-[#E4D4BD] bg-white"><summary className="cursor-pointer px-3 py-2.5 text-xs font-bold">Ver tudo o que está incluído</summary><p className="whitespace-pre-line border-t border-[#EEE2D1] px-3 py-3 text-[11px] leading-5 text-[#62574C]">{selectedExperience.details}</p></details>}<div className="mt-3 flex flex-wrap gap-2"><span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold">{formatMoney(selectedExperience.pricePerPerson)} / pessoa</span><span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold">{selectedExperience.paymentMode === "PREPAID" ? "Pagamento na reserva" : "Pagamento no restaurante"}</span></div></div>}
+                {selectedExperience?.scheduleType !== "FIXED" && <>
                 <PickerHeading icon={<CalendarDays size={16} />} title={t("steps.when")} value={fullSelectedDate} />
                 <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {quickDays.map(({ value, date }) => {
@@ -334,8 +353,8 @@ export default function ReserveForm({
                 </div>
               </div>
 
-              {selectedExperience?.addOns.length ? <section className="mt-3 rounded-[20px] border border-[#E4D7C6] bg-white p-4"><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#A27438]">Personaliza a experiência</p><div className="mt-3 grid gap-2 sm:grid-cols-2">{selectedExperience.addOns.map((addOn) => { const selected = selectedAddOnIds.includes(addOn.id); return <label key={addOn.id} className={`flex cursor-pointer items-center gap-3 rounded-[16px] border p-3 transition ${selected ? "border-[#A97C42] bg-[#FFF8EC]" : "border-[#E6D9C8]"}`}><input type="checkbox" checked={selected} onChange={() => setSelectedAddOnIds((current) => current.includes(addOn.id) ? current.filter((id) => id !== addOn.id) : [...current, addOn.id])} className="h-4 w-4 accent-[#17120D]"/><span className="min-w-0 flex-1"><span className="block text-sm font-bold">{addOn.name}</span><span className="block text-[10px] text-[#817568]">{formatMoney(addOn.price)}{addOn.perGuest ? " / pessoa" : ""}</span></span></label>; })}</div></section> : null}
-              {(selectedExperience || depositQuote) && <section className="mt-3 flex items-start gap-3 rounded-[18px] border border-[#C9B080] bg-[#FFF3D8] p-4"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#9B6F3B]"><CreditCard size={16}/></span><div><p className="text-sm font-bold">{selectedExperience ? `Pré-pagamento: ${formatMoney(experienceTotal)}` : `Depósito: ${formatMoney(depositQuote?.totalAmount || 0)}`}</p><p className="mt-1 text-[11px] leading-5 text-[#766550]">{selectedExperience ? `Inclui ${formatMoney(experienceBase + experienceAddOns)} para o restaurante e ${formatMoney(experienceFee)} de serviço.` : `O depósito de ${formatMoney(depositQuote?.baseAmount || 0)} é descontado na conta final. A taxa de serviço é ${formatMoney(depositQuote?.serviceFee || 0)}.`} Pagamento seguro pela Stripe.</p></div></section>}
+              {selectedExperience?.addOns.length ? <section className="mt-3 rounded-[20px] border border-[#E4D7C6] bg-white p-4"><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#A27438]">Extras opcionais do menu</p><div className="mt-3 grid gap-2 sm:grid-cols-2">{selectedExperience.addOns.map((addOn) => { const selected = selectedAddOnIds.includes(addOn.id); return <label key={addOn.id} className={`flex cursor-pointer items-center gap-3 rounded-[16px] border p-3 transition ${selected ? "border-[#A97C42] bg-[#FFF8EC]" : "border-[#E6D9C8]"}`}><input type="checkbox" checked={selected} onChange={() => setSelectedAddOnIds((current) => current.includes(addOn.id) ? current.filter((id) => id !== addOn.id) : [...current, addOn.id])} className="h-4 w-4 accent-[#17120D]"/><span className="min-w-0 flex-1"><span className="block text-sm font-bold">{addOn.name}</span><span className="block text-[10px] text-[#817568]">{formatMoney(addOn.price)}{addOn.perGuest ? " / pessoa" : ""}</span></span></label>; })}</div></section> : null}
+              {(selectedExperience || depositQuote) && <section className="mt-3 flex items-start gap-3 rounded-[18px] border border-[#C9B080] bg-[#FFF3D8] p-4"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#9B6F3B]"><CreditCard size={16}/></span><div><p className="text-sm font-bold">{selectedExperience?.paymentMode === "PREPAID" ? `Pré-pagamento: ${formatMoney(experienceTotal)}` : depositQuote ? `Depósito: ${formatMoney(depositQuote.totalAmount)}` : `Paga no restaurante · ${formatMoney(experienceSubtotal)} estimados`}</p><p className="mt-1 text-[11px] leading-5 text-[#766550]">{selectedExperience?.paymentMode === "PREPAID" ? `Inclui ${formatMoney(experienceSubtotal)} para o restaurante e ${formatMoney(experienceFee)} de serviço. Pagamento seguro pela Stripe.` : depositQuote ? `O menu e os extras são pagos no restaurante. O depósito de ${formatMoney(depositQuote.baseAmount)} é descontado na conta final; a taxa de serviço é ${formatMoney(depositQuote.serviceFee)}.` : `Não é pedido cartão nem depósito. O valor final depende do número de pessoas e dos extras escolhidos.`}</p></div></section>}
 
               {!isCapacityMode && resolvedHour && availableTables.length === 0 && !tableCombination && <Alert tone="red" title={t("noTables.title")} text={t("noTables.text", { guests })} />}
               {tableCombination && <Alert tone="yellow" title={t("pendingApproval.title")} text={t("pendingApproval.text", { guests })} />}
@@ -355,7 +374,7 @@ export default function ReserveForm({
                 <input type="hidden" name="guests" value={guests} />
                 <input type="hidden" name="reservationMode" value={restaurant.reservationMode} />
                 {!isCapacityMode && <input type="hidden" name="tableId" value={tableIdToSubmit} />}
-                <input type="hidden" name="status" value={!selectedExperience && isPendingRequest ? "PENDING" : "CONFIRMED"} />
+                <input type="hidden" name="status" value={isPendingRequest ? "PENDING" : "CONFIRMED"} />
 
                 <div className="flex items-center justify-between gap-3">
                   <div><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#A27438]">{t("steps.details")}</p><p className="mt-1 text-xs text-[#786D61]">{t("consent")}</p></div>
@@ -379,10 +398,10 @@ export default function ReserveForm({
 
                 <div className="sticky bottom-3 z-20 mt-5 rounded-[21px] border border-white/10 bg-[#17120D] p-2.5 text-white shadow-[0_18px_45px_rgba(23,18,13,.28)] sm:static sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-3">
                   <div className="mb-2 flex items-center justify-between gap-3 px-2 sm:mb-0 sm:justify-start">
-                    <div><p className="text-[8px] font-black uppercase tracking-[0.15em] text-[#D7B267]">{friendlySelectedDate}</p><p className="mt-0.5 text-sm font-bold">{resolvedHour || "—"} · {t("guestCount", { count: guests })}{selectedExperience ? ` · ${formatMoney(experienceTotal)}` : depositQuote ? ` · depósito ${formatMoney(depositQuote.totalAmount)}` : ""}</p></div>
+                    <div><p className="text-[8px] font-black uppercase tracking-[0.15em] text-[#D7B267]">{friendlySelectedDate}</p><p className="mt-0.5 text-sm font-bold">{resolvedHour || "—"} · {t("guestCount", { count: guests })}{selectedExperience ? ` · ${formatMoney(selectedExperience.paymentMode === "PREPAID" ? experienceTotal : experienceSubtotal)}` : depositQuote ? ` · depósito ${formatMoney(depositQuote.totalAmount)}` : ""}</p></div>
                     {offer && <span className="rounded-full bg-[#D7B267] px-2.5 py-1 text-[9px] font-black text-[#17120D]">{offer.benefit}</span>}
                   </div>
-                  <button type="submit" disabled={!canSubmit || isSubmitting} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[15px] bg-[#D7B267] px-6 text-sm font-black text-[#17120D] transition hover:bg-[#E4C47F] disabled:cursor-not-allowed disabled:bg-white/12 disabled:text-white/35 sm:w-auto sm:min-w-[210px]">{isSubmitting ? t("submitProcessing") : selectedExperience || depositQuote ? "Continuar para pagamento" : isPendingRequest ? t("submitRequest") : t("submitConfirm")} {!isSubmitting && <Check size={16} />}</button>
+                  <button type="submit" disabled={!canSubmit || isSubmitting} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[15px] bg-[#D7B267] px-6 text-sm font-black text-[#17120D] transition hover:bg-[#E4C47F] disabled:cursor-not-allowed disabled:bg-white/12 disabled:text-white/35 sm:w-auto sm:min-w-[210px]">{isSubmitting ? t("submitProcessing") : requiresPayment ? "Continuar para pagamento" : isPendingRequest ? t("submitRequest") : t("submitConfirm")} {!isSubmitting && <Check size={16} />}</button>
                 </div>
                 <div className="mt-2 text-center"><Link href="/" aria-label="Visitar MesaLink" className="inline-flex min-h-9 items-center rounded-full px-3 text-[11px] font-bold text-[#8B7863] transition hover:bg-[#F5EBDD] hover:text-[#17120D]">{t("poweredBy")}</Link></div>
               </form>

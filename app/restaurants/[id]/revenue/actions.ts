@@ -48,19 +48,25 @@ export async function createExperience(restaurantId: string, formData: FormData)
   await assertRestaurantOwner(restaurantId);
   const restaurant = await prisma.restaurant.findUnique({
     where: { id: restaurantId },
-    select: { paymentsStripeOnboardingComplete: true, paymentsStripeAccountId: true, websiteHeroImage: true },
+    select: { paymentsStripeOnboardingComplete: true, paymentsStripeAccountId: true, websiteHeroImage: true, slug: true },
   });
-  if (!restaurant?.paymentsStripeAccountId || !restaurant.paymentsStripeOnboardingComplete) {
+  if (!restaurant) throw new Error("Restaurante não encontrado.");
+
+  const scheduleType = formData.get("scheduleType") === "FIXED" ? "FIXED" : "FLEXIBLE";
+  const paymentMode = formData.get("paymentMode") === "PREPAID" ? "PREPAID" : "AT_RESTAURANT";
+  if (paymentMode === "PREPAID" && (!restaurant.paymentsStripeAccountId || !restaurant.paymentsStripeOnboardingComplete)) {
     redirect(`/restaurants/${restaurantId}/revenue?tab=experiences&result=connect-required`);
   }
 
   const title = String(formData.get("title") || "").trim().slice(0, 90);
   const summary = String(formData.get("summary") || "").trim().slice(0, 320);
-  const startsAt = lisbonLocalToUtc(String(formData.get("startsAt") || ""));
+  const details = String(formData.get("details") || "").trim().slice(0, 6000) || null;
+  const servicePeriods = ["LUNCH", "DINNER"].filter((period) => formData.getAll("servicePeriods").map(String).includes(period));
+  const startsAt = scheduleType === "FIXED" ? lisbonLocalToUtc(String(formData.get("startsAt") || "")) : null;
   const pricePerPerson = boundedNumber(formData.get("pricePerPerson"), 1, 5000, 0);
   const capacity = boundedInt(formData.get("capacity"), 1, 1000, 0);
   const cancellationHours = boundedInt(formData.get("cancellationHours"), 1, 336, 48);
-  if (!title || !summary || !startsAt || startsAt <= new Date() || !pricePerPerson || !capacity) {
+  if (!title || !summary || !servicePeriods.length || (scheduleType === "FIXED" && (!startsAt || startsAt <= new Date())) || !pricePerPerson || !capacity) {
     redirect(`/restaurants/${restaurantId}/revenue?tab=experiences&result=invalid`);
   }
 
@@ -76,6 +82,10 @@ export async function createExperience(restaurantId: string, formData: FormData)
       restaurantId,
       title,
       summary,
+      details,
+      servicePeriods,
+      scheduleType,
+      paymentMode,
       startsAt,
       durationMinutes: boundedInt(formData.get("durationMinutes"), 30, 720, 120),
       pricePerPerson,
@@ -86,7 +96,7 @@ export async function createExperience(restaurantId: string, formData: FormData)
     },
   });
   revalidatePath(`/restaurants/${restaurantId}/revenue`);
-  revalidatePath(`/reserve`);
+  revalidatePath(`/reserve/${restaurant.slug}`);
   redirect(`/restaurants/${restaurantId}/revenue?tab=experiences&result=created`);
 }
 
