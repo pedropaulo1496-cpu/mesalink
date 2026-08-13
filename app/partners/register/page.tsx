@@ -83,14 +83,6 @@ export default function PartnerRegisterPage() {
               <input name="email" type="email" required placeholder="Email profissional" className={inputClass} />
               <input name="password" type="password" minLength={8} required placeholder="Password (mín. 8 caracteres)" className={inputClass} />
             </div>
-            <div className="grid gap-4 sm:grid-cols-[1fr_160px]">
-              <select name="commissionType" className={inputClass} defaultValue="PER_PERSON">
-                <option value="PER_PERSON">Comissão por pessoa</option>
-                <option value="TOTAL">Comissão total</option>
-              </select>
-              <div className="relative"><input name="commissionAmount" type="number" min="1" max="1000" step="0.01" defaultValue="1" required className={`${inputClass} pr-10`} /><span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-[#8A6130]">€</span></div>
-            </div>
-            <div className="rounded-xl border border-[#E4D2B4] bg-[#FFF9ED] px-3.5 py-3 text-[11px] leading-4 text-[#6B6258]">O valor a receber é apresentado líquido, após a comissão MesaLink, taxas e impostos aplicáveis. Os pagamentos são processados após a refeição e a verificação da fatura.</div>
             <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedTerms" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Aceito os <Link href="/terms" target="_blank" className="font-bold text-[#17120D] underline">Termos e Condições</Link> do MesaLink.</span></label>
             <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedPrivacy" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Li a <Link href="/privacy" target="_blank" className="font-bold text-[#17120D] underline">Política de Privacidade</Link> e confirmo que tenho autorização para fornecer o contacto necessário à reserva.</span></label>
             {error && <p className="rounded-2xl bg-[#FFF0EA] px-4 py-3 text-sm font-semibold text-[#A14E36]">{error}</p>}

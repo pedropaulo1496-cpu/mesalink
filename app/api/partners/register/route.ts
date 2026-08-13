@@ -2,7 +2,6 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/validation";
-import { isCommissionType } from "@/lib/referrals";
 
 const partnerTypes = new Set(["HOTEL", "CONCIERGE", "INFLUENCER", "GUIDE", "AGENCY", "COMPANY", "OTHER"]);
 
@@ -14,8 +13,6 @@ export async function POST(request: Request) {
     const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
     const password = typeof body?.password === "string" ? body.password : "";
     const partnerType = partnerTypes.has(body?.partnerType) ? body.partnerType : "";
-    const commissionType = isCommissionType(body?.commissionType) ? body.commissionType : "PER_PERSON";
-    const commissionAmount = Number(body?.commissionAmount);
     const acceptedTerms = body?.acceptedTerms === "on" || body?.acceptedTerms === true;
     const acceptedPrivacy = body?.acceptedPrivacy === "on" || body?.acceptedPrivacy === true;
 
@@ -24,10 +21,6 @@ export async function POST(request: Request) {
         { error: "Preenche os dados, escolhe o tipo de parceiro e usa uma password com pelo menos 8 caracteres." },
         { status: 400 },
       );
-    }
-
-    if (!Number.isFinite(commissionAmount) || commissionAmount <= 0 || commissionAmount > 1000) {
-      return NextResponse.json({ error: "A comissão indicada não é válida." }, { status: 400 });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -51,8 +44,6 @@ export async function POST(request: Request) {
           passwordHash,
           partnerType,
           status: "PENDING",
-          defaultCommissionType: commissionType,
-          defaultCommissionAmount: commissionAmount,
           termsAcceptedAt: new Date(),
           privacyAcceptedAt: new Date(),
           termsVersion: "partners-v1-2026-08-11",

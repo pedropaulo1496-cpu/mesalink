@@ -184,7 +184,7 @@ export default async function PartnerAppPage({
           <div className="flex items-center gap-2 rounded-full border border-[#BAD8B7] bg-[#EFF9EF] px-4 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={16} /> Privacidade ativa</div>
         </section>
 
-        <NewReferralGroupForm restaurants={restaurantOptions} defaultCommissionType={partner.defaultCommissionType} defaultCommissionAmount={1} publishingEnabled={partner.stripeOnboardingComplete} />
+        <NewReferralGroupForm restaurants={restaurantOptions} publishingEnabled={partner.stripeOnboardingComplete} />
         </>}
 
         {tab === "stats" && <>

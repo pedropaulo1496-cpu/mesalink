@@ -25,13 +25,9 @@ export type PartnerRestaurant = {
 
 export default function NewReferralGroupForm({
   restaurants,
-  defaultCommissionType,
-  defaultCommissionAmount,
   publishingEnabled = true,
 }: {
   restaurants: PartnerRestaurant[];
-  defaultCommissionType: string;
-  defaultCommissionAmount: number;
   publishingEnabled?: boolean;
 }) {
   const [selected, setSelected] = useState<string[]>([]);
@@ -43,8 +39,8 @@ export default function NewReferralGroupForm({
   const [requirements, setRequirements] = useState<string[]>([]);
   const [adults, setAdults] = useState(6);
   const [children, setChildren] = useState(0);
-  const [commissionType, setCommissionType] = useState(defaultCommissionType);
-  const [commissionAmount, setCommissionAmount] = useState(defaultCommissionAmount || 1);
+  const [commissionType, setCommissionType] = useState("PER_PERSON");
+  const [commissionAmount, setCommissionAmount] = useState(1);
   const [currentPosition, setCurrentPosition] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationState, setLocationState] = useState<"loading" | "ready" | "denied" | "unsupported">("loading");
   const [loading, setLoading] = useState(false);
