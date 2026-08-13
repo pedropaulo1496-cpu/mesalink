@@ -9,6 +9,8 @@ import {
   Check,
   ChevronDown,
   Clock3,
+  CreditCard,
+  Gift,
   MapPin,
   Minus,
   Plus,
@@ -18,6 +20,7 @@ import {
 } from "lucide-react";
 import PhoneField from "@/components/PhoneField";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { noShowDepositForReservation, reservationServiceFee, type NoShowRule } from "@/lib/reservation-commerce";
 
 type Reservation = {
   id: string;
@@ -76,6 +79,16 @@ type ReservationOffer = {
   customerPhone: string | null;
   minSpend: string | null;
   terms: string | null;
+};
+
+type DiningExperience = {
+  id: string;
+  title: string;
+  summary: string;
+  startsAt: string;
+  pricePerPerson: number;
+  capacityRemaining: number;
+  addOns: { id: string; name: string; description: string | null; price: number; perGuest: boolean }[];
 };
 
 const weekdayKeys = [
@@ -162,6 +175,8 @@ export default function ReserveForm({
   marketingToken,
   offer,
   offerUnavailable,
+  experiences,
+  noShowRule,
   createPublicReservation,
 }: {
   restaurant: Restaurant;
@@ -169,6 +184,8 @@ export default function ReserveForm({
   marketingToken?: string;
   offer?: ReservationOffer;
   offerUnavailable?: boolean;
+  experiences: DiningExperience[];
+  noShowRule: NoShowRule;
   createPublicReservation: (formData: FormData) => void;
 }) {
   const t = useTranslations("publicFlows.reserve");
@@ -177,6 +194,8 @@ export default function ReserveForm({
   const [selectedDay, setSelectedDay] = useState(today);
   const [selectedHour, setSelectedHour] = useState("");
   const [guests, setGuests] = useState(2);
+  const [selectedExperienceId, setSelectedExperienceId] = useState("");
+  const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hasSubmittedRef = useRef(false);
 
@@ -191,29 +210,42 @@ export default function ReserveForm({
     () => getAvailableHoursForDay(restaurant, selectedDay),
     [restaurant, selectedDay],
   );
-  const resolvedHour = availableHours.includes(selectedHour) ? selectedHour : availableHours[0] ?? "";
-  const selectedDateValue = resolvedHour ? `${selectedDay}T${resolvedHour}` : "";
-  const isCapacityMode = restaurant.reservationMode === "CAPACITY";
+  const selectedExperience = experiences.find((experience) => experience.id === selectedExperienceId) || null;
+  const experienceDate = selectedExperience ? new Date(selectedExperience.startsAt) : null;
+  const experienceDay = experienceDate ? localDateValue(experienceDate) : "";
+  const experienceHour = experienceDate ? `${String(experienceDate.getHours()).padStart(2, "0")}:${String(experienceDate.getMinutes()).padStart(2, "0")}` : "";
+  const resolvedHour = selectedExperience ? experienceHour : availableHours.includes(selectedHour) ? selectedHour : availableHours[0] ?? "";
+  const effectiveSelectedDay = selectedExperience ? experienceDay : selectedDay;
+  const selectedDateValue = resolvedHour ? `${effectiveSelectedDay}T${resolvedHour}` : "";
+  const isCapacityMode = restaurant.reservationMode === "CAPACITY" || Boolean(selectedExperience);
 
-  const freeTables = useMemo(() => {
+  const freeTables = (() => {
     if (!resolvedHour) return [];
-    const date = new Date(`${selectedDay}T${resolvedHour}:00`);
+    const date = new Date(`${effectiveSelectedDay}T${resolvedHour}:00`);
     return restaurant.tables.filter((table) => isTableAvailable(date, table.reservations));
-  }, [restaurant.tables, selectedDay, resolvedHour]);
-  const availableTables = useMemo(() => freeTables.filter((table) => table.capacity >= guests), [freeTables, guests]);
-  const tableCombination = useMemo(() => {
+  })();
+  const availableTables = freeTables.filter((table) => table.capacity >= guests);
+  const tableCombination = (() => {
     if (isCapacityMode || availableTables.length > 0) return null;
     return findTableCombination(freeTables, guests);
-  }, [availableTables.length, freeTables, guests, isCapacityMode]);
+  })();
   const isPendingRequest = !isCapacityMode && availableTables.length === 0 && !!tableCombination;
   const tableIdToSubmit = isPendingRequest
     ? tableCombination?.tables[0]?.id ?? ""
     : isCapacityMode ? "" : availableTables[0]?.id ?? "";
   const canSubmit = Boolean(resolvedHour && (isCapacityMode || tableIdToSubmit));
 
-  const selectedDate = dateFromValue(selectedDay);
+  const selectedDate = dateFromValue(effectiveSelectedDay);
   const friendlySelectedDate = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short" }).format(selectedDate);
   const fullSelectedDate = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(selectedDate);
+  const selectedAddOns = selectedExperience?.addOns.filter((addOn) => selectedAddOnIds.includes(addOn.id)) || [];
+  const experienceBase = selectedExperience ? selectedExperience.pricePerPerson * guests : 0;
+  const experienceAddOns = selectedAddOns.reduce((sum, addOn) => sum + addOn.price * (addOn.perGuest ? guests : 1), 0);
+  const experienceFee = selectedExperience ? reservationServiceFee(experienceBase + experienceAddOns) : 0;
+  const experienceTotal = experienceBase + experienceAddOns + experienceFee;
+  const depositQuote = !selectedExperience && selectedDateValue
+    ? noShowDepositForReservation(noShowRule, new Date(`${selectedDateValue}:00`), guests)
+    : null;
 
   if (!restaurant.onlineReservationsEnabled) {
     return <PublicShell restaurant={restaurant}>
@@ -257,8 +289,13 @@ export default function ReserveForm({
               {error === "past" && <Alert tone="red" title={t("errors.past.title")} text={t("errors.past.text")} />}
               {error === "capacity" && <Alert tone="red" title={t("errors.capacity.title")} text={t("errors.capacity.text")} />}
               {error === "email" && <Alert tone="red" title={t("errors.email.title")} text={t("errors.email.text")} />}
+              {error === "payment" && <Alert tone="red" title="Pagamento não concluído" text="A reserva ainda não foi confirmada. Tenta novamente ou escolhe uma reserva normal." />}
+              {error === "experience" && <Alert tone="red" title="Experiência indisponível" text="Entretanto esta experiência ficou sem lugares ou deixou de estar à venda." />}
+
+              {experiences.length > 0 && <section className="mb-4"><div className="mb-2 flex items-center justify-between"><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#A27438]">Escolhe como reservar</p><span className="text-[10px] text-[#8A7C6D]">Experiências com pagamento seguro</span></div><div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><button type="button" onClick={() => { setSelectedExperienceId(""); setSelectedAddOnIds([]); }} className={`min-w-[150px] rounded-[18px] border p-3 text-left transition ${!selectedExperience ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#E1D0B8] bg-white"}`}><CalendarDays size={16} className={!selectedExperience ? "text-[#D7B267]" : "text-[#9B6F3B]"}/><p className="mt-3 text-sm font-bold">Reserva normal</p><p className={`mt-1 text-[10px] ${!selectedExperience ? "text-white/55" : "text-[#827568]"}`}>Escolher data e hora</p></button>{experiences.map((experience) => { const active = selectedExperienceId === experience.id; const starts = new Date(experience.startsAt); return <button key={experience.id} type="button" onClick={() => { setSelectedExperienceId(experience.id); setSelectedAddOnIds([]); setGuests((current) => Math.min(current, experience.capacityRemaining)); }} className={`min-w-[220px] rounded-[18px] border p-3 text-left transition ${active ? "border-[#A97C42] bg-[#FFF3D8] shadow-sm" : "border-[#E1D0B8] bg-white"}`}><div className="flex items-center justify-between gap-2"><Gift size={16} className="text-[#9B6F3B]"/><strong className="text-sm text-[#9B6F3B]">{formatMoney(experience.pricePerPerson)} / pessoa</strong></div><p className="mt-3 line-clamp-1 text-sm font-bold">{experience.title}</p><p className="mt-1 text-[10px] text-[#827568]">{starts.toLocaleDateString(locale, { day: "numeric", month: "short" })} · {starts.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })} · {experience.capacityRemaining} lugares</p></button>; })}</div></section>}
 
               <div className="rounded-[22px] border border-[#E4D7C6] bg-[#FBF8F4] p-3.5 sm:p-5">
+                {selectedExperience ? <div className="rounded-[18px] border border-[#D8C29D] bg-[#FFF8EC] p-4"><div className="flex items-start justify-between gap-4"><div><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#9B6F3B]">Experiência selecionada</p><h2 className="mt-1 text-xl font-semibold tracking-[-.04em]">{selectedExperience.title}</h2><p className="mt-1 text-xs leading-5 text-[#756A60]">{selectedExperience.summary}</p></div><TicketBadge /></div><div className="mt-3 flex flex-wrap gap-2"><span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold">{fullSelectedDate}</span><span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold">{resolvedHour}</span></div></div> : <>
                 <PickerHeading icon={<CalendarDays size={16} />} title={t("steps.when")} value={fullSelectedDate} />
                 <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {quickDays.map(({ value, date }) => {
@@ -283,7 +320,7 @@ export default function ReserveForm({
                     const selected = resolvedHour === hour;
                     return <button key={hour} type="button" onClick={() => setSelectedHour(hour)} className={`h-10 min-w-[72px] rounded-full border px-4 text-xs font-bold transition ${selected ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#DED0BC] bg-white text-[#655B50] hover:border-[#A97C42]"}`}>{hour}</button>;
                   })}
-                </div>}
+                </div>}</>}
 
                 <div className="my-4 h-px bg-[#E8DDCF]" />
 
@@ -291,11 +328,14 @@ export default function ReserveForm({
                   <PickerHeading icon={<UsersRound size={16} />} title={t("steps.guests")} value="" />
                   <div className="flex h-11 items-center rounded-full border border-[#DCCBB3] bg-white p-1 shadow-sm">
                     <button type="button" onClick={() => setGuests((current) => Math.max(1, current - 1))} className="grid h-9 w-9 place-items-center rounded-full text-[#765C3A] transition hover:bg-[#F3E9DA]" aria-label="-"><Minus size={15} /></button>
-                    <label className="relative min-w-[66px] text-center text-sm font-black"><span>{guests}</span><input name="guestsPicker" type="number" min="1" max="500" value={guests} onChange={(event) => setGuests(Math.max(1, Number(event.target.value) || 1))} className="absolute inset-0 w-full opacity-0" aria-label={t("steps.guests")} /></label>
-                    <button type="button" onClick={() => setGuests((current) => Math.min(500, current + 1))} className="grid h-9 w-9 place-items-center rounded-full bg-[#17120D] text-white transition hover:bg-[#2A2118]" aria-label="+"><Plus size={15} /></button>
+                    <label className="relative min-w-[66px] text-center text-sm font-black"><span>{guests}</span><input name="guestsPicker" type="number" min="1" max={selectedExperience?.capacityRemaining || 500} value={guests} onChange={(event) => setGuests(Math.min(selectedExperience?.capacityRemaining || 500, Math.max(1, Number(event.target.value) || 1)))} className="absolute inset-0 w-full opacity-0" aria-label={t("steps.guests")} /></label>
+                    <button type="button" onClick={() => setGuests((current) => Math.min(selectedExperience?.capacityRemaining || 500, current + 1))} className="grid h-9 w-9 place-items-center rounded-full bg-[#17120D] text-white transition hover:bg-[#2A2118]" aria-label="+"><Plus size={15} /></button>
                   </div>
                 </div>
               </div>
+
+              {selectedExperience?.addOns.length ? <section className="mt-3 rounded-[20px] border border-[#E4D7C6] bg-white p-4"><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#A27438]">Personaliza a experiência</p><div className="mt-3 grid gap-2 sm:grid-cols-2">{selectedExperience.addOns.map((addOn) => { const selected = selectedAddOnIds.includes(addOn.id); return <label key={addOn.id} className={`flex cursor-pointer items-center gap-3 rounded-[16px] border p-3 transition ${selected ? "border-[#A97C42] bg-[#FFF8EC]" : "border-[#E6D9C8]"}`}><input type="checkbox" checked={selected} onChange={() => setSelectedAddOnIds((current) => current.includes(addOn.id) ? current.filter((id) => id !== addOn.id) : [...current, addOn.id])} className="h-4 w-4 accent-[#17120D]"/><span className="min-w-0 flex-1"><span className="block text-sm font-bold">{addOn.name}</span><span className="block text-[10px] text-[#817568]">{formatMoney(addOn.price)}{addOn.perGuest ? " / pessoa" : ""}</span></span></label>; })}</div></section> : null}
+              {(selectedExperience || depositQuote) && <section className="mt-3 flex items-start gap-3 rounded-[18px] border border-[#C9B080] bg-[#FFF3D8] p-4"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#9B6F3B]"><CreditCard size={16}/></span><div><p className="text-sm font-bold">{selectedExperience ? `Pré-pagamento: ${formatMoney(experienceTotal)}` : `Depósito: ${formatMoney(depositQuote?.totalAmount || 0)}`}</p><p className="mt-1 text-[11px] leading-5 text-[#766550]">{selectedExperience ? `Inclui ${formatMoney(experienceBase + experienceAddOns)} para o restaurante e ${formatMoney(experienceFee)} de serviço.` : `O depósito de ${formatMoney(depositQuote?.baseAmount || 0)} é descontado na conta final. A taxa de serviço é ${formatMoney(depositQuote?.serviceFee || 0)}.`} Pagamento seguro pela Stripe.</p></div></section>}
 
               {!isCapacityMode && resolvedHour && availableTables.length === 0 && !tableCombination && <Alert tone="red" title={t("noTables.title")} text={t("noTables.text", { guests })} />}
               {tableCombination && <Alert tone="yellow" title={t("pendingApproval.title")} text={t("pendingApproval.text", { guests })} />}
@@ -309,11 +349,13 @@ export default function ReserveForm({
                 <input type="hidden" name="restaurantId" value={restaurant.id} />
                 {marketingToken && <input type="hidden" name="marketingToken" value={marketingToken} />}
                 {offer && <input type="hidden" name="offerCode" value={offer.code} />}
+                {selectedExperience && <input type="hidden" name="experienceId" value={selectedExperience.id} />}
+                {selectedAddOnIds.map((id) => <input key={id} type="hidden" name="addOnIds" value={id} />)}
                 <input type="hidden" name="date" value={selectedDateValue} />
                 <input type="hidden" name="guests" value={guests} />
                 <input type="hidden" name="reservationMode" value={restaurant.reservationMode} />
                 {!isCapacityMode && <input type="hidden" name="tableId" value={tableIdToSubmit} />}
-                <input type="hidden" name="status" value={isPendingRequest ? "PENDING" : "CONFIRMED"} />
+                <input type="hidden" name="status" value={!selectedExperience && isPendingRequest ? "PENDING" : "CONFIRMED"} />
 
                 <div className="flex items-center justify-between gap-3">
                   <div><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#A27438]">{t("steps.details")}</p><p className="mt-1 text-xs text-[#786D61]">{t("consent")}</p></div>
@@ -337,10 +379,10 @@ export default function ReserveForm({
 
                 <div className="sticky bottom-3 z-20 mt-5 rounded-[21px] border border-white/10 bg-[#17120D] p-2.5 text-white shadow-[0_18px_45px_rgba(23,18,13,.28)] sm:static sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-3">
                   <div className="mb-2 flex items-center justify-between gap-3 px-2 sm:mb-0 sm:justify-start">
-                    <div><p className="text-[8px] font-black uppercase tracking-[0.15em] text-[#D7B267]">{friendlySelectedDate}</p><p className="mt-0.5 text-sm font-bold">{resolvedHour || "—"} · {t("guestCount", { count: guests })}</p></div>
+                    <div><p className="text-[8px] font-black uppercase tracking-[0.15em] text-[#D7B267]">{friendlySelectedDate}</p><p className="mt-0.5 text-sm font-bold">{resolvedHour || "—"} · {t("guestCount", { count: guests })}{selectedExperience ? ` · ${formatMoney(experienceTotal)}` : depositQuote ? ` · depósito ${formatMoney(depositQuote.totalAmount)}` : ""}</p></div>
                     {offer && <span className="rounded-full bg-[#D7B267] px-2.5 py-1 text-[9px] font-black text-[#17120D]">{offer.benefit}</span>}
                   </div>
-                  <button type="submit" disabled={!canSubmit || isSubmitting} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[15px] bg-[#D7B267] px-6 text-sm font-black text-[#17120D] transition hover:bg-[#E4C47F] disabled:cursor-not-allowed disabled:bg-white/12 disabled:text-white/35 sm:w-auto sm:min-w-[210px]">{isSubmitting ? t("submitProcessing") : isPendingRequest ? t("submitRequest") : t("submitConfirm")} {!isSubmitting && <Check size={16} />}</button>
+                  <button type="submit" disabled={!canSubmit || isSubmitting} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[15px] bg-[#D7B267] px-6 text-sm font-black text-[#17120D] transition hover:bg-[#E4C47F] disabled:cursor-not-allowed disabled:bg-white/12 disabled:text-white/35 sm:w-auto sm:min-w-[210px]">{isSubmitting ? t("submitProcessing") : selectedExperience || depositQuote ? "Continuar para pagamento" : isPendingRequest ? t("submitRequest") : t("submitConfirm")} {!isSubmitting && <Check size={16} />}</button>
                 </div>
                 <div className="mt-2 text-center"><Link href="/" aria-label="Visitar MesaLink" className="inline-flex min-h-9 items-center rounded-full px-3 text-[11px] font-bold text-[#8B7863] transition hover:bg-[#F5EBDD] hover:text-[#17120D]">{t("poweredBy")}</Link></div>
               </form>
@@ -354,6 +396,14 @@ export default function ReserveForm({
 
 function PublicShell({ restaurant, children }: { restaurant: Restaurant; children: React.ReactNode }) {
   return <main className="min-h-screen bg-[#F1EBE2] px-4 py-6 text-[#17120D]"><div className="mx-auto max-w-xl"><div className="mb-5 flex items-center justify-between"><span className="font-serif text-xl font-bold"><span className="text-[#B48645]">Mesa</span>Link</span><LanguageSwitcher /></div><div className="mb-5 text-center"><p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#A27438]">Reserva online</p><p className="mt-2 text-3xl font-semibold tracking-[-0.05em]">{restaurant.name}</p></div>{children}</div></main>;
+}
+
+function TicketBadge() {
+  return <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#17120D] text-[#D7B267]"><Gift size={17}/></span>;
+}
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value || 0);
 }
 
 function RestaurantPanel({ restaurant, t }: { restaurant: Restaurant; t: ReturnType<typeof useTranslations> }) {

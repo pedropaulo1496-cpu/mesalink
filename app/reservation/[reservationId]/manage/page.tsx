@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyReservationManagementToken } from "@/lib/reservation-management";
 import { sendReservationLifecycleEmail } from "@/lib/send-reservation-lifecycle-email";
 import { publicReservationUrl } from "@/lib/public-links";
+import { settleReservationCancellation } from "@/lib/reservation-payment-cancellation";
 
 export const metadata: Metadata = { title: "Gerir reserva — MesaLink", robots: { index: false, follow: false } };
 const ACTIVE_STATUSES = ["PENDING", "CONFIRMED"];
@@ -29,10 +30,10 @@ async function updateReservation(formData: FormData) {
     await prisma.$transaction(async (tx) => {
       const reservation = await tx.reservation.findUnique({
         where: { id: reservationId },
-        include: { restaurant: { include: { tables: { orderBy: { capacity: "asc" } } } } },
+        include: { payment: true, restaurant: { include: { tables: { orderBy: { capacity: "asc" } } } } },
       });
       if (!reservation?.restaurant || !reservation.email || !verifyReservationManagementToken(reservation.id, reservation.email, token)) throw new Error("INVALID");
-      if (!ACTIVE_STATUSES.includes(reservation.status) || reservation.date <= new Date()) throw new Error("LOCKED");
+      if (!ACTIVE_STATUSES.includes(reservation.status) || reservation.date <= new Date() || reservation.experienceId || reservation.payment?.status === "PAID") throw new Error("LOCKED");
 
       const restaurant = reservation.restaurant;
       const end = new Date(target.getTime() + 2 * 60 * 60 * 1000);
@@ -108,6 +109,7 @@ async function cancelReservation(formData: FormData) {
     data: { status: "CANCELLED", cancelledBy: "CUSTOMER" },
   });
   if (changed.count !== 1) redirect(manageRedirect(reservationId, token, "error", "locked"));
+  await settleReservationCancellation(reservationId);
   const emailSent = await sendReservationLifecycleEmail(reservationId, "CANCELLED");
   redirect(manageRedirect(reservationId, token, "result", emailSent ? "cancelled" : "cancelled-no-email"));
 }
@@ -118,11 +120,11 @@ export default async function ManageReservationPage({ params, searchParams }: { 
   const token = String(query.token || "");
   const reservation = await prisma.reservation.findUnique({
     where: { id: reservationId },
-    include: { restaurant: { select: { name: true, slug: true, address: true } } },
+    include: { restaurant: { select: { name: true, slug: true, address: true } }, experience: true, payment: true },
   });
   if (!reservation?.email || !reservation.restaurant || !verifyReservationManagementToken(reservation.id, reservation.email, token)) notFound();
 
-  const manageable = ACTIVE_STATUSES.includes(reservation.status) && reservation.date > new Date();
+  const manageable = ACTIVE_STATUSES.includes(reservation.status) && reservation.date > new Date() && !reservation.experienceId && reservation.payment?.status !== "PAID";
   const cancelled = reservation.status === "CANCELLED";
   const local = lisbonInputParts(reservation.date);
   const resultMessage = manageResultMessage(query.result, reservation.status);
@@ -140,7 +142,7 @@ export default async function ManageReservationPage({ params, searchParams }: { 
         <div className="grid gap-px bg-[#E6D7C2] sm:grid-cols-3"><Summary icon={<CalendarDays size={18} />} label="Data" value={reservation.date.toLocaleDateString("pt-PT", { dateStyle: "long", timeZone: "Europe/Lisbon" })} /><Summary icon={<Clock3 size={18} />} label="Hora" value={reservation.date.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Lisbon" })} /><Summary icon={<UsersRound size={18} />} label="Pessoas" value={String(reservation.guests)} /></div>
       </section>
 
-      {cancelled || !manageable ? <section className="mt-6 rounded-[34px] border border-[#DCC9AA] bg-[#FFF9F0] p-7 text-center sm:p-9"><RotateCcw className="mx-auto text-[#9B6F3B]" /><h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em]">Quer marcar noutra data?</h2><p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[#6B6258]">Consulte novamente a disponibilidade do {reservation.restaurant.name} e faça uma nova reserva em poucos passos.</p><a href={rebookUrl} className="mt-5 inline-flex h-12 items-center justify-center rounded-full bg-[#17120D] px-6 text-sm font-bold text-white">Marcar noutra data</a></section> : <div className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+      {reservation.payment?.status === "PAID" && !cancelled ? <section className="mt-6 rounded-[34px] border border-[#DCC9AA] bg-[#FFF9F0] p-7 sm:p-9"><p className="text-[10px] font-black uppercase tracking-[.2em] text-[#9B6F3B]">{reservation.experience ? "Experiência pré-paga" : "Reserva protegida"}</p><h2 className="mt-2 text-3xl font-semibold tracking-[-.05em]">{reservation.experience?.title || "Depósito confirmado"}</h2><p className="mt-2 text-sm leading-6 text-[#6B6258]">Esta reserva tem um pagamento associado e por segurança não pode ser alterada diretamente. Pode cancelá-la; dentro do prazo é devolvido o valor do restaurante, mantendo-se apenas a taxa de serviço. Fora do prazo, o restaurante pode emitir crédito digital quando essa opção estiver ativa.</p><form action={cancelReservation} className="mt-5"><input type="hidden" name="reservationId" value={reservation.id}/><input type="hidden" name="token" value={token}/><button className="h-12 rounded-full border border-[#B96249] bg-white px-6 text-sm font-bold text-[#9A412D]">Cancelar reserva</button></form></section> : cancelled || !manageable ? <section className="mt-6 rounded-[34px] border border-[#DCC9AA] bg-[#FFF9F0] p-7 text-center sm:p-9"><RotateCcw className="mx-auto text-[#9B6F3B]" /><h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em]">Quer marcar noutra data?</h2><p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[#6B6258]">Consulte novamente a disponibilidade do {reservation.restaurant.name} e faça uma nova reserva em poucos passos.</p><a href={rebookUrl} className="mt-5 inline-flex h-12 items-center justify-center rounded-full bg-[#17120D] px-6 text-sm font-bold text-white">Marcar noutra data</a></section> : <div className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <section className="rounded-[34px] border border-[#DCC9AA] bg-white p-6 sm:p-8"><p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#9B6F3B]">Alterar reserva</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em]">Novos planos? Sem problema.</h2><p className="mt-2 text-sm leading-6 text-[#6B6258]">Escolha a nova data, hora e número de pessoas. Se for necessária confirmação do restaurante, avisamos imediatamente.</p><form action={updateReservation} className="mt-6 grid gap-4 sm:grid-cols-2"><input type="hidden" name="reservationId" value={reservation.id} /><input type="hidden" name="token" value={token} /><Field label="Data"><input name="date" type="date" min={lisbonInputParts(new Date()).date} defaultValue={local.date} required className="input-premium" /></Field><Field label="Hora"><input name="time" type="time" defaultValue={local.time} required className="input-premium" /></Field><Field label="Número de pessoas" wide><input name="guests" type="number" min="1" max="500" defaultValue={reservation.guests} required className="input-premium" /></Field><button className="sm:col-span-2 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#17120D] px-6 text-sm font-bold text-white"><CheckCircle2 size={16} /> Guardar alteração</button></form></section>
         <section className={`rounded-[34px] border p-6 sm:p-8 ${query.intent === "cancel" ? "border-[#C67861] bg-[#FFF0EA] ring-4 ring-[#E9C4B8]/40" : "border-[#E2C7BD] bg-[#FFF7F3]"}`}><XCircle className="text-[#A14E36]" /><p className="mt-5 text-[10px] font-black uppercase tracking-[0.24em] text-[#A14E36]">Cancelar reserva</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em]">Não consegue comparecer?</h2><p className="mt-3 text-sm leading-6 text-[#6B6258]">Ao confirmar, a reserva é cancelada e o lugar fica imediatamente disponível. Receberá um email com a confirmação e um botão para escolher outra data.</p><form action={cancelReservation} className="mt-6"><input type="hidden" name="reservationId" value={reservation.id} /><input type="hidden" name="token" value={token} /><button className="inline-flex h-12 w-full items-center justify-center rounded-full border border-[#B96249] bg-white px-5 text-sm font-bold text-[#9A412D]">Confirmar cancelamento</button></form></section>
       </div>}

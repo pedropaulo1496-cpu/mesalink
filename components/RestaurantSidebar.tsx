@@ -120,6 +120,12 @@ export default function RestaurantSidebar({
       title: t("sections.growth"),
       items: [
         {
+          key: "revenue",
+          name: t("items.revenue"),
+          href: `/restaurants/${id}/revenue`,
+          icon: BillingIcon,
+        },
+        {
           key: "revenueAi",
           name: t("items.revenueAi"),
           href: `/restaurants/${id}/revenue-ai`,

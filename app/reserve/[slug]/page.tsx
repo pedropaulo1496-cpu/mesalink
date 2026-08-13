@@ -1,24 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/validation";
 import { notFound, redirect } from "next/navigation";
-import { Resend } from "resend";
-import { getLocale, getTranslations } from "next-intl/server";
 import ReserveForm from "./ReserveForm";
-import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
-import { requireAcceptedEmail } from "@/lib/email-delivery";
-import { reservationManagementUrl } from "@/lib/reservation-management";
 import { marketingBenefitValue } from "@/lib/marketing-card-themes";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-const emailDateLocales: Record<string, string> = {
-  pt: "pt-PT",
-  en: "en-GB",
-  fr: "fr-FR",
-  de: "de-DE",
-  zh: "zh-CN",
-  es: "es-ES",
-};
+import { noShowDepositForReservation, reservationServiceFee } from "@/lib/reservation-commerce";
+import { createReservationCheckout, releaseExpiredReservationPayments } from "@/lib/reservation-payments";
+import { sendReservationConfirmationEmail } from "@/lib/send-reservation-confirmation-email";
 
 async function createPublicReservation(formData: FormData) {
   "use server";
@@ -38,12 +25,14 @@ async function createPublicReservation(formData: FormData) {
     return `/reserve/${slug}?${query.toString()}`;
   };
   const tableIdValue = String(formData.get("tableId") ?? "");
+  const experienceIdValue = String(formData.get("experienceId") || "");
+  const addOnIds = Array.from(new Set(formData.getAll("addOnIds").map(String).filter(Boolean)));
   const customerName = String(formData.get("customerName") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const birthDateValue = String(formData.get("birthDate") || "").trim();
   const guests = Number(formData.get("guests"));
-  const date = new Date(String(formData.get("date")));
+  let date = new Date(String(formData.get("date")));
   const reservationMode = String(formData.get("reservationMode") ?? "TABLES");
 
   if (!customerName || !phone || !email) {
@@ -58,10 +47,6 @@ async function createPublicReservation(formData: FormData) {
     ? new Date(`${birthDateValue}T12:00:00`)
     : null;
 
-  if (date < new Date()) {
-    redirect(errorRedirect("past"));
-  }
-
   const restaurant = await prisma.restaurant.findUnique({
     where: { id: restaurantId },
     include: {
@@ -74,6 +59,23 @@ async function createPublicReservation(formData: FormData) {
   });
 
   if (!restaurant) notFound();
+  await releaseExpiredReservationPayments(restaurant.id);
+
+  const experience = experienceIdValue ? await prisma.diningExperience.findFirst({
+    where: { id: experienceIdValue, restaurantId: restaurant.id, active: true, startsAt: { gt: new Date() } },
+    include: {
+      addOns: { where: { active: true } },
+      reservations: { where: { status: { notIn: ["CANCELLED", "REJECTED", "NO_SHOW"] } }, select: { guests: true } },
+    },
+  }) : null;
+  if (experienceIdValue && !experience) redirect(errorRedirect("experience"));
+  if (experience) {
+    date = experience.startsAt;
+    const sold = experience.reservations.reduce((sum, reservation) => sum + reservation.guests, 0);
+    if (sold + guests > experience.capacity) redirect(errorRedirect("capacity"));
+    if (!restaurant.paymentsStripeOnboardingComplete || !restaurant.paymentsStripeAccountId) redirect(errorRedirect("payment"));
+  }
+  if (Number.isNaN(date.getTime()) || date < new Date()) redirect(errorRedirect("past"));
 
   const offerCard = offerCode
     ? await prisma.marketingPromoCard.findFirst({
@@ -143,6 +145,30 @@ async function createPublicReservation(formData: FormData) {
   if (status === "PENDING" && !approvalReason) {
     approvalReason = "TABLE_MERGE";
   }
+
+  const selectedAddOns = experience
+    ? experience.addOns.filter((addOn) => addOnIds.includes(addOn.id))
+    : [];
+  const experienceBase = experience ? Math.round(Number(experience.pricePerPerson) * guests * 100) / 100 : 0;
+  const addOnsAmount = selectedAddOns.reduce(
+    (sum, addOn) => sum + Number(addOn.price) * (addOn.perGuest ? guests : 1),
+    0,
+  );
+  const depositQuote = !experience ? noShowDepositForReservation({
+    enabled: restaurant.noShowProtectionEnabled,
+    minGuests: restaurant.noShowMinGuests,
+    depositPerPerson: Number(restaurant.noShowDepositPerPerson),
+    fridayEnabled: restaurant.noShowFridayEnabled,
+    saturdayEnabled: restaurant.noShowSaturdayEnabled,
+    specialDates: restaurant.noShowSpecialDates,
+    cancellationHours: restaurant.noShowCancellationHours,
+    creditOnLateCancellation: restaurant.noShowCreditOnLateCancellation,
+    paymentsReady: Boolean(restaurant.paymentsStripeAccountId && restaurant.paymentsStripeOnboardingComplete),
+  }, date, guests) : null;
+  const paymentKind = experience ? "EXPERIENCE" : depositQuote ? "DEPOSIT" : null;
+  const paymentBase = experience ? experienceBase : depositQuote?.baseAmount || 0;
+  const paymentServiceFee = experience ? reservationServiceFee(experienceBase + addOnsAmount) : depositQuote?.serviceFee || 0;
+  const paymentTotal = Math.round((paymentBase + addOnsAmount + paymentServiceFee) * 100) / 100;
 
   const startDate = date;
   const endDate = new Date(startDate);
@@ -263,9 +289,11 @@ async function createPublicReservation(formData: FormData) {
         phone,
         email,
         guests,
-        status,
+        status: paymentKind ? "PENDING_PAYMENT" : status,
         approvalReason,
         tableId: tableIdValue || null,
+        experienceId: experience?.id || null,
+        estimatedRevenue: experience ? experienceBase + addOnsAmount : guests * (restaurant.averageTicket ?? 25),
         source: "PUBLIC",
       },
     });
@@ -280,9 +308,11 @@ async function createPublicReservation(formData: FormData) {
           email,
           guests,
           date,
-          status,
+          status: paymentKind ? "PENDING_PAYMENT" : status,
           approvalReason,
           tableId: tableIdValue || null,
+          experienceId: experience?.id || null,
+          estimatedRevenue: experience ? experienceBase + addOnsAmount : guests * (restaurant.averageTicket ?? 25),
           source: "PUBLIC",
         },
       });
@@ -300,14 +330,85 @@ async function createPublicReservation(formData: FormData) {
     }
   }
 
+  if (alreadyBooked && finalReservation.status === "PENDING_PAYMENT") {
+    const existingPayment = await prisma.reservationPayment.findUnique({ where: { reservationId: finalReservation.id } });
+    if (existingPayment) {
+      const existingCheckoutUrl = await createReservationCheckout(existingPayment.id, slug);
+      if (existingCheckoutUrl) redirect(existingCheckoutUrl);
+    }
+  }
+
+  if (paymentKind) {
+    await prisma.$transaction(async (tx) => {
+      await tx.reservationExperienceAddOn.deleteMany({ where: { reservationId: finalReservation.id } });
+      if (selectedAddOns.length) {
+        await tx.reservationExperienceAddOn.createMany({
+          data: selectedAddOns.map((addOn) => {
+            const quantity = addOn.perGuest ? guests : 1;
+            return {
+              reservationId: finalReservation.id,
+              addOnId: addOn.id,
+              nameSnapshot: addOn.name,
+              unitPrice: addOn.price,
+              quantity,
+              totalAmount: Number(addOn.price) * quantity,
+            };
+          }),
+        });
+      }
+      await tx.reservationPayment.upsert({
+        where: { reservationId: finalReservation.id },
+        create: {
+          reservationId: finalReservation.id,
+          restaurantId: restaurant.id,
+          kind: paymentKind,
+          status: "PENDING",
+          confirmationStatus: status,
+          marketingTrackingToken: marketingToken,
+          offerCode,
+          baseAmount: paymentBase,
+          addOnsAmount,
+          serviceFee: paymentServiceFee,
+          totalAmount: paymentTotal,
+          applicationFee: paymentServiceFee,
+          expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+        },
+        update: {
+          kind: paymentKind,
+          status: "PENDING",
+          confirmationStatus: status,
+          marketingTrackingToken: marketingToken,
+          offerCode,
+          baseAmount: paymentBase,
+          addOnsAmount,
+          serviceFee: paymentServiceFee,
+          totalAmount: paymentTotal,
+          applicationFee: paymentServiceFee,
+          expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+          lastError: null,
+        },
+      });
+      if (offerCard) {
+        const claimed = await tx.marketingPromoCard.updateMany({
+          where: { id: offerCard.id, status: "ACTIVE", reservationId: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
+          data: { status: "HELD", reservationId: finalReservation.id },
+        });
+        if (claimed.count !== 1) throw new Error("OFFER_UNAVAILABLE");
+      }
+    }).catch((error) => {
+      if (error instanceof Error && error.message === "OFFER_UNAVAILABLE") redirect(errorRedirect("offer"));
+      throw error;
+    });
+    const payment = await prisma.reservationPayment.findUnique({ where: { reservationId: finalReservation.id } });
+    if (!payment) redirect(errorRedirect("payment"));
+    const checkoutUrl = await createReservationCheckout(payment.id, slug);
+    if (checkoutUrl) redirect(checkoutUrl);
+    redirect(`/reserve/${slug}/success?reservationId=${encodeURIComponent(finalReservation.id)}`);
+  }
+
   if (offerCard) {
     const claimed = await prisma.marketingPromoCard.updateMany({
-      where: {
-        id: offerCard.id,
-        status: "ACTIVE",
-        reservationId: null,
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-      },
+      where: { id: offerCard.id, status: "ACTIVE", reservationId: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
       data: { status: "REDEEMED", redeemedAt: new Date(), reservationId: finalReservation.id },
     });
     if (claimed.count !== 1) redirect(errorRedirect("offer"));
@@ -346,92 +447,7 @@ async function createPublicReservation(formData: FormData) {
       });
     }
 
-    const shouldSendEmail =
-      ["ESSENTIALS", "GROWTH", "PRO"].includes(plan) &&
-      Boolean(email) &&
-      Boolean(restaurant.user?.id) &&
-      Boolean(process.env.RESEND_API_KEY);
-
-    if (shouldSendEmail) {
-      const emailReference = `email:reservation_confirmation:${finalReservation.id}`;
-      let emailReserved = false;
-      try {
-        const allowance = await reserveEmailSend({
-          userId: restaurant.user!.id,
-          restaurantId: restaurant.id,
-          category: "RESERVATION_CONFIRMATION",
-          reference: emailReference,
-        });
-        if (!allowance.canSend) throw new Error("Reservation confirmation already processed");
-        emailReserved = true;
-        const locale = await getLocale();
-        const emailT = await getTranslations("publicFlows.reserve.email");
-        const intlLocale = emailDateLocales[locale] ?? "pt-PT";
-
-        const isPending = status === "PENDING";
-
-        const subject = isPending
-          ? emailT("subjectPending", { restaurantName: restaurant.name })
-          : emailT("subjectConfirmed", { restaurantName: restaurant.name });
-
-        const heading = isPending
-          ? emailT("headingPending")
-          : emailT("headingConfirmed");
-
-        const bodyText = isPending
-          ? emailT("bodyPending")
-          : emailT("bodyConfirmed");
-
-        const statusText = isPending
-          ? emailT("statusPending")
-          : emailT("statusConfirmed");
-        const manageUrl = reservationManagementUrl(finalReservation.id, email);
-        const cancelUrl = reservationManagementUrl(finalReservation.id, email, "cancel");
-
-        const delivery = await resend.emails.send({
-          from: "MesaLink <noreply@mesalink.pt>",
-          to: email,
-          subject,
-          html: `
-            <div style="margin:0;background:#F5EFE6;padding:32px;font-family:Arial,sans-serif;color:#16120E;line-height:1.5;">
-              <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #E1D0B8;border-radius:24px;padding:28px;">
-                <p style="margin:0 0 14px;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#9B6F3B;">MesaLink</p>
-                <h1 style="margin:0;font-size:28px;line-height:1.1;color:#16120E;">
-                  ${heading}
-                </h1>
-                <p style="margin:18px 0 0;color:#6B6258;">${emailT("greeting", { customerName })}</p>
-                <p style="margin:10px 0 0;color:#6B6258;">
-                  ${bodyText}
-                </p>
-                <div style="margin:24px 0;padding:18px;border:1px solid #E1D0B8;border-radius:18px;background:#FFF9F0;">
-                  <p><strong>${emailT("labelRestaurant")}</strong> ${restaurant.name}</p>
-                  <p><strong>${emailT("labelDate")}</strong> ${date.toLocaleDateString(intlLocale)}</p>
-                  <p><strong>${emailT("labelTime")}</strong> ${date.toLocaleTimeString(intlLocale, {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}</p>
-                  <p><strong>${emailT("labelGuests")}</strong> ${guests}</p>
-                  <p><strong>${emailT("labelStatus")}</strong> ${statusText}</p>
-                  ${offerCard ? `<p><strong>${emailT("labelOffer")}</strong> ${offerCard.title} · ${marketingBenefitValue(offerCard.benefitType, offerCard.value == null ? null : Number(offerCard.value), offerCard.benefitLabel)}</p>` : ""}
-                </div>
-                <p style="margin:0 0 12px;font-size:13px;color:#6B6258;">${emailT("manageIntro")}</p>
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
-                  <td style="padding-right:6px;"><a href="${manageUrl}" style="display:block;padding:13px 14px;border-radius:999px;background:#17120D;color:#fff;text-align:center;text-decoration:none;font-weight:700;">${emailT("manageButton")}</a></td>
-                  <td style="padding-left:6px;"><a href="${cancelUrl}" style="display:block;padding:12px 14px;border:1px solid #D8C6A9;border-radius:999px;color:#7A3E2D;text-align:center;text-decoration:none;font-weight:700;">${emailT("cancelButton")}</a></td>
-                </tr></table>
-                <p style="margin:14px 0 0;font-size:11px;color:#9B8F82;">${emailT("manageSafety")}</p>
-                <p style="font-size:12px;color:#9B8F82;">${emailT("footerNote")}</p>
-              </div>
-            </div>
-          `,
-        });
-        requireAcceptedEmail(delivery);
-        await completeEmailSend(emailReference);
-      } catch (error) {
-        if (emailReserved) await refundEmailSend(emailReference);
-        console.error("Erro ao enviar email de reserva:", error);
-      }
-    }
+    await sendReservationConfirmationEmail(finalReservation.id);
   }
 
   redirect(
@@ -458,12 +474,25 @@ export default async function PublicReservePage({
       ? marketingTokenValue
       : undefined;
 
+  const restaurantIdentity = await prisma.restaurant.findUnique({ where: { slug }, select: { id: true } });
+  if (!restaurantIdentity) notFound();
+  await releaseExpiredReservationPayments(restaurantIdentity.id);
+
   const restaurant = await prisma.restaurant.findUnique({
     where: { slug },
     include: {
       tables: {
         include: { reservations: true },
         orderBy: { number: "asc" },
+      },
+      diningExperiences: {
+        where: { active: true, startsAt: { gt: new Date() } },
+        include: {
+          addOns: { where: { active: true }, orderBy: { createdAt: "asc" } },
+          reservations: { where: { status: { notIn: ["CANCELLED", "REJECTED", "NO_SHOW"] } }, select: { guests: true } },
+        },
+        orderBy: { startsAt: "asc" },
+        take: 12,
       },
     },
   });
@@ -493,13 +522,73 @@ export default async function PublicReservePage({
     minSpend: offerCard.minSpend ? `Consumo mínimo: ${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(Number(offerCard.minSpend))}` : null,
     terms: offerCard.terms,
   } : undefined;
+  const experiences = restaurant.paymentsStripeAccountId && restaurant.paymentsStripeOnboardingComplete
+    ? restaurant.diningExperiences.map((experience) => ({
+        id: experience.id,
+        title: experience.title,
+        summary: experience.summary,
+        startsAt: experience.startsAt.toISOString(),
+        pricePerPerson: Number(experience.pricePerPerson),
+        capacityRemaining: Math.max(0, experience.capacity - experience.reservations.reduce((sum, reservation) => sum + reservation.guests, 0)),
+        addOns: experience.addOns.map((addOn) => ({ id: addOn.id, name: addOn.name, description: addOn.description, price: Number(addOn.price), perGuest: addOn.perGuest })),
+      })).filter((experience) => experience.capacityRemaining > 0)
+    : [];
+  const noShowRule = {
+    enabled: restaurant.noShowProtectionEnabled,
+    minGuests: restaurant.noShowMinGuests,
+    depositPerPerson: Number(restaurant.noShowDepositPerPerson),
+    fridayEnabled: restaurant.noShowFridayEnabled,
+    saturdayEnabled: restaurant.noShowSaturdayEnabled,
+    specialDates: restaurant.noShowSpecialDates,
+    cancellationHours: restaurant.noShowCancellationHours,
+    creditOnLateCancellation: restaurant.noShowCreditOnLateCancellation,
+    paymentsReady: Boolean(restaurant.paymentsStripeAccountId && restaurant.paymentsStripeOnboardingComplete),
+  };
+  // Keep the public booking payload deliberately small. Besides loading faster on
+  // mobile, this prevents private billing, integration and account fields from
+  // ever being serialized into the customer-facing page.
+  const publicRestaurant = {
+    id: restaurant.id,
+    name: restaurant.name,
+    slug: restaurant.slug,
+    address: restaurant.address,
+    websiteHeroImage: restaurant.websiteHeroImage,
+    websiteLogoImage: restaurant.websiteLogoImage,
+    reservationMode: restaurant.reservationMode,
+    totalCapacity: restaurant.totalCapacity,
+    onlineReservationsEnabled: restaurant.onlineReservationsEnabled,
+    mondayOpen: restaurant.mondayOpen,
+    mondayLunch: restaurant.mondayLunch,
+    mondayDinner: restaurant.mondayDinner,
+    tuesdayOpen: restaurant.tuesdayOpen,
+    tuesdayLunch: restaurant.tuesdayLunch,
+    tuesdayDinner: restaurant.tuesdayDinner,
+    wednesdayOpen: restaurant.wednesdayOpen,
+    wednesdayLunch: restaurant.wednesdayLunch,
+    wednesdayDinner: restaurant.wednesdayDinner,
+    thursdayOpen: restaurant.thursdayOpen,
+    thursdayLunch: restaurant.thursdayLunch,
+    thursdayDinner: restaurant.thursdayDinner,
+    fridayOpen: restaurant.fridayOpen,
+    fridayLunch: restaurant.fridayLunch,
+    fridayDinner: restaurant.fridayDinner,
+    saturdayOpen: restaurant.saturdayOpen,
+    saturdayLunch: restaurant.saturdayLunch,
+    saturdayDinner: restaurant.saturdayDinner,
+    sundayOpen: restaurant.sundayOpen,
+    sundayLunch: restaurant.sundayLunch,
+    sundayDinner: restaurant.sundayDinner,
+    tables: restaurant.tables,
+  };
 
   return (
     <ReserveForm
-      restaurant={restaurant}
+      restaurant={publicRestaurant}
       error={error}
       marketingToken={marketingToken}
       offer={offer}
+      experiences={experiences}
+      noShowRule={noShowRule}
       offerUnavailable={Boolean(requestedOfferCode && !offerAvailable)}
       createPublicReservation={createPublicReservation}
     />

@@ -15,6 +15,7 @@ import {
   markDomainCheckoutFailure,
   settleDomainCheckout,
 } from "@/lib/domain-orders";
+import { expireReservationCheckoutSession, settleReservationCheckoutSession } from "@/lib/reservation-payments";
 
 type Product = "ESSENTIALS" | "GROWTH";
 
@@ -376,6 +377,10 @@ export async function POST(req: Request) {
         }
         return new Response("OK");
       }
+      if (session.metadata?.kind === "RESERVATION_COMMERCE") {
+        await settleReservationCheckoutSession(session.id);
+        return new Response("OK");
+      }
 
       if (event.type === "checkout.session.completed") {
         const userId = session.metadata?.userId;
@@ -438,12 +443,14 @@ export async function POST(req: Request) {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.metadata?.kind === "REFERRAL_COMMISSION") await markReferralPaymentFailure(session, "PAYMENT_FAILED");
       if (session.metadata?.kind === "CUSTOM_DOMAIN") await markDomainCheckoutFailure(session);
+      if (session.metadata?.kind === "RESERVATION_COMMERCE") await expireReservationCheckoutSession(session);
     }
 
     if (event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.metadata?.kind === "REFERRAL_COMMISSION") await markReferralPaymentFailure(session, "PENDING");
       if (session.metadata?.kind === "CUSTOM_DOMAIN") await markDomainCheckoutFailure(session, true);
+      if (session.metadata?.kind === "RESERVATION_COMMERCE") await expireReservationCheckoutSession(session);
     }
 
     if (event.type === "charge.refunded") {
@@ -480,6 +487,10 @@ export async function POST(req: Request) {
           });
           for (const payment of pending) await transferReferralPayment(payment.id);
         }
+      }
+      const restaurant = await prisma.restaurant.findUnique({ where: { paymentsStripeAccountId: account.id }, select: { id: true } });
+      if (restaurant) {
+        await prisma.restaurant.update({ where: { id: restaurant.id }, data: { paymentsStripeOnboardingComplete: complete } });
       }
     }
 

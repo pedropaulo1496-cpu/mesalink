@@ -174,10 +174,10 @@ model SalesClientInvitation {
   salesRepresentative   SalesRepresentative @relation(fields: [salesRepresentativeId], references: [id], onDelete: Cascade)
 
   email      String
-  token      String   @unique
+  token      String    @unique
   expiresAt  DateTime
   acceptedAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   @@index([salesRepresentativeId, createdAt])
   @@index([email, expiresAt])
@@ -272,15 +272,15 @@ model Subscription {
 
   trialEndsAt DateTime?
 
-  restaurantLimit        Int @default(1)
-  priceMonthly           Int @default(0)
-  aiCredits              Int @default(0)
-  emailBalance           Int @default(750)
-  emailsSent             Int @default(0)
+  restaurantLimit        Int       @default(1)
+  priceMonthly           Int       @default(0)
+  aiCredits              Int       @default(0)
+  emailBalance           Int       @default(750)
+  emailsSent             Int       @default(0)
   emailAllowanceAnchorAt DateTime?
   emailAllowanceResetAt  DateTime?
-  whatsappMessageBalance Int @default(0)
-  whatsappMessagesSent   Int @default(0)
+  whatsappMessageBalance Int       @default(0)
+  whatsappMessagesSent   Int       @default(0)
 
   stripeCustomerId     String?
   stripeSubscriptionId String?
@@ -488,51 +488,62 @@ model Restaurant {
 
   orderingTableSessions OrderingTableSession[]
 
-  qrOrderingEnabled               Boolean           @default(true)
-  qrAllowWaiterCall               Boolean           @default(true)
-  qrAllowBillRequest              Boolean           @default(true)
-  qrWelcomeMessage                String?
-  floorRooms                      FloorRoom[]
-  marketingActions                MarketingAction[]
-  googleReviewUrl                 String?
-  googlePlaceId                   String?
-  googleRating                    Float?
-  googleReviewCount               Int?
-  googlePriceLevel                Int?
-  googleBusinessAccountName       String?
-  googleBusinessLocationName      String?
-  googleBusinessRefreshToken      String?
-  googleBusinessTitle             String?
-  googleBusinessAddress           String?
-  googleBusinessPhotos            String[]          @default([])
-  googleBusinessConnectedAt       DateTime?
-  googleBusinessSyncedAt          DateTime?
-  reviewRedirectThreshold         Int               @default(4)
-  reviewAutomationEnabled         Boolean           @default(true)
-  reviewDelayHours                Int               @default(12)
-  marketingAutopilotEnabled       Boolean           @default(false)
-  marketingAutopilotFrequencyDays Int               @default(14)
-  marketingAutopilotMaxDiscount   Int               @default(15)
-  marketingAutopilotLastRunAt     DateTime?
-  revenueWhatsappEnabled          Boolean           @default(false)
-  revenueWhatsappNumber           String?           @unique
-  revenueWhatsappContentSid       String?
-  revenueWhatsappAutoReply        Boolean           @default(true)
-  revenueVoiceEnabled             Boolean           @default(false)
-  revenueVoiceNumber              String?           @unique
-  revenueVoiceForwardNumber       String?
-  revenueMissedCallAutoReply      Boolean           @default(true)
-  revenueChannelsConfiguredAt     DateTime?
-  revenueChannelsLastError        String?
-  averageTicket                   Float?            @default(25)
-  birthdayOffer                   String?
-  recoveryOffer                   String?
-  vipOffer                        String?
-  bronzeVipOffer                  String?
-  silverVipOffer                  String?
-  goldVipOffer                    String?
-  platinumVipOffer                String?
-  posEnabled                      Boolean           @default(false)
+  qrOrderingEnabled                Boolean           @default(true)
+  qrAllowWaiterCall                Boolean           @default(true)
+  qrAllowBillRequest               Boolean           @default(true)
+  qrWelcomeMessage                 String?
+  floorRooms                       FloorRoom[]
+  marketingActions                 MarketingAction[]
+  googleReviewUrl                  String?
+  googlePlaceId                    String?
+  googleRating                     Float?
+  googleReviewCount                Int?
+  googlePriceLevel                 Int?
+  googleBusinessAccountName        String?
+  googleBusinessLocationName       String?
+  googleBusinessRefreshToken       String?
+  googleBusinessTitle              String?
+  googleBusinessAddress            String?
+  googleBusinessPhotos             String[]          @default([])
+  googleBusinessConnectedAt        DateTime?
+  googleBusinessSyncedAt           DateTime?
+  reviewRedirectThreshold          Int               @default(4)
+  reviewAutomationEnabled          Boolean           @default(true)
+  reviewDelayHours                 Int               @default(12)
+  marketingAutopilotEnabled        Boolean           @default(false)
+  marketingAutopilotFrequencyDays  Int               @default(14)
+  marketingAutopilotMaxDiscount    Int               @default(15)
+  marketingAutopilotLastRunAt      DateTime?
+  revenueWhatsappEnabled           Boolean           @default(false)
+  revenueWhatsappNumber            String?           @unique
+  revenueWhatsappContentSid        String?
+  revenueWhatsappAutoReply         Boolean           @default(true)
+  revenueVoiceEnabled              Boolean           @default(false)
+  revenueVoiceNumber               String?           @unique
+  revenueVoiceForwardNumber        String?
+  revenueMissedCallAutoReply       Boolean           @default(true)
+  revenueChannelsConfiguredAt      DateTime?
+  revenueChannelsLastError         String?
+  averageTicket                    Float?            @default(25)
+  revenueSummaryEmailEnabled       Boolean           @default(true)
+  paymentsStripeAccountId          String?           @unique
+  paymentsStripeOnboardingComplete Boolean           @default(false)
+  noShowProtectionEnabled          Boolean           @default(false)
+  noShowMinGuests                  Int               @default(6)
+  noShowDepositPerPerson           Decimal           @default(10) @db.Decimal(10, 2)
+  noShowFridayEnabled              Boolean           @default(false)
+  noShowSaturdayEnabled            Boolean           @default(false)
+  noShowSpecialDates               String[]          @default([])
+  noShowCancellationHours          Int               @default(24)
+  noShowCreditOnLateCancellation   Boolean           @default(true)
+  birthdayOffer                    String?
+  recoveryOffer                    String?
+  vipOffer                         String?
+  bronzeVipOffer                   String?
+  silverVipOffer                   String?
+  goldVipOffer                     String?
+  platinumVipOffer                 String?
+  posEnabled                       Boolean           @default(false)
 
   posOrders   POSOrder[]
   posPayments POSPayment[]
@@ -565,6 +576,8 @@ model Restaurant {
   printBridgeToken           String?                     @unique
   printBridgeRestaurants     PrintBridgeRestaurant[]
   customers                  Customer[]
+  diningExperiences          DiningExperience[]
+  reservationPayments        ReservationPayment[]
 
   @@unique([userId])
   @@index([customDomain])
@@ -754,6 +767,13 @@ model Reservation {
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id])
 
+  experienceId String?
+  experience   DiningExperience? @relation(fields: [experienceId], references: [id], onDelete: SetNull)
+
+  estimatedRevenue Decimal?                     @db.Decimal(10, 2)
+  experienceAddOns ReservationExperienceAddOn[]
+  payment          ReservationPayment?
+
   createdAt            DateTime              @default(now())
   marketingPromoCard   MarketingPromoCard?
   posTableSessions     POSTableSession[]
@@ -766,7 +786,110 @@ model Reservation {
   @@index([restaurantId, status])
   @@index([tableId])
   @@index([customerId])
+  @@index([experienceId])
   @@index([reviewEmailSentAt, date])
+}
+
+model DiningExperience {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  title             String
+  summary           String
+  startsAt          DateTime
+  durationMinutes   Int       @default(120)
+  salesCloseAt      DateTime?
+  pricePerPerson    Decimal   @db.Decimal(10, 2)
+  capacity          Int
+  cancellationHours Int       @default(48)
+  imageUrl          String?
+  active            Boolean   @default(true)
+
+  addOns       DiningExperienceAddOn[]
+  reservations Reservation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([restaurantId, active, startsAt])
+}
+
+model DiningExperienceAddOn {
+  id String @id @default(cuid())
+
+  experienceId String
+  experience   DiningExperience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  price       Decimal @db.Decimal(10, 2)
+  perGuest    Boolean @default(false)
+  active      Boolean @default(true)
+
+  selections ReservationExperienceAddOn[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([experienceId, active])
+}
+
+model ReservationExperienceAddOn {
+  id String @id @default(cuid())
+
+  reservationId String
+  reservation   Reservation           @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  addOnId       String
+  addOn         DiningExperienceAddOn @relation(fields: [addOnId], references: [id], onDelete: Restrict)
+
+  nameSnapshot String
+  unitPrice    Decimal @db.Decimal(10, 2)
+  quantity     Int     @default(1)
+  totalAmount  Decimal @db.Decimal(10, 2)
+
+  @@unique([reservationId, addOnId])
+  @@index([reservationId])
+}
+
+model ReservationPayment {
+  id String @id @default(cuid())
+
+  reservationId String      @unique
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  restaurantId  String
+  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  kind                   String
+  status                 String  @default("PENDING")
+  confirmationStatus     String  @default("CONFIRMED")
+  marketingTrackingToken String?
+  offerCode              String?
+
+  baseAmount     Decimal @db.Decimal(10, 2)
+  addOnsAmount   Decimal @default(0) @db.Decimal(10, 2)
+  serviceFee     Decimal @default(0) @db.Decimal(10, 2)
+  taxAmount      Decimal @default(0) @db.Decimal(10, 2)
+  totalAmount    Decimal @db.Decimal(10, 2)
+  applicationFee Decimal @default(0) @db.Decimal(10, 2)
+  refundedAmount Decimal @default(0) @db.Decimal(10, 2)
+  currency       String  @default("EUR")
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+  stripeChargeId          String? @unique
+  stripeRefundId          String? @unique
+  lastError               String?
+
+  paidAt     DateTime?
+  refundedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([restaurantId, status, paidAt])
+  @@index([kind, status])
 }
 
 model PasswordResetToken {

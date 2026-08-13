@@ -31,6 +31,7 @@ import { parsePriceBenchmark } from "@/lib/ai-visibility-pricing";
 import { marketingBenefitValue } from "@/lib/marketing-card-themes";
 import { prisma } from "@/lib/prisma";
 import { publicReservationUrl } from "@/lib/public-links";
+import { getRevenueMeter } from "@/lib/revenue-meter";
 
 type TFunc = (key: string, values?: Record<string, string | number>) => string;
 
@@ -80,6 +81,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   const subscription = billingUser?.subscription;
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
   const birthdayActionCutoff = new Date(now.getTime() - 330 * 24 * 60 * 60 * 1000);
   const trialEndsAt = subscription?.trialEndsAt ?? null;
@@ -251,7 +253,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   const allReservations = [...tableReservations, ...restaurant.reservations].filter(
     (reservation, index, array) => array.findIndex((item) => item.id === reservation.id) === index,
   );
-  const inactiveStatuses = ["CANCELLED", "REJECTED", "NO_SHOW"];
+  const inactiveStatuses = ["CANCELLED", "REJECTED", "NO_SHOW", "PENDING_PAYMENT"];
   const activeReservations = allReservations.filter((reservation) => !inactiveStatuses.includes(String(reservation.status)));
   const reservationsToday = activeReservations.filter((reservation) => sameDay(new Date(reservation.date), now));
   const pendingToday = reservationsToday.filter((reservation) => reservation.status === "PENDING");
@@ -309,6 +311,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   const websiteUrl = restaurant.customDomainVerified && restaurant.customDomain
     ? `https://${restaurant.customDomain}`
     : `https://${restaurant.slug}.mesalink.pt`;
+  const revenueMeter = await getRevenueMeter(id, monthStart, monthEnd);
 
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
@@ -377,6 +380,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
                 <span className={`rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.11em] ${growthAccess ? "bg-[#ECF7EC] text-[#3F6A4D]" : "bg-[#F1E6D5] text-[#795D38]"}`}>{growthAccess ? t("summary.growth.active") : t("summary.growth.available")}</span>
               </div>
               <div className="mt-4 grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
+                <GrowthTile href={`/restaurants/${id}/revenue`} icon={<CircleDollarSign size={18} />} eyebrow="Receita MesaLink" title={formatMoney(revenueMeter.total, intlLocale)} description={`${revenueMeter.roi ? `${revenueMeter.roi}× ROI · ` : ""}${revenueMeter.reservations} reservas medidas`} badge={revenueMeter.protected > 0 ? `${formatMoney(revenueMeter.protected, intlLocale)} protegidos` : undefined} tone="gold" />
                 <GrowthTile href={`/restaurants/${id}/marketing`} icon={<CircleDollarSign size={18} />} eyebrow={t("summary.marketing.eyebrow")} title={formatMoney(attributedRevenue, intlLocale)} description={sentActions.length ? t("summary.marketing.performance", { sent: sentActions.length, rate: openRate }) : t("summary.marketing.empty")} tone="gold" />
                 <GrowthTile href={`/restaurants/${id}/revenue-ai`} icon={<MessageCircle size={18} />} eyebrow={t("summary.revenue.eyebrow")} title={t("summary.revenue.title", { count: openRevenueConversations })} description={t("summary.revenue.description")} alert={openRevenueConversations > 0} tone="cream" />
                 <GrowthTile href={`/restaurants/${id}/ai-visibility`} icon={<Sparkles size={18} />} eyebrow={t("summary.ai.eyebrow")} title={latestScan?.overallScore != null ? `${latestScan.overallScore}/100` : t("summary.ai.noScan")} description={latestScan ? t("summary.ai.performance", { mentions: latestScan.mentionRate || 0, sources: latestScan.sourceCount || 0 }) : t("summary.ai.runScan")} badge={pricePosition} tone="blue" />

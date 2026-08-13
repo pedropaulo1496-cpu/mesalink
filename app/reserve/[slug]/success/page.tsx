@@ -1,6 +1,8 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { prisma } from "@/lib/prisma";
+import { settleReservationCheckoutSession } from "@/lib/reservation-payments";
 
 const successDateLocales: Record<string, string> = {
   pt: "pt-PT",
@@ -12,8 +14,10 @@ const successDateLocales: Record<string, string> = {
 };
 
 export default async function ReservationSuccessPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{
     name?: string;
     guests?: string;
@@ -21,16 +25,37 @@ export default async function ReservationSuccessPage({
     status?: string;
     already?: string;
     offer?: string;
+    session_id?: string;
+    reservationId?: string;
   }>;
 }) {
-  const { name, guests, date, status, already, offer } = await searchParams;
+  const { slug } = await params;
+  const { name, guests, date, status, already, offer, session_id: sessionId, reservationId } = await searchParams;
+
+  let paidReservationId = reservationId || null;
+  if (sessionId && /^cs_/.test(sessionId)) {
+    try {
+      paidReservationId = await settleReservationCheckoutSession(sessionId);
+    } catch (error) {
+      console.error("Reservation success settlement failed", error);
+    }
+  }
+  const paidReservation = paidReservationId ? await prisma.reservation.findUnique({
+    where: { id: paidReservationId },
+    include: { experience: true, payment: true, restaurant: { select: { slug: true } } },
+  }) : null;
+  const verifiedPaidReservation = paidReservation?.restaurant?.slug === slug ? paidReservation : null;
+  const resolvedName = verifiedPaidReservation?.customerName || name;
+  const resolvedGuests = verifiedPaidReservation ? String(verifiedPaidReservation.guests) : guests;
+  const resolvedDate = verifiedPaidReservation?.date || (date ? new Date(date) : null);
+  const resolvedStatus = verifiedPaidReservation?.status || status;
 
   const t = await getTranslations("publicFlows.reserveSuccess");
   const locale = await getLocale();
   const intlLocale = successDateLocales[locale] ?? "pt-PT";
 
-  const reservationDate = date ? new Date(date) : null;
-  const isPending = status === "PENDING";
+  const reservationDate = resolvedDate;
+  const isPending = resolvedStatus === "PENDING";
   const isAlreadyBooked = already === "1";
 
   return (
@@ -76,8 +101,8 @@ export default async function ReservationSuccessPage({
           </div>
 
           <div className="mt-8 space-y-3 rounded-[28px] border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-            {name && <InfoRow label={t("labels.name")} value={name} />}
-            {guests && <InfoRow label={t("labels.guests")} value={guests} />}
+            {resolvedName && <InfoRow label={t("labels.name")} value={resolvedName} />}
+            {resolvedGuests && <InfoRow label={t("labels.guests")} value={resolvedGuests} />}
 
             {reservationDate && (
               <>
@@ -101,6 +126,8 @@ export default async function ReservationSuccessPage({
               value={isPending ? t("statusPending") : t("statusConfirmed")}
               highlight
             />
+            {verifiedPaidReservation?.experience && <InfoRow label="Experiência" value={verifiedPaidReservation.experience.title} highlight />}
+            {verifiedPaidReservation?.payment?.status === "PAID" && <InfoRow label="Pagamento" value={`${new Intl.NumberFormat(intlLocale, { style: "currency", currency: verifiedPaidReservation.payment.currency }).format(Number(verifiedPaidReservation.payment.totalAmount))} · pago`} highlight />}
             {offer && <InfoRow label={t("labels.offer")} value={offer} highlight />}
           </div>
 

@@ -4,14 +4,18 @@ import { completeEmailSend, refundEmailSend, reserveEmailSend } from "@/lib/emai
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { prisma } from "@/lib/prisma";
 import { reservationManagementUrl } from "@/lib/reservation-management";
-import { publicReservationUrl } from "@/lib/public-links";
+import { publicCustomerOrigin, publicReservationUrl } from "@/lib/public-links";
 
 const dateLocales: Record<string, string> = { pt: "pt-PT", en: "en-GB", es: "es-ES", fr: "fr-FR", de: "de-DE", zh: "zh-CN" };
 
 export async function sendReservationLifecycleEmail(reservationId: string, type: "UPDATED" | "CANCELLED") {
   const reservation = await prisma.reservation.findUnique({
     where: { id: reservationId },
-    include: { restaurant: { select: { id: true, name: true, slug: true, userId: true } } },
+    include: {
+      restaurant: { select: { id: true, name: true, slug: true, userId: true } },
+      payment: true,
+      customer: { include: { marketingPromoCards: { where: { status: "ACTIVE", title: "Crédito de reserva" }, orderBy: { createdAt: "desc" }, take: 1 } } },
+    },
   });
   if (!reservation?.email || !reservation.restaurant?.userId || !process.env.RESEND_API_KEY) return false;
   const resend = new Resend(process.env.RESEND_API_KEY);
@@ -37,6 +41,12 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
     const manageUrl = reservationManagementUrl(reservation.id, reservation.email);
     const cancelUrl = reservationManagementUrl(reservation.id, reservation.email, "cancel");
     const rebookUrl = publicReservationUrl(reservation.restaurant.slug);
+    const creditCard = reservation.customer?.marketingPromoCards[0];
+    const paymentMessage = reservation.payment?.status === "PARTIALLY_REFUNDED" || reservation.payment?.status === "REFUNDED"
+      ? `O valor de ${new Intl.NumberFormat("pt-PT", { style: "currency", currency: reservation.payment.currency }).format(Number(reservation.payment.refundedAmount))} foi devolvido através da Stripe. A taxa de serviço não é reembolsável.`
+      : reservation.payment?.status === "CREDIT_ISSUED" && creditCard
+        ? `Emitimos um crédito digital de ${new Intl.NumberFormat("pt-PT", { style: "currency", currency: reservation.payment.currency }).format(Number(reservation.payment.baseAmount) + Number(reservation.payment.addOnsAmount))}, válido para uma nova reserva.`
+        : "";
     const pending = reservation.status === "PENDING";
 
     const subject = type === "CANCELLED"
@@ -57,6 +67,7 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
             <h1 style="margin:0;font-size:28px;line-height:1.1;color:#16120E;">${escapeHtml(heading)}</h1>
             <p style="margin:18px 0 0;color:#6B6258;">${escapeHtml(t("greeting", { customerName: reservation.customerName }))}</p>
             <p style="margin:10px 0 0;color:#6B6258;">${escapeHtml(body)}</p>
+            ${type === "CANCELLED" && paymentMessage ? `<div style="margin:18px 0 0;padding:14px 16px;border-radius:16px;background:#FFF3D8;color:#6B4C24;font-weight:700;">${escapeHtml(paymentMessage)}</div>` : ""}
             <div style="margin:24px 0;padding:18px;border:1px solid #E1D0B8;border-radius:18px;background:#FFF9F0;">
               <p><strong>${escapeHtml(t("labelRestaurant"))}</strong> ${escapeHtml(reservation.restaurant.name)}</p>
               <p><strong>${escapeHtml(t("labelDate"))}</strong> ${reservation.date.toLocaleDateString(intlLocale, { timeZone: "Europe/Lisbon" })}</p>
@@ -66,6 +77,7 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
             </div>
             ${type === "CANCELLED" ? `
               <a href="${rebookUrl}" style="display:block;padding:14px 20px;border-radius:999px;background:#17120D;color:#fff;text-align:center;text-decoration:none;font-weight:700;">${escapeHtml(t("rebookButton"))}</a>
+              ${creditCard ? `<a href="${publicCustomerOrigin()}/offers/${encodeURIComponent(creditCard.publicCode)}" style="display:block;margin-top:10px;padding:13px 20px;border:1px solid #D8C6A9;border-radius:999px;color:#7A5427;text-align:center;text-decoration:none;font-weight:700;">Abrir crédito digital · ${escapeHtml(creditCard.publicCode)}</a>` : ""}
             ` : `
               <p style="margin:0 0 12px;font-size:13px;color:#6B6258;">${escapeHtml(t("manageIntro"))}</p>
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>

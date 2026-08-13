@@ -306,9 +306,9 @@ export default async function DayPage({
     where: {
       restaurantId: id,
       date: { gte: dayStart, lte: dayEnd },
-      status: { notIn: ["CANCELLED", "REJECTED"] },
+      status: { notIn: ["CANCELLED", "REJECTED", "PENDING_PAYMENT"] },
     },
-    include: { table: true, marketingPromoCard: true },
+    include: { table: true, marketingPromoCard: true, payment: true, experience: true, experienceAddOns: true },
     orderBy: { date: "asc" },
   });
 
@@ -348,7 +348,7 @@ export default async function DayPage({
         ? "bg-[#C8A56A]"
         : "bg-[#3F6A4D]";
 
-  const estimatedRevenue = totalGuests * 35;
+  const estimatedRevenue = reservations.reduce((sum, reservation) => sum + Number(reservation.estimatedRevenue || reservation.guests * Number(restaurant.averageTicket || 25)), 0);
 
   const formattedDate = new Date(selectedDay).toLocaleDateString(intlLocale, {
     weekday: "long",
@@ -397,6 +397,7 @@ export default async function DayPage({
                 {t("row.offerApplied")}
               </span>
             )}
+            {reservation.payment?.status === "PAID" && <span className="rounded-full bg-[#EAF6EA] px-2.5 py-1 text-[10px] font-semibold text-[#3F6A4D]">{reservation.payment.kind === "DEPOSIT" ? "Depósito pago" : "Pré-pago"}</span>}
           </div>
 
           <p className="mt-1 truncate text-xs text-[#6B6258]">
@@ -409,6 +410,7 @@ export default async function DayPage({
 </p>
 
 {reservation.marketingPromoCard && <div className="mt-2 rounded-2xl border border-[#E2C58D] bg-[#FFF6E5] px-3 py-2 text-xs"><p className="font-bold text-[#6F4D26]">{t("row.offerApplied")}: {reservation.marketingPromoCard.title} · {marketingBenefitValue(reservation.marketingPromoCard.benefitType, reservation.marketingPromoCard.value == null ? null : Number(reservation.marketingPromoCard.value), reservation.marketingPromoCard.benefitLabel)}</p><p className="mt-1 font-mono text-[10px] text-[#806D56]">{reservation.marketingPromoCard.publicCode} · {t("row.offerSingleUse")}</p></div>}
+{reservation.payment?.status === "PAID" && <div className="mt-2 rounded-2xl border border-[#B8D7B9] bg-[#EFF9EF] px-3 py-2 text-xs text-[#315C3B]"><p className="font-bold">{reservation.experience ? reservation.experience.title : "No-Show Protect"} · {new Intl.NumberFormat("pt-PT", { style: "currency", currency: reservation.payment.currency }).format(Number(reservation.payment.baseAmount) + Number(reservation.payment.addOnsAmount))} já pago</p><p className="mt-1 text-[10px]">{reservation.payment.kind === "DEPOSIT" ? "Descontar este depósito na conta final." : "Experiência e extras pagos na reserva."}{reservation.experienceAddOns.length ? ` Extras: ${reservation.experienceAddOns.map((item) => `${item.nameSnapshot} × ${item.quantity}`).join(", ")}.` : ""}</p></div>}
 
 <details className="group mt-2">
   <summary className="cursor-pointer list-none text-xs font-semibold text-[#9B6F3B] transition hover:text-[#16120E]">

@@ -10,6 +10,7 @@ import BottomNav from "@/components/BottomNav";
 import { getLocale, getTranslations } from "next-intl/server";
 import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 import { triggerRevenueRecovery } from "@/lib/trigger-revenue-recovery";
+import { settleReservationCancellation } from "@/lib/reservation-payment-cancellation";
 
 const dashboardDateLocales: Record<string, string> = {
   pt: "pt-PT",
@@ -38,6 +39,10 @@ async function updateReservationStatus(formData: FormData) {
     where: { id: reservationId, restaurantId },
     data: { status },
   });
+
+  if (["CANCELLED", "REJECTED", "NO_SHOW"].includes(status)) {
+    await settleReservationCancellation(reservationId, { forceRefund: status === "REJECTED", noShow: status === "NO_SHOW" });
+  }
 
   if (["CANCELLED", "REJECTED", "NO_SHOW"].includes(status)) {
     await triggerRevenueRecovery(restaurantId);
@@ -132,7 +137,7 @@ export default async function ReservationsPage({
             lte: calendarEnd,
           },
           status: {
-            notIn: ["CANCELLED", "REJECTED"],
+            notIn: ["CANCELLED", "REJECTED", "PENDING_PAYMENT"],
           },
         },
         include: {
