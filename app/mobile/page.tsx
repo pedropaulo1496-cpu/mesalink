@@ -2,276 +2,250 @@
 
 import Footer from "@/components/Footer";
 import SiteHeader from "@/components/SiteHeader";
-import { AppDownloads, LaunchHighlights } from "@/components/marketing/LaunchHighlights";
+import { motion } from "framer-motion";
+import {
+  ArrowDownToLine,
+  ArrowRight,
+  Bot,
+  CalendarCheck2,
+  Check,
+  ChevronRight,
+  Globe2,
+  Hotel,
+  LayoutDashboard,
+  MapPin,
+  QrCode,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Users,
+  UtensilsCrossed,
+} from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useTranslations } from "next-intl";
-import { type ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
+
+const mobileCopy = {
+  pt: {
+    eyebrow: "Crescimento para restaurantes",
+    heroLead: "Mais mesas ocupadas.",
+    heroAccent: "Menos clientes perdidos.",
+    heroText:
+      "Reservas diretas, novos clientes enviados por parceiros e recuperação automática — tudo num sistema simples de usar.",
+    primary: "Começar 7 dias grátis",
+    secondary: "Pedir demonstração",
+    trust: ["Sem comissão direta", "Configuração acompanhada", "Sem compromisso"],
+    flowTitle: "Uma reserva. Tudo ligado.",
+    flowRows: [
+      ["Reserva direta", "Google · Instagram · Website"],
+      ["Cliente novo", "Hotel · concierge · parceiro"],
+      ["Oportunidade recuperada", "Revenue AI · email · WhatsApp"],
+    ],
+    enginesEyebrow: "Três motores de crescimento",
+    enginesTitle: "Não é só gestão. É negócio novo.",
+    engines: [
+      ["Reservas diretas", "Converte quem já procura o restaurante, sem comissão por pessoa."],
+      ["Rede de Parceiros", "Hotéis e parceiros enviam clientes que provavelmente não chegariam até ti."],
+      ["Revenue AI", "Cancelamentos, no-shows e chamadas não atendidas voltam a ser oportunidades."],
+    ],
+    networkEyebrow: "Funcionalidade em destaque",
+    networkTitle: "Clientes novos, enviados por quem já os tem.",
+    networkText:
+      "Define a comissão e a disponibilidade. O parceiro escolhe o restaurante e a reserva entra diretamente na agenda MesaLink.",
+    networkPoints: ["Comissão definida pelo restaurante", "Contacto protegido até à reserva", "Capacidade e dias sob o teu controlo"],
+    networkCta: "Conhecer a Rede de Parceiros",
+    demoEyebrow: "Experimenta como cliente",
+    demoTitle: "Uma reserva real, sem instalar nenhuma app.",
+    demoText: "Vê a experiência pública da Taberna Tuga diretamente no browser do telemóvel.",
+    demoCta: "Reservar na Taberna Tuga",
+    platformEyebrow: "Tudo num só lugar",
+    platformTitle: "Antes, durante e depois da visita.",
+    features: ["Reservas & mesas", "Menus & depósitos", "QR Ordering", "CRM & cartões", "Website & SEO", "Rede de Parceiros", "Marketing Autopilot", "AI Visibility"],
+    appsEyebrow: "Apps oficiais",
+    appsTitle: "Cada equipa vê apenas o que precisa.",
+    appsText: "As três aplicações usam contas e permissões separadas.",
+    download: "Descarregar",
+    appAudience: ["Restaurantes", "Parceiros", "Administração e comerciais"],
+    finalEyebrow: "Começa hoje",
+    finalTitle: "A próxima reserva pode começar no MesaLink.",
+    finalText: "7 dias para experimentar todas as funcionalidades, com configuração acompanhada.",
+    finalPrimary: "Começar teste gratuito",
+    finalSecondary: "Falar com a MesaLink",
+  },
+  en: {
+    eyebrow: "Growth for restaurants",
+    heroLead: "More tables filled.",
+    heroAccent: "Fewer customers lost.",
+    heroText:
+      "Direct bookings, new customers sent by partners and automatic recovery — all in one simple system.",
+    primary: "Start 7 days free",
+    secondary: "Book a demo",
+    trust: ["No direct booking fee", "Guided setup", "No commitment"],
+    flowTitle: "One booking. Everything connected.",
+    flowRows: [
+      ["Direct booking", "Google · Instagram · Website"],
+      ["New customer", "Hotel · concierge · partner"],
+      ["Recovered opportunity", "Revenue AI · email · WhatsApp"],
+    ],
+    enginesEyebrow: "Three growth engines",
+    enginesTitle: "More than management. New business.",
+    engines: [
+      ["Direct bookings", "Convert people already searching, with no per-cover commission."],
+      ["Partner Network", "Hotels and partners send customers who probably would not find you otherwise."],
+      ["Revenue AI", "Cancellations, no-shows and missed calls become opportunities again."],
+    ],
+    networkEyebrow: "Featured capability",
+    networkTitle: "New customers, sent by people who already have them.",
+    networkText:
+      "Set commission and availability. The partner chooses the restaurant and the booking enters MesaLink directly.",
+    networkPoints: ["Commission set by the restaurant", "Contact protected until booking", "Capacity and days under your control"],
+    networkCta: "Explore the Partner Network",
+    demoEyebrow: "Try the customer experience",
+    demoTitle: "A real booking, with no app to install.",
+    demoText: "See Taberna Tuga’s public experience directly in the phone browser.",
+    demoCta: "Book at Taberna Tuga",
+    platformEyebrow: "Everything in one place",
+    platformTitle: "Before, during and after the visit.",
+    features: ["Bookings & tables", "Menus & deposits", "QR Ordering", "CRM & cards", "Website & SEO", "Partner Network", "Marketing Autopilot", "AI Visibility"],
+    appsEyebrow: "Official apps",
+    appsTitle: "Every team sees only what it needs.",
+    appsText: "All three apps use separate accounts and permissions.",
+    download: "Download",
+    appAudience: ["Restaurants", "Partners", "Admin and sales"],
+    finalEyebrow: "Start today",
+    finalTitle: "Your next booking can start in MesaLink.",
+    finalText: "Try every feature for 7 days, with guided setup.",
+    finalPrimary: "Start free trial",
+    finalSecondary: "Talk to MesaLink",
+  },
+} as const;
+
+type MobileCopy = typeof mobileCopy.pt | typeof mobileCopy.en;
+type IconComponent = ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
 
 export default function MobilePage() {
+  const locale = useLocale();
+  const copy = locale === "pt" ? mobileCopy.pt : mobileCopy.en;
+
   return (
-    <main className="min-h-screen overflow-hidden bg-[#F4ECDF] text-[#17130F]">
+    <main className="min-h-screen overflow-hidden bg-[#F3ECE2] text-[#17130F]">
       <SiteHeader variant="compact" />
-      <Hero />
-      <LaunchHighlights compact />
-      <FeatureCards />
-      <QRSection />
-      <AppDownloads compact />
+      <MobileHero copy={copy} />
+      <GrowthEngines copy={copy} />
+      <PartnerFeature copy={copy} />
+      <PublicDemo copy={copy} />
+      <MobilePlatform copy={copy} />
       <PricingMini />
-      <FinalCTA />
+      <MobileApps copy={copy} />
+      <MobileFinalCTA copy={copy} />
       <Footer />
     </main>
   );
 }
 
-function Hero() {
-  const t = useTranslations("marketing.mobileHome");
+function MobileHero({ copy }: { copy: MobileCopy }) {
+  const flowIcons = [Globe2, Hotel, Bot];
 
   return (
-    <section className="relative px-5 pb-10 pt-10">
-      <Glow />
-
+    <section className="relative px-4 pb-12 pt-9">
+      <div className="pointer-events-none absolute left-1/2 top-[-130px] h-[320px] w-[320px] -translate-x-1/2 rounded-full bg-[#D8C5A5]/45 blur-[85px]" />
       <div className="relative mx-auto max-w-md">
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55 }}
-          className="text-center"
-        >
-          <Pill>{t("hero.badge")}</Pill>
-
-          <h1 className="mt-6 text-[50px] font-semibold leading-[0.86] tracking-[-0.085em] min-[390px]:text-[58px]">
-            {t("hero.titleLine1")}
-            <span className="block text-[#C8A56A]">{t("hero.titleLine2")}</span>
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
+          <MobileEyebrow icon={Sparkles}>{copy.eyebrow}</MobileEyebrow>
+          <h1 className="mt-5 text-[46px] font-semibold leading-[0.9] tracking-[-0.075em] min-[390px]:text-[52px]">
+            {copy.heroLead}<span className="mt-1 block text-[#A9793E]">{copy.heroAccent}</span>
           </h1>
+          <p className="mt-5 max-w-sm text-base leading-7 text-[#5F554B]">{copy.heroText}</p>
 
-          <p className="mx-auto mt-6 max-w-sm text-base leading-7 text-[#5C5348]">
-            {t("hero.subtitle")}
-          </p>
+          <div className="mt-7 grid gap-2.5">
+            <Link href="/register" className="flex h-13 items-center justify-center rounded-full bg-[#17130F] px-6 text-sm font-semibold text-white shadow-[0_18px_45px_rgba(23,19,15,0.2)]">{copy.primary}<ArrowRight className="ml-2" size={17} /></Link>
+            <Link href="/contact" className="flex h-13 items-center justify-center rounded-full border border-[#BFA477] bg-[#FFF9F0] px-6 text-sm font-semibold">{copy.secondary}</Link>
+          </div>
 
-          <div className="mt-7 grid gap-3">
-            <Link
-              href="/register"
-              className="flex h-14 items-center justify-center rounded-full bg-[#17130F] px-6 text-base font-semibold text-white shadow-[0_22px_65px_rgba(80,55,30,0.26)]"
-            >
-              {t("hero.ctaPrimary")}
-            </Link>
-
-            <Link
-              href="/contact"
-              className="flex h-14 items-center justify-center rounded-full border border-[#B9965E] bg-[#FFF9F0] px-6 text-base font-semibold"
-            >
-              {t("hero.ctaSecondary")}
-            </Link>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {copy.trust.map((item) => <span key={item} className="flex items-center gap-1.5 rounded-full border border-[#DDCBB0] bg-[#FFF9F0]/80 px-3 py-2 text-[10px] font-semibold text-[#62574B]"><Check size={11} className="text-[#315A3F]" strokeWidth={3} />{item}</span>)}
           </div>
         </motion.div>
 
-        <LivePhone />
-        <TrustStrip />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.65, delay: 0.08 }} className="relative mt-8 overflow-hidden rounded-[32px] border border-[#2C241E] bg-[#17130F] p-4 text-white shadow-[0_30px_80px_rgba(23,19,15,0.24)]">
+          <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#D7B267]/18 blur-[65px]" />
+          <div className="relative flex items-center justify-between gap-3 border-b border-white/10 pb-4"><div><p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D7B267]">MesaLink Growth</p><h2 className="mt-1 text-xl font-semibold tracking-[-0.04em]">{copy.flowTitle}</h2></div><span className="flex items-center gap-1.5 rounded-full bg-emerald-300/10 px-2.5 py-1.5 text-[9px] font-bold uppercase text-emerald-200"><span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />Ativo</span></div>
+          <div className="relative mt-4 grid gap-2.5">
+            {copy.flowRows.map(([title, text], index) => {
+              const Icon = flowIcons[index];
+              return <div key={title} className="grid grid-cols-[42px_1fr_auto] items-center gap-3 rounded-[19px] border border-white/10 bg-white/[0.055] p-3"><span className={`grid h-10 w-10 place-items-center rounded-xl ${index === 1 ? "bg-[#315A3F] text-[#E4C98F]" : index === 2 ? "bg-[#5A467D] text-white" : "bg-[#D7B267] text-[#17130F]"}`}><Icon size={17} /></span><div className="min-w-0"><p className="text-sm font-semibold">{title}</p><p className="mt-0.5 truncate text-[10px] text-white/45">{text}</p></div><ChevronRight size={14} className="text-[#D7B267]" /></div>;
+            })}
+          </div>
+        </motion.div>
       </div>
     </section>
   );
 }
 
-function LivePhone() {
-  const t = useTranslations("marketing.mobileHome");
-
-  const events = [
-    [t("hero.phone.event1Title"), t("hero.phone.event1Text"), "✓"],
-    [t("hero.phone.event2Title"), t("hero.phone.event2Text"), "↗"],
-    [t("hero.phone.event3Title"), t("hero.phone.event3Text"), "+68€"],
-    [t("hero.phone.event4Title"), "★★★★★", "5.0"],
-  ];
-
-  const { scrollYProgress } = useScroll();
-  const phoneY = useTransform(scrollYProgress, [0, 0.25], [0, -44]);
-  const chartY = useTransform(scrollYProgress, [0, 0.18], [14, -18]);
-
+function GrowthEngines({ copy }: { copy: MobileCopy }) {
+  const icons = [Globe2, Hotel, Bot];
   return (
-    <motion.div style={{ y: phoneY }} className="relative mx-auto mt-10 max-w-[365px]">
-      <div className="absolute -left-4 top-20 z-20 rounded-2xl border border-[#E5D6C1] bg-white/90 px-4 py-3 shadow-[0_18px_55px_rgba(80,55,30,0.16)] backdrop-blur">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-          {t("hero.phone.badgeReservation")}
-        </p>
-        <p className="mt-1 text-xs font-semibold">{t("hero.phone.badgeConfirmed")}</p>
-      </div>
-
-      <div className="absolute -right-4 bottom-28 z-20 rounded-2xl border border-[#E5D6C1] bg-white/90 px-4 py-3 shadow-[0_18px_55px_rgba(80,55,30,0.16)] backdrop-blur">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-          {t("hero.phone.badgeGrowth")}
-        </p>
-        <p className="mt-1 text-xs font-semibold">+18%</p>
-      </div>
-
-      <div className="relative overflow-hidden rounded-[44px] border-[10px] border-[#17130F] bg-[#FBF4EA] shadow-[0_42px_120px_rgba(33,25,18,0.26)]">
-        <div className="mx-auto mt-3 h-5 w-28 rounded-b-2xl bg-[#17130F]" />
-
-        <div className="p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-lg font-semibold tracking-[-0.04em]">
-              {t("hero.phone.appName")}
-            </p>
-            <span className="rounded-full bg-[#FFF9F0] px-3 py-1 text-xs font-semibold text-[#9B6F3B]">
-              {t("hero.phone.live")}
-            </span>
-          </div>
-
-          <motion.div
-            style={{ y: chartY }}
-            className="relative mt-5 overflow-hidden rounded-[26px] bg-[#17130F] p-5 text-white"
-          >
-            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#C8A56A]/25 blur-3xl" />
-
-            <p className="relative text-xs font-semibold uppercase tracking-[0.22em] text-[#D8C5A5]">
-              {t("hero.phone.reservationsTodayLabel")}
-            </p>
-
-            <p className="relative mt-2 text-4xl font-semibold tracking-[-0.075em]">
-              18
-            </p>
-
-            <p className="relative mt-1 text-xs text-emerald-300">
-              {t("hero.phone.reservationsTodayCaption")}
-            </p>
-
-            <div className="relative mt-4 grid grid-cols-2 gap-2">
-              <div className="rounded-2xl bg-white/10 px-3 py-2">
-                <p className="text-lg font-semibold">132</p>
-                <p className="text-[10px] text-white/60">{t("hero.phone.statWeekLabel")}</p>
-              </div>
-              <div className="rounded-2xl bg-white/10 px-3 py-2">
-                <p className="text-lg font-semibold">74%</p>
-                <p className="text-[10px] text-white/60">{t("hero.phone.statOccupancyLabel")}</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <div className="mt-4 grid gap-2">
-            {events.map(([title, text, value], index) => (
-              <motion.div
-                key={title}
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.18 }}
-                className="flex items-center justify-between rounded-2xl border border-[#E5D6C1] bg-white px-4 py-3"
-              >
-                <div>
-                  <p className="text-sm font-semibold">{title}</p>
-                  <p className="mt-1 text-xs text-[#6B6258]">{text}</p>
-                </div>
-
-                <span className="rounded-full bg-[#FFF0CF] px-3 py-1 text-xs font-bold text-[#9B6F3B]">
-                  {value}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function FeatureCards() {
-  const t = useTranslations("marketing.mobileHome");
-
-  const growthFeatures = [
-    [t("featureCards.growthItem1Name"), t("featureCards.growthItem1Label")],
-    [t("featureCards.growthItem2Name"), t("featureCards.growthItem2Label")],
-    [t("featureCards.growthItem3Name"), t("featureCards.growthItem3Label")],
-    [t("featureCards.growthItem4Name"), t("featureCards.growthItem4Label")],
-    [t("featureCards.growthItem5Name"), t("featureCards.growthItem5Label")],
-    [t("featureCards.growthItem6Name"), t("featureCards.growthItem6Label")],
-  ];
-
-  const visibilityFeatures = [
-    [t("featureCards.visibilityItem1Name"), t("featureCards.visibilityItem1Label")],
-    [t("featureCards.visibilityItem2Name"), t("featureCards.visibilityItem2Label")],
-    [t("featureCards.visibilityItem3Name"), t("featureCards.visibilityItem3Label")],
-    [t("featureCards.visibilityItem4Name"), t("featureCards.visibilityItem4Label")],
-    [t("featureCards.visibilityItem5Name"), t("featureCards.visibilityItem5Label")],
-    [t("featureCards.visibilityItem6Name"), t("featureCards.visibilityItem6Label")],
-  ];
-
-  const controlFeatures = [
-    [t("featureCards.controlItem1Name"), t("featureCards.controlItem1Label")],
-    [t("featureCards.controlItem2Name"), t("featureCards.controlItem2Label")],
-    [t("featureCards.controlItem3Name"), t("featureCards.controlItem3Label")],
-    [t("featureCards.controlItem4Name"), t("featureCards.controlItem4Label")],
-    [t("featureCards.controlItem5Name"), t("featureCards.controlItem5Label")],
-    [t("featureCards.controlItem6Name"), t("featureCards.controlItem6Label")],
-  ];
-
-  return (
-    <section className="px-5 py-12">
+    <section className="px-4 py-12">
       <div className="mx-auto max-w-md">
-        <Pill>{t("featureCards.label")}</Pill>
-
-        <h2 className="mt-5 text-[42px] font-semibold leading-[0.9] tracking-[-0.075em]">
-          {t("featureCards.titleLine1")}
-          <span className="block text-[#C8A56A]">{t("featureCards.titleLine2")}</span>
-        </h2>
-
-        <div className="mt-8 flex snap-x gap-4 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <MegaCard
-            dark
-            icon="↗"
-            title={t("featureCards.growthTitle")}
-            subtitle={t("featureCards.growthSubtitle")}
-            text={t("featureCards.growthText")}
-            items={growthFeatures}
-          />
-
-          <MegaCard
-            icon="◎"
-            title={t("featureCards.visibilityTitle")}
-            subtitle={t("featureCards.visibilitySubtitle")}
-            text={t("featureCards.visibilityText")}
-            items={visibilityFeatures}
-          />
-
-          <MegaCard
-            icon="≡"
-            title={t("featureCards.controlTitle")}
-            subtitle={t("featureCards.controlSubtitle")}
-            text={t("featureCards.controlText")}
-            items={controlFeatures}
-          />
-        </div>
-
-        <div className="mx-auto mt-1 flex w-fit gap-2">
-          <span className="h-2 w-7 rounded-full bg-[#C8A56A]" />
-          <span className="h-2 w-2 rounded-full bg-[#D8C5A5]" />
-          <span className="h-2 w-2 rounded-full bg-[#D8C5A5]" />
+        <MobileEyebrow>{copy.enginesEyebrow}</MobileEyebrow>
+        <h2 className="mt-4 text-[38px] font-semibold leading-[0.94] tracking-[-0.065em]">{copy.enginesTitle}</h2>
+        <div className="mt-7 grid gap-3">
+          {copy.engines.map(([title, text], index) => {
+            const Icon = icons[index];
+            const highlighted = index === 1;
+            return <article key={title} className={`grid grid-cols-[48px_1fr] gap-4 rounded-[25px] border p-4 ${highlighted ? "border-[#315A3F] bg-[#274735] text-white" : "border-[#DDCBB0] bg-[#FFF9F0]"}`}><span className={`grid h-12 w-12 place-items-center rounded-2xl ${highlighted ? "bg-white/10 text-[#E4C98F]" : "bg-[#F0DFC1] text-[#80592B]"}`}><Icon size={19} /></span><div><p className={`text-[9px] font-bold uppercase tracking-[0.16em] ${highlighted ? "text-[#E4C98F]" : "text-[#9B6F3B]"}`}>{index === 0 ? "Direto" : index === 1 ? "Cliente novo" : "Recuperação"}</p><h3 className="mt-1 text-xl font-semibold tracking-[-0.035em]">{title}</h3><p className={`mt-2 text-sm leading-6 ${highlighted ? "text-white/62" : "text-[#655B50]"}`}>{text}</p></div></article>;
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-function QRSection() {
-  const t = useTranslations("marketing.mobileHome");
-
+function PartnerFeature({ copy }: { copy: MobileCopy }) {
   return (
-    <section className="px-5 py-12">
-      <div className="mx-auto max-w-md overflow-hidden rounded-[36px] border border-[#D8C5A5] bg-[#FFF9F0] p-6 shadow-[0_24px_80px_rgba(80,55,30,0.10)]">
-        <Pill>{t("qrSection.label")}</Pill>
-
-        <h2 className="mt-5 text-[42px] font-semibold leading-[0.9] tracking-[-0.075em]">
-          {t("qrSection.titleLine1")}
-          <span className="block text-[#C8A56A]">{t("qrSection.titleLine2")}</span>
-        </h2>
-
-        <p className="mt-5 text-base leading-7 text-[#5C5348]">
-          {t("qrSection.subtitle")}
-        </p>
-
-        <div className="mt-6 grid gap-3">
-          <Event text={t("qrSection.event1Text")} value={t("qrSection.event1Value")} />
-          <Event text={t("qrSection.event2Text")} value={t("qrSection.event2Value")} />
-          <Event text={t("qrSection.event3Text")} value={t("qrSection.event3Value")} />
+    <section className="px-4 py-10">
+      <div className="mx-auto max-w-md overflow-hidden rounded-[32px] bg-[#17130F] text-white shadow-[0_28px_75px_rgba(23,19,15,0.22)]">
+        <div className="relative p-6">
+          <div className="absolute -right-14 -top-16 h-52 w-52 rounded-full bg-[#315A3F]/60 blur-[65px]" />
+          <div className="relative"><MobileEyebrow dark icon={Hotel}>{copy.networkEyebrow}</MobileEyebrow><h2 className="mt-4 text-[38px] font-semibold leading-[0.94] tracking-[-0.065em]">{copy.networkTitle}</h2><p className="mt-4 text-sm leading-6 text-white/58">{copy.networkText}</p></div>
         </div>
+
+        <div className="border-t border-white/10 bg-white/[0.04] p-4">
+          <div className="rounded-[24px] border border-white/10 bg-[#211A15] p-4">
+            <div className="flex items-start justify-between gap-3"><div><p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#D7B267]">Reserva Partner</p><h3 className="mt-1 text-lg font-semibold">Hotel · Lisboa</h3></div><span className="rounded-full bg-emerald-300/10 px-2.5 py-1 text-[9px] font-bold uppercase text-emerald-200">Confirmada</span></div>
+            <div className="mt-4 grid grid-cols-3 gap-2"><SmallData icon={Users} value="8" label="pessoas" /><SmallData icon={CalendarCheck2} value="20:00" label="hora" /><SmallData icon={MapPin} value="2,4 km" label="distância" /></div>
+          </div>
+          <div className="mt-4 grid gap-2">{copy.networkPoints.map((point) => <p key={point} className="flex items-start gap-2 rounded-2xl bg-white/[0.045] px-3.5 py-3 text-xs leading-5 text-white/64"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#D7B267]" />{point}</p>)}</div>
+          <Link href="/partners" className="mt-4 flex h-12 items-center justify-center rounded-full bg-[#D7B267] px-5 text-sm font-semibold text-[#17130F]">{copy.networkCta}<ArrowRight className="ml-2" size={16} /></Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PublicDemo({ copy }: { copy: MobileCopy }) {
+  return (
+    <section className="px-4 py-12">
+      <div className="mx-auto max-w-md rounded-[30px] border border-[#D7C3A1] bg-[#FFF9F0] p-5 shadow-[0_20px_55px_rgba(65,43,23,0.08)]">
+        <MobileEyebrow icon={Search}>{copy.demoEyebrow}</MobileEyebrow>
+        <h2 className="mt-4 text-[34px] font-semibold leading-[0.96] tracking-[-0.06em]">{copy.demoTitle}</h2>
+        <p className="mt-4 text-sm leading-6 text-[#655B50]">{copy.demoText}</p>
+        <div className="mt-5 rounded-[22px] bg-[#17130F] p-4 text-white"><div className="flex items-center justify-between"><div><p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#D7B267]">Reserva online</p><h3 className="mt-1 text-xl font-semibold">Taberna Tuga</h3><p className="mt-1 flex items-center gap-1.5 text-[10px] text-white/45"><MapPin size={11} />Cais do Sodré · Lisboa</p></div><span className="grid h-11 w-11 place-items-center rounded-full bg-[#D7B267] text-[#17130F]"><UtensilsCrossed size={18} /></span></div><div className="mt-4 flex items-center justify-between rounded-2xl bg-white/[0.07] px-3.5 py-3"><span className="text-xs">Amanhã · 20:00 · 4 pessoas</span><CalendarCheck2 size={16} className="text-[#D7B267]" /></div></div>
+        <a href="https://www.mesalink.pt/reserve/taberna-tuga" target="_blank" rel="noreferrer" className="mt-4 flex h-12 items-center justify-center rounded-full border border-[#BFA477] bg-white px-5 text-sm font-semibold">{copy.demoCta}<ArrowRight className="ml-2" size={16} /></a>
+      </div>
+    </section>
+  );
+}
+
+function MobilePlatform({ copy }: { copy: MobileCopy }) {
+  const icons = [CalendarCheck2, UtensilsCrossed, QrCode, Users, Globe2, Hotel, Sparkles, Search];
+  return (
+    <section className="px-4 py-12">
+      <div className="mx-auto max-w-md">
+        <MobileEyebrow icon={LayoutDashboard}>{copy.platformEyebrow}</MobileEyebrow>
+        <h2 className="mt-4 text-[38px] font-semibold leading-[0.94] tracking-[-0.065em]">{copy.platformTitle}</h2>
+        <div className="mt-7 grid grid-cols-2 gap-2.5">{copy.features.map((feature, index) => { const Icon = icons[index]; const growth = index >= 6; return <div key={feature} className={`rounded-[22px] border p-4 ${growth ? "border-[#C9B9D9] bg-[#F6F1F9]" : "border-[#DDCBB0] bg-[#FFF9F0]"}`}><span className={`grid h-9 w-9 place-items-center rounded-xl ${growth ? "bg-[#E9DEF1] text-[#5D477B]" : "bg-[#F0DFC1] text-[#80592B]"}`}><Icon size={16} /></span><p className="mt-3 text-sm font-semibold leading-5">{feature}</p><p className={`mt-1 text-[9px] font-bold uppercase tracking-wider ${growth ? "text-[#71568B]" : "text-[#9B6F3B]"}`}>{growth ? "Growth" : "Essentials"}</p></div>; })}</div>
       </div>
     </section>
   );
@@ -279,325 +253,53 @@ function QRSection() {
 
 function PricingMini() {
   const t = useTranslations("marketing.mobileHome");
-
   return (
-    <section id="pricing" className="px-5 py-12">
+    <section id="pricing" className="px-4 py-12">
       <div className="mx-auto max-w-md">
-        <Pill>{t("pricingMini.label")}</Pill>
-
-        <h2 className="mt-5 text-[42px] font-semibold leading-[0.9] tracking-[-0.075em]">
-          {t("pricingMini.titleLine1")}
-          <span className="block text-[#C8A56A]">{t("pricingMini.titleLine2")}</span>
-        </h2>
-
-        <div className="mt-7 overflow-hidden rounded-[32px] border border-[#D8C5A5] bg-[#FFF9F0] shadow-[0_24px_80px_rgba(80,55,30,0.10)]">
-          <MiniPlanRow
-            name={t("pricingMini.essentialsName")}
-            price="55€"
-            text={t("pricingMini.essentialsText")}
-          />
-
-          <MiniPlanRow
-            featured
-            name={t("pricingMini.growthName")}
-            price="75€"
-            text={t("pricingMini.growthText")}
-          />
+        <MobileEyebrow>{t("pricingMini.label")}</MobileEyebrow>
+        <h2 className="mt-4 text-[38px] font-semibold leading-[0.94] tracking-[-0.065em]">{t("pricingMini.titleLine1")} <span className="text-[#A9793E]">{t("pricingMini.titleLine2")}</span></h2>
+        <div className="mt-7 overflow-hidden rounded-[28px] border border-[#D8C5A5] bg-[#FFF9F0] shadow-[0_20px_55px_rgba(65,43,23,0.08)]">
+          <PlanRow name={t("pricingMini.essentialsName")} price="55€" text={t("pricingMini.essentialsText")} perMonth={t("pricingMini.perMonth")} />
+          <PlanRow featured name={t("pricingMini.growthName")} price="75€" text={t("pricingMini.growthText")} perMonth={t("pricingMini.perMonth")} badge={t("pricingMini.bestBadge")} />
         </div>
-
-        <p className="mt-4 text-center text-xs leading-5 text-[#6B6258]">
-          {t("pricingMini.footerNote")}
-        </p>
+        <p className="mt-3 text-center text-[11px] leading-5 text-[#6B6258]">{t("pricingMini.footerNote")}</p>
       </div>
     </section>
   );
 }
 
-function MiniPlanRow({
-  name,
-  price,
-  text,
-  featured = false,
-}: {
-  name: string;
-  price: string;
-  text: string;
-  featured?: boolean;
-}) {
-  const t = useTranslations("marketing.mobileHome");
-
-  return (
-    <div
-      data-plan-card={name.toLowerCase()}
-      className={`flex flex-col items-stretch gap-4 border-b border-[#E5D6C1] p-5 last:border-b-0 min-[360px]:flex-row min-[360px]:items-center min-[360px]:justify-between ${
-        featured ? "bg-[#17130F] text-white" : "bg-[#FFF9F0]"
-      }`}
-    >
-      <div className="min-w-0">
-        <p
-          className={`text-xs font-semibold uppercase tracking-[0.22em] ${
-            featured ? "text-[#D8C5A5]" : "text-[#9B6F3B]"
-          }`}
-        >
-          {name}
-        </p>
-
-        <p className={`mt-2 text-sm leading-5 ${featured ? "text-white/65" : "text-[#6B6258]"}`}>
-          {text}
-        </p>
-      </div>
-
-      <div className="flex shrink-0 items-end justify-between gap-3 min-[360px]:block min-[360px]:text-right">
-        {featured && (
-          <p className="mb-1 w-fit max-w-full rounded-full bg-[#D8C5A5] px-2 py-1 text-center text-[10px] font-semibold leading-tight text-[#17130F] min-[360px]:ml-auto">
-            {t("pricingMini.bestBadge")}
-          </p>
-        )}
-
-        <div className="whitespace-nowrap">
-          <p className="text-3xl font-semibold tracking-[-0.075em]">{price}</p>
-          <p className={`text-xs ${featured ? "text-white/55" : "text-[#6B6258]"}`}>
-            {t("pricingMini.perMonth")}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+function PlanRow({ name, price, text, perMonth, badge, featured = false }: { name: string; price: string; text: string; perMonth: string; badge?: string; featured?: boolean }) {
+  return <div className={`border-b border-[#E5D6C1] p-5 last:border-b-0 ${featured ? "bg-[#17130F] text-white" : "bg-[#FFF9F0]"}`}><div className="flex items-start justify-between gap-4"><div><p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${featured ? "text-[#D7B267]" : "text-[#9B6F3B]"}`}>{name}</p><p className={`mt-2 max-w-[230px] text-xs leading-5 ${featured ? "text-white/55" : "text-[#655B50]"}`}>{text}</p></div><div className="shrink-0 text-right">{badge && <span className="rounded-full bg-[#D7B267] px-2 py-1 text-[8px] font-bold uppercase text-[#17130F]">{badge}</span>}<p className="mt-2 text-3xl font-semibold tracking-[-0.06em]">{price}</p><p className={`text-[10px] ${featured ? "text-white/45" : "text-[#6B6258]"}`}>{perMonth}</p></div></div></div>;
 }
 
-function FinalCTA() {
-  const t = useTranslations("marketing.mobileHome");
-
+function MobileApps({ copy }: { copy: MobileCopy }) {
+  const apps = [
+    { name: "MesaLink", icon: "/icons/apps/restaurant-192.png", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk" },
+    { name: "MesaLink Partners", icon: "/icons/apps/partners-192.png", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk" },
+    { name: "MesaLink HQ", icon: "/icons/apps/backoffice-192.png", href: "/downloads/MesaLink-HQ-v1.1.1.apk" },
+  ];
   return (
-    <section className="px-5 pb-28 pt-10">
-      <div className="relative mx-auto max-w-md overflow-hidden rounded-[40px] bg-[#211912] p-8 text-white shadow-[0_35px_100px_rgba(34,26,19,0.22)]">
-        <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#C8A56A]/20 blur-[70px]" />
-
-        <p className="relative text-xs font-semibold uppercase tracking-[0.28em] text-[#D8C5A5]">
-          {t("finalCta.eyebrow")}
-        </p>
-
-        <h2 className="relative mt-5 text-[46px] font-semibold leading-[0.88] tracking-[-0.08em]">
-          {t("finalCta.titleLine1")}
-          <span className="block text-[#D8C5A5]">{t("finalCta.titleLine2")}</span>
-        </h2>
-
-        <p className="relative mt-5 text-base leading-7 text-white/65">
-          {t("finalCta.subtitle")}
-        </p>
-
-        <Link
-          href="/register"
-          className="relative mt-7 flex h-14 items-center justify-center rounded-full bg-[#D8C5A5] px-6 text-base font-semibold text-[#17130F]"
-        >
-          {t("finalCta.cta")}
-        </Link>
+    <section id="downloads" className="px-4 py-12">
+      <div className="mx-auto max-w-md">
+        <MobileEyebrow icon={ArrowDownToLine}>{copy.appsEyebrow}</MobileEyebrow><h2 className="mt-4 text-[38px] font-semibold leading-[0.94] tracking-[-0.065em]">{copy.appsTitle}</h2><p className="mt-4 text-sm leading-6 text-[#655B50]">{copy.appsText}</p>
+        <div className="mt-6 grid gap-2.5">{apps.map((app, index) => <a key={app.name} href={app.href} download className="grid grid-cols-[48px_1fr_auto] items-center gap-3 rounded-[22px] border border-[#D8C5A5] bg-[#FFF9F0] p-3.5"><Image src={app.icon} alt="" width={48} height={48} className="h-12 w-12 rounded-2xl" /><div><p className="text-sm font-semibold">{app.name}</p><p className="mt-0.5 text-[10px] text-[#6B6258]">{copy.appAudience[index]}</p></div><span className="grid h-9 w-9 place-items-center rounded-full bg-[#17130F] text-white"><ArrowDownToLine size={15} /></span></a>)}</div>
       </div>
     </section>
   );
 }
 
-function MegaCard({
-  title,
-  subtitle,
-  text,
-  items,
-  icon,
-  dark = false,
-}: {
-  title: string;
-  subtitle: string;
-  text: string;
-  items: string[][];
-  icon: string;
-  dark?: boolean;
-}) {
+function MobileFinalCTA({ copy }: { copy: MobileCopy }) {
   return (
-    <motion.div
-      whileTap={{ scale: 0.985 }}
-      className={`min-w-[300px] snap-center rounded-[34px] border p-6 shadow-[0_24px_80px_rgba(80,55,30,0.10)] ${
-        dark
-          ? "border-[#17130F] bg-[#17130F] text-white"
-          : "border-[#D8C5A5] bg-[#FFF9F0]"
-      }`}
-    >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#C8A56A] text-xl">
-        {icon}
-      </div>
-
-      <h3
-        className={`mt-5 text-4xl font-semibold tracking-[-0.075em] ${
-          dark ? "text-white" : "text-[#17130F]"
-        }`}
-      >
-        {title}
-      </h3>
-
-      <p className={dark ? "mt-1 text-[#D8C5A5]" : "mt-1 text-[#9B6F3B]"}>
-        {subtitle}
-      </p>
-
-      <p className={`mt-4 text-sm leading-6 ${dark ? "text-white/64" : "text-[#6B6258]"}`}>
-        {text}
-      </p>
-
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        {items.map(([name, label]) => (
-          <div
-            key={name}
-            className={`rounded-2xl p-3 text-center ${
-              dark ? "bg-white/[0.07]" : "border border-[#E5D6C1] bg-white"
-            }`}
-          >
-            <p className="text-xs font-semibold">{name}</p>
-            <p className={dark ? "mt-1 text-[10px] text-white/50" : "mt-1 text-[10px] text-[#6B6258]"}>
-              {label}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <div className={dark ? "mt-6 h-1 rounded-full bg-white/10" : "mt-6 h-1 rounded-full bg-[#E5D6C1]"}>
-        <div className="h-1 w-1/2 rounded-full bg-[#C8A56A]" />
-      </div>
-    </motion.div>
+    <section className="px-4 pb-20 pt-10">
+      <div className="relative mx-auto max-w-md overflow-hidden rounded-[32px] bg-[#274735] p-6 text-white shadow-[0_28px_75px_rgba(28,65,45,0.2)]"><div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#D7B267]/18 blur-[70px]" /><div className="relative"><MobileEyebrow dark>{copy.finalEyebrow}</MobileEyebrow><h2 className="mt-4 text-[40px] font-semibold leading-[0.92] tracking-[-0.07em]">{copy.finalTitle}</h2><p className="mt-4 text-sm leading-6 text-white/60">{copy.finalText}</p><div className="mt-6 grid gap-2.5"><Link href="/register" className="flex h-12 items-center justify-center rounded-full bg-[#D7B267] px-5 text-sm font-semibold text-[#17130F]">{copy.finalPrimary}<ArrowRight className="ml-2" size={16} /></Link><Link href="/contact" className="flex h-12 items-center justify-center rounded-full border border-white/20 bg-white/5 px-5 text-sm font-semibold">{copy.finalSecondary}</Link></div></div></div>
+    </section>
   );
 }
 
-function MiniPlan({
-  name,
-  price,
-  text,
-  featured = false,
-}: {
-  name: string;
-  price: string;
-  text: string;
-  featured?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-[28px] border p-5 ${
-        featured
-          ? "border-[#17130F] bg-[#17130F] text-white"
-          : "border-[#D8C5A5] bg-[#FFF9F0]"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p
-            className={`text-xs font-semibold uppercase tracking-[0.22em] ${
-              featured ? "text-[#D8C5A5]" : "text-[#9B6F3B]"
-            }`}
-          >
-            {name}
-          </p>
-
-          <p className="mt-2 text-4xl font-semibold tracking-[-0.075em]">
-            {price}
-            <span className="text-sm font-normal opacity-60">/mês</span>
-          </p>
-        </div>
-
-        {featured && (
-          <span className="rounded-full bg-[#D8C5A5] px-3 py-1 text-xs font-semibold text-[#17130F]">
-            Melhor
-          </span>
-        )}
-      </div>
-
-      <p className={`mt-3 text-sm leading-6 ${featured ? "text-white/65" : "text-[#6B6258]"}`}>
-        {text}
-      </p>
-
-      <Link
-        href="/register"
-        className={`mt-5 flex h-12 items-center justify-center rounded-full text-sm font-semibold ${
-          featured ? "bg-[#D8C5A5] text-[#17130F]" : "bg-[#17130F] text-white"
-        }`}
-      >
-        Testar grátis
-      </Link>
-    </div>
-  );
+function SmallData({ icon: Icon, value, label }: { icon: IconComponent; value: string; label: string }) {
+  return <div className="rounded-2xl bg-white/[0.055] p-3"><Icon size={14} className="text-[#D7B267]" /><p className="mt-2 text-sm font-semibold">{value}</p><p className="mt-0.5 text-[8px] uppercase tracking-wider text-white/35">{label}</p></div>;
 }
 
-function TrustStrip() {
-  const t = useTranslations("marketing.mobileHome");
-
-  return (
-    <div className="mx-auto mt-8 grid max-w-md grid-cols-3 overflow-hidden rounded-[26px] border border-[#D8C5A5] bg-[#FFF9F0] text-center shadow-[0_18px_55px_rgba(80,55,30,0.08)]">
-      <TrustItem value="0€" label={t("hero.trust.commissionLabel")} />
-      <TrustItem value={t("hero.trust.freeDays")} label={t("hero.trust.freeLabel")} />
-      <TrustItem value={t("hero.trust.allValue")} label={t("hero.trust.allLabel")} />
-    </div>
-  );
-}
-
-function TrustItem({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="border-r border-[#E5D6C1] px-3 py-4 last:border-r-0">
-      <p className="font-semibold">{value}</p>
-      <p className="mt-1 text-xs text-[#6B6258]">{label}</p>
-    </div>
-  );
-}
-
-function Event({ text, value }: { text: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-2xl border border-[#E5D6C1] bg-white px-4 py-3">
-      <p className="text-sm font-semibold">{text}</p>
-      <p className="text-sm font-bold text-[#9B6F3B]">{value}</p>
-    </div>
-  );
-}
-
-function FloatingCard({
-  title,
-  value,
-  className,
-}: {
-  title: string;
-  value: string;
-  className: string;
-}) {
-  return (
-    <motion.div
-      animate={{ y: [-4, 4, -4] }}
-      transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-      className={`absolute z-20 hidden rounded-2xl border border-[#E5D6C1] bg-white/90 px-4 py-3 shadow-[0_18px_55px_rgba(80,55,30,0.16)] backdrop-blur min-[390px]:block ${className}`}
-    >
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B6F3B]">
-        {title}
-      </p>
-      <p className="mt-1 text-xs font-semibold">{value}</p>
-    </motion.div>
-  );
-}
-
-function DashStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-[20px] border border-[#E5D6C1] bg-white p-3">
-      <p className="text-2xl font-semibold tracking-[-0.06em]">{value}</p>
-      <p className="mt-1 text-[11px] text-[#6B6258]">{label}</p>
-    </div>
-  );
-}
-
-function Pill({ children }: { children: ReactNode }) {
-  return (
-    <span className="inline-flex rounded-full border border-[#D8C5A5] bg-[#FFF9F0] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#9B6F3B] shadow-[0_12px_35px_rgba(80,55,30,0.06)]">
-      ✦ {children}
-    </span>
-  );
-}
-
-function Glow() {
-  return (
-    <div className="pointer-events-none absolute inset-0">
-      <div className="absolute left-1/2 top-[-160px] h-[330px] w-[330px] -translate-x-1/2 rounded-full bg-[#D8C5A5]/45 blur-[90px]" />
-      <div className="absolute right-[-120px] top-[260px] h-[260px] w-[260px] rounded-full bg-[#C8A56A]/20 blur-[80px]" />
-      <div className="absolute left-[-120px] top-[420px] h-[260px] w-[260px] rounded-full bg-white/70 blur-[80px]" />
-    </div>
-  );
+function MobileEyebrow({ children, icon: Icon, dark = false }: { children: ReactNode; icon?: IconComponent; dark?: boolean }) {
+  return <p className={`flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.22em] ${dark ? "text-[#D7B267]" : "text-[#8E6231]"}`}>{Icon && <Icon size={13} />}{children}</p>;
 }
