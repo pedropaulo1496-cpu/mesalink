@@ -54,7 +54,7 @@
       "notFound": "Restaurant nicht gefunden",
       "header": {
         "eyebrow": "QR Ordering",
-        "title": "Bestellungen am Tisch",
+        "title": "QR Ordering & Menü",
         "description": "Verwalten Sie die digitale Speisekarte, erhalten Sie Bestellungen pro Tisch und erstellen Sie QR-Codes für jeden Bereich des Restaurants.",
         "printQrsButton": "QRs drucken",
         "openRoomButton": "Saal öffnen"
@@ -65,6 +65,7 @@
       },
       "tabs": {
         "orders": "Bestellungen",
+        "menu": "Menü & Produkte",
         "qr": "QR-Codes",
         "settings": "Einstellungen"
       },

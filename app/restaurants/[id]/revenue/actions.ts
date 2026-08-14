@@ -14,7 +14,7 @@ export async function saveRevenueSettings(restaurantId: string, formData: FormDa
   if (!restaurant) throw new Error("Restaurante não encontrado.");
   const wantsProtection = formData.get("noShowProtectionEnabled") === "on";
   if (wantsProtection && (!restaurant.paymentsStripeOnboardingComplete || !restaurant.paymentsStripeAccountId)) {
-    redirect(`/restaurants/${restaurantId}/no-show-protect?result=connect-required`);
+    redirect(`/restaurants/${restaurantId}/experiences?result=connect-required#protecao-no-show`);
   }
 
   const minGuests = boundedInt(formData.get("noShowMinGuests"), 1, 100, 6);
@@ -40,9 +40,9 @@ export async function saveRevenueSettings(restaurantId: string, formData: FormDa
       noShowCreditOnLateCancellation: formData.get("noShowCreditOnLateCancellation") === "on",
     },
   });
-  revalidatePath(`/restaurants/${restaurantId}/no-show-protect`);
+  revalidatePath(`/restaurants/${restaurantId}/experiences`);
   revalidatePath(`/restaurants/${restaurantId}`);
-  redirect(`/restaurants/${restaurantId}/no-show-protect?result=saved`);
+  redirect(`/restaurants/${restaurantId}/experiences?result=saved#protecao-no-show`);
 }
 
 export async function createExperience(restaurantId: string, formData: FormData) {

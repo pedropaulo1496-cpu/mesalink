@@ -54,7 +54,7 @@
       "notFound": "Restaurant introuvable",
       "header": {
         "eyebrow": "QR Ordering",
-        "title": "Commandes à table",
+        "title": "QR Ordering et menu",
         "description": "Gérez le menu numérique, recevez les commandes par table et préparez des QR Codes pour chaque zone du restaurant.",
         "printQrsButton": "Imprimer les QR",
         "openRoomButton": "Ouvrir la salle"
@@ -65,6 +65,7 @@
       },
       "tabs": {
         "orders": "Commandes",
+        "menu": "Menu et produits",
         "qr": "QR Codes",
         "settings": "Paramètres"
       },

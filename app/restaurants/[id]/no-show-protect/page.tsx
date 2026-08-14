@@ -1,8 +1,6 @@
-import RevenuePage from "../revenue/page";
+import { redirect } from "next/navigation";
 
-export default function NoShowProtectPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ result?: string }> }) {
-  return RevenuePage({
-    params,
-    searchParams: searchParams.then((query) => ({ ...query, tab: "protect", standalone: "1" })),
-  });
+export default async function NoShowProtectPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ result?: string }> }) {
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  redirect(`/restaurants/${id}/experiences${query.result ? `?result=${encodeURIComponent(query.result)}` : ""}#protecao-no-show`);
 }

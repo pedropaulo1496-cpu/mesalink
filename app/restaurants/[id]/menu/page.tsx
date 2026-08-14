@@ -418,6 +418,7 @@ export default async function RestaurantMenuPage({ params }: PageProps) {
   if (!session?.user?.email) redirect("/login");
 
   const { id } = await params;
+  redirect(`/restaurants/${id}/ordering?tab=menu`);
 
   const t = await getTranslations("dashboardMenu");
 

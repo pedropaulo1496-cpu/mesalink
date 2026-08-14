@@ -267,7 +267,7 @@ function ScoreMetric({ label, value, icon }: { label: string; value: number; ico
 function OpportunityCard({ item, restaurantId, t }: { item: VisibilityOpportunity; restaurantId: string; t: Awaited<ReturnType<typeof getTranslations>> }) {
   const hrefs = {
     website: `/restaurants/${restaurantId}/website`,
-    menu: `/restaurants/${restaurantId}/menu`,
+    menu: `/restaurants/${restaurantId}/ordering?tab=menu`,
     marketing: `/restaurants/${restaurantId}/marketing`,
     settings: `/restaurants/${restaurantId}/settings`,
   };

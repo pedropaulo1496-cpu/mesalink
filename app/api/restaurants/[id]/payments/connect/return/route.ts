@@ -9,9 +9,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.redirect(new URL("/login", request.url));
   const restaurant = await prisma.restaurant.findFirst({ where: { id, user: { email: session.user.email } }, select: { paymentsStripeAccountId: true } });
-  if (!restaurant?.paymentsStripeAccountId) return NextResponse.redirect(new URL(`/restaurants/${id}/no-show-protect?result=connect-required`, request.url));
+  if (!restaurant?.paymentsStripeAccountId) return NextResponse.redirect(new URL(`/restaurants/${id}/experiences?result=connect-required#protecao-no-show`, request.url));
   const account = await stripe.accounts.retrieve(restaurant.paymentsStripeAccountId);
   const complete = Boolean(account.details_submitted && account.payouts_enabled);
   await prisma.restaurant.update({ where: { id }, data: { paymentsStripeOnboardingComplete: complete } });
-  return NextResponse.redirect(new URL(`/restaurants/${id}/no-show-protect?result=${complete ? "connected" : "connect-required"}`, request.url));
+  return NextResponse.redirect(new URL(`/restaurants/${id}/experiences?result=${complete ? "connected" : "connect-required"}#protecao-no-show`, request.url));
 }

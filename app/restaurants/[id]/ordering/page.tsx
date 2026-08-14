@@ -15,6 +15,7 @@ import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
 const TABS = [
   { key: "orders" },
+  { key: "menu" },
   { key: "qr" },
   { key: "settings" },
 ] as const;
@@ -530,7 +531,7 @@ const canUseQrOrdering =
           </header>
 
           <nav className="mt-6 rounded-[26px] border border-[#E1D0B8] bg-white p-2 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-4">
               {TABS.map((tab) => {
                 const isActive = activeTab === tab.key;
 
@@ -582,6 +583,8 @@ const canUseQrOrdering =
                 t={t}
               />
             )}
+
+            {activeTab === "menu" && <MenuTab restaurant={restaurant} t={t} />}
 
             {activeTab === "qr" && <QrTab restaurant={restaurant} t={t} />}
 

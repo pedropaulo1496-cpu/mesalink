@@ -54,7 +54,7 @@
       "notFound": "Restaurant not found",
       "header": {
         "eyebrow": "QR Ordering",
-        "title": "Table ordering",
+        "title": "QR Ordering & Menu",
         "description": "Manage the digital menu, receive orders by table and prepare QR Codes for each area of the restaurant.",
         "printQrsButton": "Print QRs",
         "openRoomButton": "Open floor"
@@ -65,6 +65,7 @@
       },
       "tabs": {
         "orders": "Orders",
+        "menu": "Menu & products",
         "qr": "QR Codes",
         "settings": "Settings"
       },

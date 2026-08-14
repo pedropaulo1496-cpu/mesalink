@@ -17,7 +17,6 @@ import {
   PartnerNetworkIcon,
   GiftIcon,
   AiVisibilityIcon,
-  MenuIcon,
   BillingIcon,
   SettingsIcon,
 } from "@/components/icons/nav-icons";
@@ -76,12 +75,6 @@ export default function RestaurantSidebar({
           icon: HomeIcon,
         },
         {
-          key: "menu",
-          name: t("items.menu"),
-          href: `/restaurants/${id}/menu`,
-          icon: MenuIcon,
-        },
-        {
           key: "experiences",
           name: t("items.experiences"),
           href: `/restaurants/${id}/experiences`,
@@ -106,12 +99,6 @@ export default function RestaurantSidebar({
           name: t("items.reservations"),
           href: `/restaurants/${id}/reservations`,
           icon: BookIcon,
-        },
-        {
-          key: "noShowProtect",
-          name: t("items.noShowProtect"),
-          href: `/restaurants/${id}/no-show-protect`,
-          icon: BillingIcon,
         },
         {
           key: "calendar",

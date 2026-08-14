@@ -54,7 +54,7 @@
       "notFound": "未找到餐厅",
       "header": {
         "eyebrow": "QR Ordering",
-        "title": "桌边点餐",
+        "title": "二维码点餐与菜单",
         "description": "管理数字菜单,按桌接收订单,并为餐厅各区域生成二维码。",
         "printQrsButton": "打印二维码",
         "openRoomButton": "打开餐厅布局"
@@ -65,6 +65,7 @@
       },
       "tabs": {
         "orders": "订单",
+        "menu": "菜单与产品",
         "qr": "二维码",
         "settings": "设置"
       },
