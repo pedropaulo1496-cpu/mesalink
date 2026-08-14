@@ -150,13 +150,13 @@ async function runRecovery(restaurantId: unknown, offerInput: unknown) {
         emailReserved = true;
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
         const { clickUrl, openUrl } = getMarketingTrackingUrls(baseUrl, action.trackingToken!);
-        const offer = configuredOffer || (restaurant.recoveryOffer ? { title: "Um convite especial para voltar", description: restaurant.recoveryOffer, benefitType: "GIFT", value: null, minSpend: null, validDays: 30, terms: null, template: "FOREST" as MarketingCardTheme } : null);
+        const offer = configuredOffer || (restaurant.recoveryOffer ? { title: "Um convite especial para voltar", description: restaurant.recoveryOffer, benefitType: "GIFT", benefitLabel: restaurant.recoveryOffer, value: null, minSpend: null, validDays: 30, terms: null, template: "FOREST" as MarketingCardTheme } : null);
         const expiresAt = offer ? new Date(Date.now() + offer.validDays * 24 * 60 * 60 * 1000) : null;
         promoCard = offer ? await prisma.marketingPromoCard.create({
           data: {
             publicCode: createBenefitCardCode(), restaurantId: customer.restaurantId, customerId: customer.id,
             campaignId, title: offer.title, description: offer.description,
-            benefitType: offer.benefitType, value: offer.value, minSpend: offer.minSpend,
+            benefitType: offer.benefitType, benefitLabel: offer.benefitLabel, value: offer.value, minSpend: offer.minSpend,
             terms: offer.terms, template: offer.template, expiresAt,
           },
         }) : null;
@@ -183,11 +183,11 @@ async function runRecovery(restaurantId: unknown, offerInput: unknown) {
                   Gostávamos muito de o voltar a receber em breve.
                 </p>
 
-                ${offer ? `<p style="font-size:15px;line-height:1.6;color:#6B6258;margin:14px 0 0;font-weight:700;">${escapeHtml(marketingBenefitSentence(offer.benefitType, offer.value))}</p>` : ""}
+                ${offer ? `<p style="font-size:15px;line-height:1.6;color:#6B6258;margin:14px 0 0;font-weight:700;">${escapeHtml(marketingBenefitSentence(offer.benefitType, offer.value, offer.benefitLabel))}</p>` : ""}
 
                 ${
                   offer && promoCard && cardUrl
-                    ? `<a href="${cardUrl}" style="display:block;margin-top:22px;padding:22px;border-radius:22px;background:${theme.background};color:${theme.foreground};text-decoration:none;box-shadow:0 18px 40px rgba(48,32,18,.16)"><span style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${theme.accent};font-weight:800">Cartão digital · ${escapeHtml(restaurant.name)}</span><span style="display:block;margin-top:16px;font-size:26px;line-height:1.05;font-weight:800">${escapeHtml(offer.title)}</span><span style="display:block;margin-top:12px;font-size:15px;line-height:1.5;color:${theme.muted}">${escapeHtml(offer.description)}</span><span style="display:block;margin-top:15px;font-size:30px;font-weight:900;color:${theme.accent}">${escapeHtml(marketingBenefitValue(offer.benefitType, offer.value))}</span><span style="display:block;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);font-family:monospace;font-size:14px;letter-spacing:2px">${escapeHtml(promoCard.publicCode)}</span></a><p style="font-size:11px;line-height:1.6;color:#8A7C6D">Cartão individual de utilização única, válido durante ${offer.validDays} dias.</p>`
+                    ? `<a href="${cardUrl}" style="display:block;margin-top:22px;padding:22px;border-radius:22px;background:${theme.background};color:${theme.foreground};text-decoration:none;box-shadow:0 18px 40px rgba(48,32,18,.16)"><span style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${theme.accent};font-weight:800">Cartão digital · ${escapeHtml(restaurant.name)}</span><span style="display:block;margin-top:16px;font-size:26px;line-height:1.05;font-weight:800">${escapeHtml(offer.title)}</span><span style="display:block;margin-top:12px;font-size:15px;line-height:1.5;color:${theme.muted}">${escapeHtml(offer.description)}</span><span style="display:block;margin-top:15px;font-size:30px;font-weight:900;color:${theme.accent}">${escapeHtml(marketingBenefitValue(offer.benefitType, offer.value, offer.benefitLabel))}</span><span style="display:block;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);font-family:monospace;font-size:14px;letter-spacing:2px">${escapeHtml(promoCard.publicCode)}</span></a><p style="font-size:11px;line-height:1.6;color:#8A7C6D">Cartão individual de utilização única, válido durante ${offer.validDays} dias.</p>`
                     : ""
                 }
 
@@ -257,7 +257,7 @@ async function runRecovery(restaurantId: unknown, offerInput: unknown) {
   }
 }
 
-type RecoveryOffer = { title: string; description: string; benefitType: "PERCENT" | "FIXED" | "GIFT"; value: number | null; minSpend: number | null; validDays: number; terms: string | null; template: MarketingCardTheme };
+type RecoveryOffer = { title: string; description: string; benefitType: "PERCENT" | "FIXED" | "GIFT"; benefitLabel: string | null; value: number | null; minSpend: number | null; validDays: number; terms: string | null; template: MarketingCardTheme };
 
 function parseRecoveryOffer(value: unknown): { offer: RecoveryOffer | null; error?: string } {
   if (value == null) return { offer: null };
@@ -266,14 +266,15 @@ function parseRecoveryOffer(value: unknown): { offer: RecoveryOffer | null; erro
   const title = cleanText(input.title, 100);
   const description = cleanText(input.description, 280);
   const benefitType = String(input.benefitType || "PERCENT").toUpperCase();
+  const benefitLabel = cleanText(input.benefitLabel, 60) || null;
   const numericValue = Number(input.value || 0);
   const minSpend = Number(input.minSpend || 0);
   const validDays = Math.round(Number(input.validDays || 30));
   const terms = cleanText(input.terms, 320) || null;
   const template = String(input.template || "FOREST").toUpperCase() as MarketingCardTheme;
-  const invalid = title.length < 3 || description.length < 3 || !["PERCENT", "FIXED", "GIFT"].includes(benefitType) || !(template in MARKETING_CARD_THEMES) || !Number.isFinite(minSpend) || minSpend < 0 || minSpend > 10000 || validDays < 1 || validDays > 180 || (benefitType !== "GIFT" && (!Number.isFinite(numericValue) || numericValue <= 0)) || (benefitType === "PERCENT" && numericValue > 50) || (benefitType === "FIXED" && numericValue > 1000);
+  const invalid = title.length < 3 || description.length < 3 || !["PERCENT", "FIXED", "GIFT"].includes(benefitType) || !(template in MARKETING_CARD_THEMES) || !Number.isFinite(minSpend) || minSpend < 0 || minSpend > 10000 || validDays < 1 || validDays > 180 || (benefitType !== "GIFT" && (!Number.isFinite(numericValue) || numericValue <= 0)) || (benefitType === "GIFT" && !benefitLabel) || (benefitType === "PERCENT" && numericValue > 50) || (benefitType === "FIXED" && numericValue > 1000);
   if (invalid) return { offer: null, error: "Revê o desconto, a validade e os dados do cartão." };
-  return { offer: { title, description, benefitType: benefitType as RecoveryOffer["benefitType"], value: benefitType === "GIFT" ? null : numericValue, minSpend: minSpend || null, validDays, terms, template } };
+  return { offer: { title, description, benefitType: benefitType as RecoveryOffer["benefitType"], benefitLabel: benefitType === "GIFT" ? benefitLabel : null, value: benefitType === "GIFT" ? null : numericValue, minSpend: minSpend || null, validDays, terms, template } };
 }
 
 function cleanText(value: unknown, max: number) {
