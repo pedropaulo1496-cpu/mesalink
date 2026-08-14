@@ -5,6 +5,7 @@ import {
   getDisplayCuisine,
   getDisplayDescription,
   getDisplayTitle,
+  getPublicWebsiteUrl,
   getReserveUrl,
   getWebsiteMenus,
   hasValidHeroImage,
@@ -36,12 +37,12 @@ function Brand({
   const hasLogo = hasValidLogo(restaurant);
 
   return (
-    <a href={`https://${restaurant.slug}.mesalink.pt`} className="flex items-center gap-3">
+    <a href={getPublicWebsiteUrl(restaurant)} className="flex min-w-0 items-center gap-3">
       {hasLogo ? (
         <img
           src={restaurant.websiteLogoImage!}
           alt={restaurant.name}
-          className="h-16 max-w-[240px] object-contain"
+          className="h-11 max-w-[135px] object-contain sm:h-14 sm:max-w-[210px]"
         />
       ) : (
         <span
@@ -81,7 +82,7 @@ function Header({
   const navHover = light ? "hover:text-[#F5EFE6]" : "hover:text-[#16120E]";
 
   return (
-    <header className="flex items-center justify-between gap-4">
+    <header className="relative z-30 flex items-center justify-between gap-3">
       <Brand restaurant={restaurant} light={light} />
 
       <nav className={navClass}>
@@ -112,8 +113,8 @@ function Header({
             rel="noreferrer"
             className={
               light
-                ? "hidden rounded-full border border-[#C8A56A]/30 bg-white/[0.06] px-4 py-2.5 text-sm font-semibold text-[#F5EFE6] hover:bg-white/[0.1] sm:inline-flex"
-                : "hidden rounded-full border border-[#E1D0B8] bg-white px-4 py-2.5 text-sm font-semibold text-[#16120E] hover:bg-[#FFF9F0] sm:inline-flex"
+              ? "hidden rounded-full border border-[#C8A56A]/30 bg-white/[0.06] px-4 py-2.5 text-sm font-semibold text-[#F5EFE6] transition hover:bg-white/[0.1] lg:inline-flex"
+              : "hidden rounded-full border border-[#E1D0B8] bg-white px-4 py-2.5 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0] lg:inline-flex"
             }
           >
             Instagram
@@ -124,8 +125,8 @@ function Header({
           href={reserveUrl}
           className={
             light
-              ? "rounded-full bg-[#F5EFE6] px-5 py-2.5 text-sm font-semibold text-[#16120E]"
-              : "rounded-full px-5 py-2.5 text-sm font-semibold text-white"
+              ? "rounded-full bg-[#F5EFE6] px-4 py-2.5 text-xs font-semibold text-[#16120E] shadow-lg transition hover:-translate-y-0.5 sm:px-5 sm:text-sm"
+              : "rounded-full px-4 py-2.5 text-xs font-semibold text-white shadow-lg transition hover:-translate-y-0.5 sm:px-5 sm:text-sm"
           }
           style={!light ? { backgroundColor: primaryColor } : undefined}
         >
@@ -210,7 +211,7 @@ function HeroButtons({
     <div className="mt-10 flex flex-col gap-3 sm:flex-row">
       <a
         href={reserveUrl}
-        className="inline-flex items-center justify-center rounded-full px-8 py-4 text-sm font-semibold text-white shadow-[0_18px_55px_rgba(80,55,30,0.18)]"
+        className="inline-flex items-center justify-center rounded-full px-8 py-4 text-sm font-semibold text-white shadow-[0_18px_55px_rgba(80,55,30,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_65px_rgba(80,55,30,0.25)]"
         style={{ backgroundColor: primaryColor }}
       >
         {t("reserveButton")}
@@ -294,7 +295,7 @@ export function WebsiteHero({
                 </p>
               )}
 
-              <h1 className="text-6xl font-semibold leading-[0.86] tracking-[-0.075em] sm:text-7xl md:text-8xl lg:text-9xl">
+              <h1 className="text-5xl font-semibold leading-[0.88] tracking-[-0.065em] sm:text-6xl md:text-7xl lg:text-8xl">
                 {getDisplayTitle(restaurant)}
               </h1>
 
@@ -332,7 +333,7 @@ export function WebsiteHero({
                 </p>
               )}
 
-              <h1 className="max-w-4xl text-5xl font-semibold leading-[0.9] tracking-[-0.07em] md:text-7xl">
+              <h1 className="max-w-4xl text-5xl font-semibold leading-[0.92] tracking-[-0.065em] md:text-7xl">
                 {getDisplayTitle(restaurant)}
               </h1>
 
@@ -379,7 +380,7 @@ export function WebsiteHero({
                 </p>
               )}
 
-              <h1 className="max-w-4xl text-6xl font-semibold leading-[0.82] tracking-[-0.08em] sm:text-7xl md:text-8xl">
+              <h1 className="max-w-4xl text-5xl font-semibold leading-[0.88] tracking-[-0.065em] sm:text-6xl md:text-7xl">
                 {getDisplayTitle(restaurant)}
               </h1>
 
@@ -430,7 +431,7 @@ export function WebsiteHero({
               </p>
             )}
 
-            <h1 className="max-w-5xl text-6xl font-semibold leading-[0.82] tracking-[-0.08em] sm:text-7xl md:text-8xl lg:text-9xl">
+            <h1 className="max-w-5xl text-5xl font-semibold leading-[0.88] tracking-[-0.065em] sm:text-6xl md:text-7xl lg:text-8xl">
               {getDisplayTitle(restaurant)}
             </h1>
 
@@ -443,7 +444,7 @@ export function WebsiteHero({
             <HeroButtons restaurant={restaurant} reserveUrl={reserveUrl} primaryColor={primaryColor} t={t} />
           </div>
 
-          <div className="relative min-h-[560px] overflow-hidden rounded-[3rem] border border-[#E1D0B8] bg-white shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
+          <div className="group relative min-h-[500px] overflow-hidden rounded-[2.5rem] border border-[#E1D0B8] bg-white shadow-[0_28px_90px_rgba(80,55,30,0.1)] md:min-h-[560px]">
             {hasImage ? (
               <Image
                 src={restaurant.websiteHeroImage!}
@@ -451,11 +452,19 @@ export function WebsiteHero({
                 fill
                 priority
                 sizes="(min-width: 1024px) 55vw, 100vw"
-                className="object-cover"
+                className="object-cover transition duration-1000 group-hover:scale-[1.025]"
               />
             ) : (
               <div className="h-full w-full bg-[radial-gradient(circle_at_top,rgba(200,165,106,0.24),transparent_45%),linear-gradient(to_bottom,#FFF9F0,#EFE5D6)]" />
             )}
+            {hasImage && <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />}
+            <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between gap-4 rounded-[1.4rem] border border-white/25 bg-white/85 px-5 py-4 text-[#16120E] shadow-xl backdrop-blur-xl">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#9B6F3B]">{t("heroBadgeOnline")}</p>
+                <p className="mt-1 font-semibold">{t("heroBadgeText")}</p>
+              </div>
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_6px_rgba(16,185,129,0.13)]" />
+            </div>
           </div>
         </div>
 

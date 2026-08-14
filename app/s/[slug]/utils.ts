@@ -68,6 +68,11 @@ export type PublicRestaurant = {
   customDomain: string | null;
   customDomainVerified: boolean;
 
+  googleRating: number | null;
+  googleReviewCount: number | null;
+  googleReviewUrl: string | null;
+  googlePriceLevel: number | null;
+
   mondayOpen: boolean;
   mondayLunch: string | null;
   mondayDinner: string | null;

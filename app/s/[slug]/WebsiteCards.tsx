@@ -99,8 +99,8 @@ export function GalleryTile({
     <div
       className={
         large
-          ? "relative min-h-[420px] overflow-hidden rounded-[2.5rem] border border-[#E1D0B8] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)] md:col-span-2 lg:col-span-2"
-          : "relative min-h-[260px] overflow-hidden rounded-[2.5rem] border border-[#E1D0B8] bg-white p-6 shadow-[0_22px_70px_rgba(80,55,30,0.055)]"
+          ? "group relative min-h-[420px] overflow-hidden rounded-[2.25rem] border border-white/10 bg-white p-6 shadow-[0_24px_80px_rgba(30,20,10,0.12)] md:col-span-2 lg:col-span-2"
+          : "group relative min-h-[260px] overflow-hidden rounded-[2.25rem] border border-white/10 bg-white p-6 shadow-[0_24px_80px_rgba(30,20,10,0.12)]"
       }
     >
       {image ? (
@@ -110,13 +110,13 @@ export function GalleryTile({
           fill
           loading="lazy"
           sizes={large ? "(min-width: 768px) 66vw, 100vw" : "(min-width: 768px) 33vw, 100vw"}
-          className="object-cover"
+          className="object-cover transition duration-1000 ease-out group-hover:scale-[1.035]"
         />
       ) : (
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(200,165,106,0.24),transparent_55%),linear-gradient(to_bottom,#FFF9F0,#EFE5D6)]" />
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/20 to-black/75" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/15 to-black/78 transition group-hover:via-black/10" />
 
       <div className="relative flex h-full min-h-[220px] flex-col justify-end">
         {subtitle && (
@@ -124,7 +124,7 @@ export function GalleryTile({
             {subtitle}
           </p>
         )}
-        <h3 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-white">
+        <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white md:text-3xl">
           {title}
         </h3>
       </div>

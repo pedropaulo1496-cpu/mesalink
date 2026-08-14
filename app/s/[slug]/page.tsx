@@ -98,6 +98,19 @@ export default async function PublicRestaurantWebsitePage({ params }: PageProps)
     ...(restaurant.address ? { address: { "@type": "PostalAddress", streetAddress: restaurant.address } } : {}),
     ...(restaurant.websiteCuisine ? { servesCuisine: restaurant.websiteCuisine.split(",").map((item) => item.trim()).filter(Boolean) } : {}),
     ...(restaurant.websiteSpecialties.length ? { keywords: restaurant.websiteSpecialties.join(", ") } : {}),
+    ...(restaurant.googleRating && restaurant.googleReviewCount
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: restaurant.googleRating,
+            reviewCount: restaurant.googleReviewCount,
+            bestRating: 5,
+          },
+        }
+      : {}),
+    ...(restaurant.googlePriceLevel
+      ? { priceRange: "€".repeat(Math.max(1, Math.min(4, restaurant.googlePriceLevel))) }
+      : {}),
     ...(restaurant.websiteInstagram?.startsWith("http") ? { sameAs: [restaurant.websiteInstagram] } : {}),
     acceptsReservations: true,
     potentialAction: {

@@ -9,6 +9,8 @@ import {
   MobileStickyReserve,
   PublicFooter,
   ReservationAndHoursSection,
+  StorySection,
+  TrustStrip,
 } from "./WebsiteSections";
 import {
   getOpeningHours,
@@ -39,35 +41,51 @@ export async function PublicWebsite({
         t={t}
       />
 
+      <TrustStrip
+        restaurant={restaurant}
+        template={template}
+        t={t}
+      />
+
       <ReservationAndHoursSection
         restaurant={restaurant}
         hours={hours}
         primaryColor={theme.accent}
+        template={template}
         t={t}
+      />
+
+      <StorySection
+        restaurant={restaurant}
+        primaryColor={theme.accent}
+        template={template}
       />
 
       <MenuSection
         restaurant={restaurant}
         primaryColor={theme.accent}
+        template={template}
         t={t}
       />
 
-      <GallerySection restaurant={restaurant} />
+      <GallerySection restaurant={restaurant} template={template} />
 
-      <FaqSection restaurant={restaurant} />
+      <FaqSection restaurant={restaurant} template={template} />
 
       <LocationSection
         restaurant={restaurant}
         primaryColor={theme.accent}
+        template={template}
       />
 
       <FinalCtaSection
         restaurant={restaurant}
         primaryColor={theme.accent}
+        template={template}
         t={t}
       />
 
-      <PublicFooter t={t} />
+      <PublicFooter restaurant={restaurant} template={template} t={t} />
 
       <MobileStickyReserve
         restaurant={restaurant}
