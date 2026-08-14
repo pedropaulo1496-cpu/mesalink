@@ -192,7 +192,8 @@
       "statusOffline": "Offline",
       "savedBadge": "Saved",
       "subtitle": "Create a professional website for your restaurant in just a few minutes.",
-      "improveTextButton": "Improve texts",
+      "previewButton": "Preview",
+      "editButton": "Back to editing",
       "viewSiteButton": "View site",
       "saveButton": "Save changes"
     },
@@ -375,9 +376,10 @@
       "on": "ON",
       "off": "OFF",
       "galleryLabel": "Gallery:",
-      "menuLabel": "Menu:",
-      "menuYes": "Yes",
-      "menuNo": "No"
+      "seoLabel": "SEO:",
+      "faqLabel": "FAQs:",
+      "ready": "Ready",
+      "missing": "Incomplete"
     },
     "publicCard": {
       "eyebrow": "Public website",
@@ -389,7 +391,8 @@
       "websiteActive": "Website active",
       "headlineFilled": "Headline filled in",
       "mainPhoto": "Main photo",
-      "menuUploaded": "Menu uploaded",
+      "seoReady": "SEO completed",
+      "faqsReady": "At least 3 FAQs",
       "contactVisible": "Contact visible"
     },
     "previewCard": {

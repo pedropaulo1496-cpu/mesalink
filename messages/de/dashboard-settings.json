@@ -192,7 +192,8 @@
       "statusOffline": "Offline",
       "savedBadge": "Gespeichert",
       "subtitle": "Erstellen Sie in wenigen Minuten eine professionelle Website für Ihr Restaurant.",
-      "improveTextButton": "Texte verbessern",
+      "previewButton": "Vorschau",
+      "editButton": "Weiter bearbeiten",
       "viewSiteButton": "Website ansehen",
       "saveButton": "Änderungen speichern"
     },
@@ -350,9 +351,10 @@
       "on": "AN",
       "off": "AUS",
       "galleryLabel": "Galerie:",
-      "menuLabel": "Menü:",
-      "menuYes": "Ja",
-      "menuNo": "Nein"
+      "seoLabel": "SEO:",
+      "faqLabel": "FAQs:",
+      "ready": "Fertig",
+      "missing": "Unvollständig"
     },
     "publicCard": {
       "eyebrow": "Öffentliche Website",
@@ -364,7 +366,8 @@
       "websiteActive": "Website aktiv",
       "headlineFilled": "Headline ausgefüllt",
       "mainPhoto": "Hauptfoto",
-      "menuUploaded": "Menü hochgeladen",
+      "seoReady": "SEO ausgefüllt",
+      "faqsReady": "Mindestens 3 FAQs",
       "contactVisible": "Kontakt sichtbar"
     },
     "previewCard": {

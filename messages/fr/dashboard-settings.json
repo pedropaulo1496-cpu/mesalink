@@ -192,7 +192,8 @@
       "statusOffline": "Hors ligne",
       "savedBadge": "Enregistré",
       "subtitle": "Créez un site web professionnel pour votre restaurant en quelques minutes.",
-      "improveTextButton": "Améliorer les textes",
+      "previewButton": "Aperçu",
+      "editButton": "Revenir à l’édition",
       "viewSiteButton": "Voir le site",
       "saveButton": "Enregistrer les modifications"
     },
@@ -350,9 +351,10 @@
       "on": "ON",
       "off": "OFF",
       "galleryLabel": "Galerie :",
-      "menuLabel": "Menu :",
-      "menuYes": "Oui",
-      "menuNo": "Non"
+      "seoLabel": "SEO :",
+      "faqLabel": "FAQ :",
+      "ready": "Prêt",
+      "missing": "À compléter"
     },
     "publicCard": {
       "eyebrow": "Site public",
@@ -364,7 +366,8 @@
       "websiteActive": "Site actif",
       "headlineFilled": "Titre principal renseigné",
       "mainPhoto": "Photo principale",
-      "menuUploaded": "Menu ajouté",
+      "seoReady": "SEO complété",
+      "faqsReady": "Au moins 3 FAQ",
       "contactVisible": "Contact visible"
     },
     "previewCard": {

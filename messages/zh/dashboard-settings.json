@@ -192,7 +192,8 @@
       "statusOffline": "已下线",
       "savedBadge": "已保存",
       "subtitle": "只需几分钟，即可为您的餐厅创建一个专业网站。",
-      "improveTextButton": "优化文案",
+      "previewButton": "预览",
+      "editButton": "返回编辑",
       "viewSiteButton": "查看网站",
       "saveButton": "保存更改"
     },
@@ -350,9 +351,10 @@
       "on": "ON",
       "off": "OFF",
       "galleryLabel": "图库：",
-      "menuLabel": "菜单：",
-      "menuYes": "是",
-      "menuNo": "否"
+      "seoLabel": "SEO：",
+      "faqLabel": "常见问题：",
+      "ready": "已完成",
+      "missing": "待完善"
     },
     "publicCard": {
       "eyebrow": "公开网站",
@@ -364,7 +366,8 @@
       "websiteActive": "网站已启用",
       "headlineFilled": "已填写主标题",
       "mainPhoto": "主图",
-      "menuUploaded": "已上传菜单",
+      "seoReady": "SEO 已完成",
+      "faqsReady": "至少 3 个常见问题",
       "contactVisible": "联系方式可见"
     },
     "previewCard": {

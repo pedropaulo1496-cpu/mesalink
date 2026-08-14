@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
-import { CalendarCheck2, CheckCircle2, CircleHelp, FileText, Image as ImageIcon, LoaderCircle, Palette, Search, Sparkles, WandSparkles } from "lucide-react";
+import { CalendarCheck2, CheckCircle2, ChevronDown, CircleHelp, ExternalLink, Eye, FileText, Image as ImageIcon, LoaderCircle, Palette, Save, Search, Sparkles, WandSparkles } from "lucide-react";
 import { CustomDomainManager, type PublicDomainOrder } from "./CustomDomainManager";
 
 type Translator = ReturnType<typeof useTranslations>;
@@ -235,7 +235,6 @@ export function WebsiteEditorClient({
     galleryTitle4,
   ];
   const galleryCount = gallery.filter((item) => item.startsWith("http")).length;
-  const menuCount = menuItems.filter((item) => item.pdf.startsWith("http")).length;
 
   const score = useMemo(() => {
     const items = [
@@ -249,7 +248,7 @@ export function WebsiteEditorClient({
       seoDescription,
       faqItems.filter((item) => item.question && item.answer).length >= 3,
       specialties.length >= 3,
-      menuCount > 0,
+      galleryCount >= 2,
       phone || email,
     ];
 
@@ -265,7 +264,7 @@ export function WebsiteEditorClient({
     seoDescription,
     faqItems,
     specialties,
-    menuCount,
+    galleryCount,
     phone,
     email,
   ]);
@@ -375,27 +374,6 @@ export function WebsiteEditorClient({
     );
   }
 
-  function improveText() {
-    if (headline) setHeadline(cleanHeadline(headline));
-    if (description) setDescription(polishText(description));
-    if (aboutText) setAboutText(polishText(aboutText));
-    if (featureText) setFeatureText(polishText(featureText));
-    if (menuDescription) {
-      setMenuDescription(polishText(menuDescription));
-    }
-    if (sectionText) setSectionText(polishText(sectionText));
-    if (galleryDescription) {
-      setGalleryDescription(polishText(galleryDescription));
-    }
-    if (locationDescription) {
-      setLocationDescription(polishText(locationDescription));
-    }
-    if (finalCtaText) setFinalCtaText(polishText(finalCtaText));
-    if (seoDescription) {
-      setSeoDescription(toSeoDescription(seoDescription, restaurant.name));
-    }
-  }
-
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
       <div className="grid min-h-screen lg:grid-cols-[286px_minmax(0,1fr)]">
@@ -443,28 +421,22 @@ export function WebsiteEditorClient({
             </div>
 
             <div className="hidden gap-2 xl:flex">
-              <button
-                type="button"
-                onClick={improveText}
-                className="inline-flex h-11 items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-5 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
-              >
-                {t("header.improveTextButton")}
-              </button>
-
               <a
                 href={publicUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-11 items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-5 text-sm font-semibold text-[#16120E] transition hover:bg-[#FFF9F0]"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#E1D0B8] bg-white px-5 text-sm font-semibold text-[#16120E] transition hover:-translate-y-0.5 hover:bg-[#FFF9F0]"
               >
+                <ExternalLink size={15} />
                 {t("header.viewSiteButton")}
               </a>
 
               <button
                 form="website-editor-form"
                 type="submit"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white transition hover:bg-[#2A2118]"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#16120E] px-5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(22,18,14,0.16)] transition hover:-translate-y-0.5 hover:bg-[#2A2118]"
               >
+                <Save size={15} />
                 {t("header.saveButton")}
               </button>
             </div>
@@ -549,17 +521,22 @@ export function WebsiteEditorClient({
               </Field>
 
               <Field label={t("publish.templateLabel")}>
-                <select
-                  name="websiteTemplate"
-                  value={template}
-                  onChange={(event) => setTemplate(event.target.value)}
-                  className="input-premium h-12"
-                >
-                  <option value="PREMIUM">{t("publish.templateOptions.premium")}</option>
-                  <option value="LUXURY">{t("publish.templateOptions.luxury")}</option>
-                  <option value="MINIMAL">{t("publish.templateOptions.minimal")}</option>
-                  <option value="SOCIAL">{t("publish.templateOptions.social")}</option>
-                </select>
+                <input type="hidden" name="websiteTemplate" value={template} />
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {[
+                    { value: "PREMIUM", label: t("publish.templateOptions.premium"), swatch: "bg-[#F2E5D3]", ink: "bg-[#17120D]" },
+                    { value: "LUXURY", label: t("publish.templateOptions.luxury"), swatch: "bg-[#17120D]", ink: "bg-[#D7B267]" },
+                    { value: "MINIMAL", label: t("publish.templateOptions.minimal"), swatch: "bg-white", ink: "bg-zinc-900" },
+                    { value: "SOCIAL", label: t("publish.templateOptions.social"), swatch: "bg-[#F5E6DC]", ink: "bg-[#A14E36]" },
+                  ].map((option) => {
+                    const selected = template === option.value;
+                    return <button key={option.value} type="button" onClick={() => setTemplate(option.value)} aria-pressed={selected} className={`relative rounded-[18px] border p-2.5 text-left transition ${selected ? "border-[#9B6F3B] bg-[#FFF9F0] shadow-[0_8px_22px_rgba(80,55,30,0.08)]" : "border-[#E8DCCB] bg-white hover:border-[#CDB792]"}`}>
+                      <span className={`block h-12 rounded-xl border border-black/5 ${option.swatch}`}><span className={`mx-2 mt-3 block h-2 w-9 rounded-full ${option.ink}`} /><span className={`mx-2 mt-1.5 block h-1.5 w-14 rounded-full opacity-35 ${option.ink}`} /></span>
+                      <span className="mt-2 block truncate text-xs font-semibold text-[#16120E]">{option.label}</span>
+                      {selected && <CheckCircle2 size={15} className="absolute right-2 top-2 text-[#9B6F3B]" />}
+                    </button>;
+                  })}
+                </div>
               </Field>
             </EditorBlock>
 
@@ -950,7 +927,8 @@ export function WebsiteEditorClient({
                 score={score}
                 enabled={enabled}
                 galleryCount={galleryCount}
-                hasMenu={menuCount > 0}
+                seoReady={Boolean(seoTitle && seoDescription)}
+                faqCount={faqItems.filter((item) => item.question && item.answer).length}
                 t={t}
               />
             </div>
@@ -992,7 +970,8 @@ export function WebsiteEditorClient({
                 <ChecklistItem done={enabled}>{t("checklist.websiteActive")}</ChecklistItem>
                 <ChecklistItem done={Boolean(headline)}>{t("checklist.headlineFilled")}</ChecklistItem>
                 <ChecklistItem done={Boolean(heroImage)}>{t("checklist.mainPhoto")}</ChecklistItem>
-                <ChecklistItem done={menuCount > 0}>{t("checklist.menuUploaded")}</ChecklistItem>
+                <ChecklistItem done={Boolean(seoTitle && seoDescription)}>{t("checklist.seoReady")}</ChecklistItem>
+                <ChecklistItem done={faqItems.filter((item) => item.question && item.answer).length >= 3}>{t("checklist.faqsReady")}</ChecklistItem>
                 <ChecklistItem done={Boolean(phone || email)}>
                   {t("checklist.contactVisible")}
                 </ChecklistItem>
@@ -1029,19 +1008,21 @@ export function WebsiteEditorClient({
         </div>
       </div>
 
-      <div className="fixed bottom-[84px] left-3 right-3 z-40 grid grid-cols-[auto_1fr] gap-2 rounded-[22px] border border-white/15 bg-[#17130F]/96 p-2 shadow-[0_20px_65px_rgba(23,19,15,0.32)] backdrop-blur-2xl lg:hidden">
+      <div className="fixed bottom-[84px] left-3 right-3 z-40 grid grid-cols-2 gap-2 rounded-[22px] border border-white/15 bg-[#17130F]/96 p-2 shadow-[0_20px_65px_rgba(23,19,15,0.32)] backdrop-blur-2xl lg:hidden">
         <button
           type="button"
-          onClick={mobileMode === "edit" ? improveText : () => setMobileMode("edit")}
-          className="inline-flex h-12 items-center justify-center rounded-[16px] border border-white/15 px-4 text-sm font-semibold text-white"
+          onClick={() => setMobileMode(mobileMode === "edit" ? "preview" : "edit")}
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-white/15 px-4 text-sm font-semibold text-white"
         >
-          {mobileMode === "edit" ? t("header.improveTextButton") : t("header.title")}
+          {mobileMode === "edit" ? <Eye size={16} /> : <FileText size={16} />}
+          {mobileMode === "edit" ? t("header.previewButton") : t("header.editButton")}
         </button>
         <button
           form="website-editor-form"
           type="submit"
-          className="inline-flex h-12 items-center justify-center rounded-[16px] bg-[#C8A56A] px-5 text-sm font-black text-[#17130F]"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#C8A56A] px-5 text-sm font-black text-[#17130F]"
         >
+          <Save size={16} />
           {t("header.saveButton")}
         </button>
       </div>
@@ -1275,13 +1256,15 @@ function QualityCard({
   score,
   enabled,
   galleryCount,
-  hasMenu,
+  seoReady,
+  faqCount,
   t,
 }: {
   score: number;
   enabled: boolean;
   galleryCount: number;
-  hasMenu: boolean;
+  seoReady: boolean;
+  faqCount: number;
   t: Translator;
 }) {
   return (
@@ -1314,12 +1297,8 @@ function QualityCard({
           <span className="font-semibold text-[#16120E]">{galleryCount}/4</span>
         </p>
 
-        <p>
-          {t("quality.menuLabel")}{" "}
-          <span className="font-semibold text-[#16120E]">
-            {hasMenu ? t("quality.menuYes") : t("quality.menuNo")}
-          </span>
-        </p>
+        <p>{t("quality.seoLabel")} <span className="font-semibold text-[#16120E]">{seoReady ? t("quality.ready") : t("quality.missing")}</span></p>
+        <p>{t("quality.faqLabel")} <span className="font-semibold text-[#16120E]">{faqCount}/4</span></p>
       </div>
     </div>
   );
@@ -1354,7 +1333,7 @@ function EditorBlock({
 
   return (
     <details open={number === "01" || number === "02"} className="group overflow-hidden rounded-[24px] border border-[#E1D0B8] bg-white shadow-[0_14px_40px_rgba(80,55,30,0.04)]">
-      <summary className={`cursor-pointer list-none px-5 py-4 ${surface}`}>
+      <summary className={`cursor-pointer list-none px-4 py-3.5 sm:px-5 sm:py-4 ${surface}`}>
         <div className="flex items-start gap-4">
           <div className="rounded-full border border-[#D6C3A5] bg-white px-3 py-1 text-[10px] font-semibold tracking-[0.18em] text-[#9B6F3B]">
             {number}
@@ -1369,12 +1348,11 @@ function EditorBlock({
               {description}
             </p>
           </div>
-          <span className="ml-auto text-xs font-bold text-[#9B6F3B] group-open:hidden">Abrir ↓</span>
-          <span className="ml-auto hidden text-xs font-bold text-[#9B6F3B] group-open:block">Fechar ↑</span>
+          <span className="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#DFCDB2] bg-white text-[#9B6F3B] transition group-open:rotate-180"><ChevronDown size={15} /></span>
         </div>
       </summary>
 
-      <div className="space-y-4 border-t border-[#E8DCCB] p-5">{children}</div>
+      <div className="space-y-4 border-t border-[#E8DCCB] p-4 sm:p-5">{children}</div>
     </details>
   );
 }
@@ -1389,8 +1367,8 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block rounded-[26px] border border-[#E8DCCB] bg-[#FFFDF8] p-5 shadow-[0_12px_34px_rgba(80,55,30,0.035)]">
-      <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+    <label className="block rounded-[20px] border border-[#E8DCCB] bg-[#FFFDF8] p-4 shadow-[0_10px_28px_rgba(80,55,30,0.025)]">
+      <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <span className="text-sm font-semibold text-[#16120E]">{label}</span>
         {hint && <span className="text-xs text-[#9B6F3B]">{hint}</span>}
       </div>
@@ -1398,41 +1376,6 @@ function Field({
       {children}
     </label>
   );
-}
-
-function cleanHeadline(value: string) {
-  return value.trim().replace(/\s+/g, " ").replace(/\.+$/g, "").slice(0, 90);
-}
-
-function polishText(value: string) {
-  const clean = value.trim().replace(/\s+/g, " ").replace(/\s+([,.!?])/g, "$1");
-
-  if (!clean) return clean;
-
-  const improved = clean
-    .replace(/lolitos/gi, "")
-    .replace(/\btop\b/gi, "excelente")
-    .replace(/\bfixe\b/gi, "acolhedor")
-    .replace(/\bmuito bom\b/gi, "de qualidade")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  const sentence = improved.endsWith(".") ? improved : `${improved}.`;
-
-  if (sentence.length > 260) {
-    return sentence.slice(0, 257).trimEnd() + "...";
-  }
-
-  return sentence;
-}
-
-function toSeoDescription(value: string, restaurantName: string) {
-  const clean = value.trim().replace(/\s+/g, " ");
-  const base =
-    clean ||
-    `Reserva online no ${restaurantName}. Consulta menu, localização e contactos.`;
-
-  return base.length > 155 ? base.slice(0, 152).trimEnd() + "..." : base;
 }
 
 function ChecklistItem({
