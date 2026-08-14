@@ -69,6 +69,7 @@ export async function PublicWebsite({
         restaurant={restaurant}
         primaryColor={theme.accent}
         template={template}
+        t={t}
       />
 
       <FinalCtaSection

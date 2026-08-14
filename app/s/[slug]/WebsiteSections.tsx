@@ -344,10 +344,12 @@ export function LocationSection({
   restaurant,
   primaryColor,
   template,
+  t,
 }: {
   restaurant: PublicRestaurant;
   primaryColor: string;
   template: WebsiteTemplate;
+  t: Translator;
 }) {
   const mapsUrl = getMapsUrl(restaurant);
   const displayAddress = restaurant.googleBusinessAddress || restaurant.address;
@@ -361,45 +363,45 @@ export function LocationSection({
     <section id="localizacao" className={`scroll-mt-24 px-6 py-20 md:py-28 ${palette.alt}`}>
       <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
         <div className="lg:pr-8">
-          <p className={`text-[10px] font-bold uppercase tracking-[0.34em] ${palette.eyebrow}`}>{restaurant.name}</p>
-          {hasTitle && (
-            <h2 className={`mt-4 text-4xl font-semibold leading-[0.94] tracking-[-0.06em] md:text-6xl ${palette.strong}`}>
-              {restaurant.websiteLocationTitle}
-            </h2>
-          )}
+          <p className={`text-[10px] font-bold uppercase tracking-[0.34em] ${palette.eyebrow}`}>{t("nav.location")}</p>
+          <h2 className={`mt-4 text-4xl font-semibold leading-[0.94] tracking-[-0.06em] md:text-5xl ${palette.strong}`}>
+            {hasTitle ? restaurant.websiteLocationTitle : restaurant.name}
+          </h2>
 
           {hasDescription && (
             <p className={`mt-7 max-w-xl text-lg leading-8 ${palette.muted}`}>
               {restaurant.websiteLocationDescription}
             </p>
           )}
-          <div className={hasTitle || hasDescription ? "mt-9" : ""}>
-            <a
-              href={mapsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex rounded-full px-8 py-4 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5"
-              style={{ backgroundColor: primaryColor }}
-            >
-              Google Maps
-            </a>
+
+          <div className={`mt-8 rounded-[1.5rem] border p-5 ${palette.card}`}>
+            <p className={`text-sm font-semibold leading-6 ${palette.strong}`}>{displayAddress}</p>
+
+            {(restaurant.phone || restaurant.email) && <div className={`mt-4 flex flex-col gap-2 border-t pt-4 text-sm sm:flex-row sm:gap-5 ${palette.border}`}>
+              {restaurant.phone && (
+                <a href={`tel:${restaurant.phone}`} className={`font-semibold hover:opacity-70 ${palette.strong}`}>
+                  {restaurant.phone}
+                </a>
+              )}
+
+              {restaurant.email && (
+                <a href={`mailto:${restaurant.email}`} className={`break-all font-semibold hover:opacity-70 ${palette.strong}`}>
+                  {restaurant.email}
+                </a>
+              )}
+            </div>}
           </div>
 
-          <div className={`mt-10 grid gap-4 text-sm ${palette.muted}`}>
-            <p className={`font-semibold ${palette.strong}`}>{displayAddress}</p>
-
-            {restaurant.phone && (
-              <a href={`tel:${restaurant.phone}`} className={`font-semibold hover:opacity-70 ${palette.strong}`}>
-                {restaurant.phone}
-              </a>
-            )}
-
-            {restaurant.email && (
-              <a href={`mailto:${restaurant.email}`} className={`break-words font-semibold hover:opacity-70 ${palette.strong}`}>
-                {restaurant.email}
-              </a>
-            )}
-          </div>
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className={`mt-5 inline-flex items-center gap-3 rounded-full px-6 py-3.5 text-sm font-semibold shadow-lg transition hover:-translate-y-0.5 ${template === "LUXURY" ? "text-[#17120D]" : "text-white"}`}
+            style={{ backgroundColor: primaryColor }}
+          >
+            <span>Google Maps</span>
+            <span aria-hidden="true">↗</span>
+          </a>
         </div>
 
         <div className={`overflow-hidden rounded-[2.5rem] border shadow-[0_26px_90px_rgba(30,20,10,0.12)] ${palette.border}`}>
