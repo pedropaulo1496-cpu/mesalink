@@ -18,11 +18,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.mesalink.pt"),
   title: {
-    default: "MesaLink — Software de Gestão para Restaurantes",
+    default: "MesaLink — Reservas e Crescimento para Restaurantes",
     template: "%s | MesaLink",
   },
   description:
-    "Plataforma de crescimento para restaurantes com Revenue AI, visibilidade em pesquisas por IA, website inteligente, reservas, CRM, marketing e rede de parceiros.",
+    "Receba reservas diretas, ganhe novos clientes através da Rede de Parceiros e recupere oportunidades com IA. Reservas, mesas, website, QR, CRM e marketing para restaurantes.",
   applicationName: "MesaLink",
   authors: [{ name: "MesaLink", url: "https://www.mesalink.pt" }],
   creator: "MesaLink",
@@ -32,16 +32,16 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_PT",
     siteName: "MesaLink",
-    title: "MesaLink — Software de Gestão para Restaurantes",
+    title: "MesaLink — Mais reservas. Menos clientes perdidos.",
     description:
-      "Revenue AI, visibilidade em pesquisas por IA, website, reservas, CRM, marketing e parceiros ligados para fazer crescer restaurantes.",
+      "Reservas diretas, novos clientes através de parceiros e recuperação automática de oportunidades, com toda a operação do restaurante ligada.",
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "MesaLink — software para restaurantes" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MesaLink — Software de Gestão para Restaurantes",
+    title: "MesaLink — Mais reservas. Menos clientes perdidos.",
     description:
-      "Revenue AI, website, reservas, CRM, marketing e visibilidade por IA para restaurantes.",
+      "Reservas diretas, Rede de Parceiros, Revenue AI, website, CRM e marketing para fazer crescer restaurantes.",
     images: ["/opengraph-image"],
   },
   verification: process.env.GOOGLE_SITE_VERIFICATION

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "MesaLink — software de gestão para restaurantes";
+export const alt = "MesaLink — mais reservas e menos clientes perdidos";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -31,9 +31,9 @@ export default function Image() {
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", maxWidth: 920 }}>
-        <div style={{ fontSize: 72, lineHeight: 0.96, letterSpacing: -4.5, fontWeight: 800 }}>Software para restaurantes.</div>
-        <div style={{ marginTop: 8, fontSize: 72, lineHeight: 0.96, letterSpacing: -4.5, fontWeight: 800, color: "#C8A56A" }}>Tudo ligado.</div>
-        <div style={{ marginTop: 30, fontSize: 24, lineHeight: 1.4, color: "#D8CABB" }}>Reservas · QR Ordering · Website · CRM · Marketing</div>
+        <div style={{ fontSize: 72, lineHeight: 0.96, letterSpacing: -4.5, fontWeight: 800 }}>Mais mesas ocupadas.</div>
+        <div style={{ marginTop: 8, fontSize: 72, lineHeight: 0.96, letterSpacing: -4.5, fontWeight: 800, color: "#C8A56A" }}>Menos clientes perdidos.</div>
+        <div style={{ marginTop: 30, fontSize: 24, lineHeight: 1.4, color: "#D8CABB" }}>Reservas diretas · Rede de Parceiros · Revenue AI</div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 18, color: "#B9AA99" }}>
