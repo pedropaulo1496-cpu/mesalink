@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ExternalLink, MailPlus, Search } from "lucide-react";
+import { ExternalLink, Mail, MailPlus, MapPin, MessageCircle, Phone, Search } from "lucide-react";
 import { extendTrial, grantAiCredits, grantEmails, updateSubscription } from "@/app/admin/actions";
 import { DoneNotice, PageHeading, RiskPill, StatCard, buttonClass, dateTime, euroCents, inputClass, shortDate } from "@/components/backoffice/BackofficeUI";
 import { type BackofficeClient, getBackofficeClients } from "@/lib/backoffice-data";
@@ -42,7 +42,7 @@ export default async function BackofficeClientsPage({ searchParams }: { searchPa
       </section>
 
       <form className="mt-4 flex max-w-xl gap-2" action="/backoffice/clients">
-        <label className="relative flex-1"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9B6F3B]" size={17} /><input name="q" defaultValue={q} placeholder="Nome, email ou restaurante" className={`${inputClass} pl-11`} /></label>
+        <label className="relative flex-1"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9B6F3B]" size={17} /><input name="q" defaultValue={q} placeholder="Nome, email, telefone ou restaurante" className={`${inputClass} pl-11`} /></label>
         <button className={buttonClass}>Procurar</button>
       </form>
 
@@ -64,7 +64,7 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2"><h2 className="truncate text-base font-bold">{client.restaurant?.name || client.name || "Sem restaurante"}</h2><RiskPill level={client.health.riskLevel} score={client.health.riskScore} /><Status status={subscription?.status || "SEM PLANO"} /></div>
-            <p className="mt-0.5 truncate text-[11px] text-[#6B6258]">{client.email} · {client.salesRepresentative?.name || "sem comercial"}</p>
+            <p className="mt-0.5 truncate text-[11px] text-[#6B6258]">{client.email}{client.restaurant?.phone ? ` · ${client.restaurant.phone}` : ""} · {client.salesRepresentative?.name || "sem comercial"}</p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Mini label="Inatividade" value={client.health.inactiveDays === null ? "Nunca entrou" : `${client.health.inactiveDays} dias`} />
@@ -76,6 +76,20 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
       </summary>
 
       <div className="border-t border-[#E5D7C3] p-3.5 sm:p-4">
+        {client.restaurant && (client.restaurant.phone || client.restaurant.email || client.restaurant.address) && (
+          <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-[#E6D8C4] bg-[#FFF9F0] p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#9B6F3B]">Contacto do restaurante</p>
+              <p className="mt-1 truncate text-xs font-bold">{client.restaurant.phone || "Sem telefone"}{client.restaurant.email ? ` · ${client.restaurant.email}` : ""}</p>
+              {client.restaurant.address && <p className="mt-1 flex items-center gap-1 truncate text-[10px] text-[#75695C]"><MapPin size={11} />{client.restaurant.address}</p>}
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-1.5">
+              {client.restaurant.phone && <a href={`tel:${client.restaurant.phone}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#D8C5A9] bg-white px-3 text-[10px] font-bold"><Phone size={12} /> Ligar</a>}
+              {client.restaurant.phone && <a href={`https://wa.me/${client.restaurant.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#BBD4BA] bg-[#F1FAF0] px-3 text-[10px] font-bold text-[#37613C]"><MessageCircle size={12} /> WhatsApp</a>}
+              {client.restaurant.email && <a href={`mailto:${client.restaurant.email}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#D8C5A9] bg-white px-3 text-[10px] font-bold"><Mail size={12} /> Email</a>}
+            </div>
+          </div>
+        )}
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <Info label="Última atividade" value={client.health.lastActivityAt ? dateTime(client.health.lastActivityAt) : "Sem atividade registada"} />
           <Info label="Conta" value={`Criada ${shortDate(client.createdAt)} · ${subscription?.plan || "sem plano"}`} />

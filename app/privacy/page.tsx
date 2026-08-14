@@ -49,6 +49,10 @@ export default async function PrivacyPage() {
       <LegalSection title={t("sections.security.title")}>
         {t("sections.security.text")}
       </LegalSection>
+
+      <LegalSection title="Candidaturas comerciais / Sales partner applications">
+        Os dados fornecidos numa candidatura, incluindo CV, contacto, experiência, mercados, idiomas e respostas profissionais, são usados para avaliar uma possível parceria comercial. O MesaLink pode atribuir uma pontuação explicável baseada apenas em critérios relevantes para a função, para ordenar a revisão; nenhuma candidatura é recusada automaticamente e a decisão final é humana. Não usamos idade, género, nacionalidade, fotografia, estado civil, deficiência ou outros dados sensíveis para esta avaliação. O candidato pode pedir acesso, correção ou eliminação através de info@mesalink.pt.
+      </LegalSection>
     </LegalPage>
   );
 }

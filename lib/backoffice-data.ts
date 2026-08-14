@@ -75,7 +75,12 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
         OR: [
           { name: { contains: normalizedQuery, mode: "insensitive" as const } },
           { email: { contains: normalizedQuery, mode: "insensitive" as const } },
-          { restaurants: { some: { name: { contains: normalizedQuery, mode: "insensitive" as const } } } },
+          { restaurants: { some: { OR: [
+            { name: { contains: normalizedQuery, mode: "insensitive" as const } },
+            { email: { contains: normalizedQuery, mode: "insensitive" as const } },
+            { phone: { contains: normalizedQuery, mode: "insensitive" as const } },
+            { address: { contains: normalizedQuery, mode: "insensitive" as const } },
+          ] } } },
         ],
       } : {}),
     },
@@ -91,6 +96,9 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
           id: true,
           name: true,
           slug: true,
+          email: true,
+          phone: true,
+          address: true,
           websiteEnabled: true,
           updatedAt: true,
           _count: { select: { reservations: true } },
