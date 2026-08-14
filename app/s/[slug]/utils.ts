@@ -72,6 +72,9 @@ export type PublicRestaurant = {
   googleReviewCount: number | null;
   googleReviewUrl: string | null;
   googlePriceLevel: number | null;
+  googlePlaceId: string | null;
+  googleBusinessTitle: string | null;
+  googleBusinessAddress: string | null;
 
   mondayOpen: boolean;
   mondayLunch: string | null;
@@ -166,10 +169,28 @@ export function getWebsiteMenus(restaurant: PublicRestaurant) {
 }
 
 export function getMapsUrl(restaurant: PublicRestaurant) {
+  const exactName = restaurant.googleBusinessTitle?.trim() || restaurant.name;
+  const exactAddress = restaurant.googleBusinessAddress?.trim() || restaurant.address;
+  if (restaurant.googlePlaceId) {
+    const query = [exactName, exactAddress].filter(Boolean).join(", ");
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}&query_place_id=${encodeURIComponent(restaurant.googlePlaceId)}`;
+  }
+  if (restaurant.googleBusinessTitle) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([exactName, exactAddress].filter(Boolean).join(", "))}`;
+  }
   if (!restaurant.address) return null;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     restaurant.address
   )}`;
+}
+
+export function getMapsEmbedUrl(restaurant: PublicRestaurant) {
+  const query = restaurant.googlePlaceId
+    ? `place_id:${restaurant.googlePlaceId}`
+    : restaurant.googleBusinessTitle
+      ? [restaurant.googleBusinessTitle, restaurant.googleBusinessAddress || restaurant.address].filter(Boolean).join(", ")
+      : restaurant.address || "";
+  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
 }
 
 export function getOpeningHours(

@@ -10,7 +10,6 @@ import {
   PublicFooter,
   ReservationAndHoursSection,
   StorySection,
-  TrustStrip,
 } from "./WebsiteSections";
 import {
   getOpeningHours,
@@ -37,12 +36,6 @@ export async function PublicWebsite({
         hours={hours}
         primaryColor={theme.accent}
         theme={theme}
-        template={template}
-        t={t}
-      />
-
-      <TrustStrip
-        restaurant={restaurant}
         template={template}
         t={t}
       />

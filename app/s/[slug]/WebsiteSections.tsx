@@ -5,6 +5,7 @@ import {
   formatOpeningHour,
   getGalleryItems,
   getFaqItems,
+  getMapsEmbedUrl,
   getMapsUrl,
   getWebsiteMenus,
   getReserveUrl,
@@ -68,59 +69,6 @@ function getSectionPalette(template: WebsiteTemplate) {
     strong: "text-[#16120E]",
     chip: "border-[#DCCBAF] bg-[#FFF9F0] text-[#795D38]",
   };
-}
-
-export function TrustStrip({
-  restaurant,
-  template,
-  t,
-}: {
-  restaurant: PublicRestaurant;
-  template: WebsiteTemplate;
-  t: Translator;
-}) {
-  const palette = getSectionPalette(template);
-  const items = [
-    restaurant.googleRating
-      ? {
-          label: "Google",
-          value: `${restaurant.googleRating.toFixed(1)} ★${restaurant.googleReviewCount ? ` · ${restaurant.googleReviewCount}` : ""}`,
-          href: restaurant.googleReviewUrl || undefined,
-        }
-      : null,
-    restaurant.websiteCuisine
-      ? { label: t("nav.about"), value: restaurant.websiteCuisine }
-      : null,
-    restaurant.address
-      ? { label: t("nav.location"), value: restaurant.address }
-      : null,
-    { label: t("heroBadgeOnline"), value: t("heroBadgeText") },
-  ].filter(Boolean) as Array<{ label: string; value: string; href?: string }>;
-  const columns = items.length >= 4
-    ? "sm:grid-cols-2 lg:grid-cols-4"
-    : items.length === 3
-      ? "md:grid-cols-3"
-      : items.length === 2
-        ? "sm:grid-cols-2"
-        : "grid-cols-1";
-
-  return (
-    <section className={`border-y ${palette.border} ${palette.alt}`}>
-      <div className={`mx-auto grid max-w-7xl gap-x-10 px-6 ${columns}`}>
-        {items.slice(0, 4).map((item) => {
-          const content = <>
-            <p className={`text-[10px] font-bold uppercase tracking-[0.26em] ${palette.eyebrow}`}>{item.label}</p>
-            <p className={`mt-2 line-clamp-2 text-sm font-semibold leading-5 ${palette.strong}`}>{item.value}</p>
-          </>;
-          return item.href ? (
-            <a key={`${item.label}-${item.value}`} href={item.href} target="_blank" rel="noreferrer" className="min-w-0 py-5 transition hover:opacity-70">{content}</a>
-          ) : (
-            <div key={`${item.label}-${item.value}`} className="min-w-0 py-5">{content}</div>
-          );
-        })}
-      </div>
-    </section>
-  );
 }
 
 export function MenuSection({
@@ -217,7 +165,7 @@ export function ReservationAndHoursSection({
 
   return (
     <section id="sobre" className={`scroll-mt-24 px-6 py-20 md:py-28 ${palette.base}`}>
-      <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.12fr_0.88fr] lg:items-start">
+      <div className={`mx-auto gap-12 ${hasIntro ? "grid max-w-7xl lg:grid-cols-[1.12fr_0.88fr] lg:items-start" : "max-w-3xl"}`}>
         {hasIntro && (
           <div>
             {hasText(restaurant.websiteAboutTitle) && (
@@ -376,11 +324,11 @@ export function GallerySection({
           </div>
         )}
 
-        <div className="grid gap-5 lg:grid-cols-4">
+        <div className={`grid gap-5 ${items.length === 1 ? "grid-cols-1" : "md:grid-cols-2"}`}>
           {items.map((item, index) => (
             <GalleryTile
               key={`${item.image}-${index}`}
-              large={index === 0}
+              large={items.length === 1 || (items.length >= 3 && index === 0) || (items.length === 4 && index === 3)}
               title={item.title || ""}
               subtitle=""
               image={item.image}
@@ -402,7 +350,8 @@ export function LocationSection({
   template: WebsiteTemplate;
 }) {
   const mapsUrl = getMapsUrl(restaurant);
-  if (!mapsUrl || !restaurant.address) return null;
+  const displayAddress = restaurant.googleBusinessAddress || restaurant.address;
+  if (!mapsUrl || !displayAddress) return null;
 
   const hasTitle = hasText(restaurant.websiteLocationTitle);
   const hasDescription = hasText(restaurant.websiteLocationDescription);
@@ -437,7 +386,7 @@ export function LocationSection({
           </div>
 
           <div className={`mt-10 grid gap-4 text-sm ${palette.muted}`}>
-            <p className={`font-semibold ${palette.strong}`}>{restaurant.address}</p>
+            <p className={`font-semibold ${palette.strong}`}>{displayAddress}</p>
 
             {restaurant.phone && (
               <a href={`tel:${restaurant.phone}`} className={`font-semibold hover:opacity-70 ${palette.strong}`}>
@@ -455,9 +404,7 @@ export function LocationSection({
 
         <div className={`overflow-hidden rounded-[2.5rem] border shadow-[0_26px_90px_rgba(30,20,10,0.12)] ${palette.border}`}>
           <iframe
-            src={`https://www.google.com/maps?q=${encodeURIComponent(
-              restaurant.address || ""
-            )}&output=embed`}
+            src={getMapsEmbedUrl(restaurant)}
             title={`Localização de ${restaurant.name}`}
             className="h-[420px] w-full border-0"
             loading="lazy"

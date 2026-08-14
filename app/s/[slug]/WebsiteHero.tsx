@@ -146,48 +146,35 @@ function ContactBar({
   light?: boolean;
   t: Translator;
 }) {
-  const hasContacts = restaurant.address || restaurant.phone || restaurant.email;
+  const contacts = [
+    restaurant.address ? { label: t("contact.address"), value: restaurant.address, href: null } : null,
+    restaurant.phone ? { label: t("contact.phone"), value: restaurant.phone, href: `tel:${restaurant.phone}` } : null,
+    restaurant.email ? { label: t("contact.email"), value: restaurant.email, href: `mailto:${restaurant.email}` } : null,
+  ].filter(Boolean) as Array<{ label: string; value: string; href: string | null }>;
 
-  if (!hasContacts) return null;
+  if (!contacts.length) return null;
+  const columns = contacts.length === 3 ? "sm:grid-cols-3" : contacts.length === 2 ? "sm:grid-cols-2" : "grid-cols-1";
+  const divider = light ? "border-white/10" : "border-[#E1D0B8]";
 
   return (
     <div
-      className={
+      className={`${columns} grid overflow-hidden rounded-[1.35rem] border backdrop-blur-xl ${
         light
-          ? "grid gap-3 border-t border-[#C8A56A]/20 pt-5 text-sm text-[#F5EFE6]/70 md:grid-cols-3"
-          : "grid gap-3 border-t border-[#E1D0B8] pt-5 text-sm text-[#6B6258] md:grid-cols-3"
-      }
+          ? "border-white/10 bg-black/25 text-[#F5EFE6]/75 shadow-[0_18px_55px_rgba(0,0,0,.18)]"
+          : "border-[#E1D0B8] bg-white/80 text-[#6B6258] shadow-[0_18px_55px_rgba(80,55,30,.07)]"
+      }`}
     >
-      {restaurant.address && (
-        <div>
-          <p className={light ? "text-xs font-semibold uppercase tracking-[0.25em] text-[#C8A56A]" : "text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]"}>
-            {t("contact.address")}
-          </p>
-          <p className="mt-2 font-semibold">{restaurant.address}</p>
-        </div>
-      )}
-
-      {restaurant.phone && (
-        <div>
-          <p className={light ? "text-xs font-semibold uppercase tracking-[0.25em] text-[#C8A56A]" : "text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]"}>
-            {t("contact.phone")}
-          </p>
-          <a href={`tel:${restaurant.phone}`} className="mt-2 block font-semibold hover:opacity-70">
-            {restaurant.phone}
-          </a>
-        </div>
-      )}
-
-      {restaurant.email && (
-        <div>
-          <p className={light ? "text-xs font-semibold uppercase tracking-[0.25em] text-[#C8A56A]" : "text-xs font-semibold uppercase tracking-[0.25em] text-[#9B6F3B]"}>
-            {t("contact.email")}
-          </p>
-          <a href={`mailto:${restaurant.email}`} className="mt-2 block break-words font-semibold hover:opacity-70">
-            {restaurant.email}
-          </a>
-        </div>
-      )}
+      {contacts.map((contact, index) => {
+        const value = contact.href ? (
+          <a href={contact.href} className="mt-1.5 block truncate font-semibold hover:opacity-70">{contact.value}</a>
+        ) : (
+          <p className="mt-1.5 truncate font-semibold">{contact.value}</p>
+        );
+        return <div key={contact.label} className={`${index ? "border-t sm:border-l sm:border-t-0" : ""} ${divider} min-w-0 px-5 py-4 text-sm`}>
+          <p className={light ? "text-[10px] font-bold uppercase tracking-[0.24em] text-[#C8A56A]" : "text-[10px] font-bold uppercase tracking-[0.24em] text-[#9B6F3B]"}>{contact.label}</p>
+          {value}
+        </div>;
+      })}
     </div>
   );
 }
