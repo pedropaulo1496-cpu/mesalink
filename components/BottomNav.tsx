@@ -56,19 +56,24 @@ export default function BottomNav({ id }: { id: string }) {
 
   const moreLinks = [
     {
-      href: `/restaurants/${id}/revenue`,
-      icon: BillingIcon,
-      label: t("moreSheet.revenue"),
-    },
-    {
       href: `/restaurants/${id}/menu`,
       icon: MenuIcon,
       label: t("moreSheet.menu"),
     },
     {
+      href: `/restaurants/${id}/experiences`,
+      icon: GiftIcon,
+      label: t("moreSheet.experiences"),
+    },
+    {
       href: `/restaurants/${id}/reservations`,
       icon: BookIcon,
       label: t("moreSheet.reservations"),
+    },
+    {
+      href: `/restaurants/${id}/no-show-protect`,
+      icon: BillingIcon,
+      label: t("moreSheet.noShowProtect"),
     },
     {
       href: `/restaurants/${id}/tables`,

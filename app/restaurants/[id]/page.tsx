@@ -371,7 +371,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
 
           <ReservationLinkCard t={t} reservationUrl={reservationUrl} />
 
-          <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(320px,0.72fr)_minmax(0,1.28fr)]">
+          <section id="receita" className="mt-4 grid scroll-mt-6 gap-4 xl:grid-cols-[minmax(320px,0.72fr)_minmax(0,1.28fr)]">
             <UpcomingReservations t={t} intlLocale={intlLocale} restaurantId={id} reservations={nextReservations} />
 
             <div className="rounded-[28px] border border-[#E1D0B8] bg-white p-4 shadow-[0_18px_55px_rgba(80,55,30,0.05)] sm:p-5">
@@ -380,7 +380,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
                 <span className={`rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.11em] ${growthAccess ? "bg-[#ECF7EC] text-[#3F6A4D]" : "bg-[#F1E6D5] text-[#795D38]"}`}>{growthAccess ? t("summary.growth.active") : t("summary.growth.available")}</span>
               </div>
               <div className="mt-4 grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
-                <GrowthTile href={`/restaurants/${id}/revenue`} icon={<CircleDollarSign size={18} />} eyebrow="Receita MesaLink" title={formatMoney(revenueMeter.total, intlLocale)} description={`${revenueMeter.roi ? `${revenueMeter.roi}× ROI · ` : ""}${revenueMeter.reservations} reservas medidas`} badge={revenueMeter.protected > 0 ? `${formatMoney(revenueMeter.protected, intlLocale)} protegidos` : undefined} tone="gold" />
+                <GrowthTile href={`/restaurants/${id}#receita`} icon={<CircleDollarSign size={18} />} eyebrow="Receita este mês" title={formatMoney(revenueMeter.total, intlLocale)} description={`${revenueMeter.reservations} reservas medidas${revenueMeter.roi ? ` · ${revenueMeter.roi}× ROI` : ""}`} badge={revenueMeter.protected > 0 ? `${formatMoney(revenueMeter.protected, intlLocale)} protegidos` : undefined} tone="gold" />
                 <GrowthTile href={`/restaurants/${id}/marketing`} icon={<CircleDollarSign size={18} />} eyebrow={t("summary.marketing.eyebrow")} title={formatMoney(attributedRevenue, intlLocale)} description={sentActions.length ? t("summary.marketing.performance", { sent: sentActions.length, rate: openRate }) : t("summary.marketing.empty")} tone="gold" />
                 <GrowthTile href={`/restaurants/${id}/revenue-ai`} icon={<MessageCircle size={18} />} eyebrow={t("summary.revenue.eyebrow")} title={t("summary.revenue.title", { count: openRevenueConversations })} description={t("summary.revenue.description")} alert={openRevenueConversations > 0} tone="cream" />
                 <GrowthTile href={`/restaurants/${id}/ai-visibility`} icon={<Sparkles size={18} />} eyebrow={t("summary.ai.eyebrow")} title={latestScan?.overallScore != null ? `${latestScan.overallScore}/100` : t("summary.ai.noScan")} description={latestScan ? t("summary.ai.performance", { mentions: latestScan.mentionRate || 0, sources: latestScan.sourceCount || 0 }) : t("summary.ai.runScan")} badge={pricePosition} tone="blue" />

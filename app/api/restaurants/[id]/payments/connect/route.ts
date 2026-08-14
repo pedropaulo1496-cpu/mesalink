@@ -28,13 +28,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const origin = new URL(request.url).origin;
     const link = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${origin}/restaurants/${id}/revenue?tab=protect&result=connect-required`,
+      refresh_url: `${origin}/restaurants/${id}/no-show-protect?result=connect-required`,
       return_url: `${origin}/api/restaurants/${id}/payments/connect/return`,
       type: "account_onboarding",
     });
     return NextResponse.redirect(link.url, 303);
   } catch (error) {
     console.error("Restaurant payments Connect error", error);
-    return NextResponse.redirect(new URL(`/restaurants/${id}/revenue?tab=protect&result=connect-required`, request.url), 303);
+    return NextResponse.redirect(new URL(`/restaurants/${id}/no-show-protect?result=connect-required`, request.url), 303);
   }
 }

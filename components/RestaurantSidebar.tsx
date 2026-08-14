@@ -82,6 +82,12 @@ export default function RestaurantSidebar({
           icon: MenuIcon,
         },
         {
+          key: "experiences",
+          name: t("items.experiences"),
+          href: `/restaurants/${id}/experiences`,
+          icon: GiftIcon,
+        },
+        {
           key: "qrOrdering",
           name: t("items.qrOrdering"),
           href: `/restaurants/${id}/ordering`,
@@ -102,6 +108,12 @@ export default function RestaurantSidebar({
           icon: BookIcon,
         },
         {
+          key: "noShowProtect",
+          name: t("items.noShowProtect"),
+          href: `/restaurants/${id}/no-show-protect`,
+          icon: BillingIcon,
+        },
+        {
           key: "calendar",
           name: t("items.calendar"),
           href: `/restaurants/${id}/calendar`,
@@ -119,12 +131,6 @@ export default function RestaurantSidebar({
     {
       title: t("sections.growth"),
       items: [
-        {
-          key: "revenue",
-          name: t("items.revenue"),
-          href: `/restaurants/${id}/revenue`,
-          icon: BillingIcon,
-        },
         {
           key: "revenueAi",
           name: t("items.revenueAi"),

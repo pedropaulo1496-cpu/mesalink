@@ -1,10 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
-import { Check, ChevronRight, CircleDollarSign, CreditCard, Mail, ShieldCheck, Sparkles, TicketCheck, UsersRound } from "lucide-react";
+import { Check, ChevronRight, CreditCard, ShieldCheck, TicketCheck } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import { prisma } from "@/lib/prisma";
-import { getRevenueMeter, monthRange } from "@/lib/revenue-meter";
 import { createExperience, saveRevenueSettings, updateExperiencePayment, updateExperienceState } from "./actions";
 import MenuBuilder from "./MenuBuilder";
 
@@ -21,10 +21,17 @@ type RevenueRestaurant = Prisma.RestaurantGetPayload<{
   };
 }>;
 
-export default async function RevenuePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string; result?: string }> }) {
+export default async function RevenuePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string; result?: string; standalone?: string }> }) {
   const { id } = await params;
   const query = await searchParams;
   const tab = ["overview", "protect", "experiences"].includes(query.tab || "") ? query.tab! : "overview";
+  const standalone = query.standalone === "1";
+  if (!standalone) {
+    const result = query.result ? `?result=${encodeURIComponent(query.result)}` : "";
+    if (tab === "protect") redirect(`/restaurants/${id}/no-show-protect${result}`);
+    if (tab === "experiences") redirect(`/restaurants/${id}/experiences${result}`);
+    redirect(`/restaurants/${id}#receita`);
+  }
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
@@ -35,15 +42,6 @@ export default async function RevenuePage({ params, searchParams }: { params: Pr
     },
   });
   if (!restaurant) return null;
-  const now = new Date();
-  const currentRange = monthRange(now);
-  const previousReference = new Date(now.getFullYear(), now.getMonth() - 1, 15);
-  const previousRange = monthRange(previousReference);
-  const [meter, previous] = await Promise.all([
-    getRevenueMeter(id, currentRange.from, currentRange.to),
-    getRevenueMeter(id, previousRange.from, previousRange.to),
-  ]);
-  const trend = previous.total > 0 ? Math.round(((meter.total - previous.total) / previous.total) * 100) : meter.total > 0 ? 100 : 0;
   const paymentsReady = Boolean(restaurant.paymentsStripeAccountId && restaurant.paymentsStripeOnboardingComplete);
   const saveSettings = saveRevenueSettings.bind(null, id);
   const addExperience = createExperience.bind(null, id);
@@ -51,30 +49,16 @@ export default async function RevenuePage({ params, searchParams }: { params: Pr
   const changeExperiencePayment = updateExperiencePayment.bind(null, id);
 
   return <main className="min-h-screen bg-[#F5EFE6] text-[#17120D]"><div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
-    <RestaurantSidebar id={id} restaurantName={restaurant.name} active="revenue" />
+    <RestaurantSidebar id={id} restaurantName={restaurant.name} active={tab === "protect" ? "noShowProtect" : tab === "experiences" ? "experiences" : "dashboard"} />
     <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-8 lg:pt-7">
-      <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between"><div><div className="flex items-center gap-2"><p className="text-[10px] font-black uppercase tracking-[.26em] text-[#9B6F3B]">Receita MesaLink</p><span className="rounded-full border border-[#B9D5B8] bg-[#EFF9EF] px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] text-[#3F6A4D]">Ao vivo</span></div><h1 className="mt-2 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">Receita, protegida.</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">Vê o valor gerado pelo MesaLink, reduz faltas e apresenta menus diretamente na reserva.</p></div><div className="inline-flex w-fit rounded-full border border-[#DDC9AB] bg-white p-1 shadow-sm">{[["overview","Resultados"],["protect","No-Show Protect"],["experiences","Menus & experiências"]].map(([key,label]) => <Link key={key} href={`/restaurants/${id}/revenue?tab=${key}`} className={`rounded-full px-4 py-2.5 text-xs font-bold transition ${tab === key ? "bg-[#17120D] text-white" : "text-[#715F4A] hover:bg-[#F7EFE4]"}`}>{label}</Link>)}</div></header>
+      <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between"><div><div className="flex items-center gap-2"><p className="text-[10px] font-black uppercase tracking-[.26em] text-[#9B6F3B]">{tab === "protect" ? "Reservas" : tab === "experiences" ? "Menu & produtos" : "Dashboard"}</p>{tab === "protect" && <span className={`rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] ${restaurant.noShowProtectionEnabled ? "border-[#B9D5B8] bg-[#EFF9EF] text-[#3F6A4D]" : "border-[#DDC9AB] bg-white text-[#806D56]"}`}>{restaurant.noShowProtectionEnabled ? "Ativo" : "Por configurar"}</span>}</div><h1 className="mt-2 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">{tab === "protect" ? "Proteção No-show" : tab === "experiences" ? "Menus & experiências" : "Receita MesaLink"}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6258]">{tab === "protect" ? "Define quando pedir uma garantia e reduz faltas sem complicar as reservas normais." : tab === "experiences" ? "Cria menus completos, define os preços e apresenta-os diretamente na reserva pública." : "O essencial da receita gerada pelo MesaLink está resumido na Dashboard."}</p></div>{standalone && <Link href={`/restaurants/${id}`} className="inline-flex h-11 w-fit items-center gap-2 rounded-full border border-[#DDC9AB] bg-white px-4 text-xs font-bold text-[#715F4A]">Voltar à Dashboard <ChevronRight size={15}/></Link>}</header>
 
       {query.result && <div className={`mt-5 rounded-[18px] border px-4 py-3 text-sm font-semibold ${query.result.includes("required") || query.result === "invalid" ? "border-[#E7B7A8] bg-[#FFF0EA] text-[#98452F]" : "border-[#B8D7B9] bg-[#EFF9EF] text-[#3F6A4D]"}`}>{resultMessage(query.result)}</div>}
 
-      <section className="mt-5 overflow-hidden rounded-[28px] bg-[#17120D] text-white shadow-[0_20px_60px_rgba(43,29,16,.13)]"><div className="grid lg:grid-cols-[1.1fr_.9fr]"><div className="p-5 sm:p-6"><p className="text-[9px] font-black uppercase tracking-[.24em] text-[#D7B267]">Receita estimada este mês</p><div className="mt-3 flex flex-wrap items-end gap-3"><strong className="text-5xl tracking-[-.07em] sm:text-6xl">{money(meter.total)}</strong><span className={`mb-1 rounded-full px-3 py-1.5 text-xs font-black ${trend >= 0 ? "bg-[#28482F] text-[#BEE3C3]" : "bg-[#5B2D24] text-[#F4C6B8]"}`}>{trend >= 0 ? "+" : ""}{trend}% vs. mês anterior</span></div><p className="mt-3 text-sm text-white/55">{meter.reservations} reservas com valor atribuído no período.</p></div><div className="grid grid-cols-2 border-t border-white/10 lg:border-l lg:border-t-0"><DarkMini label="ROI MesaLink" value={meter.roi ? `${meter.roi}×` : "—"} /><DarkMini label="Clientes recuperados" value={String(meter.customersRecovered)} /><DarkMini label="Receita protegida" value={money(meter.protected)} /><DarkMini label="Experiências" value={money(meter.experiences)} /></div></div></section>
-
-      {tab === "overview" && <Overview meter={meter} previousTotal={previous.total} restaurantId={id} emailEnabled={restaurant.revenueSummaryEmailEnabled} saveSettings={saveSettings} restaurant={restaurant} />}
       {tab === "protect" && <Protect restaurant={restaurant} paymentsReady={paymentsReady} saveSettings={saveSettings} />}
       {tab === "experiences" && <Experiences restaurant={restaurant} paymentsReady={paymentsReady} addExperience={addExperience} changeExperience={changeExperience} changeExperiencePayment={changeExperiencePayment} />}
     </section>
   </div><BottomNav id={id} /></main>;
-}
-
-function Overview({ meter, previousTotal, restaurantId, emailEnabled, saveSettings, restaurant }: { meter: Awaited<ReturnType<typeof getRevenueMeter>>; previousTotal: number; restaurantId: string; emailEnabled: boolean; saveSettings: (formData: FormData) => void; restaurant: { noShowProtectionEnabled: boolean; noShowMinGuests: number; noShowDepositPerPerson: unknown; noShowFridayEnabled: boolean; noShowSaturdayEnabled: boolean; noShowSpecialDates: string[]; noShowCancellationHours: number; noShowCreditOnLateCancellation: boolean } }) {
-  const rows = [
-    ["Reservas diretas", "Google, site e redes", meter.direct, CircleDollarSign],
-    ["Marketing AI", "Clientes recuperados", meter.marketing, Sparkles],
-    ["Rede de Parceiros", "Reservas enviadas por parceiros", meter.partners, UsersRound],
-    ["No-Show Protect", "Depósitos já garantidos", meter.protected, ShieldCheck],
-    ["Menus & experiências", "Reservas com menu selecionado", meter.experiences, TicketCheck],
-  ] as const;
-  return <div className="mt-4 grid gap-4 xl:grid-cols-[1.25fr_.75fr]"><section className="rounded-[26px] border border-[#E1D0B8] bg-white p-5"><div className="flex items-end justify-between gap-4"><div><p className="text-[9px] font-black uppercase tracking-[.22em] text-[#9B6F3B]">De onde vem</p><h2 className="mt-1 text-2xl font-semibold tracking-[-.05em]">Receita atribuída</h2></div><span className="text-xs text-[#84776A]">Mês anterior: {money(previousTotal)}</span></div><div className="mt-4 divide-y divide-[#EEE3D4]">{rows.map(([label,sub,value,Icon]) => <div key={label} className="flex items-center gap-3 py-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] bg-[#F5ECDE] text-[#9B6F3B]"><Icon size={17} /></span><div className="min-w-0 flex-1"><p className="font-bold">{label}</p><p className="truncate text-xs text-[#817568]">{sub}</p></div><strong className="text-lg">{money(value)}</strong></div>)}</div></section><section className="rounded-[26px] border border-[#D7C29F] bg-[#FFF8EC] p-5"><Mail className="text-[#9B6F3B]" size={20}/><h2 className="mt-4 text-2xl font-semibold tracking-[-.05em]">Resumo semanal</h2><p className="mt-2 text-sm leading-6 text-[#6B6258]">À segunda-feira recebes um email curto com receita, crescimento, reservas e oportunidades.</p><form action={saveSettings} className="mt-5"><input type="hidden" name="noShowMinGuests" value={restaurant.noShowMinGuests}/><input type="hidden" name="noShowDepositPerPerson" value={String(restaurant.noShowDepositPerPerson)}/><input type="hidden" name="noShowCancellationHours" value={restaurant.noShowCancellationHours}/>{restaurant.noShowProtectionEnabled && <input type="hidden" name="noShowProtectionEnabled" value="on"/>}{restaurant.noShowFridayEnabled && <input type="hidden" name="noShowFridayEnabled" value="on"/>}{restaurant.noShowSaturdayEnabled && <input type="hidden" name="noShowSaturdayEnabled" value="on"/>}{restaurant.noShowCreditOnLateCancellation && <input type="hidden" name="noShowCreditOnLateCancellation" value="on"/>}<input type="hidden" name="noShowSpecialDates" value={restaurant.noShowSpecialDates.join(",")}/><label className="flex items-center gap-3 rounded-[18px] border border-[#E2D0B3] bg-white p-3"><input type="checkbox" name="revenueSummaryEmailEnabled" defaultChecked={emailEnabled} className="h-5 w-5 accent-[#17120D]"/><span className="text-sm font-bold">Enviar automaticamente</span></label><button className="mt-3 h-11 w-full rounded-full bg-[#17120D] text-sm font-bold text-white">Guardar preferência</button></form><Link href={`/restaurants/${restaurantId}/revenue?tab=protect`} className="mt-3 flex items-center justify-between rounded-[18px] border border-[#E2D0B3] bg-white p-3 text-sm font-bold">Configurar proteção <ChevronRight size={16}/></Link></section></div>;
 }
 
 function Protect({ restaurant, paymentsReady, saveSettings }: { restaurant: RevenueRestaurant; paymentsReady: boolean; saveSettings: (formData: FormData) => void }) {
@@ -104,7 +88,6 @@ function Experiences({ restaurant, paymentsReady, addExperience, changeExperienc
 }
 
 function ConnectCard({ restaurantId, paymentsReady }: { restaurantId: string; paymentsReady: boolean }) { return <aside className={`rounded-[24px] border p-5 ${paymentsReady ? "border-[#B8D7B9] bg-[#EFF9EF]" : "border-[#E0C38C] bg-[#FFF3D8]"}`}><span className={`grid h-11 w-11 place-items-center rounded-[15px] ${paymentsReady ? "bg-white text-[#3F6A4D]" : "bg-white text-[#9B6F3B]"}`}><CreditCard size={19}/></span><h3 className="mt-4 text-xl font-semibold tracking-[-.04em]">{paymentsReady ? "Pagamentos ligados" : "Liga os recebimentos"}</h3><p className="mt-2 text-sm leading-6 text-[#6B6258]">{paymentsReady ? "A Stripe recebe o pagamento e envia o valor base diretamente para a conta do restaurante." : "Valida a conta uma vez. É necessário para receber depósitos e experiências pré-pagas."}</p>{!paymentsReady && <form action={`/api/restaurants/${restaurantId}/payments/connect`} method="post"><button className="mt-4 h-11 w-full rounded-full bg-[#17120D] text-sm font-bold text-white">Ligar Stripe</button></form>}{paymentsReady && <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-bold text-[#3F6A4D]"><ShieldCheck size={14}/> Conta verificada</div>}</aside>; }
-function DarkMini({ label, value }: { label: string; value: string }) { return <div className="border-b border-r border-white/10 p-4 sm:p-5"><p className="text-[8px] font-black uppercase tracking-[.18em] text-white/40">{label}</p><p className="mt-2 text-2xl font-semibold tracking-[-.05em]">{value}</p></div>; }
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="block"><span className="mb-2 block text-[9px] font-black uppercase tracking-[.15em] text-[#806D56]">{label}</span>{children}</label>; }
 function CheckField({ name, checked, label, value }: { name: string; checked: boolean; label: string; value?: string }) { return <label className="flex min-h-14 items-center gap-3 rounded-[17px] border border-[#E4D5C0] bg-[#FFF9F0] px-4"><input type="checkbox" name={name} value={value} defaultChecked={checked} className="h-5 w-5 accent-[#17120D]"/><span className="text-sm font-bold">{label}</span></label>; }
 function resultMessage(result: string) { if (result === "saved") return "Definições guardadas."; if (result === "created") return "Menu publicado e disponível nas reservas."; if (result === "updated") return "Menu atualizado."; if (result === "payment-updated") return "Entrada e pagamento do menu atualizados."; if (result === "connect-required") return "A opção sem entrada funciona já. Para cobrar entrada ou pré-pagamento, liga primeiro a conta Stripe."; if (result === "invalid") return "Revê os dados do menu e tenta novamente."; if (result === "connected") return "Conta Stripe ligada. Já podes receber entradas opcionais."; return "Alteração concluída."; }
