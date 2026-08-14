@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
-import { CheckCircle2, Database, Image as ImageIcon, LoaderCircle, Search, Sparkles, WandSparkles } from "lucide-react";
+import { CalendarCheck2, CheckCircle2, CircleHelp, FileText, Image as ImageIcon, LoaderCircle, Palette, Search, Sparkles, WandSparkles } from "lucide-react";
 import { CustomDomainManager, type PublicDomainOrder } from "./CustomDomainManager";
 
 type Translator = ReturnType<typeof useTranslations>;
@@ -214,7 +214,6 @@ export function WebsiteEditorClient({
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiResult, setAiResult] = useState<null | {
     fields: number;
-    dishes: number;
     reviews: number;
     images: number;
     prompts: number;
@@ -337,7 +336,6 @@ export function WebsiteEditorClient({
       const sourceStats = data.sourceStats || {};
       setAiResult({
         fields: countBlueprintFields(data),
-        dishes: Number(sourceStats.dishes || 0),
         reviews: Number(sourceStats.reviews || 0),
         images: Number(sourceStats.images || 0),
         prompts: Number(sourceStats.prompts || 0),
@@ -581,12 +579,15 @@ export function WebsiteEditorClient({
                     <span className="shrink-0 rounded-full border border-[#D7B267]/30 bg-[#D7B267]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-[#E7C98D]">{t("aiBuilder.activeBadge")}</span>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    <AiSource icon={<Database size={15} />} label={t("aiBuilder.sources.menu")} />
-                    <AiSource icon={<Search size={15} />} label={t("aiBuilder.sources.visibility")} />
+                  <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    <AiSource icon={<FileText size={15} />} label={t("aiBuilder.sources.copy")} />
+                    <AiSource icon={<Palette size={15} />} label={t("aiBuilder.sources.design")} />
                     <AiSource icon={<ImageIcon size={15} />} label={t("aiBuilder.sources.images")} />
-                    <AiSource icon={<Sparkles size={15} />} label={t("aiBuilder.sources.reviews")} />
+                    <AiSource icon={<Search size={15} />} label={t("aiBuilder.sources.visibility")} />
+                    <AiSource icon={<CircleHelp size={15} />} label={t("aiBuilder.sources.faq")} />
+                    <AiSource icon={<CalendarCheck2 size={15} />} label={t("aiBuilder.sources.conversion")} />
                   </div>
+                  <p className="mt-3 text-xs leading-5 text-[#AFA08F]">{t("aiBuilder.menuNote")}</p>
                 </div>
 
                 <div className="p-5 sm:p-6">

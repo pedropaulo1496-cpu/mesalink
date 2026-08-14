@@ -66,14 +66,12 @@ export async function POST(request: Request) {
   try {
     const blueprint = await generateWebsiteBlueprint({ context, brief });
     const suggestedImages = getSuggestedWebsiteImages(context);
-    const products = context.orderingCategories.flatMap((category) => category.products);
 
     return NextResponse.json({
       ...blueprint,
       suggestedImages,
       creditsRemaining,
       sourceStats: {
-        dishes: products.length,
         reviews: context.reviewFeedback.length,
         images: suggestedImages.length,
         prompts: context.aiVisibilityScans[0]?.results.length || 0,

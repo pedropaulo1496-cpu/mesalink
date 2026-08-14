@@ -299,6 +299,7 @@ export function LocationSection({
             src={`https://www.google.com/maps?q=${encodeURIComponent(
               restaurant.address || ""
             )}&output=embed`}
+            title={`Localização de ${restaurant.name}`}
             className="h-[420px] w-full border-0"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"

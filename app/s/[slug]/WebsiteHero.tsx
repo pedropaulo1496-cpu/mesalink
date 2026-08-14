@@ -6,6 +6,7 @@ import {
   getDisplayDescription,
   getDisplayTitle,
   getReserveUrl,
+  getWebsiteMenus,
   hasValidHeroImage,
   hasValidLogo,
   normalizeInstagramUrl,
@@ -71,6 +72,7 @@ function Header({
   t: Translator;
 }) {
   const instagramUrl = normalizeInstagramUrl(restaurant.websiteInstagram);
+  const hasMenu = getWebsiteMenus(restaurant).length > 0;
 
   const navClass = light
     ? "hidden items-center gap-7 text-sm font-semibold text-[#F5EFE6]/70 md:flex"
@@ -84,7 +86,7 @@ function Header({
 
       <nav className={navClass}>
         <a href="#sobre" className={navHover}>{t("nav.about")}</a>
-        <a href="#menu" className={navHover}>{t("nav.menu")}</a>
+        {hasMenu && <a href="#menu" className={navHover}>{t("nav.menu")}</a>}
         <a href="#horario" className={navHover}>{t("nav.hours")}</a>
         <a href="#localizacao" className={navHover}>{t("nav.location")}</a>
       </nav>

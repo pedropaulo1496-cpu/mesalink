@@ -6,6 +6,7 @@ import {
   GallerySection,
   LocationSection,
   MenuSection,
+  MobileStickyReserve,
   PublicFooter,
   ReservationAndHoursSection,
 } from "./WebsiteSections";
@@ -67,6 +68,12 @@ export async function PublicWebsite({
       />
 
       <PublicFooter t={t} />
+
+      <MobileStickyReserve
+        restaurant={restaurant}
+        primaryColor={theme.accent}
+        t={t}
+      />
     </main>
   );
 }
