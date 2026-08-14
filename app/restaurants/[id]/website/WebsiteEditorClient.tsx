@@ -1151,7 +1151,7 @@ function LivePreview({
         </div>
       </div>
 
-      <div className={theme.body}>
+      <div className={`relative -mt-px ${theme.body}`}>
         <div className="grid grid-cols-3 gap-2">
           <PreviewPill label={t("preview.templateLabel")} value={template} />
           <PreviewPill label={t("preview.menusLabel")} value={validMenus.length ? String(validMenus.length) : "—"} />
@@ -1431,7 +1431,7 @@ function getPreviewTheme(template: string, primaryColor: string) {
     return {
       shell: "border-zinc-200 bg-white text-zinc-950",
       hero: "bg-zinc-100",
-      overlay: "absolute inset-0 bg-gradient-to-b from-transparent to-white/95",
+      overlay: "absolute inset-0 bg-gradient-to-b from-transparent to-white",
       body: "bg-white p-5 text-zinc-950",
       eyebrow: "text-xs font-semibold uppercase tracking-[0.3em] text-zinc-400",
       text: "mt-3 text-sm leading-6 text-zinc-500",

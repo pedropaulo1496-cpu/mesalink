@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
 export type PublicDomainOrder = {
   id: string;
@@ -81,8 +82,11 @@ export function CustomDomainManager({
   serviceConfigured: boolean;
 }) {
   const t = useTranslations("dashboardSettings.website.seo.domainManager");
+  const router = useRouter();
   const [kind, setKind] = useState<"PURCHASE" | "CONNECT">("PURCHASE");
   const [domain, setDomain] = useState(activeDomain || "");
+  const [currentDomain, setCurrentDomain] = useState(activeDomain);
+  const [currentDomainVerified, setCurrentDomainVerified] = useState(activeDomainVerified);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [order, setOrder] = useState(initialOrder);
   const [loading, setLoading] = useState<"quote" | "checkout" | "refresh" | null>(null);
@@ -125,6 +129,11 @@ export function CustomDomainManager({
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || t("errors.status"));
       if (data.order) setOrder(data.order);
+      if (data.restaurant) {
+        setCurrentDomain(data.restaurant.customDomain || null);
+        setCurrentDomainVerified(Boolean(data.restaurant.customDomainVerified));
+        if (data.restaurant.customDomainVerified) router.refresh();
+      }
     } catch (cause) {
       if (!silent) setError(cause instanceof Error ? cause.message : t("errors.status"));
     } finally {
@@ -193,14 +202,14 @@ export function CustomDomainManager({
 
   return (
     <div className="space-y-4">
-      {activeDomain && activeDomainVerified ? (
+      {currentDomain && currentDomainVerified ? (
         <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-full bg-emerald-100 text-emerald-700"><ShieldCheck size={21} /></span>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">{t("activeEyebrow")}</p>
-                <a className="mt-1 block font-semibold text-[#16120E] underline-offset-4 hover:underline" href={`https://${activeDomain}`} target="_blank" rel="noreferrer">{activeDomain}</a>
+                <a className="mt-1 block font-semibold text-[#16120E] underline-offset-4 hover:underline" href={`https://${currentDomain}`} target="_blank" rel="noreferrer">{currentDomain}</a>
               </div>
             </div>
             <span className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">{t("status.active")}</span>

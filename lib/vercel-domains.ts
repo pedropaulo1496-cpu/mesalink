@@ -1,5 +1,11 @@
 import { Vercel } from "@vercel/sdk";
 
+// Project and team identifiers are public routing identifiers, not credentials.
+// Keeping the MesaLink defaults here means the feature does not depend on the
+// optional Vercel setting that exposes system environment variables at runtime.
+const MESALINK_VERCEL_PROJECT_ID = "prj_cr1D9Oqbooj5yplKlqLPJ7vRZU9G";
+const MESALINK_VERCEL_TEAM_ID = "team_yYXEcXff5RGQOe4FMPcpUMG4";
+
 export type DomainRegistrant = {
   firstName: string;
   lastName: string;
@@ -16,9 +22,18 @@ export type DomainRegistrant = {
 };
 
 function getConfig() {
-  const token = process.env.VERCEL_API_TOKEN || process.env.VERCEL_ACCESS_TOKEN;
-  const projectId = process.env.VERCEL_PROJECT_ID;
-  const teamId = process.env.VERCEL_TEAM_ID;
+  const token =
+    process.env.MESALINK_VERCEL_API_TOKEN ||
+    process.env.VERCEL_API_TOKEN ||
+    process.env.VERCEL_ACCESS_TOKEN;
+  const projectId =
+    process.env.MESALINK_VERCEL_PROJECT_ID ||
+    process.env.VERCEL_PROJECT_ID ||
+    MESALINK_VERCEL_PROJECT_ID;
+  const teamId =
+    process.env.MESALINK_VERCEL_TEAM_ID ||
+    process.env.VERCEL_TEAM_ID ||
+    MESALINK_VERCEL_TEAM_ID;
   if (!token || !projectId) {
     throw new Error("A ligação central de domínios ainda não está configurada.");
   }
@@ -41,8 +56,9 @@ function scope() {
 
 export function isVercelDomainServiceConfigured() {
   return Boolean(
-    (process.env.VERCEL_API_TOKEN || process.env.VERCEL_ACCESS_TOKEN) &&
-      process.env.VERCEL_PROJECT_ID,
+    process.env.MESALINK_VERCEL_API_TOKEN ||
+      process.env.VERCEL_API_TOKEN ||
+      process.env.VERCEL_ACCESS_TOKEN,
   );
 }
 
