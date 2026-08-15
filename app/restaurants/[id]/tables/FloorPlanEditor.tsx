@@ -12,6 +12,7 @@ type FloorReservation = {
   durationMinutes: number;
   startTime: string;
   endTime: string;
+  menuTitle: string | null;
 };
 
 type FloorTable = {
@@ -155,10 +156,6 @@ export default function FloorPlanEditor({
     table.roomId
       ? table.roomId === activeRoomId
       : activeRoomId === safeRooms[0].id,
-  );
-
-  const selectedReservation = reservations.find(
-    (reservation) => reservation.id === selectedReservationId,
   );
 
   const selectedTable = items.find((table) => table.id === selectedTableId);
@@ -751,6 +748,7 @@ export default function FloorPlanEditor({
             <span className="block text-[9px] text-[#6B6258]">
               {reservation.startTime}
             </span>
+            {reservation.menuTitle && <span className="block truncate text-[8px] text-[#8A602C]">{reservation.menuTitle}</span>}
           </div>
         )}
       </div>
@@ -874,6 +872,7 @@ export default function FloorPlanEditor({
                         >
                           {reservation.startTime} · {reservation.guests} pessoas
                         </p>
+                        {reservation.menuTitle && <p className={`mt-1 truncate text-[10px] font-bold ${selectedReservationId === reservation.id ? "text-[#E6C98D]" : "text-[#8A602C]"}`}>Menu · {reservation.menuTitle}</p>}
                       </div>
 
                       <span
@@ -929,6 +928,7 @@ export default function FloorPlanEditor({
                           {reservation.startTime} ·{" "}
                           {table ? `Mesa ${table.number}` : "Mesa"}
                         </p>
+                        {reservation.menuTitle && <p className="mt-0.5 truncate text-[9px] font-bold text-[#8A602C]">Menu · {reservation.menuTitle}</p>}
                       </div>
 
                       <button className="rounded-full border border-[#E7B7A8] bg-[#FFF0EA] px-2 py-1 text-[10px] font-black text-[#A14E36]">
@@ -1031,7 +1031,7 @@ export default function FloorPlanEditor({
                       {reservations.map((reservation) => (
                         <option key={reservation.id} value={reservation.id}>
                           {reservation.startTime} · {reservation.customerName} ·{" "}
-                          {reservation.guests}p
+                          {reservation.guests}p{reservation.menuTitle ? ` · Menu: ${reservation.menuTitle}` : ""}
                         </option>
                       ))}
                     </select>

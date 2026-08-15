@@ -64,10 +64,10 @@ export default async function CalendarPage({
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
-      reservations: true,
+      reservations: { include: { experience: { select: { title: true } } } },
       tables: {
         include: {
-          reservations: true,
+          reservations: { include: { experience: { select: { title: true } } } },
         },
       },
     },
@@ -81,49 +81,17 @@ export default async function CalendarPage({
     );
   }
 
-  const tableReservations = restaurant.tables.flatMap(
-    (table: {
-      number: number;
-      reservations: {
-        id: string;
-        customerName: string;
-        phone: string;
-        email: string | null;
-        date: Date;
-        guests: number;
-        status: string;
-        approvalReason: string | null;
-        restaurantId: string | null;
-        tableId: string | null;
-        customerId: string | null;
-        createdAt: Date;
-      }[];
-    }) =>
-      table.reservations.map((reservation) => ({
-        ...reservation,
-        tableNumber: table.number,
-      })),
+  const tableReservations = restaurant.tables.flatMap((table) =>
+    table.reservations.map((reservation) => ({
+      ...reservation,
+      tableNumber: table.number,
+    })),
   );
 
-  const directReservations = restaurant.reservations.map(
-    (reservation: {
-      id: string;
-      customerName: string;
-      phone: string;
-      email: string | null;
-      date: Date;
-      guests: number;
-      status: string;
-      approvalReason: string | null;
-      restaurantId: string | null;
-      tableId: string | null;
-      customerId: string | null;
-      createdAt: Date;
-    }) => ({
-      ...reservation,
-      tableNumber: null as number | null,
-    }),
-  );
+  const directReservations = restaurant.reservations.map((reservation) => ({
+    ...reservation,
+    tableNumber: null as number | null,
+  }));
 
   const allReservations = [...tableReservations, ...directReservations].filter(
     (reservation, index, array) =>
@@ -268,6 +236,7 @@ export default async function CalendarPage({
             const pendingCount = dayReservations.filter(
               (reservation) => reservation.status === "PENDING",
             ).length;
+            const menuTitles = Array.from(new Set(dayReservations.flatMap((reservation) => reservation.experience?.title ? [reservation.experience.title] : [])));
 
             return (
               <Link
@@ -303,6 +272,8 @@ export default async function CalendarPage({
                   <CalendarMeal label={t("meal.lunch")} value={lunchGuests} unit={t("guestUnit")} active={lunchGuests > 0} />
                   <CalendarMeal label={t("meal.dinner")} value={dinnerGuests} unit={t("guestUnit")} active={dinnerGuests > 0} />
                 </div>
+
+                {menuTitles.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{menuTitles.slice(0, 2).map((title) => <span key={title} className="max-w-full truncate rounded-full bg-[#F1E5D3] px-2.5 py-1 text-[10px] font-bold text-[#76552F]">Menu · {title}</span>)}</div>}
 
                 {pendingCount > 0 && (
                   <div className="mt-3 rounded-2xl border border-[#E5C46D] bg-[#FFF8E2] px-3 py-2 text-xs font-black text-[#9B6F3B]">
@@ -372,6 +343,7 @@ export default async function CalendarPage({
               const pendingCount = dayReservations.filter(
                 (reservation) => reservation.status === "PENDING",
               ).length;
+              const menuTitles = Array.from(new Set(dayReservations.flatMap((reservation) => reservation.experience?.title ? [reservation.experience.title] : [])));
 
               return (
                 <Link
@@ -415,6 +387,8 @@ export default async function CalendarPage({
                       unit={t("guestUnit")}
                       active={dinnerGuests > 0}
                     />
+
+                    {menuTitles.length > 0 && <div className="flex flex-wrap gap-1">{menuTitles.slice(0, 2).map((title) => <span key={title} className="max-w-full truncate rounded-full bg-[#F1E5D3] px-2 py-1 text-[9px] font-bold text-[#76552F]">Menu · {title}</span>)}</div>}
 
                     {pendingCount > 0 && (
                       <div className="rounded-xl border border-[#E5C46D] bg-[#FFF8E2] px-2 py-1 font-bold text-[#9B6F3B]">

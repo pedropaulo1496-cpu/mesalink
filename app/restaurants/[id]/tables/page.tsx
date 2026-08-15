@@ -153,23 +153,32 @@ export default async function TablesPage({
   const restaurant = await prisma.restaurant.findUnique({
     where: { id },
     include: {
-  floorRooms: {
-    include: {
+      floorRooms: {
+        include: {
+          tables: {
+            include: {
+              reservations: {
+                include: { experience: { select: { title: true } } },
+              },
+            },
+            orderBy: { number: "asc" },
+          },
+        },
+        orderBy: { sortOrder: "asc" },
+      },
       tables: {
-        include: { reservations: true },
+        include: {
+          reservations: {
+            include: { experience: { select: { title: true } } },
+          },
+        },
         orderBy: { number: "asc" },
       },
+      reservations: {
+        include: { experience: { select: { title: true } } },
+        orderBy: { date: "asc" },
+      },
     },
-    orderBy: { sortOrder: "asc" },
-  },
-  tables: {
-    include: { reservations: true },
-    orderBy: { number: "asc" },
-  },
-  reservations: {
-    orderBy: { date: "asc" },
-  },
-},
   });
 
   if (!restaurant) {
@@ -210,6 +219,7 @@ export default async function TablesPage({
         date: reservation.date,
         tableId: reservation.tableId,
         status: reservation.status,
+        menuTitle: reservation.experience?.title || null,
         durationMinutes: 120,
         startTime: start.toLocaleTimeString("pt-PT", {
           hour: "2-digit",

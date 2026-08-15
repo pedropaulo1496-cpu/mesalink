@@ -397,6 +397,11 @@ export default async function DayPage({
                 {t("row.offerApplied")}
               </span>
             )}
+            {reservation.experience && (
+              <span className="max-w-full truncate rounded-full bg-[#F1E5D3] px-2.5 py-1 text-[10px] font-semibold text-[#76552F]">
+                Menu · {reservation.experience.title}
+              </span>
+            )}
             {reservation.payment?.status === "PAID" && <span className="rounded-full bg-[#EAF6EA] px-2.5 py-1 text-[10px] font-semibold text-[#3F6A4D]">{reservation.payment.kind === "MENU_DEPOSIT" ? "Entrada paga" : reservation.payment.kind === "DEPOSIT" ? "Depósito pago" : "Pré-pago"}</span>}
           </div>
 

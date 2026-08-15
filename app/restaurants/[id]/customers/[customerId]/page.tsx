@@ -52,7 +52,7 @@ export default async function CustomerDetailPage({
       reservations: {
         where: { restaurantId: id },
         orderBy: { date: "desc" },
-        include: { table: true },
+        include: { table: true, experience: { select: { title: true } } },
       },
       marketingActions: {
         where: { restaurantId: id },
@@ -184,6 +184,7 @@ export default async function CustomerDetailPage({
                     guests={reservation.guests}
                     status={reservation.status}
                     table={reservation.table?.number}
+                    menuTitle={reservation.experience?.title}
                     intlLocale={intlLocale}
                     guestsLabel={(count: number) => t("history.guests", { count })}
                     tableLabel={(number: number) => t("history.table", { number })}
@@ -394,6 +395,7 @@ function ReservationLine({
   guests,
   status,
   table,
+  menuTitle,
   intlLocale,
   guestsLabel,
   tableLabel,
@@ -404,6 +406,7 @@ function ReservationLine({
   guests: number;
   status: string;
   table?: number;
+  menuTitle?: string;
   intlLocale: string;
   guestsLabel: (count: number) => string;
   tableLabel: (number: number) => string;
@@ -419,6 +422,7 @@ function ReservationLine({
         <p className="mt-1 text-xs text-[#6B6258]">
           {guestsLabel(guests)} · {table ? tableLabel(table) : noTableLabel}
         </p>
+        {menuTitle && <span className="mt-2 inline-flex max-w-full truncate rounded-full bg-[#F1E5D3] px-2.5 py-1 text-[10px] font-bold text-[#76552F]">Menu · {menuTitle}</span>}
       </div>
 
       <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#9B6F3B]">
