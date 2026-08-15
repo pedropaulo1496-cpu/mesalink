@@ -101,8 +101,9 @@
   "calendar": {
     "notFound": "Restaurante no encontrado",
     "backToDashboard": "← Volver al panel",
-    "eyebrow": "MesaLink · Calendario",
-    "title": "Calendario",
+    "eyebrow": "MesaLink · Agenda",
+    "title": "Calendario y Reservas",
+    "newReservation": "Nueva reserva",
     "stats": {
       "reservationsMonth": "Reservas este mes",
       "guestsMonth": "Personas este mes",

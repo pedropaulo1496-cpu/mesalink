@@ -101,8 +101,9 @@
   "calendar": {
     "notFound": "未找到该餐厅",
     "backToDashboard": "← 返回仪表盘",
-    "eyebrow": "MesaLink · 日历",
-    "title": "日历",
+    "eyebrow": "MesaLink · 日程",
+    "title": "日历与预订",
+    "newReservation": "新建预订",
     "stats": {
       "reservationsMonth": "本月预订",
       "guestsMonth": "本月客人",

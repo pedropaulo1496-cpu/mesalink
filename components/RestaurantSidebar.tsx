@@ -7,7 +7,6 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {
   HomeIcon,
   CalendarIcon,
-  BookIcon,
   GridIcon,
   UsersIcon,
   GlobeIcon,
@@ -93,12 +92,6 @@ export default function RestaurantSidebar({
           name: t("items.serviceDay"),
           href: `/restaurants/${id}/day`,
           icon: CalendarIcon,
-        },
-        {
-          key: "reservations",
-          name: t("items.reservations"),
-          href: `/restaurants/${id}/reservations`,
-          icon: BookIcon,
         },
         {
           key: "calendar",

@@ -13,6 +13,8 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
     where: { id: reservationId },
     include: {
       restaurant: { select: { id: true, name: true, slug: true, userId: true } },
+      experience: true,
+      experienceAddOns: true,
       payment: true,
       customer: { include: { marketingPromoCards: { where: { status: "ACTIVE", title: "Crédito de reserva" }, orderBy: { createdAt: "desc" }, take: 1 } } },
     },
@@ -48,6 +50,14 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
         ? `Emitimos um crédito digital de ${new Intl.NumberFormat("pt-PT", { style: "currency", currency: reservation.payment.currency }).format(Number(reservation.payment.baseAmount) + Number(reservation.payment.addOnsAmount))}, válido para uma nova reserva.`
         : "";
     const pending = reservation.status === "PENDING";
+    const experienceRows = reservation.experience ? `
+      <div style="margin:16px 0 0;padding:15px 16px;border-radius:16px;background:#17120D;color:#fff;">
+        <p style="margin:0 0 5px;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#D7B267;">Menu da reserva</p>
+        <p style="margin:0;font-size:18px;font-weight:700;">${escapeHtml(reservation.experience.title)}</p>
+        <p style="margin:5px 0 0;font-size:13px;color:#E8DED2;">${formatMoney(Number(reservation.experience.pricePerPerson))} por pessoa</p>
+        ${reservation.experienceAddOns.length ? `<p style="margin:5px 0 0;font-size:13px;color:#E8DED2;"><strong>Extras:</strong> ${escapeHtml(reservation.experienceAddOns.map((item) => `${item.nameSnapshot} × ${item.quantity}`).join(", "))}</p>` : ""}
+      </div>
+    ` : "";
 
     const subject = type === "CANCELLED"
       ? t("subjectCancelled", { restaurantName: reservation.restaurant.name })
@@ -74,6 +84,7 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
               <p><strong>${escapeHtml(t("labelTime"))}</strong> ${reservation.date.toLocaleTimeString(intlLocale, { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Lisbon" })}</p>
               <p><strong>${escapeHtml(t("labelGuests"))}</strong> ${reservation.guests}</p>
               <p><strong>${escapeHtml(t("labelStatus"))}</strong> ${escapeHtml(status)}</p>
+              ${experienceRows}
             </div>
             ${type === "CANCELLED" ? `
               <a href="${rebookUrl}" style="display:block;padding:14px 20px;border-radius:999px;background:#17120D;color:#fff;text-align:center;text-decoration:none;font-weight:700;">${escapeHtml(t("rebookButton"))}</a>
@@ -101,4 +112,8 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char] || char);
+}
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value);
 }

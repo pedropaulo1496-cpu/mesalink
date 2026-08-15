@@ -189,7 +189,15 @@ export default async function CalendarPage({
               </p>
             </div>
 
-            <div className="grid grid-cols-[48px_1fr_48px] items-center gap-2 sm:flex sm:gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <Link
+                href={`/restaurants/${id}/reservations/new`}
+                className="flex h-12 items-center justify-center rounded-full bg-[#C8A56A] px-5 text-sm font-black text-[#17120D] shadow-[0_12px_30px_rgba(200,165,106,0.24)] transition hover:bg-[#D7B267]"
+              >
+                + {t("newReservation")}
+              </Link>
+
+              <div className="grid grid-cols-[48px_1fr_48px] items-center gap-2 sm:flex sm:gap-3">
               <Link
                 href={`/restaurants/${id}/calendar?year=${previousMonth.getFullYear()}&month=${previousMonth.getMonth()}`}
                 className="flex h-12 w-12 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] text-lg font-black text-[#9B6F3B] transition hover:border-[#C8A56A] hover:bg-white"
@@ -207,6 +215,7 @@ export default async function CalendarPage({
               >
                 →
               </Link>
+              </div>
             </div>
           </div>
         </header>

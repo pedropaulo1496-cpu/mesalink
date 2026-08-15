@@ -165,7 +165,7 @@ async function createReservation(formData: FormData) {
     },
   });
 
-  redirect(`/restaurants/${restaurantId}/reservations`);
+  redirect(`/restaurants/${restaurantId}/calendar`);
 }
 
 const times = [
@@ -221,7 +221,7 @@ export default async function NewReservationPage({
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
       <section className="mx-auto max-w-6xl px-5 pt-7 pb-28 sm:px-8 lg:pb-7">
         <Link
-          href={`/restaurants/${id}/reservations`}
+          href={`/restaurants/${id}/calendar`}
           className="text-sm font-semibold text-[#9B6F3B] hover:text-[#16120E]"
         >
           ← {t("back")}
@@ -391,7 +391,7 @@ export default async function NewReservationPage({
                 </button>
 
                 <Link
-                  href={`/restaurants/${id}/reservations`}
+                  href={`/restaurants/${id}/calendar`}
                   className="flex h-14 flex-1 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-6 font-semibold text-[#16120E] transition hover:bg-white"
                 >
                   {t("cancel")}

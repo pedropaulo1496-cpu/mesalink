@@ -21,7 +21,6 @@ import {
   GlobeIcon,
   SettingsIcon,
   MoreIcon,
-  BookIcon,
   UsersIcon,
   BillingIcon,
 } from "@/components/icons/nav-icons";
@@ -58,11 +57,6 @@ export default function BottomNav({ id }: { id: string }) {
       href: `/restaurants/${id}/experiences`,
       icon: GiftIcon,
       label: t("moreSheet.experiences"),
-    },
-    {
-      href: `/restaurants/${id}/reservations`,
-      icon: BookIcon,
-      label: t("moreSheet.reservations"),
     },
     {
       href: `/restaurants/${id}/tables`,

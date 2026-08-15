@@ -160,7 +160,7 @@ export default async function UpcomingReservationsPage({
   return (
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
       <div className="grid min-h-screen lg:grid-cols-[286px_1fr]">
-        <RestaurantSidebar id={id} restaurantName={restaurant.name} active="reservations" />
+        <RestaurantSidebar id={id} restaurantName={restaurant.name} active="calendar" />
 
         <section className="min-w-0 px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
           <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -179,7 +179,7 @@ export default async function UpcomingReservationsPage({
             </div>
 
             <Link
-              href={`/restaurants/${id}/reservations`}
+              href={`/restaurants/${id}/calendar`}
               className="flex h-11 w-fit items-center justify-center rounded-full border border-[#E1D0B8] bg-white px-5 text-sm font-semibold transition hover:bg-[#FFF9F0]"
             >
               {t("viewCalendar")}

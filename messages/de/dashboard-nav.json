@@ -11,7 +11,7 @@
     "serviceDay": "Tagesservice",
     "reservations": "Reservierungen",
     "noShowProtect": "No-show-Schutz",
-    "calendar": "Kalender",
+    "calendar": "Kalender & Reservierungen",
     "tables": "Saal & Tische",
     "customers": "Kunden",
     "revenue": "Umsatz & Schutz",
@@ -31,7 +31,7 @@
   "bottomNav": {
     "dash": "Start",
     "today": "Heute",
-    "calendar": "Kal.",
+    "calendar": "Reserv.",
     "orders": "QR/Menü",
     "more": "Mehr",
     "moreSheet": {

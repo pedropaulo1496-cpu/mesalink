@@ -38,8 +38,12 @@ export async function sendReservationConfirmationEmail(reservationId: string) {
     const manageUrl = reservationManagementUrl(reservation.id, reservation.email);
     const cancelUrl = reservationManagementUrl(reservation.id, reservation.email, "cancel");
     const experienceRows = reservation.experience ? `
-      <p><strong>Menu:</strong> ${escapeHtml(reservation.experience.title)}</p>
-      ${reservation.experienceAddOns.length ? `<p><strong>Extras:</strong> ${escapeHtml(reservation.experienceAddOns.map((item) => `${item.nameSnapshot} × ${item.quantity}`).join(", "))}</p>` : ""}
+      <div style="margin:16px 0 0;padding:15px 16px;border-radius:16px;background:#17120D;color:#fff;">
+        <p style="margin:0 0 5px;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#D7B267;">Menu reservado</p>
+        <p style="margin:0;font-size:18px;font-weight:700;">${escapeHtml(reservation.experience.title)}</p>
+        <p style="margin:5px 0 0;font-size:13px;color:#E8DED2;">${formatMoney(Number(reservation.experience.pricePerPerson))} por pessoa</p>
+        ${reservation.experienceAddOns.length ? `<p style="margin:5px 0 0;font-size:13px;color:#E8DED2;"><strong>Extras:</strong> ${escapeHtml(reservation.experienceAddOns.map((item) => `${item.nameSnapshot} × ${item.quantity}`).join(", "))}</p>` : ""}
+      </div>
     ` : "";
     const paymentLabel = reservation.payment?.kind === "MENU_DEPOSIT" ? "Entrada do menu" : reservation.payment?.kind === "DEPOSIT" ? "Depósito" : "Pré-pagamento";
     const paymentRow = paid ? `<p><strong>${paymentLabel}:</strong> ${formatMoney(Number(reservation.payment?.baseAmount || 0) + Number(reservation.payment?.addOnsAmount || 0))} pago</p>` : "";

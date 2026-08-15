@@ -21,13 +21,8 @@ export default function Sidebar({
         />
 
         <SidebarItem
-          href={`/restaurants/${restaurantId}/reservations`}
-          label="Reservas"
-        />
-
-        <SidebarItem
           href={`/restaurants/${restaurantId}/calendar`}
-          label="Calendário"
+          label="Calendário e Reservas"
         />
 
         <SidebarItem
