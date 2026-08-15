@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import ReservationMenuLabel from "@/components/ReservationMenuLabel";
 import { getLocale, getTranslations } from "next-intl/server";
 import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 
@@ -422,7 +423,7 @@ function ReservationLine({
         <p className="mt-1 text-xs text-[#6B6258]">
           {guestsLabel(guests)} · {table ? tableLabel(table) : noTableLabel}
         </p>
-        {menuTitle && <span className="mt-2 inline-flex max-w-full truncate rounded-full bg-[#F1E5D3] px-2.5 py-1 text-[10px] font-bold text-[#76552F]">Menu · {menuTitle}</span>}
+        {menuTitle && <ReservationMenuLabel title={menuTitle} className="mt-2" />}
       </div>
 
       <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#9B6F3B]">

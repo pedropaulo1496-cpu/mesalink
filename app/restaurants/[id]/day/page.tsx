@@ -1,6 +1,7 @@
 import DayPicker from "./DayPicker";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import ReservationMenuLabel from "@/components/ReservationMenuLabel";
 import { prisma } from "@/lib/prisma";
 import { triggerRevenueRecovery } from "@/lib/trigger-revenue-recovery";
 import { redirect } from "next/navigation";
@@ -397,11 +398,6 @@ export default async function DayPage({
                 {t("row.offerApplied")}
               </span>
             )}
-            {reservation.experience && (
-              <span className="max-w-full truncate rounded-full bg-[#F1E5D3] px-2.5 py-1 text-[10px] font-semibold text-[#76552F]">
-                Menu · {reservation.experience.title}
-              </span>
-            )}
             {reservation.payment?.status === "PAID" && <span className="rounded-full bg-[#EAF6EA] px-2.5 py-1 text-[10px] font-semibold text-[#3F6A4D]">{reservation.payment.kind === "MENU_DEPOSIT" ? "Entrada paga" : reservation.payment.kind === "DEPOSIT" ? "Depósito pago" : "Pré-pago"}</span>}
           </div>
 
@@ -413,6 +409,10 @@ export default async function DayPage({
   {reservation.source === "PUBLIC" ? ` · ${t("row.online")}` : ` · ${t("row.manual")}`}
   {reservation.notes ? ` · ${reservation.notes}` : ""}
 </p>
+
+{reservation.experience && (
+  <ReservationMenuLabel title={reservation.experience.title} className="mt-2" />
+)}
 
 {reservation.marketingPromoCard && <div className="mt-2 rounded-2xl border border-[#E2C58D] bg-[#FFF6E5] px-3 py-2 text-xs"><p className="font-bold text-[#6F4D26]">{t("row.offerApplied")}: {reservation.marketingPromoCard.title} · {marketingBenefitValue(reservation.marketingPromoCard.benefitType, reservation.marketingPromoCard.value == null ? null : Number(reservation.marketingPromoCard.value), reservation.marketingPromoCard.benefitLabel)}</p><p className="mt-1 font-mono text-[10px] text-[#806D56]">{reservation.marketingPromoCard.publicCode} · {t("row.offerSingleUse")}</p></div>}
 {reservation.payment?.status === "PAID" && <div className="mt-2 rounded-2xl border border-[#B8D7B9] bg-[#EFF9EF] px-3 py-2 text-xs text-[#315C3B]"><p className="font-bold">{reservation.experience ? reservation.experience.title : "No-Show Protect"} · {new Intl.NumberFormat("pt-PT", { style: "currency", currency: reservation.payment.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(reservation.payment.baseAmount) + Number(reservation.payment.addOnsAmount))} já pago</p><p className="mt-1 text-[10px]">{reservation.payment.kind === "MENU_DEPOSIT" ? "Entrada do menu: descontar este valor na conta final." : reservation.payment.kind === "DEPOSIT" ? "Descontar este depósito na conta final." : "Menu e extras pagos na reserva."}{reservation.experienceAddOns.length ? ` Extras: ${reservation.experienceAddOns.map((item) => `${item.nameSnapshot} × ${item.quantity}`).join(", ")}.` : ""}</p></div>}

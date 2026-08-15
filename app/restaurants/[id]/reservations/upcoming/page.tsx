@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import ReservationMenuLabel from "@/components/ReservationMenuLabel";
 import { getLocale, getTranslations } from "next-intl/server";
 import { marketingBenefitValue } from "@/lib/marketing-card-themes";
 import type { Prisma } from "@prisma/client";
@@ -240,12 +241,13 @@ function ReservationRow({
         </p>
 
         <div className="min-w-0">
-          <div className="flex min-w-0 flex-wrap items-center gap-1.5"><p className="truncate font-semibold">{reservation.customerName}</p>{reservation.experience && <span className="max-w-full truncate rounded-full bg-[#F1E5D3] px-2 py-0.5 text-[9px] font-bold text-[#76552F]">Menu · {reservation.experience.title}</span>}{reservation.marketingPromoCard && <span className="shrink-0 rounded-full bg-[#FFF0D3] px-2 py-0.5 text-[8px] font-black uppercase text-[#7A542A]">{t("row.offerApplied")}</span>}</div>
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5"><p className="truncate font-semibold">{reservation.customerName}</p>{reservation.marketingPromoCard && <span className="shrink-0 rounded-full bg-[#FFF0D3] px-2 py-0.5 text-[8px] font-black uppercase text-[#7A542A]">{t("row.offerApplied")}</span>}</div>
           <p className="mt-0.5 text-xs text-[#6B6258]">
             {reservation.tableNumber
               ? t("row.table", { number: reservation.tableNumber })
               : t("row.noTable")}
           </p>
+          {reservation.experience && <ReservationMenuLabel title={reservation.experience.title} className="mt-1.5" />}
         </div>
 
         <span

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import ReservationMenuLabel from "@/components/ReservationMenuLabel";
 
 type FloorReservation = {
   id: string;
@@ -748,7 +749,7 @@ export default function FloorPlanEditor({
             <span className="block text-[9px] text-[#6B6258]">
               {reservation.startTime}
             </span>
-            {reservation.menuTitle && <span className="block truncate text-[8px] text-[#8A602C]">{reservation.menuTitle}</span>}
+            {reservation.menuTitle && <span className="block truncate text-[8px] font-bold text-[#8A602C]">Menu · {reservation.menuTitle}</span>}
           </div>
         )}
       </div>
@@ -872,7 +873,8 @@ export default function FloorPlanEditor({
                         >
                           {reservation.startTime} · {reservation.guests} pessoas
                         </p>
-                        {reservation.menuTitle && <p className={`mt-1 truncate text-[10px] font-bold ${selectedReservationId === reservation.id ? "text-[#E6C98D]" : "text-[#8A602C]"}`}>Menu · {reservation.menuTitle}</p>}
+                        {reservation.menuTitle && selectedReservationId !== reservation.id && <ReservationMenuLabel title={reservation.menuTitle} className="mt-1.5" />}
+                        {reservation.menuTitle && selectedReservationId === reservation.id && <p className="mt-1.5 truncate text-[10px] font-bold text-[#E6C98D]">Menu · {reservation.menuTitle}</p>}
                       </div>
 
                       <span
@@ -928,7 +930,7 @@ export default function FloorPlanEditor({
                           {reservation.startTime} ·{" "}
                           {table ? `Mesa ${table.number}` : "Mesa"}
                         </p>
-                        {reservation.menuTitle && <p className="mt-0.5 truncate text-[9px] font-bold text-[#8A602C]">Menu · {reservation.menuTitle}</p>}
+                        {reservation.menuTitle && <ReservationMenuLabel title={reservation.menuTitle} className="mt-1.5" />}
                       </div>
 
                       <button className="rounded-full border border-[#E7B7A8] bg-[#FFF0EA] px-2 py-1 text-[10px] font-black text-[#A14E36]">

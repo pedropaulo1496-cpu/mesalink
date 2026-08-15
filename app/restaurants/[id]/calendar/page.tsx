@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
+import ReservationMenuLabel from "@/components/ReservationMenuLabel";
 import { getLocale, getTranslations } from "next-intl/server";
 
 const dashboardDateLocales: Record<string, string> = {
@@ -273,7 +274,13 @@ export default async function CalendarPage({
                   <CalendarMeal label={t("meal.dinner")} value={dinnerGuests} unit={t("guestUnit")} active={dinnerGuests > 0} />
                 </div>
 
-                {menuTitles.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{menuTitles.slice(0, 2).map((title) => <span key={title} className="max-w-full truncate rounded-full bg-[#F1E5D3] px-2.5 py-1 text-[10px] font-bold text-[#76552F]">Menu · {title}</span>)}</div>}
+                {menuTitles.length > 0 && (
+                  <ReservationMenuLabel
+                    title={menuTitles[0]}
+                    extraCount={menuTitles.length - 1}
+                    className="mt-3"
+                  />
+                )}
 
                 {pendingCount > 0 && (
                   <div className="mt-3 rounded-2xl border border-[#E5C46D] bg-[#FFF8E2] px-3 py-2 text-xs font-black text-[#9B6F3B]">
@@ -388,7 +395,13 @@ export default async function CalendarPage({
                       active={dinnerGuests > 0}
                     />
 
-                    {menuTitles.length > 0 && <div className="flex flex-wrap gap-1">{menuTitles.slice(0, 2).map((title) => <span key={title} className="max-w-full truncate rounded-full bg-[#F1E5D3] px-2 py-1 text-[9px] font-bold text-[#76552F]">Menu · {title}</span>)}</div>}
+                    {menuTitles.length > 0 && (
+                      <ReservationMenuLabel
+                        title={menuTitles[0]}
+                        extraCount={menuTitles.length - 1}
+                        className="w-full"
+                      />
+                    )}
 
                     {pendingCount > 0 && (
                       <div className="rounded-xl border border-[#E5C46D] bg-[#FFF8E2] px-2 py-1 font-bold text-[#9B6F3B]">
