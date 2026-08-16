@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BadgeEuro, BriefcaseBusiness, Building2, ChevronRight, LayoutDashboard, MessageCircle, UserRoundSearch, UsersRound, WalletCards } from "lucide-react";
+import { BadgeEuro, BarChart3, BriefcaseBusiness, Building2, ChevronRight, LayoutDashboard, MessageCircle, UserRoundSearch, UsersRound, WalletCards } from "lucide-react";
 
 const links = [
   { href: "/backoffice", label: "Visão geral", icon: LayoutDashboard },
@@ -15,7 +15,7 @@ const links = [
 export default function BackofficeNavigation({ role, variant }: { role: "ADMIN" | "SALES"; variant: "desktop" | "mobile" }) {
   const pathname = usePathname();
   const items = role === "ADMIN"
-    ? [...links, { href: "/backoffice/candidates", label: "Candidaturas", icon: UserRoundSearch }, { href: "/backoffice/partner-payouts", label: "Pagamentos", icon: WalletCards }, { href: "/backoffice/team", label: "Comerciais", icon: UsersRound }]
+    ? [...links, { href: "/backoffice/traffic", label: "Tráfego", icon: BarChart3 }, { href: "/backoffice/candidates", label: "Candidaturas", icon: UserRoundSearch }, { href: "/backoffice/partner-payouts", label: "Pagamentos", icon: WalletCards }, { href: "/backoffice/team", label: "Comerciais", icon: UsersRound }]
     : links.map((item) => item.href === "/backoffice/requests" ? { ...item, label: "Os meus pedidos" } : item);
 
   if (variant === "desktop") {

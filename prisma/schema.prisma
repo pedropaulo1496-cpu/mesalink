@@ -78,6 +78,38 @@ model AdminSettings {
   updatedAt DateTime @updatedAt
 }
 
+model SitePageView {
+  id String @id @default(cuid())
+
+  eventKey String @unique
+  visitorId String
+  sessionId String
+
+  path     String
+  title    String?
+  referrer String?
+
+  source   String  @default("direct")
+  medium   String?
+  campaign String?
+
+  country  String?
+  region   String?
+  city     String?
+  device   String  @default("desktop")
+  browser  String?
+  language String?
+
+  isNewVisitor Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([visitorId, createdAt])
+  @@index([sessionId, createdAt])
+  @@index([path, createdAt])
+  @@index([source, createdAt])
+}
+
 model SalesRepresentative {
   id String @id @default(cuid())
 

@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, BellRing, MessageCircle, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, BellRing, MessageCircle, TrendingUp } from "lucide-react";
 import FinancialTrendChart from "@/components/backoffice/FinancialTrendChart";
 import { DoneNotice, PageHeading, RiskPill, StatCard, euroAmount, euroCents } from "@/components/backoffice/BackofficeUI";
 import { getBackofficeClients } from "@/lib/backoffice-data";
 import { getBackofficeFinance } from "@/lib/backoffice-finance";
 import { prisma } from "@/lib/prisma";
+import { getSiteTrafficSummary } from "@/lib/site-analytics";
 import { requireStaff } from "@/lib/staff-auth";
 
 export const dynamic = "force-dynamic";
@@ -16,12 +17,13 @@ export default async function BackofficeOverview({ searchParams }: { searchParam
   const activeThreshold = new Date(referenceTime.getTime() - 7 * 86_400_000);
   const newThreshold = new Date(referenceTime.getTime() - 30 * 86_400_000);
   const clientWhere = { isAdmin: false, salesProfile: null, referralPartner: null, ...(staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId! } : {}) };
-  const [clients, finance, totalClientCount, activeClientCount, newClientCount] = await Promise.all([
+  const [clients, finance, totalClientCount, activeClientCount, newClientCount, traffic] = await Promise.all([
     getBackofficeClients(staff),
     staff.role === "ADMIN" ? getBackofficeFinance() : Promise.resolve(null),
     prisma.user.count({ where: clientWhere }),
     prisma.user.count({ where: { ...clientWhere, OR: [{ lastActiveAt: { gte: activeThreshold } }, { lastLoginAt: { gte: activeThreshold } }, { restaurants: { some: { updatedAt: { gte: activeThreshold } } } }] } }),
     prisma.user.count({ where: { ...clientWhere, createdAt: { gte: newThreshold } } }),
+    staff.role === "ADMIN" ? getSiteTrafficSummary(30) : Promise.resolve(null),
   ]);
   const commissionWhere = staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId! } : {};
   const [commissions, pendingRequests, unreadMessages, representatives] = await Promise.all([
@@ -78,6 +80,17 @@ export default async function BackofficeOverview({ searchParams }: { searchParam
         <CompactMetric label={staff.role === "ADMIN" ? "Comissões do mês" : "Meus pedidos pendentes"} value={staff.role === "ADMIN" ? euroCents(finance?.current.commissionCents || 0) : pendingRequests.toString()} alert={staff.role !== "ADMIN" && pendingRequests > 0} />
         <CompactMetric label={staff.role === "ADMIN" ? "Taxas Stripe do mês" : "Mensagens por ler"} value={staff.role === "ADMIN" ? euroCents(finance?.current.stripeFeesCents || 0) : unreadMessages.toString()} alert={staff.role !== "ADMIN" && unreadMessages > 0} />
       </section>
+
+      {staff.role === "ADMIN" && traffic && (
+        <Link href="/backoffice/traffic" className="group mt-3 grid gap-3 rounded-[18px] border border-[#DCC9AA] bg-white px-4 py-3 shadow-[0_8px_24px_rgba(80,55,30,0.035)] transition hover:border-[#B98D4C] sm:grid-cols-[minmax(180px,1.2fr)_repeat(4,minmax(100px,0.65fr))_32px] sm:items-center">
+          <div className="flex items-center gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#F3E7D5] text-[#8B622D]"><BarChart3 size={17} /></span><div><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">Tráfego do site</p><p className="mt-0.5 text-[11px] text-[#6B6258]">Últimos 30 dias · dados públicos</p></div></div>
+          <TrafficMini label="Visitantes" value={traffic.current.visitors} />
+          <TrafficMini label="Visitas" value={traffic.current.sessions} />
+          <TrafficMini label="Páginas vistas" value={traffic.current.views} />
+          <TrafficMini label="Contas criadas" value={traffic.registrations} />
+          <ArrowRight size={16} className="hidden text-[#9B6F3B] transition group-hover:translate-x-0.5 sm:block" />
+        </Link>
+      )}
 
       {staff.role === "ADMIN" && finance && <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <FinancialTrendChart months={finance.months} />
@@ -147,6 +160,10 @@ function CompactMetric({ label, value, alert = false }: { label: string; value: 
 
 function CostRow({ label, value }: { label: string; value: number }) {
   return <div className="flex items-center justify-between gap-3 py-2"><span className="text-[11px] text-[#6B6258]">{label}</span><strong className="text-[12px]">{euroCents(value)}</strong></div>;
+}
+
+function TrafficMini({ label, value }: { label: string; value: number }) {
+  return <div className="min-w-0 border-t border-[#EEE4D6] pt-2 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0"><p className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8A7C6D]">{label}</p><p className="mt-1 text-[16px] font-black leading-none">{new Intl.NumberFormat("pt-PT").format(value)}</p></div>;
 }
 
 function monthChange(current: number, previous: number) {

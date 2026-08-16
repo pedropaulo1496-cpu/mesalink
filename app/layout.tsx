@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import SiteAnalytics from "@/components/analytics/SiteAnalytics";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -109,6 +110,7 @@ export default async function RootLayout({
         />
         <NextIntlClientProvider>
           {children}
+          <SiteAnalytics />
           <Analytics />
         </NextIntlClientProvider>
       </body>
