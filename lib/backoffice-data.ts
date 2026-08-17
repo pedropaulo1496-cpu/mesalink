@@ -65,6 +65,8 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
     whatsappCostMicros: 5_000,
   };
   const normalizedQuery = query.trim();
+  const now = new Date();
+  const impactThreshold = new Date(now.getTime() - 30 * 86_400_000);
   const users = await prisma.user.findMany({
     where: {
       isAdmin: false,
@@ -101,6 +103,14 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
           address: true,
           websiteEnabled: true,
           updatedAt: true,
+          reservations: {
+            where: { createdAt: { gte: impactThreshold }, source: { not: "MANUAL" }, status: { notIn: ["CANCELLED", "REJECTED", "NO_SHOW"] } },
+            select: { guests: true, estimatedRevenue: true, source: true },
+          },
+          marketingActions: {
+            where: { convertedAt: { gte: impactThreshold } },
+            select: { customerId: true, reservationId: true, estimatedRevenue: true, actualRevenue: true },
+          },
           _count: { select: { reservations: true } },
         },
       },
@@ -116,7 +126,6 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
     ? null
     : await stripeMetricsForCustomers(users.flatMap((user) => user.subscription?.stripeCustomerId ? [user.subscription.stripeCustomerId] : []));
 
-  const now = new Date();
   return Promise.all(users.map(async (user) => {
     const restaurant = user.restaurants[0];
     const [payments, sentEmails, usedAi, whatsappMessages, domainCosts, commissions, promoEmails] = await Promise.all([
@@ -150,6 +159,16 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
     const pendingCommissionCents = Math.round(commissions.filter((item) => item.status === "PENDING").reduce((sum, item) => sum + Number(item._sum.commissionAmount || 0), 0) * 100);
     const providerCostCents = domainCosts._sum.providerPriceCents || 0;
     const totalCostCents = payments.stripeFeeCents + providerCostCents + usageCostCents + commissionCents;
+    const recentReservations = restaurant?.reservations || [];
+    const recoveredActions = restaurant?.marketingActions || [];
+    const impact = {
+      reservations: recentReservations.length,
+      guests: recentReservations.reduce((sum, reservation) => sum + reservation.guests, 0),
+      partnerReservations: recentReservations.filter((reservation) => reservation.source === "PARTNER_NETWORK").length,
+      reservationRevenueCents: Math.round(recentReservations.reduce((sum, reservation) => sum + Number(reservation.estimatedRevenue || 0), 0) * 100),
+      recoveredCustomers: new Set(recoveredActions.map((action) => action.customerId).filter(Boolean)).size,
+      recoveredRevenueCents: Math.round(recoveredActions.reduce((sum, action) => sum + (action.reservationId ? 0 : Number(action.actualRevenue ?? action.estimatedRevenue ?? 0)), 0) * 100),
+    };
     const health = calculateClientHealth({
       createdAt: user.createdAt,
       lastLoginAt: user.lastLoginAt,
@@ -176,6 +195,7 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
       pendingCommissionCents,
       totalCostCents,
       marginCents: payments.revenueCents - totalCostCents,
+      impact,
       health,
       suggestion: healthSuggestion({
         health,
@@ -187,6 +207,47 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
       }),
     };
   }));
+}
+
+export async function getBackofficeClientImpact(staff: StaffIdentity) {
+  const since = new Date(Date.now() - 30 * 86_400_000);
+  const userScope = {
+    isAdmin: false,
+    salesProfile: null,
+    referralPartner: null,
+    ...(staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId! } : {}),
+  };
+  const [restaurantRows, newAccounts] = await Promise.all([
+    prisma.restaurant.findMany({ where: { user: { is: userScope } }, select: { id: true } }),
+    prisma.user.count({ where: { ...userScope, createdAt: { gte: since } } }),
+  ]);
+  const restaurantIds = restaurantRows.map((restaurant) => restaurant.id);
+  if (!restaurantIds.length) {
+    return { newAccounts, reservations: 0, guests: 0, partnerReservations: 0, recoveredCustomers: 0, estimatedRevenueCents: 0 };
+  }
+
+  const [reservations, recovered] = await Promise.all([
+    prisma.reservation.findMany({
+      where: { restaurantId: { in: restaurantIds }, createdAt: { gte: since }, source: { not: "MANUAL" }, status: { notIn: ["CANCELLED", "REJECTED", "NO_SHOW"] } },
+      select: { guests: true, source: true, estimatedRevenue: true },
+    }),
+    prisma.marketingAction.findMany({
+      where: { restaurantId: { in: restaurantIds }, convertedAt: { gte: since } },
+      select: { customerId: true, reservationId: true, estimatedRevenue: true, actualRevenue: true },
+    }),
+  ]);
+
+  return {
+    newAccounts,
+    reservations: reservations.length,
+    guests: reservations.reduce((sum, reservation) => sum + reservation.guests, 0),
+    partnerReservations: reservations.filter((reservation) => reservation.source === "PARTNER_NETWORK").length,
+    recoveredCustomers: new Set(recovered.map((action) => action.customerId || action.reservationId).filter(Boolean)).size,
+    estimatedRevenueCents: Math.round((
+      reservations.reduce((sum, reservation) => sum + Number(reservation.estimatedRevenue || 0), 0)
+      + recovered.reduce((sum, action) => sum + (action.reservationId ? 0 : Number(action.actualRevenue ?? action.estimatedRevenue ?? 0)), 0)
+    ) * 100),
+  };
 }
 
 export type BackofficeClient = Awaited<ReturnType<typeof getBackofficeClients>>[number];

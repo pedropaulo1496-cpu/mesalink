@@ -7,6 +7,10 @@ const ROOT_DOMAIN = "mesalink.pt";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (/^\/downloads\/MesaLink-(?:HQ|Backoffice)-.*\.apk$/i.test(pathname)) {
+    return NextResponse.json({ error: "Ficheiro não disponível." }, { status: 404 });
+  }
+
   const posPage = pathname.match(/^\/restaurants\/([^/]+)\/pos(?:\/|$)/);
   if (posPage) {
     return NextResponse.redirect(

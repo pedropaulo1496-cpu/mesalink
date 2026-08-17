@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "Acesso privado",
   robots: { index: false, follow: false, noarchive: true, nocache: true },
 };
 
-export default function MesaLinkHqShortcut() {
-  redirect("/backoffice-access");
+export default function BackofficeAccessLayout({ children }: { children: ReactNode }) {
+  return children;
 }

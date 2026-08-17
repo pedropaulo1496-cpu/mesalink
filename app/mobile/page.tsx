@@ -64,9 +64,9 @@ const mobileCopy = {
     features: ["Reservas & mesas", "Menus & depósitos", "QR Ordering", "CRM & cartões", "Website & SEO", "Rede de Parceiros", "Marketing Autopilot", "AI Visibility"],
     appsEyebrow: "Apps oficiais",
     appsTitle: "Cada equipa vê apenas o que precisa.",
-    appsText: "As três aplicações usam contas e permissões separadas.",
+    appsText: "A app dos restaurantes e a app dos parceiros usam contas e permissões separadas.",
     download: "Descarregar",
-    appAudience: ["Restaurantes", "Parceiros", "Administração e comerciais"],
+    appAudience: ["Restaurantes", "Parceiros"],
     finalEyebrow: "Começa hoje",
     finalTitle: "A próxima reserva pode começar no MesaLink.",
     finalText: "7 dias para experimentar todas as funcionalidades, com configuração acompanhada.",
@@ -110,9 +110,9 @@ const mobileCopy = {
     features: ["Bookings & tables", "Menus & deposits", "QR Ordering", "CRM & cards", "Website & SEO", "Partner Network", "Marketing Autopilot", "AI Visibility"],
     appsEyebrow: "Official apps",
     appsTitle: "Every team sees only what it needs.",
-    appsText: "All three apps use separate accounts and permissions.",
+    appsText: "The restaurant and partner apps use separate accounts and permissions.",
     download: "Download",
-    appAudience: ["Restaurants", "Partners", "Admin and sales"],
+    appAudience: ["Restaurants", "Partners"],
     finalEyebrow: "Start today",
     finalTitle: "Your next booking can start in MesaLink.",
     finalText: "Try every feature for 7 days, with guided setup.",
@@ -276,7 +276,6 @@ function MobileApps({ copy }: { copy: MobileCopy }) {
   const apps = [
     { name: "MesaLink", icon: "/icons/apps/restaurant-192.png", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk" },
     { name: "MesaLink Partners", icon: "/icons/apps/partners-192.png", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk" },
-    { name: "MesaLink HQ", icon: "/icons/apps/backoffice-192.png", href: "/downloads/MesaLink-HQ-v1.1.1.apk" },
   ];
   return (
     <section id="downloads" className="px-4 py-12">

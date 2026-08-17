@@ -68,9 +68,9 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Mini label="Inatividade" value={client.health.inactiveDays === null ? "Nunca entrou" : `${client.health.inactiveDays} dias`} />
-            <Mini label="Emails" value={`${client.sentEmails} / ${subscription?.emailBalance || 0}`} />
-            <Mini label="Gastou" value={client.payments.connected ? euroCents(client.payments.revenueCents) : "—"} />
-            <Mini label="Comissão" value={euroCents(client.commissionCents)} />
+            <Mini label="Reservas · 30d" value={client.impact.reservations.toString()} />
+            <Mini label="Pessoas · 30d" value={client.impact.guests.toString()} />
+            <Mini label="Recuperados · 30d" value={client.impact.recoveredCustomers.toString()} />
           </div>
         </div>
       </summary>
@@ -90,10 +90,11 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
             </div>
           </div>
         )}
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
           <Info label="Última atividade" value={client.health.lastActivityAt ? dateTime(client.health.lastActivityAt) : "Sem atividade registada"} />
           <Info label="Conta" value={`Criada ${shortDate(client.createdAt)} · ${subscription?.plan || "sem plano"}`} />
           <Info label="Utilização" value={`${client.restaurant?._count.reservations || 0} reservas · ${client.aiCreditsUsed} créditos IA usados`} />
+          <Info label="Impacto · 30 dias" value={`${client.impact.partnerReservations} via parceiros · ${euroCents(client.impact.reservationRevenueCents + client.impact.recoveredRevenueCents)} estimados`} />
           <Info label="Saldos" value={`${subscription?.aiCredits || 0} créditos · ${subscription?.emailBalance || 0} emails · ${subscription?.whatsappMessageBalance || 0} WhatsApp`} />
           <Info label="Próxima ação" value={client.suggestion} />
         </div>

@@ -34,15 +34,14 @@ const copy = {
     whatsapp: "WhatsApp simples e previsível",
     whatsappText: "1 crédito disponibiliza 8 mensagens enviadas — cerca de 0,03€ por envio. Mensagens recebidas não gastam saldo.",
     downloadsEyebrow: "Apps Android oficiais",
-    downloadsTitle: "Três apps. Cada equipa vê apenas o que precisa.",
-    downloadsIntro: "Instala diretamente no Android. As contas, permissões e dados continuam protegidos pela mesma infraestrutura MesaLink.",
+    downloadsTitle: "Duas apps. Cada utilizador vê apenas o que precisa.",
+    downloadsIntro: "Instala diretamente no Android a app do restaurante ou a app de parceiros. As contas, permissões e dados continuam protegidos pela infraestrutura MesaLink.",
     download: "Descarregar APK",
     version: "Android 7 ou superior",
     installNote: "Ao instalar por APK, o Android pode pedir autorização para instalar aplicações deste browser. Os ficheiros abaixo são assinados oficialmente pela MesaLink.",
     apps: [
       { name: "MesaLink Restaurantes", audience: "Para restaurantes", text: "Reservas, serviço do dia, clientes, marketing, Revenue AI, website, visibilidade e operação diária.", version: "v1.1.3", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk", icon: "/icons/apps/restaurant-192.png" },
       { name: "MesaLink Parceiros", audience: "Para parceiros", text: "Escolher restaurantes disponíveis, confirmar reservas imediatas e acompanhar comissões, faturas e pagamentos.", version: "v1.0.3", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk", icon: "/icons/apps/partners-192.png" },
-      { name: "MesaLink HQ", audience: "Para administração e comerciais", text: "Clientes atribuídos, risco, custos, comissões, pedidos, promoções e chat interno.", version: "v1.1.1", href: "/downloads/MesaLink-HQ-v1.1.1.apk", icon: "/icons/apps/backoffice-192.png" },
     ],
   },
   en: {
@@ -62,15 +61,14 @@ const copy = {
     whatsapp: "Simple, predictable WhatsApp",
     whatsappText: "One credit unlocks 8 outbound messages — around €0.03 per send. Incoming messages do not use balance.",
     downloadsEyebrow: "Official Android apps",
-    downloadsTitle: "Three apps. Every team sees only what it needs.",
-    downloadsIntro: "Install directly on Android. Accounts, permissions and data remain protected by MesaLink infrastructure.",
+    downloadsTitle: "Two apps. Every user sees only what they need.",
+    downloadsIntro: "Install the restaurant app or partner app directly on Android. Accounts, permissions and data remain protected by MesaLink infrastructure.",
     download: "Download APK",
     version: "Android 7 or newer",
     installNote: "Android may ask permission to install apps from this browser. Every file below is officially signed by MesaLink.",
     apps: [
       { name: "MesaLink Restaurants", audience: "For restaurants", text: "Bookings, daily service, customers, marketing, Revenue AI, website, visibility and daily operations.", version: "v1.1.3", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk", icon: "/icons/apps/restaurant-192.png" },
       { name: "MesaLink Partners", audience: "For partners", text: "Choose available restaurants, confirm instant bookings, and track commissions, invoices, and payouts.", version: "v1.0.3", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk", icon: "/icons/apps/partners-192.png" },
-      { name: "MesaLink HQ", audience: "For admin and sales", text: "Assigned clients, risk, costs, commissions, requests, promotions and internal chat.", version: "v1.1.1", href: "/downloads/MesaLink-HQ-v1.1.1.apk", icon: "/icons/apps/backoffice-192.png" },
     ],
   },
 } as const;
@@ -135,7 +133,7 @@ export function AppDownloads({ compact = false }: { compact?: boolean }) {
           <p className={`text-sm leading-7 text-[#5C5348] ${compact ? "mt-5" : "max-w-2xl lg:justify-self-end lg:text-base"}`}>{t.downloadsIntro}</p>
         </div>
 
-        <div className={`mt-8 grid gap-4 ${compact ? "" : "lg:grid-cols-3"}`}>
+        <div className={`mt-8 grid gap-4 ${compact ? "" : "lg:grid-cols-2"}`}>
           {t.apps.map((app, index) => {
             const dark = index !== 1;
             return (
