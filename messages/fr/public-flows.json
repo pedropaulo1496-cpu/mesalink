@@ -18,8 +18,15 @@
       "ownerErrorText": "Utilisez l'email du client qui a reçu cette carte pour appliquer l'offre."
     },
     "unavailable": {
-      "title": "Réservations indisponibles",
-      "text": "Ce restaurant n'accepte pas les réservations en ligne pour le moment."
+      "title": "Réservations en ligne temporairement indisponibles",
+      "text": "Votre réservation n'a pas pu être finalisée. Vous pouvez prévenir le restaurant ou le contacter directement.",
+      "notify": "Prévenir le restaurant",
+      "notifying": "Envoi en cours…",
+      "notified": "Restaurant prévenu",
+      "notifiedText": "Nous avons envoyé un e-mail au restaurant afin qu'il puisse réactiver les réservations.",
+      "notifyError": "Impossible d'envoyer l'alerte pour le moment. Réessayez dans quelques instants.",
+      "contact": "Contacter",
+      "privacy": "L'alerte ne communique aucune donnée personnelle."
     },
     "errors": {
       "conflict": {

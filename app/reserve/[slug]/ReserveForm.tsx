@@ -6,16 +6,19 @@ import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   CalendarDays,
+  BellRing,
   Check,
   ChevronDown,
   Clock3,
   CreditCard,
   Gift,
   MapPin,
+  LoaderCircle,
   Minus,
   Plus,
   ShieldCheck,
   Sparkles,
+  Phone,
   UsersRound,
 } from "lucide-react";
 import PhoneField from "@/components/PhoneField";
@@ -40,6 +43,7 @@ type Restaurant = {
   name: string;
   slug: string;
   address: string | null;
+  phone: string | null;
   websiteHeroImage: string | null;
   websiteLogoImage: string | null;
   reservationMode: string;
@@ -179,6 +183,29 @@ function servicePeriodForHour(hour: string) {
   return Number.isFinite(value) && value < 17 ? "LUNCH" : "DINNER";
 }
 
+function reservationAlertVisitorId() {
+  const storageKey = "mesalink_public_visitor_id";
+  const existing = window.localStorage.getItem(storageKey);
+  if (existing) return existing;
+  const generated = typeof window.crypto?.randomUUID === "function"
+    ? window.crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  window.localStorage.setItem(storageKey, generated);
+  return generated;
+}
+
+function reservationAlertSource() {
+  const source = new URLSearchParams(window.location.search).get("utm_source")?.toLowerCase() || "";
+  if (source.includes("google")) return "google_maps";
+  if (source.includes("instagram")) return "instagram";
+  if (source.includes("facebook")) return "facebook";
+  const referrer = document.referrer.toLowerCase();
+  if (referrer.includes("google.")) return "google_maps";
+  if (referrer.includes("instagram.")) return "instagram";
+  if (referrer.includes("facebook.")) return "facebook";
+  return referrer ? "website" : "direct";
+}
+
 export default function ReserveForm({
   restaurant,
   error,
@@ -207,7 +234,28 @@ export default function ReserveForm({
   const [selectedExperienceId, setSelectedExperienceId] = useState("");
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alertStatus, setAlertStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const hasSubmittedRef = useRef(false);
+
+  async function notifyRestaurant() {
+    if (alertStatus === "sending" || alertStatus === "sent") return;
+    setAlertStatus("sending");
+    try {
+      const response = await fetch("/api/public/reservation-unavailable-alert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: restaurant.slug,
+          visitorId: reservationAlertVisitorId(),
+          source: reservationAlertSource(),
+        }),
+      });
+      if (!response.ok) throw new Error("Unable to send alert");
+      setAlertStatus("sent");
+    } catch {
+      setAlertStatus("error");
+    }
+  }
 
   const quickDays = useMemo(() => Array.from({ length: 7 }, (_, index) => {
     const date = new Date();
@@ -271,10 +319,31 @@ export default function ReserveForm({
 
   if (!restaurant.onlineReservationsEnabled) {
     return <PublicShell restaurant={restaurant}>
-      <div className="rounded-[26px] border border-[#E2D3BC] bg-white p-7 text-center shadow-[0_20px_70px_rgba(60,42,24,.08)] sm:p-10">
-        <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#F4E7D4] text-[#9B6F3B]"><CalendarDays size={21} /></span>
-        <h1 className="mt-5 text-3xl font-semibold tracking-[-0.05em]">{t("unavailable.title")}</h1>
-        <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#6D6258]">{t("unavailable.text")}</p>
+      <div className="overflow-hidden rounded-[28px] border border-[#DDC9AC] bg-white text-left shadow-[0_24px_80px_rgba(60,42,24,.1)]">
+        <div className="bg-[#17120D] px-6 py-7 text-white sm:px-9 sm:py-9">
+          <span className="grid h-12 w-12 place-items-center rounded-full bg-[#D7B267] text-[#17120D]"><CalendarDays size={21} /></span>
+          <p className="mt-6 text-[9px] font-black uppercase tracking-[0.24em] text-[#D7B267]">{restaurant.name}</p>
+          <h1 className="mt-2 max-w-lg text-3xl font-semibold leading-[1.05] tracking-[-0.05em] sm:text-4xl">{t("unavailable.title")}</h1>
+          <p className="mt-4 max-w-lg text-sm leading-6 text-white/65">{t("unavailable.text")}</p>
+        </div>
+        <div className="p-5 sm:p-7">
+          {alertStatus === "sent" ? (
+            <div className="flex items-start gap-3 rounded-[18px] border border-[#BFD8C0] bg-[#EFF8EF] p-4 text-[#315B36]">
+              <Check size={19} className="mt-0.5 shrink-0" />
+              <div><strong className="block text-sm">{t("unavailable.notified")}</strong><span className="mt-1 block text-xs leading-5 opacity-75">{t("unavailable.notifiedText")}</span></div>
+            </div>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+              <button type="button" onClick={notifyRestaurant} disabled={alertStatus === "sending"} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#17120D] px-6 text-sm font-bold text-white transition hover:bg-[#2B2118] disabled:cursor-wait disabled:opacity-70">
+                {alertStatus === "sending" ? <LoaderCircle size={17} className="animate-spin" /> : <BellRing size={17} />}
+                {alertStatus === "sending" ? t("unavailable.notifying") : t("unavailable.notify")}
+              </button>
+              {restaurant.phone && <a href={`tel:${restaurant.phone.replace(/[^+\d]/g, "")}`} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#DCC7A9] px-5 text-sm font-bold text-[#6E512E] transition hover:bg-[#FBF5EB]"><Phone size={16} />{t("unavailable.contact")}</a>}
+            </div>
+          )}
+          {alertStatus === "error" && <p className="mt-3 text-center text-xs font-semibold text-[#A24835]">{t("unavailable.notifyError")}</p>}
+          <p className="mt-4 text-center text-[11px] leading-5 text-[#8B7D6E]">{t("unavailable.privacy")}</p>
+        </div>
       </div>
     </PublicShell>;
   }

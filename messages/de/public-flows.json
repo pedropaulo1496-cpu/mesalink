@@ -18,8 +18,15 @@
       "ownerErrorText": "Verwenden Sie die E-Mail-Adresse des Gastes, der diese Karte erhalten hat."
     },
     "unavailable": {
-      "title": "Reservierungen nicht verfügbar",
-      "text": "Dieses Restaurant nimmt derzeit keine Online-Reservierungen an."
+      "title": "Online-Reservierungen vorübergehend nicht verfügbar",
+      "text": "Ihre Reservierung konnte nicht abgeschlossen werden. Sie können das Restaurant benachrichtigen oder direkt kontaktieren.",
+      "notify": "Restaurant benachrichtigen",
+      "notifying": "Benachrichtigung wird gesendet…",
+      "notified": "Restaurant benachrichtigt",
+      "notifiedText": "Wir haben dem Restaurant eine E-Mail geschickt, damit Reservierungen wieder aktiviert werden können.",
+      "notifyError": "Die Benachrichtigung konnte nicht gesendet werden. Bitte versuchen Sie es gleich noch einmal.",
+      "contact": "Kontaktieren",
+      "privacy": "Die Benachrichtigung enthält keine persönlichen Daten."
     },
     "errors": {
       "conflict": {

@@ -18,8 +18,15 @@
       "ownerErrorText": "请使用收到此卡的客户邮箱来应用优惠。"
     },
     "unavailable": {
-      "title": "暂不接受预订",
-      "text": "该餐厅目前暂未开放在线预订。"
+      "title": "在线预订暂时不可用",
+      "text": "暂时无法完成预订。您可以通知餐厅处理此问题，或直接联系餐厅。",
+      "notify": "通知餐厅",
+      "notifying": "正在发送通知…",
+      "notified": "已通知餐厅",
+      "notifiedText": "我们已向餐厅发送电子邮件，以便其重新开放预订。",
+      "notifyError": "暂时无法发送通知，请稍后重试。",
+      "contact": "联系餐厅",
+      "privacy": "通知不会分享您的个人资料。"
     },
     "errors": {
       "conflict": {

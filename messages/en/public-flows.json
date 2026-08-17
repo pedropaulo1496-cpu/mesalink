@@ -18,8 +18,15 @@
       "ownerErrorText": "Use the email address of the customer who received this card to apply the offer."
     },
     "unavailable": {
-      "title": "Bookings unavailable",
-      "text": "This restaurant isn't accepting online bookings right now."
+      "title": "Online bookings temporarily unavailable",
+      "text": "We couldn't complete your booking. You can notify the restaurant so they can fix this or contact them directly.",
+      "notify": "Notify the restaurant",
+      "notifying": "Sending notification…",
+      "notified": "Restaurant notified",
+      "notifiedText": "We emailed the restaurant so they can start accepting bookings again.",
+      "notifyError": "We couldn't send the notification right now. Please try again shortly.",
+      "contact": "Contact",
+      "privacy": "The notification does not share your personal details."
     },
     "errors": {
       "conflict": {

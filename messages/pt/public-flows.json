@@ -18,8 +18,15 @@
       "ownerErrorText": "Utilize o email do cliente que recebeu este cartão para aplicar a oferta."
     },
     "unavailable": {
-      "title": "Reservas indisponíveis",
-      "text": "Este restaurante não está a aceitar reservas online neste momento."
+      "title": "Reservas online temporariamente indisponíveis",
+      "text": "Não foi possível concluir a sua reserva. Pode avisar o restaurante para que resolva esta situação ou contactá-lo diretamente.",
+      "notify": "Avisar o restaurante",
+      "notifying": "A enviar aviso…",
+      "notified": "Restaurante avisado",
+      "notifiedText": "Enviámos um email ao restaurante para que possa voltar a receber reservas.",
+      "notifyError": "Não foi possível enviar o aviso agora. Tente novamente dentro de momentos.",
+      "contact": "Contactar",
+      "privacy": "O aviso não partilha os seus dados pessoais."
     },
     "errors": {
       "conflict": {

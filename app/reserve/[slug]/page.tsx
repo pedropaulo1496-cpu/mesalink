@@ -6,6 +6,7 @@ import { marketingBenefitValue } from "@/lib/marketing-card-themes";
 import { noShowDepositForReservation, reservationServiceFee } from "@/lib/reservation-commerce";
 import { createReservationCheckout, releaseExpiredReservationPayments } from "@/lib/reservation-payments";
 import { sendReservationConfirmationEmail } from "@/lib/send-reservation-confirmation-email";
+import { hasPublicReservationAccess } from "@/lib/public-reservation-access";
 
 async function createPublicReservation(formData: FormData) {
   "use server";
@@ -60,6 +61,9 @@ async function createPublicReservation(formData: FormData) {
   });
 
   if (!restaurant) notFound();
+  if (!restaurant.onlineReservationsEnabled || !hasPublicReservationAccess(restaurant.user)) {
+    redirect(errorRedirect("subscription"));
+  }
   await releaseExpiredReservationPayments(restaurant.id);
 
   const experience = experienceIdValue ? await prisma.diningExperience.findFirst({
@@ -542,6 +546,12 @@ export default async function PublicReservePage({
         orderBy: { startsAt: "asc" },
         take: 12,
       },
+      user: {
+        select: {
+          isAdmin: true,
+          subscription: { select: { status: true, plan: true, trialEndsAt: true } },
+        },
+      },
     },
   });
 
@@ -605,11 +615,12 @@ export default async function PublicReservePage({
     name: restaurant.name,
     slug: restaurant.slug,
     address: restaurant.address,
+    phone: restaurant.phone,
     websiteHeroImage: restaurant.websiteHeroImage,
     websiteLogoImage: restaurant.websiteLogoImage,
     reservationMode: restaurant.reservationMode,
     totalCapacity: restaurant.totalCapacity,
-    onlineReservationsEnabled: restaurant.onlineReservationsEnabled,
+    onlineReservationsEnabled: restaurant.onlineReservationsEnabled && hasPublicReservationAccess(restaurant.user),
     mondayOpen: restaurant.mondayOpen,
     mondayLunch: restaurant.mondayLunch,
     mondayDinner: restaurant.mondayDinner,
