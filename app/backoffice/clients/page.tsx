@@ -66,11 +66,14 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
             <div className="flex flex-wrap items-center gap-2"><h2 className="truncate text-base font-bold">{client.restaurant?.name || client.name || "Sem restaurante"}</h2><RiskPill level={client.health.riskLevel} score={client.health.riskScore} /><Status status={subscription?.status || "SEM PLANO"} /></div>
             <p className="mt-0.5 truncate text-[11px] text-[#6B6258]">{client.email}{client.restaurant?.phone ? ` · ${client.restaurant.phone}` : ""} · {client.salesRepresentative?.name || "sem comercial"}</p>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Mini label="Inatividade" value={client.health.inactiveDays === null ? "Nunca entrou" : `${client.health.inactiveDays} dias`} />
-            <Mini label="Reservas · 30d" value={client.impact.reservations.toString()} />
-            <Mini label="Pessoas · 30d" value={client.impact.guests.toString()} />
-            <Mini label="Recuperados · 30d" value={client.impact.recoveredCustomers.toString()} />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <Mini label="Inatividade" value={client.health.inactiveDays === null ? "Nunca entrou" : `${client.health.inactiveDays} dias`} />
+              <Mini label="Reservas · 30d" value={client.impact.reservations.toString()} />
+              <Mini label="Pessoas · 30d" value={client.impact.guests.toString()} />
+              <Mini label="Recuperados · 30d" value={client.impact.recoveredCustomers.toString()} />
+            </div>
+            <Link href={`/backoffice/clients/${client.id}`} className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-[#17130F] px-4 text-[10px] font-black uppercase tracking-[0.08em] text-white">Ver resultados →</Link>
           </div>
         </div>
       </summary>

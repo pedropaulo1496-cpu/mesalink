@@ -75,6 +75,7 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
       ...(staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId } : {}),
       ...(normalizedQuery ? {
         OR: [
+          { id: normalizedQuery },
           { name: { contains: normalizedQuery, mode: "insensitive" as const } },
           { email: { contains: normalizedQuery, mode: "insensitive" as const } },
           { restaurants: { some: { OR: [
