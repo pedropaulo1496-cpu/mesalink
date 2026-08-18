@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { recoverRestaurantReferralDebt } from "@/lib/referral-payment-health";
 import { stripe } from "@/lib/stripe";
-import { syncRestaurantBillingDetails } from "@/lib/stripe-billing-details";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,12 +26,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const restaurant = await prisma.restaurant.findFirst({
     where: { id, user: { email: session.user.email } },
-    select: { id: true },
+    select: { id: true, billingLegalName: true, billingTaxId: true, billingAddressLine1: true, billingPostalCode: true, billingCity: true, billingCountry: true },
   });
   if (!restaurant) return NextResponse.redirect(new URL("/dashboard", request.url), 303);
 
-  const billing = await syncRestaurantBillingDetails(checkout, id);
-  if (!billing.complete) {
+  const billingComplete = Boolean(restaurant.billingLegalName && restaurant.billingTaxId && restaurant.billingAddressLine1 && restaurant.billingPostalCode && restaurant.billingCity && restaurant.billingCountry);
+  if (!billingComplete) {
     return NextResponse.redirect(new URL(`/restaurants/${id}/partner-network?result=fiscal-required`, request.url), 303);
   }
 

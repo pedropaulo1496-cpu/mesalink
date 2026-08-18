@@ -13,6 +13,7 @@ export function ReferralBookingSettingsForm({
   paymentBlocked,
   paymentBlockReason,
   overdueAmount,
+  billingDetails,
   initialDailyCapacities,
 }: {
   restaurantId: string;
@@ -24,6 +25,14 @@ export function ReferralBookingSettingsForm({
   paymentBlocked: boolean;
   paymentBlockReason: string | null;
   overdueAmount: number;
+  billingDetails: {
+    legalName: string;
+    taxId: string;
+    addressLine1: string;
+    addressLine2: string;
+    postalCode: string;
+    city: string;
+  };
   initialDailyCapacities: Array<{ date: string; capacity: number; enabled: boolean }>;
 }) {
   const [loading, setLoading] = useState(false);
@@ -75,7 +84,19 @@ export function ReferralBookingSettingsForm({
 
   return (
     <div className="space-y-5">
-      {paymentBlocked ? <div className="flex flex-col gap-4 rounded-[20px] border border-[#E2B4A5] bg-[#FFF0EA] p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#F3C9BB] text-[#8D3F2D]"><ShieldCheck size={18} /></span><div><p className="text-sm font-bold text-[#7E3727]">Parcerias pausadas{overdueAmount > 0 ? ` · ${overdueAmount.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })} em atraso` : ""}</p><p className="mt-1 max-w-xl text-[11px] leading-5 text-[#8A5548]">{paymentBlockReason || "O cartão não permitiu garantir ou cobrar uma comissão."} As reservas já feitas mantêm-se. Ao adicionar outro cartão, o MesaLink tenta liquidar o valor em atraso e reativa automaticamente novas reservas.</p></div></div><form action={`/api/restaurants/${restaurantId}/referral-auto-accept/setup`} method="POST"><button className="h-10 whitespace-nowrap rounded-full bg-[#7E3727] px-5 text-[10px] font-bold text-white">Regularizar e reativar</button></form></div> : !paymentMethodReady && <div className="flex flex-col gap-4 rounded-[20px] border border-[#E8C97D] bg-[#FFF7DF] p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#F1D48C] text-[#674A20]"><ShieldCheck size={18} /></span><div><p className="text-sm font-bold text-[#5F431D]">Falta validar o cartão do restaurante</p><p className="mt-1 max-w-xl text-[11px] leading-5 text-[#80613D]">É apenas uma garantia para as comissões. Não existe qualquer cobrança nesta validação.</p></div></div><form action={`/api/restaurants/${restaurantId}/referral-auto-accept/setup`} method="POST"><button className="h-10 whitespace-nowrap rounded-full bg-[#17120D] px-5 text-[10px] font-bold text-white">Validar cartão</button></form></div>}
+      {(paymentBlocked || !paymentMethodReady) && <form action={`/api/restaurants/${restaurantId}/referral-auto-accept/setup`} method="POST" className={`rounded-[20px] border p-4 ${paymentBlocked ? "border-[#E2B4A5] bg-[#FFF0EA]" : "border-[#E8C97D] bg-[#FFF7DF]"}`}>
+        <div className="flex items-start gap-3"><span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${paymentBlocked ? "bg-[#F3C9BB] text-[#8D3F2D]" : "bg-[#F1D48C] text-[#674A20]"}`}><ShieldCheck size={18} /></span><div><p className={`text-sm font-bold ${paymentBlocked ? "text-[#7E3727]" : "text-[#5F431D]"}`}>{paymentBlocked ? `Parcerias pausadas${overdueAmount > 0 ? ` · ${overdueAmount.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })} em atraso` : ""}` : "Dados fiscais e cartão do restaurante"}</p><p className={`mt-1 max-w-3xl text-[11px] leading-5 ${paymentBlocked ? "text-[#8A5548]" : "text-[#80613D]"}`}>{paymentBlocked ? `${paymentBlockReason || "O cartão não permitiu garantir ou cobrar uma comissão."} Confirma os dados fiscais e adiciona outro cartão para reativar as reservas.` : "Preenche a ficha fiscal antes de validares o cartão. O cartão serve apenas como garantia para comissões; não existe qualquer cobrança nesta validação."}</p></div></div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          <label className="text-[9px] font-bold text-[#75695D] sm:col-span-2 lg:col-span-3">Nome legal da empresa<input name="legalName" defaultValue={billingDetails.legalName} required autoComplete="organization" className="mt-1 h-11 w-full rounded-xl border border-[#DDCDB5] bg-white px-3 text-xs font-semibold outline-none" /></label>
+          <label className="text-[9px] font-bold text-[#75695D] lg:col-span-2">NIF<input name="taxId" defaultValue={billingDetails.taxId} required inputMode="numeric" autoComplete="off" placeholder="123456789" pattern="(?:PT)?[0-9]{9}" title="Indica os 9 algarismos do NIF" className="mt-1 h-11 w-full rounded-xl border border-[#DDCDB5] bg-white px-3 text-xs font-semibold outline-none" /></label>
+          <label className="text-[9px] font-bold text-[#75695D] lg:col-span-1">País<input value="Portugal" readOnly className="mt-1 h-11 w-full rounded-xl border border-[#DDCDB5] bg-[#F7F2EA] px-3 text-xs font-semibold text-[#75695D] outline-none" /><input type="hidden" name="country" value="PT" /></label>
+          <label className="text-[9px] font-bold text-[#75695D] sm:col-span-2 lg:col-span-3">Morada fiscal<input name="addressLine1" defaultValue={billingDetails.addressLine1} required autoComplete="address-line1" className="mt-1 h-11 w-full rounded-xl border border-[#DDCDB5] bg-white px-3 text-xs font-semibold outline-none" /></label>
+          <label className="text-[9px] font-bold text-[#75695D] sm:col-span-2 lg:col-span-3">Complemento da morada <span className="font-normal">(opcional)</span><input name="addressLine2" defaultValue={billingDetails.addressLine2} autoComplete="address-line2" className="mt-1 h-11 w-full rounded-xl border border-[#DDCDB5] bg-white px-3 text-xs font-semibold outline-none" /></label>
+          <label className="text-[9px] font-bold text-[#75695D] lg:col-span-2">Código postal<input name="postalCode" defaultValue={billingDetails.postalCode} required autoComplete="postal-code" placeholder="1000-001" pattern="[0-9]{4}-[0-9]{3}" title="Usa o formato 0000-000" className="mt-1 h-11 w-full rounded-xl border border-[#DDCDB5] bg-white px-3 text-xs font-semibold outline-none" /></label>
+          <label className="text-[9px] font-bold text-[#75695D] sm:col-span-2 lg:col-span-2">Localidade<input name="city" defaultValue={billingDetails.city} required autoComplete="address-level2" className="mt-1 h-11 w-full rounded-xl border border-[#DDCDB5] bg-white px-3 text-xs font-semibold outline-none" /></label>
+          <div className="flex items-end sm:col-span-2 lg:col-span-2"><button className={`h-11 w-full whitespace-nowrap rounded-full px-5 text-[10px] font-bold text-white ${paymentBlocked ? "bg-[#7E3727]" : "bg-[#17120D]"}`}>{paymentBlocked ? "Guardar, regularizar e reativar" : "Guardar e validar cartão"}</button></div>
+        </div>
+      </form>}
 
       <form onSubmit={submit} className="space-y-5">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
