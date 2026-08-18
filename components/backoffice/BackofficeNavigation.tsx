@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { BadgeEuro, BarChart3, BriefcaseBusiness, Building2, ChevronRight, LayoutDashboard, MessageCircle, Settings, UserRoundSearch, UsersRound, WalletCards } from "lucide-react";
 
 const links = [
@@ -15,6 +16,23 @@ const links = [
 
 export default function BackofficeNavigation({ role, variant }: { role: "ADMIN" | "SALES"; variant: "desktop" | "mobile" }) {
   const pathname = usePathname();
+  const [unreadSupport, setUnreadSupport] = useState(0);
+
+  useEffect(() => {
+    async function loadUnreadSupport() {
+      try {
+        const response = await fetch("/api/backoffice/support/unread", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        setUnreadSupport(Number(data.count || 0));
+      } catch {
+        // Mantém o menu disponível durante falhas temporárias de ligação.
+      }
+    }
+    queueMicrotask(() => { void loadUnreadSupport(); });
+    const interval = window.setInterval(loadUnreadSupport, 8000);
+    return () => window.clearInterval(interval);
+  }, [pathname]);
   const items = role === "ADMIN"
     ? [...links, { href: "/backoffice/traffic", label: "Tráfego", icon: BarChart3 }, { href: "/backoffice/candidates", label: "Candidaturas", icon: UserRoundSearch }, { href: "/backoffice/partner-payouts", label: "Pagamentos", icon: WalletCards }, { href: "/backoffice/team", label: "Comerciais", icon: UsersRound }]
     : links.map((item) => item.href === "/backoffice/requests" ? { ...item, label: "Os meus pedidos" } : item);
@@ -27,7 +45,7 @@ export default function BackofficeNavigation({ role, variant }: { role: "ADMIN" 
           const active = href === "/backoffice" ? pathname === href : pathname.startsWith(href);
           return (
             <Link key={href} href={href} className={`group flex h-11 items-center gap-3 rounded-[14px] px-2.5 text-[12px] font-bold transition ${active ? "bg-[#D7B267] text-[#17130F] shadow-[0_10px_25px_rgba(0,0,0,0.18)]" : "text-white/56 hover:bg-white/[0.07] hover:text-white"}`}>
-              <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-[11px] ${active ? "bg-[#17130F]/10" : "bg-white/[0.06]"}`}><Icon size={15} /></span>
+              <span className={`relative grid h-8 w-8 shrink-0 place-items-center rounded-[11px] ${active ? "bg-[#17130F]/10" : "bg-white/[0.06]"}`}><Icon size={15} />{href === "/backoffice/chat" && unreadSupport > 0 && <UnreadDot borderClass={active ? "border-[#D7B267]" : "border-[#17130F]"} />}</span>
               <span className="min-w-0 flex-1 truncate">{label}</span>
               <ChevronRight size={13} className={`${active ? "opacity-65" : "opacity-0 group-hover:opacity-40"}`} />
             </Link>
@@ -43,11 +61,15 @@ export default function BackofficeNavigation({ role, variant }: { role: "ADMIN" 
           const active = href === "/backoffice" ? pathname === href : pathname.startsWith(href);
           return (
             <Link key={href} href={href} className={`flex min-w-[68px] flex-1 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[8px] font-bold ${active ? "bg-[#D7B267] text-[#17130F]" : "text-white/55"}`}>
-              <Icon size={16} />
+              <span className="relative"><Icon size={16} />{href === "/backoffice/chat" && unreadSupport > 0 && <UnreadDot borderClass={active ? "border-[#D7B267]" : "border-[#17130F]"} />}</span>
               <span className="max-w-full truncate">{label}</span>
             </Link>
           );
         })}
       </nav>
   );
+}
+
+function UnreadDot({ borderClass }: { borderClass: string }) {
+  return <span className="absolute -right-2 -top-2 flex h-3 w-3" aria-label="Mensagem nova"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" /><span className={`relative inline-flex h-3 w-3 rounded-full border-2 bg-red-500 ${borderClass}`} /></span>;
 }

@@ -34,6 +34,7 @@ export default function RestaurantSidebar({
 }: RestaurantSidebarProps) {
   const t = useTranslations("dashboardNav");
   const [qrNotificationCount, setQrNotificationCount] = useState(0);
+  const [supportUnreadCount, setSupportUnreadCount] = useState(0);
 
   useEffect(() => {
     async function loadNotifications() {
@@ -63,6 +64,26 @@ export default function RestaurantSidebar({
 
     return () => window.clearInterval(interval);
   }, [id]);
+
+  useEffect(() => {
+    if (active === "support") {
+      queueMicrotask(() => setSupportUnreadCount(0));
+      return;
+    }
+    async function loadUnreadSupport() {
+      try {
+        const response = await fetch(`/api/restaurants/${id}/support/unread`, { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        setSupportUnreadCount(Number(data.count || 0));
+      } catch {
+        // Mantém a navegação disponível durante falhas temporárias de ligação.
+      }
+    }
+    queueMicrotask(() => { void loadUnreadSupport(); });
+    const interval = window.setInterval(loadUnreadSupport, 8000);
+    return () => window.clearInterval(interval);
+  }, [active, id]);
 
   const sections = [
     {
@@ -206,6 +227,7 @@ export default function RestaurantSidebar({
                 name: "Ajuda",
                 href: `/restaurants/${id}/support`,
                 icon: SupportIcon,
+                pulseDot: supportUnreadCount > 0,
               }}
               active={active === "support"}
             />
@@ -279,6 +301,7 @@ function NavItem({
     soon?: boolean;
     badge?: string;
     alert?: boolean;
+    pulseDot?: boolean;
   };
   active: boolean;
 }) {
@@ -317,6 +340,13 @@ function NavItem({
       {item.badge && (
         <span className="shrink-0 rounded-full bg-[#16120E] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">
           {item.badge}
+        </span>
+      )}
+
+      {item.pulseDot && (
+        <span className="relative flex h-3 w-3 shrink-0" aria-label="Mensagem nova">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
         </span>
       )}
 

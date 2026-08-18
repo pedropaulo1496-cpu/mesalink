@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAndSendAdminPromotion } from "@/lib/admin-promotions";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
+import { notifyRestaurantSupportReply } from "@/lib/hq-notifications";
 import { prisma } from "@/lib/prisma";
 import { assertBackofficeAdmin, assertClientAccess, assertStaff } from "@/lib/staff-auth";
 import { isValidEmail } from "@/lib/validation";
@@ -524,7 +525,10 @@ export async function sendSupportReply(formData: FormData) {
   const conversationId = clean(formData.get("conversationId"));
   const body = clean(formData.get("body"), 2000);
   if (!conversationId || !body) throw new Error("Conversa ou mensagem inválida.");
-  const conversation = await prisma.supportConversation.findUnique({ where: { id: conversationId }, select: { id: true, salesRepresentativeId: true } });
+  const conversation = await prisma.supportConversation.findUnique({
+    where: { id: conversationId },
+    select: { id: true, clientUserId: true, restaurantId: true, salesRepresentativeId: true },
+  });
   if (!conversation) throw new Error("Conversa não encontrada.");
   if (staff.role === "SALES" && conversation.salesRepresentativeId !== staff.salesRepresentativeId) throw new Error("Este cliente não está atribuído ao comercial.");
   const now = new Date();
@@ -539,6 +543,13 @@ export async function sendSupportReply(formData: FormData) {
       messages: { create: { senderUserId: staff.userId, senderRole: "STAFF", body } },
     },
   });
+  await notifyRestaurantSupportReply({
+    conversationId,
+    clientUserId: conversation.clientUserId,
+    restaurantId: conversation.restaurantId,
+    staffName: staff.name || "Equipa MesaLink",
+    preview: body.slice(0, 120),
+  }).catch((error) => console.error("Restaurant support reply push failed", error));
   finish(`/backoffice/chat?mode=clients&client=${conversationId}`, "support-message-sent");
 }
 

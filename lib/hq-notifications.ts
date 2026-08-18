@@ -74,6 +74,20 @@ export async function notifyClientMessage(input: { conversationId: string; clien
   }, input.salesRepresentativeUserId ? [input.salesRepresentativeUserId] : undefined);
 }
 
+export async function notifyRestaurantSupportReply(input: { conversationId: string; clientUserId: string; restaurantId: string | null; staffName: string; preview: string }) {
+  const selectedRestaurant = input.restaurantId
+    ? await prisma.restaurant.findFirst({ where: { id: input.restaurantId, userId: input.clientUserId }, select: { id: true } })
+    : null;
+  const restaurant = selectedRestaurant || await prisma.restaurant.findFirst({ where: { userId: input.clientUserId }, select: { id: true }, orderBy: { createdAt: "desc" } });
+  if (!restaurant) return;
+  await sendHqPush({
+    title: "Nova mensagem da MesaLink",
+    body: `${input.staffName}: ${input.preview}`,
+    url: `/restaurants/${restaurant.id}/support`,
+    tag: `support-reply-${input.conversationId}`,
+  }, [input.clientUserId]);
+}
+
 export async function notifyRestaurantReservation(input: { restaurantId: string; customerName: string; guests: number; date: Date; source?: string }) {
   const restaurant = await prisma.restaurant.findUnique({ where: { id: input.restaurantId }, select: { name: true, userId: true } });
   if (!restaurant?.userId) return;
