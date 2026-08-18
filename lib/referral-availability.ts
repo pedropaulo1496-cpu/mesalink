@@ -9,30 +9,57 @@ export function referralDayBounds(value: Date) {
 }
 
 export async function getReferralCapacity(
-  tx: Pick<Prisma.TransactionClient, "referralDailyCapacity" | "reservation">,
+  tx: Pick<Prisma.TransactionClient, "referralDailyCapacity" | "reservation" | "restaurant">,
   restaurantId: string,
   desiredDate: Date,
-  defaultCapacity: number,
+  defaultPartnerLimit: number,
 ) {
   const { start, end } = referralDayBounds(desiredDate);
-  const [override, reservations] = await Promise.all([
+  const windowStart = new Date(desiredDate.getTime() - 2 * 60 * 60 * 1000);
+  const windowEnd = new Date(desiredDate.getTime() + 2 * 60 * 60 * 1000);
+  const [restaurant, override, reservations] = await Promise.all([
+    tx.restaurant.findUnique({
+      where: { id: restaurantId },
+      select: { reservationMode: true, totalCapacity: true, tables: { select: { capacity: true } } },
+    }),
     tx.referralDailyCapacity.findUnique({
       where: { restaurantId_date: { restaurantId, date: start } },
       select: { capacity: true, enabled: true },
     }),
-    tx.reservation.aggregate({
+    tx.reservation.findMany({
       where: {
         restaurantId,
-        date: { gte: start, lt: end },
-        status: { notIn: ["CANCELLED", "NO_SHOW"] },
+        date: { gte: windowStart, lt: windowEnd },
+        status: { notIn: ["CANCELLED", "FINISHED", "REJECTED", "NO_SHOW"] },
       },
-      _sum: { guests: true },
+      select: { guests: true, source: true },
     }),
   ]);
 
-  const capacity = override ? (override.enabled ? override.capacity : 0) : Math.max(0, defaultCapacity);
-  const reserved = Number(reservations._sum.guests || 0);
-  return { capacity, reserved, remaining: Math.max(0, capacity - reserved), date: start };
+  const totalCapacity = restaurant?.reservationMode === "CAPACITY"
+    ? Math.max(0, restaurant.totalCapacity || 0)
+    : (restaurant?.tables || []).reduce((sum, table) => sum + table.capacity, 0);
+  const configuredPartnerLimit = defaultPartnerLimit > 0 ? defaultPartnerLimit : totalCapacity;
+  const partnerLimit = override ? (override.enabled ? override.capacity : 0) : configuredPartnerLimit;
+  const realReserved = reservations.reduce((sum, reservation) => sum + reservation.guests, 0);
+  const partnerReserved = reservations
+    .filter((reservation) => ["PARTNER_NETWORK", "NEARBY_REFERRAL"].includes(reservation.source))
+    .reduce((sum, reservation) => sum + reservation.guests, 0);
+  const realRemaining = Math.max(0, totalCapacity - realReserved);
+  const partnerRemaining = Math.max(0, Math.min(totalCapacity, partnerLimit) - partnerReserved);
+
+  return {
+    capacity: Math.min(totalCapacity, partnerLimit),
+    reserved: partnerReserved,
+    remaining: Math.min(realRemaining, partnerRemaining),
+    totalCapacity,
+    realReserved,
+    realRemaining,
+    partnerLimit,
+    partnerReserved,
+    date: start,
+    dayEnd: end,
+  };
 }
 
 export function referralDateKey(value: Date | string) {

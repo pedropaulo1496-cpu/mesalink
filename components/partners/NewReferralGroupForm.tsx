@@ -25,6 +25,8 @@ export type PartnerRestaurant = {
   commissionType: "PER_PERSON" | "TOTAL";
   commissionAmount: number;
   defaultDailyCapacity: number;
+  totalCapacity: number;
+  reservationSlots: Array<{ date: string; guests: number; partner: boolean }>;
   dailyAvailability: Array<{ date: string; capacity: number; reserved: number }>;
   reservedByDay: Record<string, number>;
   googleRating: number | null;
@@ -276,12 +278,20 @@ function CommissionNegotiation({ restaurant }: { restaurant: PartnerRestaurant }
 }
 
 function remainingCapacity(restaurant: PartnerRestaurant, desiredDate: string) {
-  if (!desiredDate) return restaurant.defaultDailyCapacity;
+  const basePartnerLimit = restaurant.defaultDailyCapacity > 0 ? restaurant.defaultDailyCapacity : restaurant.totalCapacity;
+  if (!desiredDate) return Math.min(restaurant.totalCapacity, basePartnerLimit);
   const key = desiredDate.slice(0, 10);
   const override = restaurant.dailyAvailability.find((item) => item.date === key);
-  const capacity = override?.capacity ?? restaurant.defaultDailyCapacity;
-  const reserved = override?.reserved ?? restaurant.reservedByDay[key] ?? 0;
-  return Math.max(0, capacity - reserved);
+  const partnerLimit = override?.capacity ?? basePartnerLimit;
+  const selectedTime = new Date(desiredDate).getTime();
+  if (Number.isNaN(selectedTime)) return Math.min(restaurant.totalCapacity, partnerLimit);
+  const slots = restaurant.reservationSlots.filter((reservation) => {
+    const reservationTime = new Date(reservation.date).getTime();
+    return reservationTime >= selectedTime - 2 * 60 * 60 * 1000 && reservationTime < selectedTime + 2 * 60 * 60 * 1000;
+  });
+  const realReserved = slots.reduce((sum, reservation) => sum + reservation.guests, 0);
+  const partnerReserved = slots.filter((reservation) => reservation.partner).reduce((sum, reservation) => sum + reservation.guests, 0);
+  return Math.max(0, Math.min(restaurant.totalCapacity - realReserved, partnerLimit - partnerReserved));
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

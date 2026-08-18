@@ -86,6 +86,9 @@ export default async function PartnerAppPage({
       referralDefaultCommissionType: true,
       referralDefaultCommissionAmount: true,
       referralDefaultDailyCapacity: true,
+      reservationMode: true,
+      totalCapacity: true,
+      tables: { select: { capacity: true } },
       referralNetworkEnabled: true,
       referralAutoAcceptEnabled: true,
       referralPaymentMethodId: true,
@@ -108,8 +111,8 @@ export default async function PartnerAppPage({
         select: { date: true, capacity: true, enabled: true },
       },
       reservations: {
-        where: { date: { gte: availabilityStart }, status: { notIn: ["CANCELLED", "NO_SHOW"] } },
-        select: { date: true, guests: true },
+        where: { date: { gte: availabilityStart }, status: { notIn: ["CANCELLED", "FINISHED", "REJECTED", "NO_SHOW"] } },
+        select: { date: true, guests: true, source: true },
         take: 500,
       },
       websiteMenus: {
@@ -169,6 +172,10 @@ export default async function PartnerAppPage({
     const agreement = restaurant.referralAgreements[0];
     const negotiation = restaurant.referralCommissionRequests[0];
     const bookingReady = restaurant.referralNetworkEnabled && restaurant.referralAutoAcceptEnabled && Boolean(restaurant.referralPaymentMethodId) && !restaurant.referralPaymentBlockedAt;
+    const totalCapacity = restaurant.reservationMode === "CAPACITY"
+      ? Math.max(0, restaurant.totalCapacity || 0)
+      : restaurant.tables.reduce((sum, table) => sum + table.capacity, 0);
+    const partnerLimit = restaurant.referralDefaultDailyCapacity > 0 ? Math.min(totalCapacity, restaurant.referralDefaultDailyCapacity) : totalCapacity;
     return {
       id: restaurant.id,
       name: restaurant.googleBusinessTitle || restaurant.name,
@@ -187,7 +194,13 @@ export default async function PartnerAppPage({
       averageTicket: Number(restaurant.averageTicket || 0),
       commissionType: agreement && isCommissionType(agreement.commissionType) ? agreement.commissionType : isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON" as const,
       commissionAmount: isDemo ? 1.5 : Number(agreement?.commissionAmount ?? restaurant.referralDefaultCommissionAmount),
-      defaultDailyCapacity: isDemo ? Math.max(80, restaurant.referralDefaultDailyCapacity) : restaurant.referralDefaultDailyCapacity,
+      defaultDailyCapacity: isDemo ? Math.max(80, partnerLimit) : partnerLimit,
+      totalCapacity: isDemo ? Math.max(80, totalCapacity) : totalCapacity,
+      reservationSlots: restaurant.reservations.map((reservation) => ({
+        date: reservation.date.toISOString(),
+        guests: reservation.guests,
+        partner: ["PARTNER_NETWORK", "NEARBY_REFERRAL"].includes(reservation.source),
+      })),
       dailyAvailability: restaurant.referralDailyCapacities.map((item) => ({
         date: item.date.toISOString().slice(0, 10),
         capacity: item.enabled ? item.capacity : 0,

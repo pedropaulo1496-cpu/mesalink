@@ -18,7 +18,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Define uma comissão válida." }, { status: 400 });
   }
   if (!Number.isInteger(defaultDailyCapacity) || defaultDailyCapacity < 0 || defaultDailyCapacity > 2000) {
-    return NextResponse.json({ error: "Define uma capacidade diária válida." }, { status: 400 });
+    return NextResponse.json({ error: "Define um limite Partner válido." }, { status: 400 });
   }
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
@@ -26,9 +26,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const restaurant = await prisma.restaurant.findFirst({
     where: { id, userId: user.id },
-    select: { referralPaymentMethodId: true, referralPaymentBlockedAt: true },
+    select: {
+      referralPaymentMethodId: true,
+      referralPaymentBlockedAt: true,
+      reservationMode: true,
+      totalCapacity: true,
+      tables: { select: { capacity: true } },
+    },
   });
   if (!restaurant) return NextResponse.json({ error: "Restaurante não encontrado." }, { status: 404 });
+  const configuredCapacity = restaurant.reservationMode === "CAPACITY"
+    ? Math.max(0, restaurant.totalCapacity || 0)
+    : restaurant.tables.reduce((sum, table) => sum + table.capacity, 0);
+  if (configuredCapacity < 1) {
+    return NextResponse.json({ error: "Define primeiro a capacidade total nas mesas ou nas definições." }, { status: 409 });
+  }
+  if (defaultDailyCapacity < 1 || defaultDailyCapacity > configuredCapacity) {
+    return NextResponse.json({ error: `O limite Partner deve ficar entre 1 e ${configuredCapacity} lugares.` }, { status: 400 });
+  }
   if (autoAcceptEnabled && !restaurant.referralPaymentMethodId) {
     return NextResponse.json({ error: "Valida primeiro o cartão usado para garantir as comissões." }, { status: 409 });
   }
