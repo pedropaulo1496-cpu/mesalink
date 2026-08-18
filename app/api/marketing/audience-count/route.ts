@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { BIRTHDAY_RESERVATION_IGNORED_STATUSES, birthdayIsUpcomingThisMonth, calendarMonthRange } from "@/lib/birthday-marketing";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -87,11 +88,19 @@ export async function GET(request: Request) {
   }
 
   if (segment === "BIRTHDAYS") {
+    const now = new Date();
+    const birthdayMonth = calendarMonthRange(now);
     const customers = await prisma.customer.findMany({
       where: {
         ...baseWhere,
         birthDate: {
           not: null,
+        },
+        reservations: {
+          none: {
+            date: { gte: birthdayMonth.start, lt: birthdayMonth.end },
+            status: { notIn: [...BIRTHDAY_RESERVATION_IGNORED_STATUSES] },
+          },
         },
       },
       select: {
@@ -99,12 +108,10 @@ export async function GET(request: Request) {
       },
     });
 
-    const currentMonth = new Date().getMonth();
-
     count = customers.filter(
       (customer) =>
         customer.birthDate &&
-        new Date(customer.birthDate).getMonth() === currentMonth,
+        birthdayIsUpcomingThisMonth(customer.birthDate, now),
     ).length;
   }
 

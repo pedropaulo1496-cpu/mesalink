@@ -11,6 +11,7 @@ import RecoveryAutomationCard from "@/components/marketing/RecoveryAutomationCar
 import NegativeReviewRecoveryCard from "@/components/marketing/NegativeReviewRecoveryCard";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
+import { BIRTHDAY_RESERVATION_IGNORED_STATUSES, birthdayOccurrenceWithinNextDays, calendarMonthRange } from "@/lib/birthday-marketing";
 
 const dashboardDateLocales: Record<string, string> = {
   pt: "pt-PT",
@@ -208,12 +209,17 @@ export default async function MarketingPage({
 
   const birthdayCustomers = customers.filter((customer) => {
     if (!customer.birthDate) return false;
-    const birthDate = new Date(customer.birthDate);
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const nextBirthday = new Date(now.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-    if (nextBirthday < today) nextBirthday.setFullYear(now.getFullYear() + 1);
-    const difference = nextBirthday.getTime() - today.getTime();
-    return difference >= 0 && difference <= 7 * 24 * 60 * 60 * 1000;
+    const birthday = birthdayOccurrenceWithinNextDays(customer.birthDate, now, 7);
+    if (!birthday) return false;
+    const birthdayMonth = calendarMonthRange(birthday);
+    return !customer.reservations.some(
+      (reservation) =>
+        reservation.date >= birthdayMonth.start &&
+        reservation.date < birthdayMonth.end &&
+        !BIRTHDAY_RESERVATION_IGNORED_STATUSES.includes(
+          reservation.status as (typeof BIRTHDAY_RESERVATION_IGNORED_STATUSES)[number],
+        ),
+    );
   });
 
   const googleReviews = reviewFeedbacks.filter(

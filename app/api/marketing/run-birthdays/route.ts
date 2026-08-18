@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
+import { BIRTHDAY_RESERVATION_IGNORED_STATUSES, birthdayOccurrenceWithinNextDays, calendarMonthRange } from "@/lib/birthday-marketing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { getMarketingCardTheme, MARKETING_CARD_THEMES, marketingBenefitSentence, marketingBenefitValue, type MarketingCardTheme } from "@/lib/marketing-card-themes";
@@ -62,10 +63,27 @@ async function runBirthdays(restaurantId: string | null, configuredOffer: Birthd
     const executionId = randomUUID();
 
     for (const customer of customers) {
-      if (!customer.birthDate || !customer.email || !birthdayWithinNextDays(customer.birthDate, today, 7)) continue;
+      if (!customer.birthDate || !customer.email) continue;
+      const birthday = birthdayOccurrenceWithinNextDays(customer.birthDate, today, 7);
+      if (!birthday) continue;
       const restaurant = customer.restaurant;
       const owner = restaurant?.user;
       if (!restaurant || !customer.restaurantId || !owner || !hasGrowthAccess(owner.subscription)) {
+        skipped += 1;
+        continue;
+      }
+
+      const birthdayMonth = calendarMonthRange(birthday);
+      const reservationInBirthdayMonth = await prisma.reservation.findFirst({
+        where: {
+          restaurantId: customer.restaurantId,
+          customerId: customer.id,
+          date: { gte: birthdayMonth.start, lt: birthdayMonth.end },
+          status: { notIn: [...BIRTHDAY_RESERVATION_IGNORED_STATUSES] },
+        },
+        select: { id: true },
+      });
+      if (reservationInBirthdayMonth) {
         skipped += 1;
         continue;
       }
@@ -155,13 +173,6 @@ async function runBirthdays(restaurantId: string | null, configuredOffer: Birthd
 
 function cleanSubject(value: string) {
   return value.replace(/[\r\n]+/g, " ").trim().slice(0, 80);
-}
-
-function birthdayWithinNextDays(birthDate: Date, today: Date, days: number) {
-  const birthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-  if (birthday < new Date(today.getFullYear(), today.getMonth(), today.getDate())) birthday.setFullYear(today.getFullYear() + 1);
-  const difference = birthday.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-  return difference >= 0 && difference <= days * 24 * 60 * 60 * 1000;
 }
 
 function birthdayEmailHtml(input: { restaurantName: string; customerName: string; offer: BirthdayOffer | null; clickUrl: string; openUrl: string; cardUrl: string | null; publicCode: string | null }) {

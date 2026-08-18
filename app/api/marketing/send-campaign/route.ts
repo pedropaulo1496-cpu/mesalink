@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { hasGrowthAccess } from "@/lib/ai-billing";
+import { BIRTHDAY_RESERVATION_IGNORED_STATUSES, birthdayIsUpcomingThisMonth, calendarMonthRange } from "@/lib/birthday-marketing";
 import { completeEmailSend, InsufficientEmailAllowanceError, refundEmailSend, reserveEmailSend } from "@/lib/email-billing";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { createMarketingTrackingToken, getMarketingTrackingUrls, marketingTrackingPixel } from "@/lib/marketing-tracking";
@@ -126,7 +127,8 @@ export async function POST(request: Request) {
     }
 
     if (segment === "BIRTHDAYS") {
-      const currentMonth = new Date().getMonth();
+      const now = new Date();
+      const birthdayMonth = calendarMonthRange(now);
 
       const birthdayCustomers = await prisma.customer.findMany({
         where: {
@@ -134,13 +136,19 @@ export async function POST(request: Request) {
           birthDate: {
             not: null,
           },
+          reservations: {
+            none: {
+              date: { gte: birthdayMonth.start, lt: birthdayMonth.end },
+              status: { notIn: [...BIRTHDAY_RESERVATION_IGNORED_STATUSES] },
+            },
+          },
         },
       });
 
       customers = birthdayCustomers.filter(
         (customer) =>
           customer.birthDate &&
-          new Date(customer.birthDate).getMonth() === currentMonth,
+          birthdayIsUpcomingThisMonth(customer.birthDate, now),
       );
     }
 

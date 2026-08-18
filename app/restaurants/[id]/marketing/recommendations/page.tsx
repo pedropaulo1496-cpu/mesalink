@@ -5,6 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { assertRestaurantOwner } from "@/lib/restaurant-auth";
+import { BIRTHDAY_RESERVATION_IGNORED_STATUSES, birthdayIsUpcomingThisMonth, calendarMonthRange } from "@/lib/birthday-marketing";
 
 export default async function MarketingRecommendationsPage({
   params,
@@ -22,6 +23,8 @@ export default async function MarketingRecommendationsPage({
 
   if (!restaurant) notFound();
 
+  const now = new Date();
+  const birthdayMonth = calendarMonthRange(now);
   const customers = await prisma.customer.findMany({
     where: {
   restaurantId: id,
@@ -30,11 +33,18 @@ export default async function MarketingRecommendationsPage({
     not: null,
   },
 },
+    include: {
+      reservations: {
+        where: {
+          date: { gte: birthdayMonth.start, lt: birthdayMonth.end },
+          status: { notIn: [...BIRTHDAY_RESERVATION_IGNORED_STATUSES] },
+        },
+        select: { id: true },
+      },
+    },
   });
 
   const averageTicket = Number(restaurant.averageTicket || 25);
-
-  const now = new Date();
 
   const vipCustomers = customers.filter(
     (customer) =>
@@ -49,7 +59,7 @@ export default async function MarketingRecommendationsPage({
   const birthdayCustomers = customers.filter((customer) => {
     if (!customer.birthDate) return false;
 
-    return new Date(customer.birthDate).getMonth() === now.getMonth();
+    return birthdayIsUpcomingThisMonth(customer.birthDate, now) && customer.reservations.length === 0;
   });
 
   const inactiveCustomers = customers.filter((customer) => {

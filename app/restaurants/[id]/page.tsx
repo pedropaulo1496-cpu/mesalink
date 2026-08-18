@@ -27,6 +27,7 @@ import RecoveryOfferButton from "@/components/marketing/RecoveryOfferButton";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import SignOutButton from "@/components/SignOutButton";
 import { authOptions } from "@/lib/auth";
+import { BIRTHDAY_RESERVATION_IGNORED_STATUSES, birthdayOccurrenceWithinNextDays, calendarMonthRange } from "@/lib/birthday-marketing";
 import { canAccessApp, getUserWithSubscription } from "@/lib/check-subscription";
 import { parsePriceBenchmark } from "@/lib/ai-visibility-pricing";
 import { marketingBenefitValue } from "@/lib/marketing-card-themes";
@@ -86,6 +87,9 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
   const birthdayActionCutoff = new Date(now.getTime() - 330 * 24 * 60 * 60 * 1000);
+  const birthdayWindowEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const birthdayReservationStart = calendarMonthRange(now).start;
+  const birthdayReservationEnd = calendarMonthRange(birthdayWindowEnd).end;
   const trialEndsAt = subscription?.trialEndsAt ?? null;
   const trialActive = subscription?.status === "TRIAL" && Boolean(trialEndsAt && trialEndsAt > now);
   const trialDaysLeft = trialEndsAt
@@ -212,7 +216,16 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
           },
         },
       },
-      select: { birthDate: true },
+      select: {
+        birthDate: true,
+        reservations: {
+          where: {
+            date: { gte: birthdayReservationStart, lt: birthdayReservationEnd },
+            status: { notIn: [...BIRTHDAY_RESERVATION_IGNORED_STATUSES] },
+          },
+          select: { date: true },
+        },
+      },
     }),
     prisma.reviewFeedback.findMany({
       where: { restaurantId: id, rating: { lte: 4 }, reservationId: { not: null } },
@@ -226,9 +239,15 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
     }),
   ]);
 
-  const birthdayMarketingCustomers = birthdayMarketingCandidates.filter(
-    (customer) => customer.birthDate && birthdayWithinNextDays(customer.birthDate, now, 7),
-  ).length;
+  const birthdayMarketingCustomers = birthdayMarketingCandidates.filter((customer) => {
+    if (!customer.birthDate) return false;
+    const birthday = birthdayOccurrenceWithinNextDays(customer.birthDate, now, 7);
+    if (!birthday) return false;
+    const birthdayMonth = calendarMonthRange(birthday);
+    return !customer.reservations.some(
+      (reservation) => reservation.date >= birthdayMonth.start && reservation.date < birthdayMonth.end,
+    );
+  }).length;
   const issuedReviewIds = new Set(issuedReviewCards.map((card) => card.reviewFeedbackId).filter(Boolean));
   const untreatedReviews = poorReviewCandidates.filter(
     (review) => !issuedReviewIds.has(review.id) && review.reservationId,
@@ -429,13 +448,6 @@ function MarketingInterventions({ t, restaurantId, growthAccess, inactiveCustome
   ].filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   return <section className="mt-4 overflow-hidden rounded-[24px] border border-[#DFC89F] bg-white shadow-[0_14px_40px_rgba(80,55,30,0.04)]"><div className="flex flex-col gap-3 bg-[#FFF8EA] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">{t("summary.marketing.interventionsEyebrow")}</p><p className="mt-1 text-sm font-semibold">{t("summary.marketing.interventionsTitle")}</p></div><span className="w-fit rounded-full bg-[#17120D] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-white">{t("summary.marketing.opportunities", { count: opportunities })}</span></div><div className="divide-y divide-[#EEE3D3]">{interventions.map((intervention) => <div key={intervention.key} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-center gap-3"><span className="grid h-8 min-w-8 place-items-center rounded-full bg-[#F1E6D5] text-xs font-black text-[#825D2D]">{intervention.count}</span><p className="text-sm font-semibold text-[#3F372E]">{intervention.label}</p></div><div className="shrink-0">{intervention.action}</div></div>)}</div></section>;
-}
-
-function birthdayWithinNextDays(birthDate: Date, today: Date, days: number) {
-  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const birthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-  if (birthday < start) birthday.setFullYear(today.getFullYear() + 1);
-  return birthday.getTime() - start.getTime() <= days * 24 * 60 * 60 * 1000;
 }
 
 function ReservationLinkCard({ t, reservationUrl }: { t: TFunc; reservationUrl: string }) {
