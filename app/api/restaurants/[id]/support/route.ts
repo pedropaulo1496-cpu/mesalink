@@ -85,7 +85,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       messages: { create: { senderUserId: client.user.id, senderRole: "CLIENT", body } },
     },
   });
-  notifyClientMessage({
+  await notifyClientMessage({
     conversationId: conversation.id,
     clientName: client.user.name || client.name || client.user.email,
     preview: body.slice(0, 120),

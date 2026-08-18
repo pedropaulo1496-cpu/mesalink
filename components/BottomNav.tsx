@@ -6,6 +6,7 @@ import { useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import { setLocale } from "@/i18n/actions";
+import RestaurantPushNotifications from "@/components/RestaurantPushNotifications";
 import { locales, localeNames, type Locale } from "@/i18n/locales";
 import {
   HomeIcon,
@@ -50,14 +51,14 @@ export default function BottomNav({ id }: { id: string }) {
       icon: CalendarIcon,
       label: t("calendar"),
     },
-    { href: `/restaurants/${id}/ordering`, icon: QrIcon, label: t("orders") },
+    { href: `/restaurants/${id}/support`, icon: SupportIcon, label: "Ajuda" },
   ];
 
   const moreLinks = [
     {
-      href: `/restaurants/${id}/support`,
-      icon: SupportIcon,
-      label: "Ajuda",
+      href: `/restaurants/${id}/ordering`,
+      icon: QrIcon,
+      label: t("orders"),
     },
     {
       href: `/restaurants/${id}/experiences`,
@@ -130,6 +131,7 @@ export default function BottomNav({ id }: { id: string }) {
 
   return (
     <nav className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
+      <div className="mx-auto flex max-w-lg"><RestaurantPushNotifications mobile /></div>
       <div className="pointer-events-auto mx-auto grid max-w-lg grid-cols-5 gap-1 rounded-[24px] border border-white/10 bg-[#17130F]/96 p-1.5 shadow-[0_22px_65px_rgba(23,19,15,0.36)] backdrop-blur-2xl">
         {tabs.map((item) => (
           <Link

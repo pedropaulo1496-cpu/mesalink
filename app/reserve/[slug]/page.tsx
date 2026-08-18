@@ -7,6 +7,7 @@ import { noShowDepositForReservation, reservationServiceFee } from "@/lib/reserv
 import { createReservationCheckout, releaseExpiredReservationPayments } from "@/lib/reservation-payments";
 import { sendReservationConfirmationEmail } from "@/lib/send-reservation-confirmation-email";
 import { hasPublicReservationAccess } from "@/lib/public-reservation-access";
+import { notifyRestaurantReservation } from "@/lib/hq-notifications";
 
 async function createPublicReservation(formData: FormData) {
   "use server";
@@ -364,6 +365,11 @@ async function createPublicReservation(formData: FormData) {
       const existingCheckoutUrl = await createReservationCheckout(existingPayment.id, slug);
       if (existingCheckoutUrl) redirect(existingCheckoutUrl);
     }
+  }
+
+  if (!alreadyBooked) {
+    await notifyRestaurantReservation({ restaurantId: restaurant.id, customerName, guests, date, source: "PUBLIC" })
+      .catch((error) => console.error("Reservation push failed", error));
   }
 
   if (paymentKind) {

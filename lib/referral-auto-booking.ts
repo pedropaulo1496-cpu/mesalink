@@ -157,7 +157,7 @@ async function commitReservation({
   isDemo: boolean;
   authorizationExpiresAt?: Date;
 }) {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const offer = await tx.referralOffer.findUnique({
       where: { id: offerId },
       include: { group: true, restaurant: { select: { name: true, referralDefaultDailyCapacity: true } } },
@@ -220,6 +220,10 @@ async function commitReservation({
         },
       }),
     ]);
-    return { groupId: offer.groupId, publicCode: offer.group.publicCode, restaurantId: offer.restaurantId, restaurantName: offer.restaurant.name, reservationId: reservation.id };
+    return { groupId: offer.groupId, publicCode: offer.group.publicCode, restaurantId: offer.restaurantId, restaurantName: offer.restaurant.name, reservationId: reservation.id, customerName: reservation.customerName, guests: reservation.guests, date: reservation.date };
   }, { isolationLevel: "Serializable" });
+  const { notifyRestaurantReservation } = await import("@/lib/hq-notifications");
+  await notifyRestaurantReservation({ restaurantId: result.restaurantId, customerName: result.customerName, guests: result.guests, date: result.date, source: "PARTNER_NETWORK" })
+    .catch((error) => console.error("Partner reservation push failed", error));
+  return result;
 }

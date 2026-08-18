@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 import { referralAuthorizationRequiredUntil } from "@/lib/referral-deadlines";
 import { calculatePartnerInvoiceAmounts, calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
+import { notifyRestaurantReservation } from "@/lib/hq-notifications";
 import { stripe } from "@/lib/stripe";
 import { syncRestaurantBillingDetails } from "@/lib/stripe-billing-details";
 import { checkoutTaxAmount } from "@/lib/stripe-tax";
@@ -159,6 +160,9 @@ export async function finalizeReferralAuthorization(sessionId: string) {
       data: { stripeCustomerId: session.customer.toString() },
     });
   }
+
+  await notifyRestaurantReservation({ restaurantId: offer.restaurantId, customerName: offer.group.customerName || `Grupo ${offer.group.publicCode}`, guests: offer.group.guests, date: offer.group.desiredDate, source: "PARTNER_NETWORK" })
+    .catch((error) => console.error("Partner reservation push failed", error));
 
   return { status: "accepted" as const, restaurantId: offer.restaurantId };
 }

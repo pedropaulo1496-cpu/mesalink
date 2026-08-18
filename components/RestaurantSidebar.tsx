@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import RestaurantPushNotifications from "@/components/RestaurantPushNotifications";
 import {
   HomeIcon,
   CalendarIcon,
@@ -234,6 +235,8 @@ export default function RestaurantSidebar({
             <LanguageSwitcher className="w-full justify-center" />
           </div>
         </div>
+
+        <div className="relative z-10 mt-4"><RestaurantPushNotifications /></div>
 
         <div className="relative z-10 mt-5 rounded-[24px] border border-[#E3D3BC] bg-[#FFF9F0]/92 p-4 shadow-[0_22px_60px_rgba(96,65,28,0.12)] backdrop-blur-xl">
           <div className="flex items-center gap-3">

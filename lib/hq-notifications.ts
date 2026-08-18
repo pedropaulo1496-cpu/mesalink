@@ -8,20 +8,27 @@ type PushMessage = {
   tag?: string;
 };
 
-function configurePush() {
-  const publicKey = process.env.VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
+async function pushKeys() {
+  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    return { publicKey: process.env.VAPID_PUBLIC_KEY, privateKey: process.env.VAPID_PRIVATE_KEY, subject: process.env.VAPID_SUBJECT || "mailto:info@mesalink.pt" };
+  }
+  const settings = await prisma.adminSettings.findUnique({ where: { id: "global" }, select: { vapidPublicKey: true, vapidPrivateKey: true, vapidSubject: true } });
+  return { publicKey: settings?.vapidPublicKey, privateKey: settings?.vapidPrivateKey, subject: settings?.vapidSubject || "mailto:info@mesalink.pt" };
+}
+
+async function configurePush() {
+  const { publicKey, privateKey, subject } = await pushKeys();
   if (!publicKey || !privateKey) return false;
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT || "mailto:info@mesalink.pt", publicKey, privateKey);
+  webpush.setVapidDetails(subject, publicKey, privateKey);
   return true;
 }
 
-export function hqPushPublicKey() {
-  return process.env.VAPID_PUBLIC_KEY || null;
+export async function hqPushPublicKey() {
+  return (await pushKeys()).publicKey || null;
 }
 
 export async function sendHqPush(message: PushMessage, userIds?: string[]) {
-  if (!configurePush()) return;
+  if (!await configurePush()) return;
   const subscriptions = await prisma.hqPushSubscription.findMany({
     where: userIds?.length ? { userId: { in: userIds } } : { user: { isAdmin: true } },
   });
@@ -65,4 +72,16 @@ export async function notifyClientMessage(input: { conversationId: string; clien
     url: `/backoffice/chat?mode=clients&client=${input.conversationId}`,
     tag: `support-${input.conversationId}`,
   }, input.salesRepresentativeUserId ? [input.salesRepresentativeUserId] : undefined);
+}
+
+export async function notifyRestaurantReservation(input: { restaurantId: string; customerName: string; guests: number; date: Date; source?: string }) {
+  const restaurant = await prisma.restaurant.findUnique({ where: { id: input.restaurantId }, select: { name: true, userId: true } });
+  if (!restaurant?.userId) return;
+  const when = input.date.toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Lisbon" });
+  await sendHqPush({
+    title: `Nova reserva · ${restaurant.name}`,
+    body: `${input.customerName} · ${input.guests} pessoas · ${when}${input.source === "PARTNER_NETWORK" ? " · MesaLink Partner" : ""}`,
+    url: `/restaurants/${input.restaurantId}/calendar`,
+    tag: `reservation-${input.restaurantId}-${input.date.getTime()}`,
+  }, [restaurant.userId]);
 }

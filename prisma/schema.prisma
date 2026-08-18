@@ -78,6 +78,10 @@ model AdminSettings {
   aiCreditCostMicros Int @default(10000)
   whatsappCostMicros Int @default(5000)
 
+  vapidPublicKey  String?
+  vapidPrivateKey String?
+  vapidSubject    String?
+
   updatedAt DateTime @updatedAt
 }
 

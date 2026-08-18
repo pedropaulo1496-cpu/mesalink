@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       return user;
     });
 
-    notifyNewClient({ name: registeredUser.name || "", email: registeredUser.email, salesRepresentativeId: registeredUser.salesRepresentativeId })
+    await notifyNewClient({ name: registeredUser.name || "", email: registeredUser.email, salesRepresentativeId: registeredUser.salesRepresentativeId })
       .catch((error) => console.error("New client push failed", error));
 
     await resend.emails.send({
