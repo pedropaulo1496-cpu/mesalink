@@ -36,7 +36,7 @@ export default async function BackofficeLayout({ children }: { children: ReactNo
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-[1420px] px-4 pb-28 pt-5 sm:px-6 sm:pt-6 lg:pb-10">{children}</main>
+        <main className="mx-auto w-full min-w-0 max-w-[1420px] overflow-x-hidden px-4 pb-28 pt-5 sm:px-6 sm:pt-6 lg:pb-10">{children}</main>
       </div>
       <BackofficeNavigation role={staff.role} variant="mobile" />
     </div>
