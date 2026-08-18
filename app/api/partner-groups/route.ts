@@ -39,8 +39,8 @@ export async function POST(request: Request) {
       || !Number.isInteger(guests) || guests < 1 || guests > 200
       || Number.isNaN(desiredDate.getTime()) || desiredDate <= new Date(Date.now() + 2 * 60 * 60 * 1000)
       || !customerName || customerPhone.replace(/\D/g, "").length < 7
-      || (customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail))
-    ) return NextResponse.json({ error: "Revê o restaurante, data, número de pessoas e contacto." }, { status: 400 });
+      || !customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)
+    ) return NextResponse.json({ error: "Revê o restaurante, data, número de pessoas, telemóvel e email do cliente." }, { status: 400 });
 
     const restaurant = await prisma.restaurant.findUnique({
       where: { id: restaurantId },
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
         children,
         customerName,
         customerPhone,
-        customerEmail: customerEmail || null,
+        customerEmail,
         targetMode: "SELECTED",
         targetSummary: restaurant.name,
         cuisineTypes: [restaurant.referralProfileCuisine || restaurant.websiteCuisine || "Restaurante"],

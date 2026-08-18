@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 import { referralAuthorizationRequiredUntil } from "@/lib/referral-deadlines";
 import { calculatePartnerInvoiceAmounts, calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
+import { sendReservationConfirmationEmail } from "@/lib/send-reservation-confirmation-email";
 import { prisma } from "@/lib/prisma";
 import { notifyRestaurantReservation } from "@/lib/hq-notifications";
 import { stripe } from "@/lib/stripe";
@@ -79,8 +80,9 @@ export async function finalizeReferralAuthorization(sessionId: string) {
     return { status: "authorization_too_short" as const, restaurantId: offer.restaurantId };
   }
 
+  let reservationId = "";
   try {
-    await prisma.$transaction(async (tx) => {
+    reservationId = await prisma.$transaction(async (tx) => {
       const claim = await tx.referralGroup.updateMany({
         where: {
           id: offer.groupId,
@@ -145,6 +147,7 @@ export async function finalizeReferralAuthorization(sessionId: string) {
           },
         }),
       ]);
+      return reservation.id;
     });
   } catch (error) {
     if (error instanceof Error && error.message === "GROUP_ALREADY_ACCEPTED") {
@@ -161,8 +164,12 @@ export async function finalizeReferralAuthorization(sessionId: string) {
     });
   }
 
-  await notifyRestaurantReservation({ restaurantId: offer.restaurantId, customerName: offer.group.customerName || `Grupo ${offer.group.publicCode}`, guests: offer.group.guests, date: offer.group.desiredDate, source: "PARTNER_NETWORK" })
-    .catch((error) => console.error("Partner reservation push failed", error));
+  await Promise.all([
+    notifyRestaurantReservation({ restaurantId: offer.restaurantId, customerName: offer.group.customerName || `Grupo ${offer.group.publicCode}`, guests: offer.group.guests, date: offer.group.desiredDate, source: "PARTNER_NETWORK" })
+      .catch((error) => console.error("Partner reservation push failed", error)),
+    sendReservationConfirmationEmail(reservationId)
+      .catch((error) => console.error("Partner reservation confirmation email failed", error)),
+  ]);
 
   return { status: "accepted" as const, restaurantId: offer.restaurantId };
 }

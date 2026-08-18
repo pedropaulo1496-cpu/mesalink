@@ -222,8 +222,15 @@ async function commitReservation({
     ]);
     return { groupId: offer.groupId, publicCode: offer.group.publicCode, restaurantId: offer.restaurantId, restaurantName: offer.restaurant.name, reservationId: reservation.id, customerName: reservation.customerName, guests: reservation.guests, date: reservation.date };
   }, { isolationLevel: "Serializable" });
-  const { notifyRestaurantReservation } = await import("@/lib/hq-notifications");
-  await notifyRestaurantReservation({ restaurantId: result.restaurantId, customerName: result.customerName, guests: result.guests, date: result.date, source: "PARTNER_NETWORK" })
-    .catch((error) => console.error("Partner reservation push failed", error));
+  const [{ notifyRestaurantReservation }, { sendReservationConfirmationEmail }] = await Promise.all([
+    import("@/lib/hq-notifications"),
+    import("@/lib/send-reservation-confirmation-email"),
+  ]);
+  await Promise.all([
+    notifyRestaurantReservation({ restaurantId: result.restaurantId, customerName: result.customerName, guests: result.guests, date: result.date, source: "PARTNER_NETWORK" })
+      .catch((error) => console.error("Partner reservation push failed", error)),
+    sendReservationConfirmationEmail(result.reservationId)
+      .catch((error) => console.error("Partner reservation confirmation email failed", error)),
+  ]);
   return result;
 }

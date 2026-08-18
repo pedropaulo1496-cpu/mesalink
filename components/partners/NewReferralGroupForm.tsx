@@ -150,7 +150,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             <Field label="Nome do cliente"><input name="customerName" required maxLength={100} placeholder="Nome da reserva" className={compactInputClass} /></Field>
             <Field label="Telemóvel"><input name="customerPhone" required maxLength={30} placeholder="+351 9…" className={compactInputClass} /></Field>
-            <Field label="Email"><input name="customerEmail" type="email" maxLength={160} placeholder="Opcional" className={compactInputClass} /></Field>
+            <Field label="Email"><input name="customerEmail" type="email" required maxLength={160} autoComplete="email" placeholder="cliente@email.com" className={compactInputClass} /></Field>
             <Field label="Data e hora"><input value={desiredDate} onChange={(event) => setDesiredDate(event.target.value)} name="desiredDate" type="datetime-local" required className={compactInputClass} /></Field>
             <div className="grid grid-cols-2 gap-2"><Field label="Adultos"><input value={adults} onChange={(event) => setAdults(Math.max(1, Number(event.target.value)))} type="number" min="1" max="200" className={compactInputClass} /></Field><Field label="Crianças"><input value={children} onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))} type="number" min="0" max="199" className={compactInputClass} /></Field></div>
             <Field label="Ocasião"><select name="occasion" className={compactInputClass}>{REFERRAL_OCCASION_TAGS.map((tag) => <option key={tag.value} value={tag.value}>{tag.label}</option>)}</select></Field>
