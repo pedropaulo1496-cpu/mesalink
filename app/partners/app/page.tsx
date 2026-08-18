@@ -41,10 +41,11 @@ export default async function PartnerAppPage({
   const [restaurants, paidTotals, pendingTotals, invoicedTotals, toInvoiceTotals, acceptedGroupsCount, upcomingGroupsCount] = await Promise.all([
     prisma.restaurant.findMany({
     where: {
-      OR: [
-        { userId: { not: null } },
-        { slug: { contains: "demo", mode: "insensitive" } },
-      ],
+      userId: { not: null },
+      referralNetworkEnabled: true,
+      referralAutoAcceptEnabled: true,
+      referralPaymentMethodId: { not: null },
+      referralPaymentBlockedAt: null,
     },
     orderBy: { name: "asc" },
     select: {
@@ -166,7 +167,7 @@ export default async function PartnerAppPage({
     }, {});
     const agreement = restaurant.referralAgreements[0];
     const negotiation = restaurant.referralCommissionRequests[0];
-    const bookingReady = isDemo || (restaurant.referralNetworkEnabled && restaurant.referralAutoAcceptEnabled && Boolean(restaurant.referralPaymentMethodId) && !restaurant.referralPaymentBlockedAt);
+    const bookingReady = restaurant.referralNetworkEnabled && restaurant.referralAutoAcceptEnabled && Boolean(restaurant.referralPaymentMethodId) && !restaurant.referralPaymentBlockedAt;
     return {
       id: restaurant.id,
       name: restaurant.googleBusinessTitle || restaurant.name,

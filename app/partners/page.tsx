@@ -34,6 +34,7 @@ export default async function PartnersLandingPage() {
     where: {
       referralNetworkEnabled: true,
       referralAutoAcceptEnabled: true,
+      referralPaymentMethodId: { not: null },
       referralPaymentBlockedAt: null,
     },
   });

@@ -5,7 +5,7 @@ import { DoneNotice, PageHeading, RiskPill, StatCard, buttonClass, dateTime, eur
 import { type BackofficeClient, getBackofficeClients } from "@/lib/backoffice-data";
 import { prisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff-auth";
-import { assignClient, inviteRestaurantClient, sendPromotionDirectly } from "../actions";
+import { assignClient, inviteRestaurantClient, openClientSupportChat, sendPromotionDirectly } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -73,7 +73,7 @@ function ClientCard({ client, staffRole, representatives }: { client: Backoffice
               <Mini label="Pessoas · 30d" value={client.impact.guests.toString()} />
               <Mini label="Recuperados · 30d" value={client.impact.recoveredCustomers.toString()} />
             </div>
-            <Link href={`/backoffice/clients/${client.id}`} className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-[#17130F] px-4 text-[10px] font-black uppercase tracking-[0.08em] text-white">Ver resultados →</Link>
+            <div className="flex gap-2"><form action={openClientSupportChat}><input type="hidden" name="userId" value={client.id} /><button className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-[#D7B267] bg-[#FFF9F0] px-4 text-[10px] font-black uppercase tracking-[0.08em] text-[#684A25]"><MessageCircle size={14} /> Chat</button></form><Link href={`/backoffice/clients/${client.id}`} className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-[#17130F] px-4 text-[10px] font-black uppercase tracking-[0.08em] text-white">Ver resultados →</Link></div>
           </div>
         </div>
       </summary>

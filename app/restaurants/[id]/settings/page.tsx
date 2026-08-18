@@ -7,6 +7,7 @@ import { assertRestaurantOwner } from "@/lib/restaurant-auth";
 import ApplyMondayButton from "./ApplyMondayButton";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
+import RestaurantPushNotifications from "@/components/RestaurantPushNotifications";
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
@@ -367,6 +368,8 @@ export default async function SettingsPage({
     {t("header.badge")}
   </div>
 </header>
+
+        <RestaurantPushNotifications variant="settings" />
 
         <form id="settings-form" action={updateSettings} className="space-y-6">
           <input type="hidden" name="restaurantId" value={restaurant.id} />

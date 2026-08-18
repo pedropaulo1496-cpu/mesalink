@@ -542,6 +542,23 @@ export async function sendSupportReply(formData: FormData) {
   finish(`/backoffice/chat?mode=clients&client=${conversationId}`, "support-message-sent");
 }
 
+export async function openClientSupportChat(formData: FormData) {
+  const staff = await assertStaff();
+  const userId = clean(formData.get("userId"));
+  if (!userId) throw new Error("Cliente inválido.");
+  const client = await prisma.user.findFirst({
+    where: staff.role === "SALES" ? { id: userId, salesRepresentativeId: staff.salesRepresentativeId } : { id: userId },
+    select: { id: true, salesRepresentativeId: true, restaurants: { select: { id: true }, take: 1, orderBy: { createdAt: "desc" } } },
+  });
+  if (!client) throw new Error("Cliente não encontrado ou sem acesso.");
+  const conversation = await prisma.supportConversation.upsert({
+    where: { clientUserId: client.id },
+    create: { clientUserId: client.id, salesRepresentativeId: client.salesRepresentativeId, restaurantId: client.restaurants[0]?.id },
+    update: { salesRepresentativeId: client.salesRepresentativeId, restaurantId: client.restaurants[0]?.id },
+  });
+  finish(`/backoffice/chat?mode=clients&client=${conversation.id}`, "chat-opened");
+}
+
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character]!);
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import { setLocale } from "@/i18n/actions";
@@ -42,6 +42,27 @@ export default function BottomNav({ id }: { id: string }) {
   const locale = useLocale() as Locale;
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
+  const [unreadSupport, setUnreadSupport] = useState(0);
+
+  useEffect(() => {
+    if (pathname.startsWith(`/restaurants/${id}/support`)) {
+      queueMicrotask(() => setUnreadSupport(0));
+      return;
+    }
+    async function loadUnreadSupport() {
+      try {
+        const response = await fetch(`/api/restaurants/${id}/support/unread`, { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        setUnreadSupport(Number(data.count || 0));
+      } catch {
+        // A navegação continua disponível mesmo sem ligação temporária.
+      }
+    }
+    queueMicrotask(() => { void loadUnreadSupport(); });
+    const interval = window.setInterval(loadUnreadSupport, 8000);
+    return () => window.clearInterval(interval);
+  }, [id, pathname]);
 
   const tabs = [
     { href: `/restaurants/${id}`, icon: HomeIcon, label: t("dash") },
@@ -131,7 +152,7 @@ export default function BottomNav({ id }: { id: string }) {
 
   return (
     <nav className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
-      <div className="mx-auto flex max-w-lg"><RestaurantPushNotifications mobile /></div>
+      <RestaurantPushNotifications variant="first-run" />
       <div className="pointer-events-auto mx-auto grid max-w-lg grid-cols-5 gap-1 rounded-[24px] border border-white/10 bg-[#17130F]/96 p-1.5 shadow-[0_22px_65px_rgba(23,19,15,0.36)] backdrop-blur-2xl">
         {tabs.map((item) => (
           <Link
@@ -144,7 +165,15 @@ export default function BottomNav({ id }: { id: string }) {
                 : "text-white/60 active:bg-white/10 active:text-white"
             }`}
           >
-            <item.icon />
+            <span className="relative">
+              <item.icon />
+              {item.href === `/restaurants/${id}/support` && unreadSupport > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full border-2 border-[#17130F] bg-red-500" />
+                </span>
+              )}
+            </span>
             <span className="max-w-full truncate text-[10px] font-black leading-none">
               {item.label}
             </span>
