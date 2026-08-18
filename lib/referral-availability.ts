@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { reservationSlotFromDate } from "@/lib/reservation-time-blocks";
 
 export function referralDayBounds(value: Date) {
   const start = new Date(value);
@@ -9,7 +10,7 @@ export function referralDayBounds(value: Date) {
 }
 
 export async function getReferralCapacity(
-  tx: Pick<Prisma.TransactionClient, "referralDailyCapacity" | "reservation" | "restaurant">,
+  tx: Pick<Prisma.TransactionClient, "referralDailyCapacity" | "reservation" | "restaurant" | "reservationTimeBlock">,
   restaurantId: string,
   desiredDate: Date,
   defaultPartnerLimit: number,
@@ -17,7 +18,8 @@ export async function getReferralCapacity(
   const { start, end } = referralDayBounds(desiredDate);
   const windowStart = new Date(desiredDate.getTime() - 2 * 60 * 60 * 1000);
   const windowEnd = new Date(desiredDate.getTime() + 2 * 60 * 60 * 1000);
-  const [restaurant, override, reservations] = await Promise.all([
+  const slot = reservationSlotFromDate(desiredDate);
+  const [restaurant, override, reservations, timeBlock] = await Promise.all([
     tx.restaurant.findUnique({
       where: { id: restaurantId },
       select: { reservationMode: true, totalCapacity: true, tables: { select: { capacity: true } } },
@@ -34,13 +36,17 @@ export async function getReferralCapacity(
       },
       select: { guests: true, source: true },
     }),
+    tx.reservationTimeBlock.findUnique({
+      where: { restaurantId_day_time: { restaurantId, day: slot.day, time: slot.time } },
+      select: { id: true },
+    }),
   ]);
 
   const totalCapacity = restaurant?.reservationMode === "CAPACITY"
     ? Math.max(0, restaurant.totalCapacity || 0)
     : (restaurant?.tables || []).reduce((sum, table) => sum + table.capacity, 0);
   const configuredPartnerLimit = defaultPartnerLimit > 0 ? defaultPartnerLimit : totalCapacity;
-  const partnerLimit = override ? (override.enabled ? override.capacity : 0) : configuredPartnerLimit;
+  const partnerLimit = timeBlock ? 0 : override ? (override.enabled ? override.capacity : 0) : configuredPartnerLimit;
   const realReserved = reservations.reduce((sum, reservation) => sum + reservation.guests, 0);
   const partnerReserved = reservations
     .filter((reservation) => ["PARTNER_NETWORK", "NEARBY_REFERRAL"].includes(reservation.source))

@@ -11,6 +11,7 @@ import { notifyRestaurantReservation } from "@/lib/hq-notifications";
 import { finalizeInstantReferralBooking } from "@/lib/referral-auto-booking";
 import { verifyNearbyReferralToken } from "@/lib/nearby-referrals";
 import { MESALINK_REFERRAL_FEE_PERCENT, createReferralCode, isCommissionType } from "@/lib/referrals";
+import { isReservationTimeBlocked, validReservationSlot } from "@/lib/reservation-time-blocks";
 
 async function createPublicReservation(formData: FormData) {
   "use server";
@@ -102,6 +103,13 @@ async function createPublicReservation(formData: FormData) {
     if (experience.paymentMode === "DEPOSIT" && !experience.depositPerPerson) redirect(errorRedirect("payment"));
   }
   if (Number.isNaN(date.getTime()) || date < new Date()) redirect(errorRedirect("past"));
+  const requestedSlot = {
+    day: requestedDateValue.slice(0, 10),
+    time: requestedDateValue.slice(11, 16),
+  };
+  if (validReservationSlot(requestedSlot.day, requestedSlot.time) && await isReservationTimeBlocked(prisma, restaurant.id, date, requestedSlot)) {
+    redirect(errorRedirect(nearbyReferralToken ? "referral" : "blocked"));
+  }
 
   const offerCard = offerCode
     ? await prisma.marketingPromoCard.findFirst({
@@ -637,6 +645,11 @@ export default async function PublicReservePage({
         orderBy: { startsAt: "asc" },
         take: 12,
       },
+      reservationTimeBlocks: {
+        where: { day: { gte: new Date().toISOString().slice(0, 10) } },
+        select: { day: true, time: true },
+        take: 500,
+      },
       user: {
         select: {
           isAdmin: true,
@@ -737,6 +750,7 @@ export default async function PublicReservePage({
     sundayLunch: restaurant.sundayLunch,
     sundayDinner: restaurant.sundayDinner,
     tables: restaurant.tables,
+    timeBlocks: restaurant.reservationTimeBlocks,
   };
 
   return (

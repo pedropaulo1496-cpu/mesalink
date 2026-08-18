@@ -27,6 +27,7 @@ export type PartnerRestaurant = {
   defaultDailyCapacity: number;
   totalCapacity: number;
   reservationSlots: Array<{ date: string; guests: number; partner: boolean }>;
+  blockedSlots: Array<{ day: string; time: string }>;
   dailyAvailability: Array<{ date: string; capacity: number; reserved: number }>;
   reservedByDay: Record<string, number>;
   googleRating: number | null;
@@ -281,6 +282,8 @@ function remainingCapacity(restaurant: PartnerRestaurant, desiredDate: string) {
   const basePartnerLimit = restaurant.defaultDailyCapacity > 0 ? restaurant.defaultDailyCapacity : restaurant.totalCapacity;
   if (!desiredDate) return Math.min(restaurant.totalCapacity, basePartnerLimit);
   const key = desiredDate.slice(0, 10);
+  const time = desiredDate.slice(11, 16);
+  if (restaurant.blockedSlots.some((slot) => slot.day === key && slot.time === time)) return 0;
   const override = restaurant.dailyAvailability.find((item) => item.date === key);
   const partnerLimit = override?.capacity ?? basePartnerLimit;
   const selectedTime = new Date(desiredDate).getTime();

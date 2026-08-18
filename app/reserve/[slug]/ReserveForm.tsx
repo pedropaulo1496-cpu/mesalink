@@ -72,6 +72,7 @@ type Restaurant = {
   sundayLunch: string | null;
   sundayDinner: string | null;
   tables: Table[];
+  timeBlocks: Array<{ day: string; time: string }>;
 };
 
 type ReservationOffer = {
@@ -153,7 +154,8 @@ function getAvailableHoursForDay(restaurant: Restaurant, selectedDay: string) {
     ...generateTimesFromRange(restaurant[`${weekdayKey}Lunch`]),
     ...generateTimesFromRange(restaurant[`${weekdayKey}Dinner`]),
   ];
-  return !open && hours.length === 0 ? [] : [...new Set(hours)];
+  const blocked = new Set(restaurant.timeBlocks.filter((block) => block.day === selectedDay).map((block) => block.time));
+  return !open && hours.length === 0 ? [] : [...new Set(hours)].filter((time) => !blocked.has(time));
 }
 
 function isTableAvailable(date: Date, reservations: Reservation[]) {
@@ -423,6 +425,7 @@ export default function ReserveForm({
               {error === "conflict" && <Alert tone="red" title={t("errors.conflict.title")} text={t("errors.conflict.text")} />}
               {error === "past" && <Alert tone="red" title={t("errors.past.title")} text={t("errors.past.text")} />}
               {error === "capacity" && <Alert tone="red" title={t("errors.capacity.title")} text={t("errors.capacity.text")} />}
+              {error === "blocked" && <Alert tone="red" title="Horário indisponível" text="O restaurante bloqueou novas reservas nesta hora apenas para este dia. Escolhe outro horário." />}
               {error === "email" && <Alert tone="red" title={t("errors.email.title")} text={t("errors.email.text")} />}
               {error === "payment" && <Alert tone="red" title="Pagamento não concluído" text="A reserva ainda não foi confirmada. Tenta novamente ou escolhe uma reserva normal." />}
               {error === "experience" && <Alert tone="red" title="Menu indisponível" text="Entretanto este menu ficou indisponível para esta data ou serviço." />}

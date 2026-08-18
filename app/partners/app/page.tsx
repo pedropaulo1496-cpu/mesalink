@@ -89,6 +89,11 @@ export default async function PartnerAppPage({
       reservationMode: true,
       totalCapacity: true,
       tables: { select: { capacity: true } },
+      reservationTimeBlocks: {
+        where: { day: { gte: availabilityStart.toISOString().slice(0, 10) } },
+        select: { day: true, time: true },
+        take: 500,
+      },
       referralNetworkEnabled: true,
       referralAutoAcceptEnabled: true,
       referralPaymentMethodId: true,
@@ -201,6 +206,7 @@ export default async function PartnerAppPage({
         guests: reservation.guests,
         partner: ["PARTNER_NETWORK", "NEARBY_REFERRAL"].includes(reservation.source),
       })),
+      blockedSlots: restaurant.reservationTimeBlocks,
       dailyAvailability: restaurant.referralDailyCapacities.map((item) => ({
         date: item.date.toISOString().slice(0, 10),
         capacity: item.enabled ? item.capacity : 0,

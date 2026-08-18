@@ -42,7 +42,7 @@ model User {
   commercialRequests   CommercialRequest[]   @relation("RequestClient")
   decidedRequests      CommercialRequest[]   @relation("RequestDecider")
   commercialMessages   CommercialMessage[]
-  supportConversation  SupportConversation? @relation("SupportClient")
+  supportConversation  SupportConversation?  @relation("SupportClient")
   supportMessages      SupportMessage[]      @relation("SupportMessageSender")
   hqPushSubscriptions  HqPushSubscription[]
   receivedPromotions   AdminPromotion[]      @relation("PromotionRecipient")
@@ -88,7 +88,7 @@ model AdminSettings {
 model SitePageView {
   id String @id @default(cuid())
 
-  eventKey String @unique
+  eventKey  String @unique
   visitorId String
   sessionId String
 
@@ -281,17 +281,17 @@ model SupportConversation {
   salesRepresentativeId String?
   salesRepresentative   SalesRepresentative? @relation(fields: [salesRepresentativeId], references: [id], onDelete: SetNull)
 
-  restaurantId      String?
-  status            String    @default("OPEN")
-  lastMessageAt     DateTime  @default(now())
+  restaurantId        String?
+  status              String           @default("OPEN")
+  lastMessageAt       DateTime         @default(now())
   lastClientMessageAt DateTime?
   lastStaffMessageAt  DateTime?
-  escalatedAt       DateTime?
-  clientReadAt      DateTime?
-  staffReadAt       DateTime?
-  messages          SupportMessage[]
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  escalatedAt         DateTime?
+  clientReadAt        DateTime?
+  staffReadAt         DateTime?
+  messages            SupportMessage[]
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
   @@index([salesRepresentativeId, lastMessageAt])
   @@index([escalatedAt, lastMessageAt])
@@ -303,11 +303,11 @@ model SupportMessage {
   conversationId String
   conversation   SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   senderUserId   String
-  senderUser     User   @relation("SupportMessageSender", fields: [senderUserId], references: [id], onDelete: Cascade)
+  senderUser     User                @relation("SupportMessageSender", fields: [senderUserId], references: [id], onDelete: Cascade)
   senderRole     String
   body           String
   readAt         DateTime?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime            @default(now())
 
   @@index([conversationId, createdAt])
   @@index([conversationId, readAt])
@@ -316,11 +316,11 @@ model SupportMessage {
 model HqPushSubscription {
   id String @id @default(cuid())
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  endpoint String @unique
-  p256dh   String
-  auth     String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -519,23 +519,23 @@ model Restaurant {
 
   plan String @default("FREE")
 
-  referralNetworkEnabled          Boolean   @default(false)
-  referralDefaultCommissionType   String    @default("PER_PERSON")
-  referralDefaultCommissionAmount Decimal   @default(1.5) @db.Decimal(10, 2)
-  referralMaxCommissionPerPerson  Decimal?  @db.Decimal(10, 2)
-  referralAutoAcceptEnabled       Boolean   @default(false)
+  referralNetworkEnabled          Boolean          @default(false)
+  referralDefaultCommissionType   String           @default("PER_PERSON")
+  referralDefaultCommissionAmount Decimal          @default(1.5) @db.Decimal(10, 2)
+  referralMaxCommissionPerPerson  Decimal?         @db.Decimal(10, 2)
+  referralAutoAcceptEnabled       Boolean          @default(false)
   referralPaymentMethodId         String?
   referralPaymentBlockedAt        DateTime?
   referralPaymentBlockReason      String?
-  referralDefaultDailyCapacity    Int       @default(0)
+  referralDefaultDailyCapacity    Int              @default(0)
   referralProfileCuisine          String?
   referralProfileDescription      String?
   referralProfileHeroImage        String?
-  referralProfileGallery          String[]  @default([])
-  referralProfileHighlights       String[]  @default([])
+  referralProfileGallery          String[]         @default([])
+  referralProfileHighlights       String[]         @default([])
   referralProfileMenuUrl          String?
-  nearbyReferralEnabled           Boolean   @default(false)
-  outboundReferralPartnerId       String?   @unique
+  nearbyReferralEnabled           Boolean          @default(false)
+  outboundReferralPartnerId       String?          @unique
   outboundReferralPartner         ReferralPartner? @relation("RestaurantOutboundReferralPartner", fields: [outboundReferralPartnerId], references: [id], onDelete: SetNull)
 
   userId String?
@@ -575,8 +575,9 @@ model Restaurant {
   sundayLunch  String?
   sundayDinner String?
 
-  tables       Table[]
-  reservations Reservation[]
+  tables                Table[]
+  reservations          Reservation[]
+  reservationTimeBlocks ReservationTimeBlock[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -680,6 +681,21 @@ model Restaurant {
 
   @@unique([userId])
   @@index([customDomain])
+}
+
+model ReservationTimeBlock {
+  id String @id @default(cuid())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  day  String
+  time String
+
+  createdAt DateTime @default(now())
+
+  @@unique([restaurantId, day, time])
+  @@index([restaurantId, day])
 }
 
 model ReservationIssueAlert {
@@ -1342,7 +1358,7 @@ model ReferralPartner {
   groups             ReferralGroup[]
   payments           ReferralPayment[]
   benefitCards       ReferralBenefitCard[]
-  sourceRestaurant   Restaurant? @relation("RestaurantOutboundReferralPartner")
+  sourceRestaurant   Restaurant?                 @relation("RestaurantOutboundReferralPartner")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

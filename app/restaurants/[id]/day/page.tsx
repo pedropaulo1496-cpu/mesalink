@@ -1,4 +1,5 @@
 import DayPicker from "./DayPicker";
+import TimeBlockControls from "./TimeBlockControls";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import ReservationMenuLabel from "@/components/ReservationMenuLabel";
@@ -32,6 +33,33 @@ type TFunc = (key: string, values?: Record<string, string | number>) => string;
 
 function isLunch(date: Date) {
   return date.getHours() < 17;
+}
+
+function timesFromRange(range: string | null) {
+  if (!range?.includes("-")) return [];
+  const [start, end] = range.split("-").map((item) => item.trim());
+  const [startHour, startMinute] = start.split(":").map(Number);
+  const [endHour, endMinute] = end.split(":").map(Number);
+  if ([startHour, startMinute, endHour, endMinute].some(Number.isNaN)) return [];
+  const times: string[] = [];
+  let current = startHour * 60 + startMinute;
+  let finish = endHour * 60 + endMinute;
+  if (finish <= current) finish += 24 * 60;
+  while (current <= finish) {
+    const normalized = current % (24 * 60);
+    times.push(`${String(Math.floor(normalized / 60)).padStart(2, "0")}:${String(normalized % 60).padStart(2, "0")}`);
+    current += 30;
+  }
+  return times;
+}
+
+function configuredTimesForDay(restaurant: Record<string, unknown>, selectedDay: string) {
+  const [year, month, day] = selectedDay.split("-").map(Number);
+  const weekday = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][new Date(year, month - 1, day).getDay()];
+  return [...new Set([
+    ...timesFromRange(typeof restaurant[`${weekday}Lunch`] === "string" ? restaurant[`${weekday}Lunch`] as string : null),
+    ...timesFromRange(typeof restaurant[`${weekday}Dinner`] === "string" ? restaurant[`${weekday}Dinner`] as string : null),
+  ])];
 }
 
 function getStatusLabel(status: string, t: TFunc) {
@@ -303,7 +331,7 @@ export default async function DayPage({
     );
   }
 
-  const reservations = await prisma.reservation.findMany({
+  const [reservations, timeBlocks] = await Promise.all([prisma.reservation.findMany({
     where: {
       restaurantId: id,
       date: { gte: dayStart, lte: dayEnd },
@@ -311,7 +339,11 @@ export default async function DayPage({
     },
     include: { table: true, marketingPromoCard: true, payment: true, experience: true, experienceAddOns: true },
     orderBy: { date: "asc" },
-  });
+  }), prisma.reservationTimeBlock.findMany({
+    where: { restaurantId: id, day: selectedDay },
+    orderBy: { time: "asc" },
+    select: { time: true },
+  })]);
 
   const lunchReservations = reservations.filter((reservation) =>
     isLunch(new Date(reservation.date)),
@@ -559,6 +591,8 @@ export default async function DayPage({
               </div>
             </div>
           </section>
+
+          <TimeBlockControls restaurantId={id} day={selectedDay} times={configuredTimesForDay(restaurant as unknown as Record<string, unknown>, selectedDay)} initialBlockedTimes={timeBlocks.map((block) => block.time)} />
 
           {pendingReservations.length > 0 && (
             <section className="mt-6 rounded-[28px] border border-[#D8C5A5] bg-[#FFF9F0] p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)]">
