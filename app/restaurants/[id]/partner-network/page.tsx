@@ -4,6 +4,7 @@ import { ArrowRight, CalendarCheck2, CheckCircle2, Clock3, Handshake, UsersRound
 import BottomNav from "@/components/BottomNav";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import { PartnerProfileSettingsForm, ReferralAgreementForm, ReferralBookingSettingsForm } from "@/components/partners/PartnerNetworkControls";
+import RestaurantReferralEarnings from "@/components/partners/RestaurantReferralEarnings";
 import { authOptions } from "@/lib/auth";
 import { buildPartnerProfile } from "@/lib/partner-profile";
 import { referralAttendanceDeadline, referralInvoiceDeadline } from "@/lib/referral-deadlines";
@@ -16,10 +17,10 @@ export default async function PartnerNetworkPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ result?: string; google?: string }>;
+  searchParams: Promise<{ result?: string; google?: string; nearby?: string }>;
 }) {
   const { id } = await params;
-  const { result, google } = await searchParams;
+  const { result, google, nearby } = await searchParams;
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
 
@@ -68,6 +69,15 @@ export default async function PartnerNetworkPage({
               },
             },
           },
+          outboundReferralPartner: {
+            include: {
+              groups: {
+                orderBy: { createdAt: "desc" },
+                take: 20,
+                include: { acceptedRestaurant: { select: { name: true } }, payment: true },
+              },
+            },
+          },
         },
       })
     : null;
@@ -109,8 +119,11 @@ export default async function PartnerNetworkPage({
 
           {result && <div className={`mt-5 rounded-[22px] border px-5 py-4 text-sm font-semibold ${["accepted", "completed", "captured", "payment-success", "already-paid", "auto-accept-ready", "debt-settled"].includes(result) ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : ["declined", "no-show", "confirmation-expired", "payment-cancelled", "card-cancelled"].includes(result) ? "border-[#DCCCAD] bg-[#FFF9ED] text-[#795D38]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{resultMessage(result)}</div>}
           {google && <div className={`mt-5 rounded-[22px] border px-5 py-4 text-sm font-semibold ${["connected", "synced"].includes(google) ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : google === "not-configured" ? "border-[#DCCCAD] bg-[#FFF9ED] text-[#795D38]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{google === "connected" ? "Perfil Google Business associado e mini-perfil atualizado." : google === "synced" ? "Avaliação, reviews e fotografias atualizadas a partir do Google." : google === "not-configured" ? "A ligação gratuita central aguarda as credenciais e a aprovação do Google Business Profile API." : "Não foi possível atualizar agora o perfil Google."}</div>}
+          {nearby && <div className={`mt-5 rounded-[22px] border px-5 py-4 text-sm font-semibold ${nearby === "complete" ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : "border-[#DCCCAD] bg-[#FFF9ED] text-[#795D38]"}`}>{nearby === "complete" ? "IBAN validado. Os encaminhamentos para restaurantes próximos estão ativos." : nearby === "pending" ? "A validação do IBAN ainda não ficou concluída." : "Não foi possível concluir a ativação. Tenta novamente."}</div>}
 
           <section className="mt-5 overflow-hidden rounded-[26px] bg-[#D8BD8A] shadow-[0_18px_45px_rgba(98,70,36,0.10)]"><div className="grid grid-cols-2 lg:grid-cols-4 2xl:grid-cols-[minmax(0,1.2fr)_repeat(4,minmax(0,.42fr))]"><div className="col-span-2 flex items-center gap-4 border-b border-[#BFA370]/55 p-5 lg:col-span-4 2xl:col-span-1 2xl:border-b-0 2xl:border-r"><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${restaurant.referralAutoAcceptEnabled ? "bg-[#1F2B20] text-[#A7D0A9]" : "bg-[#4E3821] text-[#E5C888]"}`}><CalendarCheck2 size={21} /></span><div><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#74532B]">Funcionamento</p><p className="mt-1 text-base font-semibold">{restaurant.referralAutoAcceptEnabled ? "Reservas entram automaticamente" : "Ativa quando estiveres pronto"}</p><p className="mt-1 text-[10px] text-[#684D2E]">Sem pedidos para aprovar um a um.</p></div></div><SummaryValue label="Comissão padrão" value={`${formatMoney(defaultCommissionAmount)}${commissionType === "PER_PERSON" ? " / pessoa" : " total"}`} /><SummaryValue label="Lugares disponíveis" value={`${defaultDailyCapacity} por dia`} /><SummaryValue label="Próximas reservas" value={`${bookedGroups}`} /><SummaryValue label="A aguardar" value={`${restaurant.referralCommissionRequests.length} ${restaurant.referralCommissionRequests.length === 1 ? "negociação" : "negociações"}`} /></div></section>
+
+          <div className="mt-5"><RestaurantReferralEarnings restaurantId={id} enabled={restaurant.nearbyReferralEnabled} payoutReady={Boolean(restaurant.outboundReferralPartner?.stripeOnboardingComplete && restaurant.outboundReferralPartner.stripeAccountId)} earnings={(restaurant.outboundReferralPartner?.groups || []).map((group) => ({ groupId: group.id, restaurantName: group.acceptedRestaurant?.name || group.targetSummary || "Restaurante MesaLink", date: group.desiredDate.toISOString(), amount: Number(group.payment?.partnerNet || 0), status: group.status, invoiceStatus: group.payment?.partnerInvoiceStatus || "MISSING", invoiceUrl: group.payment?.partnerInvoiceUrl || null }))} /></div>
 
           <div className="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1fr)_380px] 2xl:items-start">
             <div className="space-y-5">

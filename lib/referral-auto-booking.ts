@@ -13,7 +13,15 @@ export class InstantReferralBookingError extends Error {
   }
 }
 
-export async function finalizeInstantReferralBooking(offerId: string) {
+export type ReferralReservationInput = {
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  tableId?: string | null;
+  source?: "PARTNER_NETWORK" | "NEARBY_REFERRAL";
+};
+
+export async function finalizeInstantReferralBooking(offerId: string, reservationInput?: ReferralReservationInput) {
   const offer = await prisma.referralOffer.findUnique({
     where: { id: offerId },
     include: {
@@ -52,7 +60,7 @@ export async function finalizeInstantReferralBooking(offerId: string) {
   const serviceFee = calculateReferralServiceFee(amounts.gross);
 
   if (isDemo) {
-    return commitReservation({ offerId, paymentIntent: null, taxAmount: 0, serviceFee, amounts, isDemo: true });
+    return commitReservation({ offerId, paymentIntent: null, taxAmount: 0, serviceFee, amounts, isDemo: true, reservationInput });
   }
 
   const customerId = offer.restaurant.user?.subscription?.stripeCustomerId;
@@ -133,6 +141,7 @@ export async function finalizeInstantReferralBooking(offerId: string) {
       amounts,
       isDemo: false,
       authorizationExpiresAt,
+      reservationInput,
     });
   } catch (error) {
     await stripe.paymentIntents.cancel(paymentIntent.id).catch(() => undefined);
@@ -148,6 +157,7 @@ async function commitReservation({
   amounts,
   isDemo,
   authorizationExpiresAt,
+  reservationInput,
 }: {
   offerId: string;
   paymentIntent: Stripe.PaymentIntent | null;
@@ -156,6 +166,7 @@ async function commitReservation({
   amounts: { gross: number; platformFee: number; partnerNet: number };
   isDemo: boolean;
   authorizationExpiresAt?: Date;
+  reservationInput?: ReferralReservationInput;
 }) {
   const result = await prisma.$transaction(async (tx) => {
     const offer = await tx.referralOffer.findUnique({
@@ -169,13 +180,14 @@ async function commitReservation({
     const reservation = await tx.reservation.create({
       data: {
         restaurantId: offer.restaurantId,
-        customerName: offer.group.customerName || `Grupo ${offer.group.publicCode}`,
-        phone: offer.group.customerPhone || "CONTACT_PENDING",
-        email: offer.group.customerEmail || null,
+        customerName: reservationInput?.customerName || offer.group.customerName || `Grupo ${offer.group.publicCode}`,
+        phone: reservationInput?.customerPhone || offer.group.customerPhone || "CONTACT_PENDING",
+        email: reservationInput?.customerEmail || offer.group.customerEmail || null,
         date: offer.group.desiredDate,
         guests: offer.group.guests,
         status: "CONFIRMED",
-        source: "PARTNER_NETWORK",
+        source: reservationInput?.source || "PARTNER_NETWORK",
+        tableId: reservationInput?.tableId || null,
         notes: [
           `Reserva imediata MesaLink Partner ${offer.group.publicCode}.`,
           `${offer.group.adults ?? Math.max(1, offer.group.guests - (offer.group.children || 0))} adultos${offer.group.children > 0 ? ` e ${offer.group.children} crianças` : ""}.`,

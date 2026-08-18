@@ -9,7 +9,7 @@ export function referralDayBounds(value: Date) {
 }
 
 export async function getReferralCapacity(
-  tx: Prisma.TransactionClient,
+  tx: Pick<Prisma.TransactionClient, "referralDailyCapacity" | "reservation">,
   restaurantId: string,
   desiredDate: Date,
   defaultCapacity: number,

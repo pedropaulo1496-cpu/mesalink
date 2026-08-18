@@ -8,6 +8,9 @@ import { createReservationCheckout, releaseExpiredReservationPayments } from "@/
 import { sendReservationConfirmationEmail } from "@/lib/send-reservation-confirmation-email";
 import { hasPublicReservationAccess } from "@/lib/public-reservation-access";
 import { notifyRestaurantReservation } from "@/lib/hq-notifications";
+import { finalizeInstantReferralBooking } from "@/lib/referral-auto-booking";
+import { verifyNearbyReferralToken } from "@/lib/nearby-referrals";
+import { MESALINK_REFERRAL_FEE_PERCENT, createReferralCode, isCommissionType } from "@/lib/referrals";
 
 async function createPublicReservation(formData: FormData) {
   "use server";
@@ -20,10 +23,13 @@ async function createPublicReservation(formData: FormData) {
   const marketingToken = /^[a-f0-9]{48}$/.test(marketingTokenValue)
     ? marketingTokenValue
     : null;
+  const nearbyReferralTokenValue = String(formData.get("nearbyReferralToken") || "");
+  const nearbyReferralToken = nearbyReferralTokenValue.length <= 2000 ? nearbyReferralTokenValue : "";
   const errorRedirect = (error: string) => {
     const query = new URLSearchParams({ error });
     if (marketingToken) query.set("ml_action", marketingToken);
     if (offerCode) query.set("offer", offerCode);
+    if (nearbyReferralToken) query.set("nearby_ref", nearbyReferralToken);
     return `/reserve/${slug}?${query.toString()}`;
   };
   const tableIdValue = String(formData.get("tableId") ?? "");
@@ -204,6 +210,8 @@ async function createPublicReservation(formData: FormData) {
   endDate.setHours(endDate.getHours() + 2);
 
   if (reservationMode === "TABLES" && tableIdValue) {
+    const selectedTable = await prisma.table.findFirst({ where: { id: tableIdValue, restaurantId: restaurant.id, capacity: { gte: guests } }, select: { id: true } });
+    if (!selectedTable && nearbyReferralToken) redirect(errorRedirect("referral"));
     const conflictingReservation = await prisma.reservation.findFirst({
       where: {
         tableId: tableIdValue,
@@ -244,9 +252,86 @@ async function createPublicReservation(formData: FormData) {
     const totalCapacity = restaurant.totalCapacity ?? 0;
 
     if (totalCapacity > 0 && bookedGuests + guests > totalCapacity) {
+      if (nearbyReferralToken) redirect(errorRedirect("referral"));
       status = "PENDING";
       approvalReason = "CAPACITY_LIMIT";
     }
+  }
+
+  if (nearbyReferralToken) {
+    if (reservationMode === "TABLES" && !tableIdValue) redirect(errorRedirect("referral"));
+    const payload = verifyNearbyReferralToken(nearbyReferralToken);
+    if (!payload || payload.destinationRestaurantId !== restaurant.id || payload.guests !== guests || new Date(payload.date).getTime() !== date.getTime()) {
+      redirect(errorRedirect("referral"));
+    }
+    const source = await prisma.restaurant.findFirst({
+      where: { id: payload.sourceRestaurantId, nearbyReferralEnabled: true },
+      include: { outboundReferralPartner: true },
+    });
+    if (!source?.outboundReferralPartner || source.outboundReferralPartner.status !== "ACTIVE" || !source.outboundReferralPartner.stripeOnboardingComplete || !source.outboundReferralPartner.stripeAccountId) {
+      redirect(errorRedirect("referral"));
+    }
+    const agreement = await prisma.referralAgreement.findFirst({
+      where: { partnerId: source.outboundReferralPartner.id, restaurantId: restaurant.id, active: true },
+      select: { commissionType: true, commissionAmount: true },
+    });
+    const commissionType = agreement && isCommissionType(agreement.commissionType)
+      ? agreement.commissionType
+      : isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON";
+    const commissionAmount = Number(agreement?.commissionAmount ?? restaurant.referralDefaultCommissionAmount);
+    let groupId: string | null = null;
+    let referralReservationId: string | null = null;
+    try {
+      const group = await prisma.referralGroup.create({
+        data: {
+          publicCode: createReferralCode(),
+          partnerId: source.outboundReferralPartner.id,
+          desiredDate: date,
+          guests,
+          adults: guests,
+          children: 0,
+          customerName,
+          customerPhone: phone,
+          customerEmail: email,
+          targetMode: "SELECTED",
+          targetSummary: restaurant.name,
+          cuisineTypes: [restaurant.referralProfileCuisine || restaurant.websiteCuisine || "Restaurante"],
+          notes: `Cliente encaminhado automaticamente por ${source.name}.`,
+          commissionType,
+          commissionAmount,
+          platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT,
+          expiresAt: date,
+          offers: { create: { restaurantId: restaurant.id, commissionType, commissionAmount, platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT, status: "PENDING" } },
+        },
+        include: { offers: { select: { id: true } } },
+      });
+      groupId = group.id;
+      const result = await finalizeInstantReferralBooking(group.offers[0].id, {
+        customerName,
+        customerPhone: phone,
+        customerEmail: email,
+        tableId: tableIdValue || null,
+        source: "NEARBY_REFERRAL",
+      });
+      referralReservationId = result.reservationId;
+    } catch (error) {
+      if (groupId) await prisma.referralGroup.deleteMany({ where: { id: groupId, status: "OPEN" } }).catch(() => undefined);
+      console.error("Nearby restaurant referral booking failed", error);
+      redirect(errorRedirect("referral"));
+    }
+    if (referralReservationId) {
+      try {
+        let customer = await prisma.customer.findFirst({ where: { restaurantId: restaurant.id, OR: [{ email }, { phone }] } });
+        customer = customer
+          ? await prisma.customer.update({ where: { id: customer.id }, data: { name: customerName, phone, email, birthDate: birthDate || customer.birthDate, marketingOptIn: true, marketingJoinedAt: customer.marketingJoinedAt || new Date(), lastReservationAt: date, source: customer.source || "NEARBY_REFERRAL" } })
+          : await prisma.customer.create({ data: { restaurantId: restaurant.id, name: customerName, phone, email, birthDate, marketingOptIn: true, marketingJoinedAt: new Date(), lastReservationAt: date, source: "NEARBY_REFERRAL" } });
+        await prisma.reservation.update({ where: { id: referralReservationId }, data: { customerId: customer.id } });
+      } catch (error) {
+        console.error("Nearby referral CRM attribution failed", error);
+      }
+      redirect(`/reserve/${slug}/success?name=${encodeURIComponent(customerName)}&guests=${guests}&date=${encodeURIComponent(date.toISOString())}&status=CONFIRMED&referred=1`);
+    }
+    redirect(errorRedirect("referral"));
   }
 
   let customer = await prisma.customer.findFirst({
@@ -519,10 +604,10 @@ export default async function PublicReservePage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ error?: string; ml_action?: string; offer?: string }>;
+  searchParams: Promise<{ error?: string; ml_action?: string; offer?: string; date?: string; time?: string; guests?: string; nearby_ref?: string; from?: string }>;
 }) {
   const { slug } = await params;
-  const { error, ml_action: marketingTokenValue, offer: offerCodeValue } = await searchParams;
+  const { error, ml_action: marketingTokenValue, offer: offerCodeValue, date: prefillDate, time: prefillTime, guests: prefillGuestsValue, nearby_ref: nearbyReferralValue, from: referredFrom } = await searchParams;
   const marketingToken =
     typeof marketingTokenValue === "string" &&
     /^[a-f0-9]{48}$/.test(marketingTokenValue)
@@ -586,6 +671,9 @@ export default async function PublicReservePage({
     minSpend: offerCard.minSpend ? `Consumo mínimo: ${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(Number(offerCard.minSpend))}` : null,
     terms: offerCard.terms,
   } : undefined;
+  const nearbyPayload = typeof nearbyReferralValue === "string" ? verifyNearbyReferralToken(nearbyReferralValue) : null;
+  const nearbyReferralToken = nearbyPayload?.destinationRestaurantId === restaurant.id ? nearbyReferralValue : undefined;
+  const prefillGuests = Number(prefillGuestsValue);
   const experiences = restaurant.diningExperiences.map((experience) => ({
         id: experience.id,
         title: experience.title,
@@ -659,6 +747,11 @@ export default async function PublicReservePage({
       offer={offer}
       experiences={experiences}
       noShowRule={noShowRule}
+      initialDate={typeof prefillDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(prefillDate) ? prefillDate : undefined}
+      initialTime={typeof prefillTime === "string" && /^\d{2}:\d{2}$/.test(prefillTime) ? prefillTime : undefined}
+      initialGuests={Number.isInteger(prefillGuests) && prefillGuests > 0 && prefillGuests <= 200 ? prefillGuests : undefined}
+      nearbyReferralToken={nearbyReferralToken}
+      referredFrom={nearbyReferralToken && typeof referredFrom === "string" ? referredFrom.slice(0, 100) : undefined}
       offerUnavailable={Boolean(requestedOfferCode && !offerAvailable)}
       createPublicReservation={createPublicReservation}
     />

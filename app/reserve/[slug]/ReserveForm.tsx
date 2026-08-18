@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
@@ -20,6 +20,7 @@ import {
   Sparkles,
   Phone,
   UsersRound,
+  ArrowRight,
 } from "lucide-react";
 import PhoneField from "@/components/PhoneField";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -98,6 +99,16 @@ type DiningExperience = {
   pricePerPerson: number;
   capacityRemaining: number;
   addOns: { id: string; name: string; description: string | null; price: number; perGuest: boolean }[];
+};
+
+type NearbyRestaurant = {
+  name: string;
+  slug: string;
+  address: string | null;
+  cuisine: string | null;
+  image: string | null;
+  distanceKm: number;
+  url: string;
 };
 
 const weekdayKeys = [
@@ -214,6 +225,11 @@ export default function ReserveForm({
   offerUnavailable,
   experiences,
   noShowRule,
+  initialDate,
+  initialTime,
+  initialGuests,
+  nearbyReferralToken,
+  referredFrom,
   createPublicReservation,
 }: {
   restaurant: Restaurant;
@@ -223,18 +239,25 @@ export default function ReserveForm({
   offerUnavailable?: boolean;
   experiences: DiningExperience[];
   noShowRule: NoShowRule;
+  initialDate?: string;
+  initialTime?: string;
+  initialGuests?: number;
+  nearbyReferralToken?: string;
+  referredFrom?: string;
   createPublicReservation: (formData: FormData) => void;
 }) {
   const t = useTranslations("publicFlows.reserve");
   const locale = useLocale();
   const today = localDateValue(new Date());
-  const [selectedDay, setSelectedDay] = useState(today);
-  const [selectedHour, setSelectedHour] = useState("");
-  const [guests, setGuests] = useState(2);
+  const [selectedDay, setSelectedDay] = useState(initialDate || today);
+  const [selectedHour, setSelectedHour] = useState(initialTime || "");
+  const [guests, setGuests] = useState(initialGuests || 2);
   const [selectedExperienceId, setSelectedExperienceId] = useState("");
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alertStatus, setAlertStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [nearbyRestaurants, setNearbyRestaurants] = useState<NearbyRestaurant[]>([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
   const hasSubmittedRef = useRef(false);
 
   async function notifyRestaurant() {
@@ -268,7 +291,8 @@ export default function ReserveForm({
     () => getAvailableHoursForDay(restaurant, selectedDay),
     [restaurant, selectedDay],
   );
-  const requestedExperience = experiences.find((experience) => experience.id === selectedExperienceId) || null;
+  const bookableExperiences = nearbyReferralToken ? [] : experiences;
+  const requestedExperience = bookableExperiences.find((experience) => experience.id === selectedExperienceId) || null;
   const fixedExperience = requestedExperience?.scheduleType === "FIXED" ? requestedExperience : null;
   const experienceDate = fixedExperience?.startsAt ? new Date(fixedExperience.startsAt) : null;
   const experienceDay = experienceDate ? localDateValue(experienceDate) : "";
@@ -282,7 +306,7 @@ export default function ReserveForm({
   const effectiveSelectedDay = fixedExperience ? experienceDay : selectedDay;
   const selectedDateValue = resolvedHour ? `${effectiveSelectedDay}T${resolvedHour}` : "";
   const isCapacityMode = restaurant.reservationMode === "CAPACITY" || selectedExperience?.scheduleType === "FIXED";
-  const availableExperiences = experiences.filter((experience) => experience.scheduleType === "FIXED" || experience.servicePeriods.includes(servicePeriodForHour(normalResolvedHour)));
+  const availableExperiences = bookableExperiences.filter((experience) => experience.scheduleType === "FIXED" || experience.servicePeriods.includes(servicePeriodForHour(normalResolvedHour)));
 
   const freeTables = (() => {
     if (!resolvedHour) return [];
@@ -298,7 +322,7 @@ export default function ReserveForm({
   const tableIdToSubmit = isPendingRequest
     ? tableCombination?.tables[0]?.id ?? ""
     : isCapacityMode ? "" : availableTables[0]?.id ?? "";
-  const canSubmit = Boolean(resolvedHour && (isCapacityMode || tableIdToSubmit));
+  const canSubmit = Boolean(resolvedHour && (isCapacityMode || tableIdToSubmit) && nearbyRestaurants.length === 0);
 
   const selectedDate = dateFromValue(effectiveSelectedDay);
   const friendlySelectedDate = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short" }).format(selectedDate);
@@ -312,10 +336,30 @@ export default function ReserveForm({
   const menuDepositBase = selectedExperience?.paymentMode === "DEPOSIT" ? (selectedExperience.depositPerPerson || 0) * guests : 0;
   const menuDepositFee = menuDepositBase > 0 ? reservationServiceFee(menuDepositBase) : 0;
   const menuDepositTotal = menuDepositBase + menuDepositFee;
-  const depositQuote = !selectedExperience && selectedDateValue
+  const depositQuote = !nearbyReferralToken && !selectedExperience && selectedDateValue
     ? noShowDepositForReservation(noShowRule, new Date(`${selectedDateValue}:00`), guests)
     : null;
   const requiresPayment = selectedExperience?.paymentMode === "PREPAID" || menuDepositBase > 0 || Boolean(depositQuote);
+
+  useEffect(() => {
+    if (!selectedDateValue || selectedExperience || nearbyReferralToken) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setNearbyLoading(true);
+      try {
+        const selected = new Date(`${selectedDateValue}:00`);
+        const query = new URLSearchParams({ slug: restaurant.slug, date: selected.toISOString(), day: effectiveSelectedDay, time: resolvedHour, guests: String(guests) });
+        const response = await fetch(`/api/public/nearby-restaurants?${query.toString()}`, { signal: controller.signal });
+        const data = response.ok ? await response.json() : { restaurants: [] };
+        setNearbyRestaurants(Array.isArray(data.restaurants) ? data.restaurants : []);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) setNearbyRestaurants([]);
+      } finally {
+        if (!controller.signal.aborted) setNearbyLoading(false);
+      }
+    }, 250);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [effectiveSelectedDay, guests, nearbyReferralToken, restaurant.slug, resolvedHour, selectedDateValue, selectedExperience]);
 
   if (!restaurant.onlineReservationsEnabled) {
     return <PublicShell restaurant={restaurant}>
@@ -382,8 +426,10 @@ export default function ReserveForm({
               {error === "email" && <Alert tone="red" title={t("errors.email.title")} text={t("errors.email.text")} />}
               {error === "payment" && <Alert tone="red" title="Pagamento não concluído" text="A reserva ainda não foi confirmada. Tenta novamente ou escolhe uma reserva normal." />}
               {error === "experience" && <Alert tone="red" title="Menu indisponível" text="Entretanto este menu ficou indisponível para esta data ou serviço." />}
+              {error === "referral" && <Alert tone="red" title="Esta sugestão já não está disponível" text="A disponibilidade ou as condições mudaram entretanto. Volta ao restaurante anterior e escolhe outra sugestão." />}
+              {nearbyReferralToken && <div className="mb-4 rounded-[20px] border border-[#BFD8C0] bg-[#EFF8EF] p-4 text-[#315B36]"><p className="text-[9px] font-black uppercase tracking-[.18em]">Sugestão MesaLink Partners</p><p className="mt-1 text-sm font-bold">Mesa disponível em {restaurant.name}</p><p className="mt-1 text-[10px] leading-5 opacity-80">{referredFrom ? `${referredFrom} recomendou este restaurante porque não tinha mesa para o horário escolhido.` : "Chegaste aqui através de outro restaurante MesaLink."} A reserva continua a ser feita diretamente e sem custos adicionais para ti.</p></div>}
 
-              {experiences.length > 0 && <section className="mb-4 overflow-hidden rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0]"><div className="flex flex-wrap items-end justify-between gap-2 px-4 pb-3 pt-4 sm:px-5"><div><p className="text-[9px] font-black uppercase tracking-[.2em] text-[#A27438]">Escolhe a experiência</p><h2 className="mt-1 text-xl font-semibold tracking-[-.04em]">Mesa simples ou menu completo.</h2></div><span className="rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-[#776957]">Valores reais por pessoa</span></div><div className="flex gap-2 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-5"><MenuChoiceCard active={!selectedExperience} title="Só reservar mesa" price={null} meta="Sem menu · consumo à carta" summary="Escolhe a data, a hora e o número de pessoas." onClick={() => { setSelectedExperienceId(""); setSelectedAddOnIds([]); }}/>{availableExperiences.map((experience) => { const starts = experience.startsAt ? new Date(experience.startsAt) : null; const period = experience.servicePeriods.length === 1 ? experience.servicePeriods[0] === "LUNCH" ? "Só almoços" : "Só jantares" : "Almoço e jantar"; const payment = experience.paymentMode === "PREPAID" ? "Pagamento total na reserva" : experience.paymentMode === "DEPOSIT" ? `${formatMoney(experience.depositPerPerson || 0)} entrada / pessoa` : "Sem entrada"; return <MenuChoiceCard key={experience.id} active={selectedExperience?.id === experience.id} title={experience.title} price={experience.pricePerPerson} meta={`${starts ? `${starts.toLocaleDateString(locale, { day: "numeric", month: "short" })} · ${starts.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}` : period} · ${payment}`} summary={experience.summary} onClick={() => { setSelectedExperienceId(experience.id); setSelectedAddOnIds([]); setGuests((current) => Math.min(current, experience.capacityRemaining)); }}/>; })}</div></section>}
+              {bookableExperiences.length > 0 && <section className="mb-4 overflow-hidden rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0]"><div className="flex flex-wrap items-end justify-between gap-2 px-4 pb-3 pt-4 sm:px-5"><div><p className="text-[9px] font-black uppercase tracking-[.2em] text-[#A27438]">Escolhe a experiência</p><h2 className="mt-1 text-xl font-semibold tracking-[-.04em]">Mesa simples ou menu completo.</h2></div><span className="rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-[#776957]">Valores reais por pessoa</span></div><div className="flex gap-2 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-5"><MenuChoiceCard active={!selectedExperience} title="Só reservar mesa" price={null} meta="Sem menu · consumo à carta" summary="Escolhe a data, a hora e o número de pessoas." onClick={() => { setSelectedExperienceId(""); setSelectedAddOnIds([]); }}/>{availableExperiences.map((experience) => { const starts = experience.startsAt ? new Date(experience.startsAt) : null; const period = experience.servicePeriods.length === 1 ? experience.servicePeriods[0] === "LUNCH" ? "Só almoços" : "Só jantares" : "Almoço e jantar"; const payment = experience.paymentMode === "PREPAID" ? "Pagamento total na reserva" : experience.paymentMode === "DEPOSIT" ? `${formatMoney(experience.depositPerPerson || 0)} entrada / pessoa` : "Sem entrada"; return <MenuChoiceCard key={experience.id} active={selectedExperience?.id === experience.id} title={experience.title} price={experience.pricePerPerson} meta={`${starts ? `${starts.toLocaleDateString(locale, { day: "numeric", month: "short" })} · ${starts.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}` : period} · ${payment}`} summary={experience.summary} onClick={() => { setNearbyRestaurants([]); setSelectedExperienceId(experience.id); setSelectedAddOnIds([]); setGuests((current) => Math.min(current, experience.capacityRemaining)); }}/>; })}</div></section>}
 
               <div className="rounded-[22px] border border-[#E4D7C6] bg-[#FBF8F4] p-3.5 sm:p-5">
                 {selectedExperience && <div className="mb-4 overflow-hidden rounded-[22px] bg-[radial-gradient(circle_at_top_right,#6A4725_0,#2A1C12_46%,#17120D_100%)] text-white shadow-[0_16px_36px_rgba(35,24,14,.16)]"><div className="p-4 sm:p-5"><div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="text-[8px] font-black uppercase tracking-[.2em] text-[#E1BD6B]">Menu selecionado</p><h2 className="mt-2 text-2xl font-semibold leading-none tracking-[-.05em]">{selectedExperience.title}</h2><p className="mt-2 text-xs leading-5 text-white/60">{selectedExperience.summary}</p></div><TicketBadge /></div><div className="mt-5 flex flex-wrap items-end justify-between gap-3 border-t border-white/10 pt-4"><div><strong className="text-2xl text-[#E1BD6B]">{formatMoney(selectedExperience.pricePerPerson)}</strong><span className="ml-1 text-[10px] text-white/45">/ pessoa</span></div><span className="rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white/75">{selectedExperience.paymentMode === "PREPAID" ? "Pago na reserva" : selectedExperience.paymentMode === "DEPOSIT" ? `${formatMoney(selectedExperience.depositPerPerson || 0)} entrada / pessoa` : "Sem entrada"}</span></div></div>{selectedExperience.details && <details className="group border-t border-white/10 bg-black/10"><summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-xs font-bold text-[#E9CF94] [&::-webkit-details-marker]:hidden"><span>Ver tudo o que está incluído</span><ChevronDown size={14} className="transition group-open:rotate-180"/></summary><p className="whitespace-pre-line border-t border-white/10 px-4 py-4 text-[11px] leading-5 text-white/68">{selectedExperience.details}</p></details>}</div>}
@@ -431,6 +477,7 @@ export default function ReserveForm({
 
               {!isCapacityMode && resolvedHour && availableTables.length === 0 && !tableCombination && <Alert tone="red" title={t("noTables.title")} text={t("noTables.text", { guests })} />}
               {tableCombination && <Alert tone="yellow" title={t("pendingApproval.title")} text={t("pendingApproval.text", { guests })} />}
+              {(nearbyLoading || nearbyRestaurants.length > 0) && !nearbyReferralToken && <section className="mt-4 overflow-hidden rounded-[22px] border border-[#CDBA98] bg-[#FFF8EA]"><div className="px-4 pb-3 pt-4"><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#9B6F3B]">MesaLink Partners por perto</p><h3 className="mt-1 text-lg font-semibold">{nearbyLoading ? "A procurar mesas próximas…" : "Aqui está cheio, mas encontrámos mesa perto."}</h3><p className="mt-1 text-[10px] leading-5 text-[#75695D]">Mantemos a mesma data, hora e número de pessoas.</p></div>{nearbyRestaurants.length > 0 && <div className="grid gap-2 border-t border-[#E4D5BD] p-3">{nearbyRestaurants.map((nearby) => <Link key={nearby.slug} href={nearby.url} className="group grid grid-cols-[54px_minmax(0,1fr)_32px] items-center gap-3 rounded-[17px] border border-[#E1D3BF] bg-white p-2.5 transition hover:border-[#A97C42] hover:shadow-md"><span className="h-14 rounded-[13px] bg-[#EFE4D3] bg-cover bg-center" style={nearby.image ? { backgroundImage: `url(${nearby.image})` } : undefined} /><span className="min-w-0"><strong className="block truncate text-sm">{nearby.name}</strong><span className="mt-1 block truncate text-[9px] text-[#7C7063]">{nearby.cuisine || "Restaurante"} · {nearby.distanceKm} km{nearby.address ? ` · ${nearby.address}` : ""}</span><span className="mt-1.5 block text-[9px] font-black text-[#4F7653]">Disponibilidade confirmada agora</span></span><span className="grid h-8 w-8 place-items-center rounded-full bg-[#17120D] text-white transition group-hover:translate-x-0.5"><ArrowRight size={13} /></span></Link>)}</div>}</section>}
 
               <form action={createPublicReservation} onSubmit={(event) => {
                 if (hasSubmittedRef.current) { event.preventDefault(); return; }
@@ -441,6 +488,7 @@ export default function ReserveForm({
                 <input type="hidden" name="restaurantId" value={restaurant.id} />
                 {marketingToken && <input type="hidden" name="marketingToken" value={marketingToken} />}
                 {offer && <input type="hidden" name="offerCode" value={offer.code} />}
+                {nearbyReferralToken && <input type="hidden" name="nearbyReferralToken" value={nearbyReferralToken} />}
                 {selectedExperience && <input type="hidden" name="experienceId" value={selectedExperience.id} />}
                 {selectedAddOnIds.map((id) => <input key={id} type="hidden" name="addOnIds" value={id} />)}
                 <input type="hidden" name="date" value={selectedDateValue} />

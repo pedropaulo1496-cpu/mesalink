@@ -534,6 +534,9 @@ model Restaurant {
   referralProfileGallery          String[]  @default([])
   referralProfileHighlights       String[]  @default([])
   referralProfileMenuUrl          String?
+  nearbyReferralEnabled           Boolean   @default(false)
+  outboundReferralPartnerId       String?   @unique
+  outboundReferralPartner         ReferralPartner? @relation("RestaurantOutboundReferralPartner", fields: [outboundReferralPartnerId], references: [id], onDelete: SetNull)
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
@@ -1339,6 +1342,7 @@ model ReferralPartner {
   groups             ReferralGroup[]
   payments           ReferralPayment[]
   benefitCards       ReferralBenefitCard[]
+  sourceRestaurant   Restaurant? @relation("RestaurantOutboundReferralPartner")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
