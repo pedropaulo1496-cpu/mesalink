@@ -11,7 +11,7 @@
   "navigationDividerColor": "#17130F",
   "navigationDividerColorDark": "#070504",
   "backgroundColor": "#F4ECDF",
-  "enableNotifications": false,
+  "enableNotifications": true,
   "startUrl": "/dashboard",
   "iconUrl": "http://127.0.0.1:8765/icons/apps/restaurant-512.png",
   "maskableIconUrl": "http://127.0.0.1:8765/icons/apps/restaurant-512.png",
