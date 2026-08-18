@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
-import { getStaffIdentity } from "@/lib/staff-auth";
 import { hqPushPublicKey } from "@/lib/hq-notifications";
+import { getPartnerIdentity } from "@/lib/partner-auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const staff = await getStaffIdentity();
-  if (!staff) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const partner = await getPartnerIdentity();
+  if (!partner) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   return NextResponse.json({ publicKey: await hqPushPublicKey() });
 }
 
 export async function POST(request: Request) {
-  const staff = await getStaffIdentity();
-  if (!staff) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const partner = await getPartnerIdentity();
+  if (!partner) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   const subscription = await request.json().catch(() => null);
   const endpoint = String(subscription?.endpoint || "");
   const p256dh = String(subscription?.keys?.p256dh || "");
@@ -19,17 +19,17 @@ export async function POST(request: Request) {
   if (!endpoint || !p256dh || !auth) return NextResponse.json({ error: "Subscrição inválida." }, { status: 400 });
   await prisma.hqPushSubscription.upsert({
     where: { endpoint },
-    create: { userId: staff.userId, endpoint, p256dh, auth },
-    update: { userId: staff.userId, p256dh, auth },
+    create: { userId: partner.userId, endpoint, p256dh, auth },
+    update: { userId: partner.userId, p256dh, auth },
   });
   return NextResponse.json({ success: true });
 }
 
 export async function DELETE(request: Request) {
-  const staff = await getStaffIdentity();
-  if (!staff) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const partner = await getPartnerIdentity();
+  if (!partner) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   const payload = await request.json().catch(() => null);
   const endpoint = String(payload?.endpoint || "");
-  if (endpoint) await prisma.hqPushSubscription.deleteMany({ where: { userId: staff.userId, endpoint } });
+  if (endpoint) await prisma.hqPushSubscription.deleteMany({ where: { userId: partner.userId, endpoint } });
   return NextResponse.json({ success: true });
 }

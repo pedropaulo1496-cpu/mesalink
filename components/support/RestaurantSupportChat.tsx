@@ -48,7 +48,7 @@ export default function RestaurantSupportChat({ restaurantId }: { restaurantId: 
   }
 
   return (
-    <section className="flex min-h-[620px] flex-col overflow-hidden rounded-[28px] border border-[#E3D3BC] bg-white shadow-[0_20px_60px_rgba(72,48,21,0.08)]">
+    <section className="mx-auto flex h-[calc(100dvh-230px)] min-h-[540px] w-full max-w-4xl flex-col overflow-hidden rounded-[28px] border border-[#E3D3BC] bg-white shadow-[0_20px_60px_rgba(72,48,21,0.08)] sm:h-[680px]">
       <header className="flex items-center gap-3 border-b border-[#E7DAC7] bg-[#FFF9F0] p-5">
         <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#17130F] text-[#D7B267]"><Headphones size={21} /></span>
         <div><h2 className="font-black text-[#17130F]">Ajuda MesaLink</h2><p className="text-xs text-[#776B5E]">Conversa com {recipient}</p></div>
@@ -65,9 +65,9 @@ export default function RestaurantSupportChat({ restaurantId }: { restaurantId: 
         })}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={submit} className="flex gap-2 border-t border-[#E7DAC7] bg-white p-3 sm:p-4">
-        <textarea value={body} onChange={(event) => setBody(event.target.value)} required maxLength={2000} rows={2} placeholder="Escreve a tua mensagem…" className="min-h-12 flex-1 resize-none rounded-2xl border border-[#DCC9AA] bg-[#FFFCF7] px-4 py-3 text-sm outline-none focus:border-[#9B6F3B]" />
-        <button disabled={sending} aria-label="Enviar mensagem" className="flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-2xl bg-[#17130F] text-white disabled:opacity-50"><Send size={18} /></button>
+      <form onSubmit={submit} className="grid grid-cols-[minmax(0,1fr)_48px] items-center gap-2 border-t border-[#E7DAC7] bg-white p-3 sm:p-4">
+        <textarea value={body} onChange={(event) => setBody(event.target.value)} required maxLength={2000} rows={1} placeholder="Escreve a tua mensagem…" className="h-12 w-full resize-none rounded-2xl border border-[#DCC9AA] bg-[#FFFCF7] px-4 py-[13px] text-sm leading-5 outline-none focus:border-[#9B6F3B]" />
+        <button disabled={sending || !body.trim()} aria-label="Enviar mensagem" className="grid h-12 w-12 place-items-center rounded-2xl bg-[#17130F] text-white shadow-[0_8px_20px_rgba(23,19,15,0.18)] disabled:opacity-40"><Send size={18} /></button>
       </form>
     </section>
   );

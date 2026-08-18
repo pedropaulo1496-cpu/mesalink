@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, BellRing, X } from "lucide-react";
+import { BellRing, X } from "lucide-react";
+import PushNotificationToggle from "@/components/PushNotificationToggle";
 
 function decodeKey(value: string) {
   const padding = "=".repeat((4 - value.length % 4) % 4);
@@ -14,17 +15,16 @@ export default function RestaurantPushNotifications({ variant = "first-run" }: {
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
-  const [permission, setPermission] = useState<NotificationPermission>("default");
 
   useEffect(() => {
     const available = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
     queueMicrotask(() => setSupported(available));
     if (!available) return;
-    queueMicrotask(() => setPermission(Notification.permission));
     navigator.serviceWorker.ready.then((registration) => registration.pushManager.getSubscription()).then((subscription) => {
-      setEnabled(Boolean(subscription) && Notification.permission === "granted");
-      if (subscription) fetch("/api/restaurants/push", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(subscription) });
-      if (variant === "first-run" && !subscription && Notification.permission === "default" && !localStorage.getItem("mesalink:notifications-prompted")) setShowPrompt(true);
+      const disabled = localStorage.getItem("mesalink:restaurant-notifications") === "disabled";
+      setEnabled(Boolean(subscription) && Notification.permission === "granted" && !disabled);
+      if (subscription && !disabled) fetch("/api/restaurants/push", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(subscription) });
+      if (variant === "first-run" && !disabled && !subscription && Notification.permission === "default" && !localStorage.getItem("mesalink:notifications-prompted")) setShowPrompt(true);
     }).catch(() => undefined);
   }, [variant]);
 
@@ -39,8 +39,8 @@ export default function RestaurantPushNotifications({ variant = "first-run" }: {
       const response = await fetch("/api/restaurants/push", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(subscription) });
       if (!response.ok) throw new Error("Não foi possível ativar as notificações.");
       setEnabled(true);
-      setPermission("granted");
       setShowPrompt(false);
+      localStorage.removeItem("mesalink:restaurant-notifications");
       localStorage.setItem("mesalink:notifications-prompted", "1");
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Não foi possível ativar as notificações.");
@@ -55,7 +55,7 @@ export default function RestaurantPushNotifications({ variant = "first-run" }: {
   }
 
   if (variant === "settings") {
-    return <section className="mt-6 flex flex-col gap-4 rounded-[28px] border border-[#E1D0B8] bg-white p-5 shadow-[0_18px_55px_rgba(80,55,30,0.045)] sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-3"><span className={`grid h-11 w-11 place-items-center rounded-2xl ${enabled ? "bg-[#E2F1E5] text-[#3D7045]" : "bg-[#F5ECDE] text-[#9B6F3B]"}`}>{enabled ? <BellRing size={20} /> : <Bell size={20} />}</span><div><h2 className="font-black">Avisos de novas reservas</h2><p className="mt-1 text-sm text-[#6B6258]">{!supported ? "Este dispositivo não suporta notificações." : enabled ? "Ativos neste dispositivo." : permission === "denied" ? "Bloqueados nas definições do dispositivo." : "Recebe um aviso quando entra uma reserva."}</p></div></div>{supported && !enabled && permission !== "denied" && <button type="button" onClick={enable} disabled={busy} className="rounded-2xl bg-[#17130F] px-5 py-3 text-sm font-black text-white disabled:opacity-50">{busy ? "A ativar…" : "Ativar"}</button>}</section>;
+    return <div className="mt-6"><PushNotificationToggle apiPath="/api/restaurants/push" storageKey="mesalink:restaurant-notifications" title="Avisos de novas reservas" description="Recebe um aviso quando entra uma reserva." /></div>;
   }
 
   if (!supported || enabled || !showPrompt) return null;

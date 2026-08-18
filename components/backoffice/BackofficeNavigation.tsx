@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BadgeEuro, BarChart3, BriefcaseBusiness, Building2, ChevronRight, LayoutDashboard, MessageCircle, UserRoundSearch, UsersRound, WalletCards } from "lucide-react";
+import { BadgeEuro, BarChart3, BriefcaseBusiness, Building2, ChevronRight, LayoutDashboard, MessageCircle, Settings, UserRoundSearch, UsersRound, WalletCards } from "lucide-react";
 
 const links = [
   { href: "/backoffice", label: "Visão geral", icon: LayoutDashboard },
@@ -10,6 +10,7 @@ const links = [
   { href: "/backoffice/commissions", label: "Comissões", icon: BadgeEuro },
   { href: "/backoffice/requests", label: "Aprovações", icon: BriefcaseBusiness },
   { href: "/backoffice/chat", label: "Chat", icon: MessageCircle },
+  { href: "/backoffice/settings", label: "Definições", icon: Settings },
 ];
 
 export default function BackofficeNavigation({ role, variant }: { role: "ADMIN" | "SALES"; variant: "desktop" | "mobile" }) {

@@ -10,6 +10,7 @@ import { buildPartnerProfile } from "@/lib/partner-profile";
 import { referralAttendanceDeadline, referralInvoiceCutoff, referralInvoiceDeadline } from "@/lib/referral-deadlines";
 import { calculateReferralCommission, isCommissionType } from "@/lib/referrals";
 import { prisma } from "@/lib/prisma";
+import PushNotificationToggle from "@/components/PushNotificationToggle";
 
 export default async function PartnerAppPage({
   searchParams,
@@ -303,7 +304,7 @@ export default async function PartnerAppPage({
           </div>
         </section>}
 
-        {tab === "account" && <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        {tab === "account" && <><div className="mb-4"><PushNotificationToggle apiPath="/api/partners/push" storageKey="mesalink:partner-notifications" title="Notificações da app Partners" description="Recebe avisos importantes sobre reservas, comissões e pagamentos." /></div><section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[26px] border border-[#E1D0B8] bg-white p-5">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Dados de pagamento</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Conta bancária e verificação</h1>
@@ -319,7 +320,7 @@ export default async function PartnerAppPage({
             <p className="mt-2 text-xs leading-5 text-white/55">O valor líquido considera a comissão MesaLink, taxas de processamento e impostos aplicáveis.</p>
             <div className="mt-4 border-t border-white/10 pt-3 text-xs leading-5 text-white/55">Recebes semanalmente os valores com fatura verificada. A fatura tem de ser anexada até 30 dias após a cobrança; sem ela, o valor é devolvido ao restaurante e perdes esse montante.</div>
           </div>
-        </section>}
+        </section></>}
       </div>
     </main>
   );

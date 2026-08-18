@@ -31,3 +31,12 @@ export async function POST(request: Request) {
   });
   return NextResponse.json({ success: true });
 }
+
+export async function DELETE(request: Request) {
+  const user = await restaurantUser();
+  if (!user) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const payload = await request.json().catch(() => null);
+  const endpoint = String(payload?.endpoint || "");
+  if (endpoint) await prisma.hqPushSubscription.deleteMany({ where: { userId: user.id, endpoint } });
+  return NextResponse.json({ success: true });
+}
