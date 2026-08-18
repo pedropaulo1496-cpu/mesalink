@@ -215,3 +215,14 @@ export function MoreIcon() {
     </IconSvg>
   );
 }
+
+export function SupportIcon() {
+  return (
+    <IconSvg>
+      <path d="M4 13v-1a8 8 0 0 1 16 0v1" />
+      <path d="M4 13a2 2 0 0 1 2-2h1v6H6a2 2 0 0 1-2-2v-2Z" />
+      <path d="M20 13a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2v-2Z" />
+      <path d="M17 18c-1 2-3 2-5 2" />
+    </IconSvg>
+  );
+}

@@ -18,6 +18,7 @@ import {
   AiVisibilityIcon,
   BillingIcon,
   SettingsIcon,
+  SupportIcon,
 } from "@/components/icons/nav-icons";
 
 type RestaurantSidebarProps = {
@@ -199,6 +200,15 @@ export default function RestaurantSidebar({
           </p>
 
           <div className="flex flex-col gap-1.5">
+            <NavItem
+              item={{
+                key: "support",
+                name: "Ajuda",
+                href: `/restaurants/${id}/support`,
+                icon: SupportIcon,
+              }}
+              active={active === "support"}
+            />
             <NavItem
               item={{
                 key: "billing",

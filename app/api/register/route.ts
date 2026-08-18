@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/validation";
+import { notifyNewClient } from "@/lib/hq-notifications";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -46,21 +47,26 @@ export async function POST(request: Request) {
       restaurantLimit: 1,
       priceMonthly: 0,
     };
-    await prisma.$transaction(async (tx) => {
+    const registeredUser = await prisma.$transaction(async (tx) => {
+      let user;
       if (existingUser) {
-        await tx.user.update({
+        user = await tx.user.update({
           where: { id: existingUser.id },
           data: { name: name || existingUser.name, passwordHash, salesRepresentativeId: invitation?.salesRepresentativeId, subscription: { create: subscription } },
         });
       } else {
-        await tx.user.create({
+        user = await tx.user.create({
           data: { name, email: normalizedEmail, passwordHash, salesRepresentativeId: invitation?.salesRepresentativeId, subscription: { create: subscription } },
         });
       }
       if (invitation) {
         await tx.salesClientInvitation.update({ where: { id: invitation.id }, data: { acceptedAt: new Date() } });
       }
+      return user;
     });
+
+    notifyNewClient({ name: registeredUser.name || "", email: registeredUser.email, salesRepresentativeId: registeredUser.salesRepresentativeId })
+      .catch((error) => console.error("New client push failed", error));
 
     await resend.emails.send({
       from: "MesaLink <noreply@mesalink.pt>",

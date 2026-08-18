@@ -516,7 +516,30 @@ export async function sendCommercialMessage(formData: FormData) {
   await prisma.commercialMessage.create({
     data: { salesRepresentativeId, senderUserId: staff.userId, body },
   });
-  finish(`/backoffice/chat?rep=${salesRepresentativeId}`, "message-sent");
+  finish(`/backoffice/chat?mode=team&rep=${salesRepresentativeId}`, "message-sent");
+}
+
+export async function sendSupportReply(formData: FormData) {
+  const staff = await assertStaff();
+  const conversationId = clean(formData.get("conversationId"));
+  const body = clean(formData.get("body"), 2000);
+  if (!conversationId || !body) throw new Error("Conversa ou mensagem inválida.");
+  const conversation = await prisma.supportConversation.findUnique({ where: { id: conversationId }, select: { id: true, salesRepresentativeId: true } });
+  if (!conversation) throw new Error("Conversa não encontrada.");
+  if (staff.role === "SALES" && conversation.salesRepresentativeId !== staff.salesRepresentativeId) throw new Error("Este cliente não está atribuído ao comercial.");
+  const now = new Date();
+  await prisma.supportConversation.update({
+    where: { id: conversationId },
+    data: {
+      lastMessageAt: now,
+      lastStaffMessageAt: now,
+      escalatedAt: null,
+      clientReadAt: null,
+      staffReadAt: now,
+      messages: { create: { senderUserId: staff.userId, senderRole: "STAFF", body } },
+    },
+  });
+  finish(`/backoffice/chat?mode=clients&client=${conversationId}`, "support-message-sent");
 }
 
 function escapeHtml(value: string) {

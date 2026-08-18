@@ -23,6 +23,7 @@ import {
   MoreIcon,
   UsersIcon,
   BillingIcon,
+  SupportIcon,
 } from "@/components/icons/nav-icons";
 import {
   DropdownMenu,
@@ -53,6 +54,11 @@ export default function BottomNav({ id }: { id: string }) {
   ];
 
   const moreLinks = [
+    {
+      href: `/restaurants/${id}/support`,
+      icon: SupportIcon,
+      label: "Ajuda",
+    },
     {
       href: `/restaurants/${id}/experiences`,
       icon: GiftIcon,

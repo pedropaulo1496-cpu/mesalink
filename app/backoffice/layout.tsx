@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import BackofficeNavigation from "@/components/backoffice/BackofficeNavigation";
 import BackofficeSignOutButton from "@/components/backoffice/BackofficeSignOutButton";
+import HqPushNotifications from "@/components/backoffice/HqPushNotifications";
 import { requireStaff } from "@/lib/staff-auth";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default async function BackofficeLayout({ children }: { children: ReactNo
           <div className="flex items-center justify-between gap-3">
             <Link href="/backoffice" className="text-xl font-semibold tracking-[-0.05em]"><span className="text-[#A97936]">Mesa</span>Link <span className="text-xs tracking-normal text-[#776B5E]">{staff.role === "ADMIN" ? "HQ" : "Staff"}</span></Link>
             <div className="flex items-center gap-2">
+              <HqPushNotifications />
               {staff.role === "ADMIN" && <Link href="/backoffice/team" className="hidden rounded-full border border-[#D7B267] px-3 py-2 text-xs font-bold sm:inline-flex">Equipa</Link>}
               <BackofficeSignOutButton compact />
             </div>
