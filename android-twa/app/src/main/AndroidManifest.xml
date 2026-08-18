@@ -144,12 +144,10 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https" android:host="@string/hostName" android:pathPrefix="/login" />
-                <data android:scheme="https" android:host="@string/hostName" android:pathPrefix="/dashboard" />
-                <data android:scheme="https" android:host="@string/hostName" android:pathPrefix="/restaurants" />
-                <data android:scheme="https" android:host="@string/hostName" android:pathPrefix="/billing" />
-                <data android:scheme="https" android:host="@string/hostName" android:pathPrefix="/onboarding" />
-                <data android:scheme="https" android:host="@string/hostName" android:pathPrefix="/trial-expired" />
+                <data android:scheme="https"
+                    android:host="@string/hostName"
+                
+                />
             </intent-filter>
 
             

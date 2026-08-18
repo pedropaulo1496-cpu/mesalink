@@ -384,3 +384,18 @@ select.input-premium {
   background: #fff4df !important;
   transform: scale(0.995);
 }
+
+/* Google Play build: the TWA is consumption-only. Billing remains available on the web. */
+@media (display-mode: standalone) {
+  a[href^="/billing"] {
+    display: none !important;
+  }
+
+  .play-store-billing-content {
+    display: none !important;
+  }
+
+  .play-store-consumption-note {
+    display: block !important;
+  }
+}

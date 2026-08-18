@@ -165,6 +165,17 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
     }));
 
   return (
+    <>
+      <section className="play-store-consumption-note hidden min-h-screen bg-[#F5EFE6] px-6 py-16 text-[#16120E]">
+        <div className="mx-auto max-w-xl rounded-[32px] border border-[#E1D0B8] bg-white p-7 shadow-[0_24px_70px_rgba(80,55,30,0.10)] sm:p-10">
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">MesaLink Android</p>
+          <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em]">Faturação fora da aplicação</h1>
+          <p className="mt-4 text-sm leading-6 text-[#6B6258]">
+            Nesta versão Android pode utilizar normalmente a sua conta e as funcionalidades já ativas. A gestão de planos, créditos e pagamentos não está disponível dentro da aplicação.
+          </p>
+        </div>
+      </section>
+      <div className="play-store-billing-content">
     <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
       <div className={sidebarRestaurant ? "grid min-h-screen lg:grid-cols-[286px_1fr]" : "min-h-screen"}>
         {sidebarRestaurant && <RestaurantSidebar id={sidebarRestaurant.id} restaurantName={sidebarRestaurant.name} active="billing" />}
@@ -441,6 +452,8 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       </section>
       </div>
     </main>
+      </div>
+    </>
   );
 }
 
