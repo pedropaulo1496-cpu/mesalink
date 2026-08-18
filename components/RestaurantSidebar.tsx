@@ -289,9 +289,9 @@ export default function RestaurantSidebar({
       <Link
         href={`/restaurants/${id}/support`}
         aria-label={supportUnreadCount > 0 ? "Abrir chat — mensagem nova" : "Abrir chat de ajuda"}
-        className="fixed bottom-6 right-6 z-50 hidden h-16 items-center gap-3 rounded-full border border-[#D7B267] bg-[#17130F] px-5 text-sm font-black text-white shadow-[0_18px_50px_rgba(23,19,15,0.3)] transition hover:-translate-y-1 hover:bg-[#2A211A] lg:flex"
+        className="fixed bottom-5 right-5 z-50 hidden h-12 items-center gap-2 rounded-full border border-[#D7B267] bg-[#17130F] px-3.5 text-xs font-black text-white shadow-[0_14px_38px_rgba(23,19,15,0.28)] transition hover:-translate-y-1 hover:bg-[#2A211A] lg:flex"
       >
-        <span className="relative grid h-10 w-10 place-items-center rounded-full bg-[#D7B267] text-[#17130F]">
+        <span className="relative grid h-8 w-8 place-items-center rounded-full bg-[#D7B267] text-[#17130F]">
           <SupportIcon />
           {supportUnreadCount > 0 && (
             <span className="absolute -right-1 -top-1 flex h-4 w-4">
