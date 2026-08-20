@@ -691,10 +691,20 @@ model Restaurant {
 model ExternalRestaurantPlace {
   provider         String
   placeId          String    @id
+  name              String?
+  city              String?
+  address           String?
+  latitude          Float?
+  longitude         Float?
+  phone              String?
+  cuisine            String?
+  mapUrl             String?
   contactEmail     String?
   contactCheckedAt DateTime?
+  contactSourceUrl  String?
   websiteUrl       String?
   heroImage        String?
+  photoSourceUrl    String?
   galleryImages    Json?
   description      String?
   openingHours     String?
@@ -702,6 +712,9 @@ model ExternalRestaurantPlace {
   reviewCount      Int?
   ratingSource     String?
   priceLevel       Int?
+  dataSourceUrl     String?
+  published         Boolean   @default(false)
+  verifiedAt        DateTime?
   enrichedAt       DateTime?
   photoCheckedAt   DateTime?
   firstSeenAt      DateTime  @default(now())
@@ -713,6 +726,8 @@ model ExternalRestaurantPlace {
   @@index([lastSeenAt])
   @@index([contactCheckedAt])
   @@index([enrichedAt])
+  @@index([provider, city, published])
+  @@index([published, lastSeenAt])
 }
 
 model ExternalApiUsage {

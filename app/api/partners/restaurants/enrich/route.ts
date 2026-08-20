@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { getPartnerIdentity } from "@/lib/partner-auth";
 import { getExternalRestaurant } from "@/lib/geoapify-places";
-import { findKartaViewStreetPhoto } from "@/lib/kartaview-photos";
 import { prisma } from "@/lib/prisma";
-import { discoverRestaurantEmail, discoverRestaurantPresentation } from "@/lib/restaurant-contact-discovery";
+import { discoverRestaurantContact, discoverRestaurantPresentation } from "@/lib/restaurant-contact-discovery";
 
 const EXTERNAL_PROVIDER = "GEOAPIFY";
 const MAX_PLACES = 8;
@@ -33,21 +32,12 @@ export async function POST(request: Request) {
     if (row?.enrichedAt && row.enrichedAt > freshAfter && (row.heroImage || photoAlreadyChecked) && contactAlreadyChecked) return profileFromRow(row);
     try {
       const place = await getExternalRestaurant(placeId);
-      const [websiteProfile, discoveredEmail] = await Promise.all([
+      const [websiteProfile, discoveredContact] = await Promise.all([
         place.websiteUrl ? discoverRestaurantPresentation(place.websiteUrl) : null,
-        place.email ? Promise.resolve(place.email) : place.websiteUrl ? discoverRestaurantEmail(place.websiteUrl) : null,
+        place.email ? Promise.resolve({ email: place.email, sourceUrl: place.websiteUrl }) : place.websiteUrl ? discoverRestaurantContact(place.websiteUrl) : null,
       ]);
-      const shouldTryStreetPhoto = Boolean(discoveredEmail) && !websiteProfile?.heroImage && !place.heroImage;
-      let streetPhoto = null;
-      if (shouldTryStreetPhoto) {
-        try {
-          streetPhoto = await findKartaViewStreetPhoto(place);
-        } catch (error) {
-          console.error("KartaView street photo enrichment failed", placeId, error);
-        }
-      }
-      const heroImage = websiteProfile?.heroImage || place.heroImage || streetPhoto?.imageUrl;
-      const galleryImages = uniqueStrings([...(websiteProfile?.galleryImages || []), ...place.galleryImages, streetPhoto?.imageUrl || ""]).slice(0, 4);
+      const heroImage = websiteProfile?.heroImage || place.heroImage;
+      const galleryImages = uniqueStrings([...(websiteProfile?.galleryImages || []), ...place.galleryImages]).slice(0, 4);
       const rating = websiteProfile?.rating ?? place.rating;
       const reviewCount = websiteProfile?.rating != null ? websiteProfile.reviewCount : place.reviewCount;
       const ratingSource = websiteProfile?.rating != null ? websiteProfile.ratingSource : place.ratingSource;
@@ -63,10 +53,14 @@ export async function POST(request: Request) {
         reviewCount,
         ratingSource: ratingSource || null,
         priceLevel: websiteProfile?.priceLevel ?? place.priceLevel,
-        contactEmail: discoveredEmail || null,
+        contactEmail: discoveredContact?.email || null,
         contactCheckedAt: new Date(),
+        contactSourceUrl: discoveredContact?.sourceUrl || null,
+        photoSourceUrl: heroImage ? websiteProfile?.websiteUrl || place.websiteUrl || null : null,
+        published: Boolean(discoveredContact?.email && heroImage),
+        verifiedAt: discoveredContact?.email && heroImage ? new Date() : null,
         enrichedAt: new Date(),
-        photoCheckedAt: shouldTryStreetPhoto || !discoveredEmail ? new Date() : row?.photoCheckedAt || null,
+        photoCheckedAt: new Date(),
       };
       const saved = await prisma.externalRestaurantPlace.upsert({
         where: { placeId },
@@ -97,6 +91,7 @@ const profileSelect = {
   priceLevel: true,
   contactEmail: true,
   contactCheckedAt: true,
+  contactSourceUrl: true,
   enrichedAt: true,
   photoCheckedAt: true,
 } as const;

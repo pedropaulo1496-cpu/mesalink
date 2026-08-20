@@ -20,7 +20,7 @@ export type PartnerRestaurant = {
   address: string;
   description: string;
   heroImage: string;
-  heroImageKind: "PHOTO" | "STREET" | "ILLUSTRATIVE" | "NONE";
+  heroImageKind: "PHOTO" | "NONE";
   galleryImages: string[];
   highlights: string[];
   menuUrl: string;
@@ -93,8 +93,6 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const [catalogMessage, setCatalogMessage] = useState("");
   const [catalogConfigured, setCatalogConfigured] = useState(true);
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactState, setContactState] = useState<"idle" | "loading" | "found" | "missing">("idle");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
@@ -142,7 +140,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   }, []);
 
   const enrichCatalogRestaurants = useCallback(async (items: PartnerRestaurant[], signal?: AbortSignal) => {
-    const placeIds = items.filter((item) => item.source === "OPEN_DATA" && item.externalPlaceId).map((item) => item.externalPlaceId!);
+    const placeIds = items.filter((item) => item.source === "OPEN_DATA" && item.externalPlaceProvider === "GEOAPIFY" && item.externalPlaceId).map((item) => item.externalPlaceId!);
     if (!placeIds.length) return items;
     const profiles = new Map<string, ExternalRestaurantEnrichment>();
     const batches: string[][] = [];
@@ -167,7 +165,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         ...restaurant,
         contactEmail: profile.contactEmail || restaurant.contactEmail,
         heroImage: profile.heroImage || restaurant.heroImage,
-        heroImageKind: profile.heroImage ? (isKartaViewImage(profile.heroImage) ? "STREET" as const : "PHOTO" as const) : restaurant.heroImageKind,
+        heroImageKind: profile.heroImage ? "PHOTO" as const : restaurant.heroImageKind,
         galleryImages: profile.galleryImages?.length ? profile.galleryImages : restaurant.galleryImages,
         description: profile.description || restaurant.description,
         openingHours: profile.openingHours || restaurant.openingHours,
@@ -177,7 +175,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         ratingSource: profile.ratingSource || restaurant.ratingSource,
         websiteUrl: profile.websiteUrl || restaurant.websiteUrl,
       };
-    }).filter((restaurant) => restaurant.source !== "OPEN_DATA" || validEmail(restaurant.contactEmail));
+    }).filter((restaurant) => restaurant.source !== "OPEN_DATA" || (validEmail(restaurant.contactEmail) && Boolean(restaurant.heroImage)));
   }, []);
 
   const fetchCatalogRestaurants = useCallback(async (pageToken: string | null, append: boolean, signal?: AbortSignal) => {
@@ -231,43 +229,6 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     };
   }, [fetchCatalogRestaurants, locationState]);
 
-  useEffect(() => {
-    if (!selectedRestaurant || selectedRestaurant.bookingReady || !selectedRestaurant.externalPlaceId) {
-      queueMicrotask(() => {
-        setContactEmail("");
-        setContactState("idle");
-      });
-      return;
-    }
-    if (validEmail(selectedRestaurant.contactEmail)) {
-      queueMicrotask(() => {
-        setContactEmail(selectedRestaurant.contactEmail);
-        setContactState("found");
-      });
-      return;
-    }
-    const controller = new AbortController();
-    queueMicrotask(() => {
-      setContactEmail("");
-      setContactState("loading");
-    });
-    void fetch("/api/partners/restaurants/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ provider: selectedRestaurant.externalPlaceProvider, placeId: selectedRestaurant.externalPlaceId }),
-      signal: controller.signal,
-    }).then(async (response) => {
-      const data = await response.json().catch(() => null);
-      if (controller.signal.aborted) return;
-      const email = typeof data?.email === "string" ? data.email : "";
-      setContactEmail(email);
-      setContactState(email ? "found" : "missing");
-    }).catch(() => {
-      if (!controller.signal.aborted) setContactState("missing");
-    });
-    return () => controller.abort();
-  }, [selectedRestaurant]);
-
   function requestLocation() {
     if (!("geolocation" in navigator)) return setLocationState("unsupported");
     setLocationState("loading");
@@ -288,7 +249,6 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     setSuccess(false);
     if (!publishingEnabled) return setMessage("Adiciona e valida primeiro o IBAN para receberes as comissões.");
     if (!selectedRestaurant) return setMessage("Escolhe um restaurante.");
-    if (pendingSelection && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) return setMessage("Confirma o email de reservas do restaurante para enviarmos o pedido.");
     const form = new FormData(event.currentTarget);
     setLoading(true);
     try {
@@ -299,7 +259,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
           restaurantId: selectedRestaurant.bookingReady ? selectedRestaurant.id : null,
           externalPlaceProvider: pendingSelection ? selectedRestaurant.externalPlaceProvider : null,
           externalPlaceId: pendingSelection ? selectedRestaurant.externalPlaceId : null,
-          externalRestaurantEmail: pendingSelection ? contactEmail : null,
+          externalRestaurantEmail: pendingSelection ? selectedRestaurant.contactEmail : null,
           desiredDate,
           adults,
           children,
@@ -363,12 +323,12 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
               return <article key={restaurant.id} className={`relative overflow-hidden rounded-[18px] border p-2.5 transition ${selected ? "border-[#9E733D] bg-[#FFF7E9] shadow-[0_10px_28px_rgba(119,81,34,0.10)] ring-1 ring-[#C8A56A]/25" : restaurant.bookingReady ? "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A] hover:bg-white" : "border-[#E5DBCC] bg-[#FAF7F2]"}`}>{selected && <span className="absolute inset-y-0 left-0 w-1 bg-[#B88745]" />}
                 <button type="button" aria-pressed={selected} aria-label={`Escolher ${restaurant.name}`} onClick={() => setSelectedRestaurantId(restaurant.id)} className={`absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full border ${selected ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#D3BE9C] bg-white text-transparent"}`}>{selected ? <Check size={15} /> : restaurant.bookingReady ? <Check size={15} /> : <ShieldCheck size={14} />}</button>
                 <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-2.5 pr-11 sm:grid-cols-[84px_minmax(0,1fr)_150px] sm:gap-3">
-                  {restaurant.heroImage ? <div className="relative h-[72px] overflow-hidden rounded-[13px] bg-[#EADCC7] bg-cover bg-center shadow-[inset_0_0_0_1px_rgba(79,59,34,.08)] sm:h-[78px]" style={{ backgroundImage: `url(${restaurant.heroImage})` }} role="img" aria-label={restaurant.heroImageKind === "STREET" ? `Vista da rua junto a ${restaurant.name}` : restaurant.heroImageKind === "ILLUSTRATIVE" ? "Imagem ilustrativa de ambiente de restauração" : `Fotografia de ${restaurant.name}`}>{restaurant.heroImageKind === "STREET" && <span className="absolute bottom-1 left-1 rounded-full bg-[#17120D]/80 px-1.5 py-0.5 text-[6px] font-black uppercase tracking-[.08em] text-white">Vista da rua</span>}{restaurant.heroImageKind === "ILLUSTRATIVE" && <span className="absolute bottom-1 left-1 rounded-full bg-[#17120D]/80 px-1.5 py-0.5 text-[6px] font-black uppercase tracking-[.08em] text-white">Imagem ilustrativa</span>}</div> : <div className="grid h-[72px] place-items-center rounded-[13px] bg-[linear-gradient(145deg,#F0E4D1,#E2CFB3)] text-center text-[#9B7D57] sm:h-[78px]"><span><ImageIcon size={18} className="mx-auto" /><small className="mt-1 block text-[7px] font-bold uppercase tracking-[.08em]">Sem foto</small></span></div>}
+                  {restaurant.heroImage ? <div className="relative h-[72px] overflow-hidden rounded-[13px] bg-[#EADCC7] bg-cover bg-center shadow-[inset_0_0_0_1px_rgba(79,59,34,.08)] sm:h-[78px]" style={{ backgroundImage: `url(${restaurant.heroImage})` }} role="img" aria-label={`Fotografia de ${restaurant.name}`} /> : <div className="grid h-[72px] place-items-center rounded-[13px] bg-[linear-gradient(145deg,#F0E4D1,#E2CFB3)] text-center text-[#9B7D57] sm:h-[78px]"><span><ImageIcon size={18} className="mx-auto" /><small className="mt-1 block text-[7px] font-bold uppercase tracking-[.08em]">Sem foto</small></span></div>}
                   <div className="min-w-0"><div className="flex flex-wrap items-start gap-1.5"><p className="line-clamp-2 break-words text-sm font-semibold leading-4">{restaurant.name}</p>{restaurant.bookingReady ? <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">RESERVA IMEDIATA</span> : <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">CONFIRMAÇÃO PENDENTE</span>}{restaurant.source === "OPEN_DATA" && <span className="rounded-full bg-[#EDF7EF] px-1.5 py-0.5 text-[7px] font-black text-[#4F6C4D]">CATÁLOGO ABERTO</span>}{restaurant.googleBusinessConnected && <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">PERFIL LIGADO</span>}{restaurant.isDemo && <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">DEMO</span>}</div><div className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] font-bold"><span className="text-[#80613D]">{restaurant.cuisine}</span>{restaurant.googleRating != null && <span className="text-[#A36D19]" title={ratingSourceLabel(restaurant.ratingSource)}>★ {restaurant.googleRating.toFixed(1)}{restaurant.googleReviewCount != null && restaurant.googleReviewCount > 0 ? <span className="font-normal text-[#8A7863]"> ({restaurant.googleReviewCount})</span> : restaurant.ratingSource ? <span className="font-normal text-[#8A7863]"> · {ratingSourceShort(restaurant.ratingSource)}</span> : null}</span>}{restaurant.googlePriceLevel != null && <span className="tracking-[0.08em] text-[#4F6C4D]">{"€".repeat(Math.min(4, Math.max(1, restaurant.googlePriceLevel)))}</span>}</div><p className="mt-1 flex items-center gap-1 text-[10px] text-[#6B6258]"><MapPin size={11} className="shrink-0 text-[#9B6F3B]" />{distance !== null && Number.isFinite(distance) ? <strong className="shrink-0 text-[#4F6C4D]">{formatDistance(distance)} ·</strong> : null}<span className="line-clamp-1">{restaurant.address || "Portugal"}</span></p></div>
                   <div className="col-start-2 text-left sm:col-start-auto sm:text-right"><p className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8A7863]">Comissão atual</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{money(perPerson)} / pessoa</p><p className="text-[9px] text-[#8A7863]">{money(gross)} total</p>{desiredDate && restaurant.bookingReady && <p className="mt-0.5 text-[8px] font-bold text-[#4F6C4D]">{remainingCapacity(restaurant, desiredDate)} lugares livres</p>}</div>
                 </div>
                 {!restaurant.bookingReady && <p className="mt-2 rounded-xl bg-[#FFF4DE] px-3 py-2 text-[9px] leading-4 text-[#74613F]">Este restaurante aparece no catálogo público. A reserva fica pendente até o restaurante confirmar, recusar ou sugerir outro horário. Comissão inicial de 1,50 € por pessoa.</p>}
-                {selected && !restaurant.bookingReady && <div className="mt-2 rounded-xl border border-[#E1CFB0] bg-white p-3"><label className="block"><span className="mb-1.5 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-[#8A6130]">Email de reservas {contactState === "loading" && <LoaderCircle size={11} className="animate-spin" />}</span><input value={contactEmail} onChange={(event) => { setContactEmail(event.target.value); setContactState(event.target.value ? "found" : "missing"); }} type="email" required maxLength={160} placeholder="reservas@restaurante.pt" className={compactInputClass} /></label><p className="mt-1.5 text-[9px] leading-4 text-[#75695D]">{contactState === "loading" ? "A procurar o contacto público do restaurante…" : contactState === "found" ? "Confirma o email antes de enviar. O pedido de reserva será enviado para este endereço." : "Não encontrámos um email público. Introduz o email de reservas para enviar o pedido."}</p></div>}
+                {selected && !restaurant.bookingReady && <div className="mt-2 rounded-xl border border-[#D8E5D5] bg-[#F3FAF2] p-3"><p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-[#4F6C4D]"><ShieldCheck size={12} /> Contacto público verificado automaticamente</p><p className="mt-1.5 text-[9px] leading-4 text-[#64705F]">O pedido será enviado para o contacto de reservas publicado pelo restaurante. Não precisas de confirmar nem introduzir o email.</p></div>}
                 <details className="group mt-2 border-t border-[#EEE3D3] pt-2"><summary className="flex cursor-pointer list-none items-center justify-between text-[10px] font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><UtensilsCrossed size={12} /> Mini-perfil, fotografias e menu</span><span className="transition group-open:rotate-180">⌄</span></summary><div className="mt-2 rounded-xl bg-white p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[11px] leading-4 text-[#6B6258]">{restaurant.description}</p>{restaurant.googleBusinessConnected && <span className="rounded-full bg-[#EAF4E8] px-2.5 py-1 text-[8px] font-black uppercase text-[#456846]">Perfil Google Maps integrado</span>}</div>{restaurant.openingHours && <p className="mt-2 text-[9px] leading-4 text-[#75695D]"><strong>Horário publicado:</strong> {restaurant.openingHours}</p>}{restaurant.galleryImages.length > 0 && <div className="mt-2 grid grid-cols-3 gap-2">{restaurant.galleryImages.slice(0, 3).map((image) => <div key={image} className="h-20 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} role="img" aria-label={`Fotografia de ${restaurant.name}`} />)}</div>}<div className="mt-3 flex flex-wrap gap-3">{restaurant.menuUrl && <a href={restaurant.menuUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Abrir menu <ExternalLink size={12} /></a>}{restaurant.websiteUrl && <a href={restaurant.websiteUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Site oficial <ExternalLink size={12} /></a>}{restaurant.googleMapsUrl && <a href={restaurant.googleMapsUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#4F6C4D]">Abrir mapa <ExternalLink size={12} /></a>}</div></div></details>
                 {restaurant.bookingReady && !restaurant.isDemo && <CommissionNegotiation restaurant={restaurant} />}
               </article>;
@@ -380,7 +340,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
             <div><strong className="block text-sm">Catálogo aberto de restaurantes</strong><span className="mt-1 block text-[10px] leading-5 text-[#75695D]">Os restaurantes MesaLink confirmam de imediato. Todos os restantes ficam como “Reserva pendente de confirmação”.</span>{catalogMessage && <span className={`mt-1 block text-[9px] font-semibold ${catalogConfigured ? "text-[#8A6130]" : "text-[#A14E36]"}`}>{catalogMessage}</span>}</div>
             <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
               {nextPageToken && <button type="button" disabled={catalogLoading} onClick={() => void fetchCatalogRestaurants(nextPageToken, true)} className="h-9 rounded-full border border-[#CDBA9C] bg-white px-4 text-[9px] font-bold text-[#6E5232] disabled:opacity-50">{catalogLoading ? "A carregar…" : "Mostrar mais restaurantes"}</button>}
-              <span className="text-[8px] font-semibold text-[#7E7469]">Locais: <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer" className="underline">Geoapify</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="underline">© OpenStreetMap</a> · Vistas da rua: <a href="https://kartaview.org/" target="_blank" rel="noreferrer" className="underline">© KartaView contributors, CC BY-SA</a></span>
+              <span className="text-[8px] font-semibold text-[#7E7469]">Dados e fotografias: sites oficiais dos restaurantes · Localização complementar: <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer" className="underline">Geoapify</a> e <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="underline">© OpenStreetMap</a></span>
             </div>
           </div>
         </section>
@@ -393,7 +353,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
           <p className="mt-3 text-[9px] leading-4 text-white/45">{pendingSelection ? "O pedido só fica confirmado depois da resposta do restaurante. Ao valor aplicam-se impostos, comissão MesaLink e taxas de processamento." : "Os restaurantes MesaLink ativos confirmam de imediato. Ao valor aplicam-se impostos, comissão MesaLink e taxas de processamento."}</p>
         </div>
         {message && <div className={`rounded-[18px] border p-3 text-xs font-semibold ${success ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : "border-[#EDC7BB] bg-[#FFF0EA] text-[#A14E36]"}`}>{message}</div>}
-        <button disabled={!publishingEnabled || loading || !selectedRestaurant || !desiredDate || (pendingSelection && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail))} className="h-12 w-full rounded-full bg-[#C8A56A] px-5 text-xs font-black text-[#17120D] shadow-[0_14px_35px_rgba(156,112,51,0.18)] transition hover:bg-[#D8BA7D] disabled:cursor-not-allowed disabled:opacity-45">{!publishingEnabled ? "Adicionar IBAN" : loading ? "A enviar…" : pendingSelection ? "Enviar pedido de confirmação" : "Confirmar e reservar"}</button>
+        <button disabled={!publishingEnabled || loading || !selectedRestaurant || !desiredDate} className="h-12 w-full rounded-full bg-[#C8A56A] px-5 text-xs font-black text-[#17120D] shadow-[0_14px_35px_rgba(156,112,51,0.18)] transition hover:bg-[#D8BA7D] disabled:cursor-not-allowed disabled:opacity-45">{!publishingEnabled ? "Adicionar IBAN" : loading ? "A enviar…" : pendingSelection ? "Enviar pedido de confirmação" : "Confirmar e reservar"}</button>
       </aside>
     </form>
   );
@@ -484,8 +444,8 @@ function externalPartnerRestaurant(item: ExternalRestaurantSearchItem): PartnerR
     cuisine: item.cuisine || "Restaurante",
     address: item.address || "Portugal",
     description: item.description || "Restaurante disponível no catálogo público de estabelecimentos.",
-    heroImage: item.heroImage || illustrativeRestaurantImage(item),
-    heroImageKind: item.heroImage ? (isKartaViewImage(item.heroImage) ? "STREET" : "PHOTO") : "ILLUSTRATIVE",
+    heroImage: item.heroImage || "",
+    heroImageKind: item.heroImage ? "PHOTO" : "NONE",
     galleryImages: Array.isArray(item.galleryImages) ? item.galleryImages : [],
     highlights: [],
     menuUrl: "",
@@ -563,22 +523,6 @@ function ratingSourceLabel(source: string) {
   if (source === "GOOGLE") return "Avaliação Google ligada pelo restaurante";
   if (source === "DEMO") return "Dados de demonstração";
   return "Avaliação pública disponível";
-}
-
-function isKartaViewImage(url: string) {
-  try { return new URL(url).hostname === "api.openstreetcam.org"; } catch { return false; }
-}
-
-function illustrativeRestaurantImage(item: Pick<ExternalRestaurantSearchItem, "name" | "cuisine">) {
-  const images = [
-    "/demo-restaurants/verde-mesa.webp",
-    "/demo-restaurants/sora-porto.webp",
-    "/demo-restaurants/brasa-atlantica.webp",
-    "/demo-restaurants/aurora-lisboa.webp",
-  ];
-  const identity = `${item.name}:${item.cuisine}`;
-  const hash = [...identity].reduce((total, character) => ((total * 31) + character.charCodeAt(0)) >>> 0, 0);
-  return images[hash % images.length];
 }
 
 function validEmail(value: string) {

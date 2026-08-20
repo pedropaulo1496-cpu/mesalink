@@ -17,7 +17,33 @@ import {
 import { getExternalRestaurant } from "@/lib/geoapify-places";
 import { discoverRestaurantEmail } from "@/lib/restaurant-contact-discovery";
 
-const EXTERNAL_PLACE_PROVIDER = "GEOAPIFY";
+const EXTERNAL_PLACE_PROVIDERS = new Set(["GEOAPIFY", "CURATED"]);
+
+function placeFromCatalog(placeId: string, row: {
+  name: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  phone: string | null;
+  mapUrl: string | null;
+  websiteUrl: string | null;
+  contactEmail: string | null;
+}) {
+  const name = row.name || "Restaurante";
+  const address = row.address || "Portugal";
+  return {
+    provider: "CURATED" as const,
+    placeId,
+    name,
+    address,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    phone: row.phone || "",
+    email: row.contactEmail || "",
+    websiteUrl: row.websiteUrl || "",
+    mapUrl: row.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name}, ${address}`)}`,
+  };
+}
 
 export async function POST(request: Request) {
   let createdGroupId: string | null = null;
@@ -32,7 +58,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null);
     const restaurantId = typeof body?.restaurantId === "string" ? body.restaurantId : "";
     const externalPlaceId = typeof body?.externalPlaceId === "string" ? body.externalPlaceId.trim().slice(0, 500) : "";
-    const externalPlaceProvider = body?.externalPlaceProvider === EXTERNAL_PLACE_PROVIDER ? EXTERNAL_PLACE_PROVIDER : "";
+    const externalPlaceProvider = typeof body?.externalPlaceProvider === "string" && EXTERNAL_PLACE_PROVIDERS.has(body.externalPlaceProvider) ? body.externalPlaceProvider : "";
     const externalRestaurantEmail = typeof body?.externalRestaurantEmail === "string" ? body.externalRestaurantEmail.trim().toLowerCase().slice(0, 160) : "";
     const externalRequest = !restaurantId && Boolean(externalPlaceId && externalPlaceProvider);
     const adults = Number(body?.adults);
@@ -58,11 +84,11 @@ export async function POST(request: Request) {
     if (externalRequest) {
       const maxDate = new Date(Date.now() + EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
       if (
-        !externalPlaceId || externalPlaceProvider !== EXTERNAL_PLACE_PROVIDER
+        !externalPlaceId || !EXTERNAL_PLACE_PROVIDERS.has(externalPlaceProvider)
         || (externalRestaurantEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(externalRestaurantEmail))
         || desiredDate > maxDate
       ) {
-        return NextResponse.json({ error: `Escolhe um restaurante válido do catálogo, confirma o email de reservas e seleciona uma data nos próximos ${EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS} dias.` }, { status: 400 });
+        return NextResponse.json({ error: `Escolhe um restaurante válido do catálogo e seleciona uma data nos próximos ${EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS} dias.` }, { status: 400 });
       }
     }
 
@@ -76,18 +102,24 @@ export async function POST(request: Request) {
     const publicCode = createReferralCode();
 
     if (externalRequest) {
-      const [place, catalog, placeRestaurant] = await Promise.all([
-        getExternalRestaurant(externalPlaceId),
-        prisma.externalRestaurantPlace.findUnique({ where: { placeId: externalPlaceId }, select: { contactEmail: true } }),
+      const [catalog, placeRestaurant] = await Promise.all([
+        prisma.externalRestaurantPlace.findFirst({
+          where: { provider: externalPlaceProvider, placeId: externalPlaceId },
+          select: { name: true, address: true, latitude: true, longitude: true, phone: true, mapUrl: true, websiteUrl: true, heroImage: true, contactEmail: true, published: true },
+        }),
         prisma.restaurant.findFirst({
           where: { externalPlaceProvider, externalPlaceId },
           select: { id: true, name: true, email: true, externalPlaceProvider: true, externalPlaceId: true },
         }),
       ]);
-      let contactEmail = externalRestaurantEmail || placeRestaurant?.email || catalog?.contactEmail || place.email || "";
+      if (externalPlaceProvider === "CURATED" && (!catalog?.published || !catalog.heroImage || !catalog.contactEmail)) {
+        return NextResponse.json({ error: "Este restaurante deixou de estar disponível no catálogo verificado." }, { status: 409 });
+      }
+      const place = externalPlaceProvider === "CURATED" ? placeFromCatalog(externalPlaceId, catalog!) : await getExternalRestaurant(externalPlaceId);
+      let contactEmail = catalog?.contactEmail || placeRestaurant?.email || externalRestaurantEmail || place.email || "";
       if (!contactEmail && place.websiteUrl) contactEmail = await discoverRestaurantEmail(place.websiteUrl) || "";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
-        return NextResponse.json({ error: "Não encontrámos automaticamente o email deste restaurante. Confirma o email de reservas para enviar o pedido." }, { status: 400 });
+        return NextResponse.json({ error: "O contacto público deste restaurante deixou de estar disponível. Escolhe outro restaurante." }, { status: 409 });
       }
 
       let restaurant = placeRestaurant;
