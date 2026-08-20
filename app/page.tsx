@@ -47,7 +47,7 @@ const salesCopy = {
       discovered: "Cliente encontrado",
       channel: "Google · Instagram · Website",
       partner: "Reserva de parceiro",
-      partnerDetail: "Hotel parceiro · 8 pessoas",
+      partnerDetail: "Parceiro · Hotel · 8 pessoas",
       booked: "Reserva confirmada",
       bookedDetail: "Hoje · 20:00 · 4 pessoas",
       return: "Próxima visita preparada",

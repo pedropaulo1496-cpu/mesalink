@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { CalendarCheck2, Clock3, Mail, MapPin, Phone, Search, UserRoundCheck } from "lucide-react";
+import { CalendarCheck2, Clock3, Mail, MapPin, MessageCircle, Phone, Search, UserRoundCheck } from "lucide-react";
 import { PageHeading, StatCard, dateTime, euroAmount, inputClass, buttonClass } from "@/components/backoffice/BackofficeUI";
 import { prisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff-auth";
+import { openPartnerSupportChat } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +84,7 @@ export default async function BackofficePartnersPage({ searchParams }: { searchP
               <Mini label="Líquido parceiro" value={euroAmount(net)} />
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#EEE3D3] pt-3 text-[9px] text-[#75695D]"><span>Registo: <strong>{dateTime(partner.createdAt)}</strong></span><span>·</span><span>{partner._count.agreements} acordos</span><span>·</span><span>{partner._count.groups} pedidos</span><span>·</span><span>{partner._count.payments} pagamentos</span><span>·</span><span className={`font-bold ${partner.stripeOnboardingComplete ? "text-[#3F6A4D]" : "text-[#A14E36]"}`}>{partner.stripeOnboardingComplete ? "IBAN/Stripe validado" : "IBAN por validar"}</span></div>
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#EEE3D3] pt-3 text-[9px] text-[#75695D]"><span>Registo: <strong>{dateTime(partner.createdAt)}</strong></span><span>·</span><span>{partner._count.agreements} acordos</span><span>·</span><span>{partner._count.groups} pedidos</span><span>·</span><span>{partner._count.payments} pagamentos</span><span>·</span><span className={`font-bold ${partner.stripeOnboardingComplete ? "text-[#3F6A4D]" : "text-[#A14E36]"}`}>{partner.stripeOnboardingComplete ? "IBAN/Stripe validado" : "IBAN por validar"}</span><form action={openPartnerSupportChat} className="ml-auto"><input type="hidden" name="partnerId" value={partner.id} /><button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-[#D7B267] bg-[#FFF9F0] px-4 text-[9px] font-black uppercase tracking-[0.08em] text-[#684A25]"><MessageCircle size={13} /> Chat</button></form></div>
         </article>;
       })}
       {!partners.length && <div className="rounded-2xl border border-dashed border-[#DCC9AA] bg-white p-7 text-center text-[13px] text-[#6B6258]">Nenhum parceiro encontrado.</div>}

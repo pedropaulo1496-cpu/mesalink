@@ -601,6 +601,20 @@ export async function openClientSupportChat(formData: FormData) {
   finish(`/backoffice/chat?mode=clients&client=${conversation.id}`, "chat-opened");
 }
 
+export async function openPartnerSupportChat(formData: FormData) {
+  await assertBackofficeAdmin();
+  const partnerId = clean(formData.get("partnerId"));
+  if (!partnerId) throw new Error("Parceiro inválido.");
+  const partner = await prisma.referralPartner.findUnique({ where: { id: partnerId }, select: { id: true } });
+  if (!partner) throw new Error("Parceiro não encontrado.");
+  const conversation = await prisma.supportConversation.upsert({
+    where: { partnerId: partner.id },
+    create: { partnerId: partner.id },
+    update: {},
+  });
+  finish(`/backoffice/chat?mode=partners&partner=${conversation.id}`, "partner-chat-opened");
+}
+
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character]!);
 }

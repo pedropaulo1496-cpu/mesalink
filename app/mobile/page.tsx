@@ -46,7 +46,7 @@ const mobileCopy = {
     enginesTitle: "Não é só gestão. É negócio novo.",
     engines: [
       ["Reservas diretas", "Converte quem já procura o restaurante, sem comissão por pessoa."],
-      ["Rede de Parceiros", "Hotéis e parceiros enviam clientes que provavelmente não chegariam até ti."],
+      ["Rede de Parceiros", "Os parceiros enviam clientes que provavelmente não chegariam até ti."],
       ["Revenue AI", "Cancelamentos, no-shows e chamadas não atendidas voltam a ser oportunidades."],
     ],
     networkEyebrow: "Funcionalidade em destaque",
