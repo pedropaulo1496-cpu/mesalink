@@ -3,7 +3,7 @@ import { getPartnerIdentity } from "@/lib/partner-auth";
 import { getExternalRestaurant } from "@/lib/geoapify-places";
 import { findKartaViewStreetPhoto } from "@/lib/kartaview-photos";
 import { prisma } from "@/lib/prisma";
-import { discoverRestaurantPresentation } from "@/lib/restaurant-contact-discovery";
+import { discoverRestaurantEmail, discoverRestaurantPresentation } from "@/lib/restaurant-contact-discovery";
 
 const EXTERNAL_PROVIDER = "GEOAPIFY";
 const MAX_PLACES = 8;
@@ -29,11 +29,15 @@ export async function POST(request: Request) {
   const restaurants = await Promise.all(placeIds.map(async (placeId) => {
     const row = cached.get(placeId);
     const photoAlreadyChecked = Boolean(row?.photoCheckedAt && row.photoCheckedAt > freshAfter);
-    if (row?.enrichedAt && row.enrichedAt > freshAfter && (row.heroImage || photoAlreadyChecked)) return profileFromRow(row);
+    const contactAlreadyChecked = Boolean(row?.contactCheckedAt && row.contactCheckedAt > freshAfter);
+    if (row?.enrichedAt && row.enrichedAt > freshAfter && (row.heroImage || photoAlreadyChecked) && contactAlreadyChecked) return profileFromRow(row);
     try {
       const place = await getExternalRestaurant(placeId);
-      const websiteProfile = place.websiteUrl ? await discoverRestaurantPresentation(place.websiteUrl) : null;
-      const shouldTryStreetPhoto = !websiteProfile?.heroImage && !place.heroImage;
+      const [websiteProfile, discoveredEmail] = await Promise.all([
+        place.websiteUrl ? discoverRestaurantPresentation(place.websiteUrl) : null,
+        place.email ? Promise.resolve(place.email) : place.websiteUrl ? discoverRestaurantEmail(place.websiteUrl) : null,
+      ]);
+      const shouldTryStreetPhoto = Boolean(discoveredEmail) && !websiteProfile?.heroImage && !place.heroImage;
       let streetPhoto = null;
       if (shouldTryStreetPhoto) {
         try {
@@ -59,8 +63,10 @@ export async function POST(request: Request) {
         reviewCount,
         ratingSource: ratingSource || null,
         priceLevel: websiteProfile?.priceLevel ?? place.priceLevel,
+        contactEmail: discoveredEmail || null,
+        contactCheckedAt: new Date(),
         enrichedAt: new Date(),
-        photoCheckedAt: shouldTryStreetPhoto ? new Date() : row?.photoCheckedAt || null,
+        photoCheckedAt: shouldTryStreetPhoto || !discoveredEmail ? new Date() : row?.photoCheckedAt || null,
       };
       const saved = await prisma.externalRestaurantPlace.upsert({
         where: { placeId },
@@ -89,6 +95,8 @@ const profileSelect = {
   reviewCount: true,
   ratingSource: true,
   priceLevel: true,
+  contactEmail: true,
+  contactCheckedAt: true,
   enrichedAt: true,
   photoCheckedAt: true,
 } as const;
@@ -105,6 +113,8 @@ function profileFromRow(row: {
   reviewCount: number | null;
   ratingSource: string | null;
   priceLevel: number | null;
+  contactEmail: string | null;
+  contactCheckedAt: Date | null;
   enrichedAt: Date | null;
   photoCheckedAt: Date | null;
 }) {
@@ -120,6 +130,7 @@ function profileFromRow(row: {
     reviewCount: row.reviewCount,
     ratingSource: row.ratingSource || "",
     priceLevel: row.priceLevel,
+    contactEmail: row.contactEmail || "",
   };
 }
 

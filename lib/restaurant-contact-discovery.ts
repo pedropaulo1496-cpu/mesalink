@@ -7,16 +7,12 @@ const CONTACT_PATHS = ["/", "/contactos", "/contact", "/reservas"];
 export async function discoverRestaurantEmail(websiteUrl: string) {
   const root = await safePublicUrl(websiteUrl);
   if (!root) return null;
-  for (const path of CONTACT_PATHS) {
-    const pageUrl = new URL(path, root);
-    const page = await fetchHtml(pageUrl).catch(() => null);
-    if (!page) continue;
-    const emails = extractEmails(page.html);
-    const preferred = emails.find((email) => /^(reservas|reserva|booking|bookings|info|geral|contacto|contact)@/i.test(email));
-    if (preferred) return preferred;
-    if (emails[0]) return emails[0];
-  }
-  return null;
+  const pages = await Promise.all(CONTACT_PATHS.map((path) => fetchHtml(new URL(path, root)).catch(() => null)));
+  const emails = [...new Set(pages.flatMap((page) => page ? extractEmails(page.html) : []))];
+  return emails.find((email) => /^(reservas|reserva|reservations|reservation|booking|bookings)@/i.test(email))
+    || emails.find((email) => /^(info|geral|contacto|contact)@/i.test(email))
+    || emails[0]
+    || null;
 }
 
 export type RestaurantPresentation = {

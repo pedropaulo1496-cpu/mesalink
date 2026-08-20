@@ -53,6 +53,7 @@ export default async function PartnerAppPage({
     select: {
       id: true,
       userId: true,
+      email: true,
       name: true,
       slug: true,
       address: true,
@@ -195,6 +196,7 @@ export default async function PartnerAppPage({
       name: restaurant.googleBusinessTitle || restaurant.name,
       isDemo,
       bookingReady,
+      contactEmail: restaurant.email,
       cuisine: profile.cuisine,
       address: restaurant.googleBusinessAddress || restaurant.address || "",
       latitude: restaurant.latitude,

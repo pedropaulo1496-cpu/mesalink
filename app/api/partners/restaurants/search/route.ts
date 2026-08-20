@@ -37,7 +37,7 @@ export async function GET(request: Request) {
       }),
       prisma.externalRestaurantPlace.findMany({
         where: { provider: EXTERNAL_PROVIDER, placeId: { in: placeIds } },
-        select: { placeId: true, websiteUrl: true, heroImage: true, galleryImages: true, description: true, openingHours: true, rating: true, reviewCount: true, ratingSource: true, priceLevel: true },
+        select: { placeId: true, websiteUrl: true, heroImage: true, galleryImages: true, description: true, openingHours: true, rating: true, reviewCount: true, ratingSource: true, priceLevel: true, contactEmail: true },
       }),
     ]) : [[], []];
     const byPlaceId = new Map(existing.filter((item) => item.externalPlaceId).map((item) => [item.externalPlaceId!, item]));
@@ -64,9 +64,10 @@ export async function GET(request: Request) {
           reviewCount: profile?.reviewCount ?? restaurant.reviewCount,
           ratingSource: profile?.ratingSource || restaurant.ratingSource,
           priceLevel: profile?.priceLevel ?? restaurant.priceLevel,
+          contactEmail: profile?.contactEmail || restaurant.email,
           mesalinkRestaurantId: bookingReady ? local!.id : null,
           bookingReady,
-          contactKnown: Boolean(local?.email),
+          contactKnown: Boolean(local?.email || profile?.contactEmail || restaurant.email),
         };
       }),
       nextPageToken: result.nextPageToken,
