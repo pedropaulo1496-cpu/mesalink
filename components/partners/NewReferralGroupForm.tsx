@@ -19,6 +19,7 @@ export type PartnerRestaurant = {
   address: string;
   description: string;
   heroImage: string;
+  heroImageKind: "PHOTO" | "MAP" | "NONE";
   galleryImages: string[];
   highlights: string[];
   menuUrl: string;
@@ -139,34 +140,37 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   }, []);
 
   const enrichCatalogRestaurants = useCallback(async (items: PartnerRestaurant[]) => {
-    const placeIds = items.filter((item) => item.source === "OPEN_DATA" && item.externalPlaceId).slice(0, 8).map((item) => item.externalPlaceId!);
+    const placeIds = items.filter((item) => item.source === "OPEN_DATA" && item.externalPlaceId).map((item) => item.externalPlaceId!);
     if (!placeIds.length) return;
-    try {
-      const response = await fetch("/api/partners/restaurants/enrich", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeIds }),
-      });
-      const data = await response.json().catch(() => null);
-      if (!response.ok || !Array.isArray(data?.restaurants)) return;
-      const profiles = new Map<string, ExternalRestaurantEnrichment>((data.restaurants as ExternalRestaurantEnrichment[]).map((profile) => [`${profile.provider}:${profile.placeId}`, profile]));
-      setCatalogRestaurants((current) => current.map((restaurant) => {
-        const profile = profiles.get(externalPlaceKey(restaurant));
-        if (!profile) return restaurant;
-        return {
-          ...restaurant,
-          heroImage: profile.heroImage || restaurant.heroImage,
-          galleryImages: profile.galleryImages?.length ? profile.galleryImages : restaurant.galleryImages,
-          description: profile.description || restaurant.description,
-          openingHours: profile.openingHours || restaurant.openingHours,
-          googleRating: profile.rating ?? restaurant.googleRating,
-          googleReviewCount: profile.reviewCount ?? restaurant.googleReviewCount,
-          googlePriceLevel: profile.priceLevel ?? restaurant.googlePriceLevel,
-          ratingSource: profile.ratingSource || restaurant.ratingSource,
-          websiteUrl: profile.websiteUrl || restaurant.websiteUrl,
-        };
-      }));
-    } catch { /* The base catalogue remains usable if enrichment is unavailable. */ }
+    for (let start = 0; start < placeIds.length; start += 8) {
+      try {
+        const response = await fetch("/api/partners/restaurants/enrich", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ placeIds: placeIds.slice(start, start + 8) }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok || !Array.isArray(data?.restaurants)) continue;
+        const profiles = new Map<string, ExternalRestaurantEnrichment>((data.restaurants as ExternalRestaurantEnrichment[]).map((profile) => [`${profile.provider}:${profile.placeId}`, profile]));
+        setCatalogRestaurants((current) => current.map((restaurant) => {
+          const profile = profiles.get(externalPlaceKey(restaurant));
+          if (!profile) return restaurant;
+          return {
+            ...restaurant,
+            heroImage: profile.heroImage || restaurant.heroImage,
+            heroImageKind: profile.heroImage ? "PHOTO" : restaurant.heroImageKind,
+            galleryImages: profile.galleryImages?.length ? profile.galleryImages : restaurant.galleryImages,
+            description: profile.description || restaurant.description,
+            openingHours: profile.openingHours || restaurant.openingHours,
+            googleRating: profile.rating ?? restaurant.googleRating,
+            googleReviewCount: profile.reviewCount ?? restaurant.googleReviewCount,
+            googlePriceLevel: profile.priceLevel ?? restaurant.googlePriceLevel,
+            ratingSource: profile.ratingSource || restaurant.ratingSource,
+            websiteUrl: profile.websiteUrl || restaurant.websiteUrl,
+          };
+        }));
+      } catch { /* The base catalogue remains usable if enrichment is unavailable. */ }
+    }
   }, []);
 
   const fetchCatalogRestaurants = useCallback(async (pageToken: string | null, append: boolean, signal?: AbortSignal) => {
@@ -343,7 +347,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
               return <article key={restaurant.id} className={`relative overflow-hidden rounded-[18px] border p-2.5 transition ${selected ? "border-[#9E733D] bg-[#FFF7E9] shadow-[0_10px_28px_rgba(119,81,34,0.10)] ring-1 ring-[#C8A56A]/25" : restaurant.bookingReady ? "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A] hover:bg-white" : "border-[#E5DBCC] bg-[#FAF7F2]"}`}>{selected && <span className="absolute inset-y-0 left-0 w-1 bg-[#B88745]" />}
                 <button type="button" aria-pressed={selected} aria-label={`Escolher ${restaurant.name}`} onClick={() => setSelectedRestaurantId(restaurant.id)} className={`absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full border ${selected ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#D3BE9C] bg-white text-transparent"}`}>{selected ? <Check size={15} /> : restaurant.bookingReady ? <Check size={15} /> : <ShieldCheck size={14} />}</button>
                 <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-2.5 pr-11 sm:grid-cols-[84px_minmax(0,1fr)_150px] sm:gap-3">
-                  {restaurant.heroImage ? <div className="h-[72px] rounded-[13px] bg-[#EADCC7] bg-cover bg-center shadow-[inset_0_0_0_1px_rgba(79,59,34,.08)] sm:h-[78px]" style={{ backgroundImage: `url(${restaurant.heroImage})` }} role="img" aria-label={`Fotografia de ${restaurant.name}`} /> : <div className="grid h-[72px] place-items-center rounded-[13px] bg-[linear-gradient(145deg,#F0E4D1,#E2CFB3)] text-center text-[#9B7D57] sm:h-[78px]"><span><ImageIcon size={18} className="mx-auto" /><small className="mt-1 block text-[7px] font-bold uppercase tracking-[.08em]">Sem foto</small></span></div>}
+                  {restaurant.heroImage ? <div className="relative h-[72px] overflow-hidden rounded-[13px] bg-[#EADCC7] bg-cover bg-center shadow-[inset_0_0_0_1px_rgba(79,59,34,.08)] sm:h-[78px]" style={{ backgroundImage: `url(${restaurant.heroImage})` }} role="img" aria-label={restaurant.heroImageKind === "MAP" ? `Localização de ${restaurant.name}` : `Fotografia de ${restaurant.name}`}>{restaurant.heroImageKind === "MAP" && <span className="absolute bottom-1 left-1 rounded-full bg-[#17120D]/80 px-1.5 py-0.5 text-[6px] font-black uppercase tracking-[.08em] text-white">Localização</span>}</div> : <div className="grid h-[72px] place-items-center rounded-[13px] bg-[linear-gradient(145deg,#F0E4D1,#E2CFB3)] text-center text-[#9B7D57] sm:h-[78px]"><span><ImageIcon size={18} className="mx-auto" /><small className="mt-1 block text-[7px] font-bold uppercase tracking-[.08em]">Sem foto</small></span></div>}
                   <div className="min-w-0"><div className="flex flex-wrap items-start gap-1.5"><p className="line-clamp-2 break-words text-sm font-semibold leading-4">{restaurant.name}</p>{restaurant.bookingReady ? <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">RESERVA IMEDIATA</span> : <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">CONFIRMAÇÃO PENDENTE</span>}{restaurant.source === "OPEN_DATA" && <span className="rounded-full bg-[#EDF7EF] px-1.5 py-0.5 text-[7px] font-black text-[#4F6C4D]">CATÁLOGO ABERTO</span>}{restaurant.googleBusinessConnected && <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">PERFIL LIGADO</span>}{restaurant.isDemo && <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">DEMO</span>}</div><div className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] font-bold"><span className="text-[#80613D]">{restaurant.cuisine}</span>{restaurant.googleRating != null && <span className="text-[#A36D19]" title={ratingSourceLabel(restaurant.ratingSource)}>★ {restaurant.googleRating.toFixed(1)}{restaurant.googleReviewCount != null && restaurant.googleReviewCount > 0 ? <span className="font-normal text-[#8A7863]"> ({restaurant.googleReviewCount})</span> : restaurant.ratingSource ? <span className="font-normal text-[#8A7863]"> · {ratingSourceShort(restaurant.ratingSource)}</span> : null}</span>}{restaurant.googlePriceLevel != null && <span className="tracking-[0.08em] text-[#4F6C4D]">{"€".repeat(Math.min(4, Math.max(1, restaurant.googlePriceLevel)))}</span>}</div><p className="mt-1 flex items-center gap-1 text-[10px] text-[#6B6258]"><MapPin size={11} className="shrink-0 text-[#9B6F3B]" />{distance !== null && Number.isFinite(distance) ? <strong className="shrink-0 text-[#4F6C4D]">{formatDistance(distance)} ·</strong> : null}<span className="line-clamp-1">{restaurant.address || "Portugal"}</span></p></div>
                   <div className="col-start-2 text-left sm:col-start-auto sm:text-right"><p className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8A7863]">Comissão atual</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{money(perPerson)} / pessoa</p><p className="text-[9px] text-[#8A7863]">{money(gross)} total</p>{desiredDate && restaurant.bookingReady && <p className="mt-0.5 text-[8px] font-bold text-[#4F6C4D]">{remainingCapacity(restaurant, desiredDate)} lugares livres</p>}</div>
                 </div>
@@ -463,7 +467,8 @@ function externalPartnerRestaurant(item: ExternalRestaurantSearchItem): PartnerR
     cuisine: item.cuisine || "Restaurante",
     address: item.address || "Portugal",
     description: item.description || "Restaurante disponível no catálogo público de estabelecimentos.",
-    heroImage: item.heroImage || "",
+    heroImage: item.heroImage || mapPreviewUrl(item.latitude, item.longitude),
+    heroImageKind: item.heroImage ? "PHOTO" : item.latitude != null && item.longitude != null ? "MAP" : "NONE",
     galleryImages: Array.isArray(item.galleryImages) ? item.galleryImages : [],
     highlights: [],
     menuUrl: "",
@@ -541,6 +546,12 @@ function ratingSourceLabel(source: string) {
   if (source === "GOOGLE") return "Avaliação Google ligada pelo restaurante";
   if (source === "DEMO") return "Dados de demonstração";
   return "Avaliação pública disponível";
+}
+
+function mapPreviewUrl(latitude: number | null, longitude: number | null) {
+  if (latitude == null || longitude == null) return "";
+  const params = new URLSearchParams({ lat: latitude.toFixed(6), lng: longitude.toFixed(6) });
+  return `/api/partners/restaurants/map-preview?${params}`;
 }
 
 function externalPlaceKey(restaurant: Pick<PartnerRestaurant, "externalPlaceProvider" | "externalPlaceId">) {

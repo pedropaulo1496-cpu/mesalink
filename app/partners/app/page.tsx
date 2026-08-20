@@ -201,6 +201,7 @@ export default async function PartnerAppPage({
       longitude: restaurant.longitude,
       description: profile.description,
       heroImage: profile.heroImage,
+      heroImageKind: profile.heroImage ? "PHOTO" as const : "NONE" as const,
       galleryImages: profile.galleryImages,
       highlights: profile.highlights,
       menuUrl: profile.menuUrl,
