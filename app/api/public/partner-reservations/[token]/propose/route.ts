@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS, findExternalReferralOffer, notifyExternalReferralOutcome } from "@/lib/external-referral-requests";
+import { EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS, findExternalReferralOffer, isExternalReferralSimulation, notifyExternalReferralOutcome } from "@/lib/external-referral-requests";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request, { params }: { params: Promise<{ token: string }> }) {
@@ -13,6 +13,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
   const maxDate = new Date(Date.now() + EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
   if (Number.isNaN(alternativeDate.getTime()) || alternativeDate <= minDate || alternativeDate > maxDate) {
     backUrl.searchParams.set("result", "invalid-alternative");
+    return NextResponse.redirect(backUrl, 303);
+  }
+  if (isExternalReferralSimulation(offer)) {
+    backUrl.searchParams.set("result", "simulated-alternative");
     return NextResponse.redirect(backUrl, 303);
   }
   await prisma.$transaction([

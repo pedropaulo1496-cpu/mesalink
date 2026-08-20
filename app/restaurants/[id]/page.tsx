@@ -16,7 +16,6 @@ import {
   MapPin,
   Plus,
   QrCode,
-  Settings,
   Sparkles,
   Star,
   UsersRound,
@@ -341,36 +340,8 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       <div className="grid min-h-screen lg:grid-cols-[276px_1fr]">
         <RestaurantSidebar id={id} restaurantName={restaurant.name} />
 
-        <section className="min-w-0 px-3 pb-28 pt-0 sm:px-5 lg:px-8 lg:pb-8 lg:pt-7">
-          <header className="sticky top-0 z-30 -mx-3 mb-3 border-b border-[#DCCDB8]/80 bg-[#F5EFE6]/95 px-3 pb-3 pt-[calc(0.7rem+env(safe-area-inset-top))] backdrop-blur-xl sm:-mx-5 sm:px-5 lg:hidden">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] bg-[#17120D] text-base font-black text-[#D7B267] shadow-[0_8px_22px_rgba(23,18,13,0.16)]">M</span>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-[#8A6B43]">MesaLink</p>
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${restaurant.onlineReservationsEnabled ? "bg-[#57A768]" : "bg-[#C45A43]"}`} />
-                  </div>
-                  <p className="mt-0.5 truncate text-[15px] font-bold leading-tight">{restaurant.name}</p>
-                </div>
-              </div>
-              <Link href={`/restaurants/${id}/settings`} aria-label="Definições" className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] border border-[#DCC9AA] bg-white text-[#6B5436] shadow-[0_6px_18px_rgba(80,55,30,0.06)]">
-                <Settings size={18} />
-              </Link>
-            </div>
-          </header>
-
-          <div className="mb-3 flex items-end justify-between gap-3 lg:hidden">
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">Visão geral</p>
-              <p className="mt-1 truncate text-lg font-semibold capitalize tracking-[-0.035em]">{new Intl.DateTimeFormat(intlLocale, { weekday: "long", day: "numeric", month: "long" }).format(now)}</p>
-            </div>
-            <Link href={`/restaurants/${id}/reservations/new`} className="inline-flex h-11 shrink-0 items-center gap-2 rounded-2xl bg-[#17120D] px-4 text-xs font-black text-white shadow-[0_10px_28px_rgba(23,18,13,0.18)]">
-              <Plus size={16} /> Nova reserva
-            </Link>
-          </div>
-
-          <header className="hidden flex-col gap-4 lg:flex lg:flex-row lg:items-center lg:justify-between">
+        <section className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-8 lg:pt-7">
+          <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
                 <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#9B6F3B]">{t("eyebrow")}</p>
@@ -388,8 +359,8 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
             </div>
           </header>
 
-          <section className="mt-3 grid gap-3 lg:mt-5 lg:gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
-            <div className="overflow-hidden rounded-[24px] bg-[#17120D] text-white shadow-[0_18px_50px_rgba(42,28,16,0.16)] lg:rounded-[28px] lg:shadow-[0_22px_70px_rgba(42,28,16,0.14)]">
+          <section className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
+            <div className="overflow-hidden rounded-[28px] bg-[#17120D] text-white shadow-[0_22px_70px_rgba(42,28,16,0.14)]">
               <div className="flex flex-col gap-4 p-5 sm:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#D7B267]">{t("summary.today.eyebrow")}</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em]">{t("summary.today.title")}</h2></div>
@@ -418,13 +389,6 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
               conversations={openRevenueConversations}
               qrOrders={qrOrdersOpen}
             />
-          </section>
-
-          <section className="mt-3 grid grid-cols-4 gap-2 lg:hidden" aria-label="Acessos rápidos">
-            <MobileQuickAction href={`/restaurants/${id}/day`} icon={<CalendarClock size={18} />} label="Hoje" />
-            <MobileQuickAction href={`/restaurants/${id}/calendar`} icon={<CalendarCheck2 size={18} />} label="Agenda" />
-            <MobileQuickAction href={`/restaurants/${id}/customers`} icon={<UsersRound size={18} />} label="Clientes" />
-            <MobileQuickAction href={`/restaurants/${id}/ordering`} icon={<QrCode size={18} />} label="Pedidos" alert={qrOrdersOpen > 0} />
           </section>
 
           <ReservationLinkCard t={t} reservationUrl={reservationUrl} />
@@ -457,7 +421,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
             poorReviewCustomers={poorReviewCustomers}
           />
 
-          <section className="mt-4 hidden flex-col gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-3 sm:flex-row sm:items-center sm:justify-between lg:flex">
+          <section className="mt-4 flex flex-col gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFF9F0] p-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="px-2"><p className="text-[10px] font-black uppercase tracking-[0.19em] text-[#9B6F3B]">{t("summary.quick.eyebrow")}</p><p className="mt-1 text-sm font-semibold">{t("summary.quick.title")}</p></div>
             <div className="grid grid-cols-2 gap-2 sm:flex">
               <QuickLink href={`/restaurants/${id}/reservations/new`} icon={<Plus size={14} />} label={t("summary.quick.newReservation")} primary />
@@ -487,7 +451,7 @@ function MarketingInterventions({ t, restaurantId, growthAccess, inactiveCustome
 
 function ReservationLinkCard({ t, reservationUrl }: { t: TFunc; reservationUrl: string }) {
   return (
-    <section className="mt-4 hidden overflow-hidden rounded-[24px] border border-[#D9C49F] bg-[#FFF8EB] shadow-[0_14px_42px_rgba(80,55,30,0.045)] lg:block">
+    <section className="mt-4 overflow-hidden rounded-[24px] border border-[#D9C49F] bg-[#FFF8EB] shadow-[0_14px_42px_rgba(80,55,30,0.045)]">
       <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.75fr)] lg:items-center">
         <div className="flex min-w-0 items-start gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#17120D] text-[#D7B267]"><MapPin size={18} /></span>
@@ -506,16 +470,6 @@ function ReservationLinkCard({ t, reservationUrl }: { t: TFunc; reservationUrl: 
         </div>
       </div>
     </section>
-  );
-}
-
-function MobileQuickAction({ href, icon, label, alert = false }: { href: string; icon: ReactNode; label: string; alert?: boolean }) {
-  return (
-    <Link href={href} className="relative flex min-w-0 flex-col items-center gap-2 rounded-[18px] border border-[#E1D0B8] bg-white px-1 py-3 text-center shadow-[0_8px_24px_rgba(80,55,30,0.045)] active:scale-[0.97]">
-      <span className="grid h-9 w-9 place-items-center rounded-[13px] bg-[#F1E6D5] text-[#7A582F]">{icon}</span>
-      <span className="w-full truncate text-[10px] font-black text-[#4D4033]">{label}</span>
-      {alert && <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500" />}
-    </Link>
   );
 }
 

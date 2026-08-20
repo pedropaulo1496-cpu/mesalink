@@ -218,32 +218,36 @@ export default async function NewReservationPage({
   const usesTables = restaurant.reservationMode === "TABLES";
 
   return (
-    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
-      <section className="mx-auto max-w-6xl px-5 pt-7 pb-28 sm:px-8 lg:pb-7">
+    <main className="min-h-screen bg-[#F1EBE2] text-[#16120E]">
+      <section className="mx-auto max-w-5xl px-4 pb-28 pt-5 sm:px-7 sm:pt-8 lg:pb-8">
         <Link
           href={`/restaurants/${id}/calendar`}
-          className="text-sm font-semibold text-[#9B6F3B] hover:text-[#16120E]"
+          className="inline-flex h-10 items-center rounded-full border border-[#DCCBB3] bg-white px-4 text-xs font-bold text-[#765C3A] shadow-[0_8px_24px_rgba(80,55,30,0.04)] transition hover:border-[#B8915D] hover:text-[#16120E]"
         >
           ← {t("back")}
         </Link>
 
-        <div className="mt-7 grid gap-6 lg:grid-cols-[0.82fr_1.18fr]">
-          <aside className="rounded-[32px] border border-[#E1D0B8] bg-white p-7 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
-            <SectionLabel>{t("eyebrow")}</SectionLabel>
+        <div className="mt-4 grid overflow-hidden rounded-[30px] border border-[#DCC9AA] bg-white shadow-[0_24px_70px_rgba(65,43,22,0.11)] lg:grid-cols-[0.72fr_1.28fr]">
+          <aside className="relative overflow-hidden bg-[radial-gradient(circle_at_top_right,#634321_0,#2B1D13_42%,#17120D_100%)] p-6 text-white sm:p-8 lg:min-h-full">
+            <div className="absolute -right-14 -top-14 h-48 w-48 rounded-full border border-white/10" />
+            <div className="absolute -right-4 -top-4 h-28 w-28 rounded-full border border-[#D7B267]/20" />
+            <div className="relative">
+            <p className="font-serif text-xl font-bold"><span className="text-[#D7B267]">Mesa</span>Link</p>
+            <p className="mt-8 text-[9px] font-black uppercase tracking-[0.22em] text-[#D7B267]">{t("eyebrow")}</p>
 
-            <h1 className="mt-4 text-5xl font-semibold leading-[0.9] tracking-[-0.065em]">
+            <h1 className="mt-3 max-w-sm text-4xl font-semibold leading-[0.95] tracking-[-0.06em] sm:text-5xl">
               {t("title")}
             </h1>
 
-            <p className="mt-5 text-sm leading-6 text-[#6B6258]">
+            <p className="mt-5 max-w-sm text-sm leading-6 text-white/62">
               {t("description.prefix")}{" "}
-              <span className="font-semibold text-[#16120E]">
+              <span className="font-semibold text-white">
                 {restaurant.name}
               </span>
               {t("description.suffix")}
             </p>
 
-            <div className="mt-8 grid gap-3">
+            <div className="mt-7 grid gap-2">
               <MiniCard label={t("miniCards.status.label")} value={t("miniCards.status.value")} />
               <MiniCard
                 label={t("miniCards.table.label")}
@@ -251,10 +255,15 @@ export default async function NewReservationPage({
               />
               <MiniCard label={t("miniCards.crm.label")} value={t("miniCards.crm.value")} />
             </div>
+            </div>
           </aside>
 
-          <section className="rounded-[32px] border border-[#E1D0B8] bg-white p-7 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
-            <form action={createReservation} className="space-y-8">
+          <section className="bg-white p-4 sm:p-7 lg:p-8">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <div><p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#A27438]">Reserva interna</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.045em]">Dados da reserva</h2></div>
+              <span className="hidden rounded-full bg-[#EFF8EF] px-3 py-1.5 text-[9px] font-black text-[#426A47] sm:inline-flex">Registo imediato</span>
+            </div>
+            <form action={createReservation} className="space-y-4">
               <input type="hidden" name="restaurantId" value={restaurant.id} />
               <input
                 type="hidden"
@@ -281,7 +290,7 @@ export default async function NewReservationPage({
               )}
 
               <FormSection title={t("sections.customer")}>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 md:grid-cols-2">
                   <Field label={t("fields.customerName.label")}>
                     <input
                       name="customerName"
@@ -321,7 +330,7 @@ export default async function NewReservationPage({
               </FormSection>
 
               <FormSection title={t("sections.reservation")}>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 md:grid-cols-2">
                   <Field label={t("fields.guests.label")}>
                     <input
                       name="guests"
@@ -345,7 +354,7 @@ export default async function NewReservationPage({
               </FormSection>
 
               <FormSection title={t("sections.time")}>
-                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+                <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {times.map((time) => (
                     <label key={time} className="group cursor-pointer">
                       <input
@@ -356,7 +365,7 @@ export default async function NewReservationPage({
                         className="peer sr-only"
                       />
 
-                      <span className="flex h-12 items-center justify-center rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] text-sm font-semibold text-[#16120E] transition peer-checked:border-[#16120E] peer-checked:bg-[#16120E] peer-checked:text-white group-hover:border-[#C8A56A]">
+                      <span className="flex h-11 min-w-[72px] items-center justify-center rounded-full border border-[#DED0BC] bg-white px-4 text-xs font-bold text-[#655B50] transition peer-checked:border-[#16120E] peer-checked:bg-[#16120E] peer-checked:text-white group-hover:border-[#A97C42]">
                         {time}
                       </span>
                     </label>
@@ -369,30 +378,30 @@ export default async function NewReservationPage({
                   name="notes"
                   rows={5}
                   placeholder={t("fields.notes.placeholder")}
-                  className="min-h-[130px] w-full resize-none rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-4 text-[#16120E] outline-none transition placeholder:text-[#9B8B7A] focus:border-[#C8A56A] focus:bg-white"
+                  className="min-h-[110px] w-full resize-none rounded-[15px] border border-[#DED0BC] bg-white px-4 py-4 text-sm text-[#16120E] outline-none transition placeholder:text-[#A49788] focus:border-[#A97C42] focus:ring-4 focus:ring-[#D7B267]/15"
                 />
               </FormSection>
 
               {usesTables ? (
-                <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 text-sm leading-6 text-[#6B6258]">
+                <div className="rounded-[17px] border border-[#CFE0CC] bg-[#F3FAF2] p-4 text-xs leading-5 text-[#405C42]">
                   {t("tableInfo.auto")}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 text-sm leading-6 text-[#6B6258]">
+                <div className="rounded-[17px] border border-[#CFE0CC] bg-[#F3FAF2] p-4 text-xs leading-5 text-[#405C42]">
                   {t("tableInfo.capacityMode.prefix")}{" "}
                   <strong>{t("tableInfo.capacityMode.bold")}</strong>
                   {t("tableInfo.capacityMode.suffix")}
                 </div>
               )}
 
-              <div className="flex flex-col gap-3 border-t border-[#E1D0B8] pt-6 md:flex-row">
-                <button className="h-14 flex-1 rounded-full bg-[#16120E] px-6 font-semibold text-white transition hover:bg-[#2A2118]">
+              <div className="mt-2 rounded-[21px] bg-[#17120D] p-2.5 shadow-[0_18px_45px_rgba(23,18,13,.22)] md:flex md:gap-2">
+                <button className="h-12 flex-1 rounded-[15px] bg-[#D7B267] px-6 text-sm font-black text-[#17120D] transition hover:bg-[#E4C47F]">
                   {t("submit")}
                 </button>
 
                 <Link
                   href={`/restaurants/${id}/calendar`}
-                  className="flex h-14 flex-1 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-6 font-semibold text-[#16120E] transition hover:bg-white"
+                  className="mt-2 flex h-12 flex-1 items-center justify-center rounded-[15px] border border-white/12 px-6 text-sm font-bold text-white/70 transition hover:bg-white/10 hover:text-white md:mt-0"
                 >
                   {t("cancel")}
                 </Link>
@@ -415,10 +424,10 @@ function FormSection({
   children: ReactNode;
 }) {
   return (
-    <div>
+    <section className="rounded-[20px] border border-[#E4D7C6] bg-[#FBF8F4] p-4 sm:p-5">
       <SectionLabel>{title}</SectionLabel>
-      <div className="mt-5">{children}</div>
-    </div>
+      <div className="mt-3">{children}</div>
+    </section>
   );
 }
 
@@ -431,7 +440,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-semibold text-[#6B6258]">
+      <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-[#786A5C]">
         {label}
       </span>
       {children}
@@ -441,19 +450,19 @@ function Field({
 
 function MiniCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
+    <div className="rounded-[15px] border border-white/10 bg-white/[0.06] px-4 py-3 backdrop-blur-sm">
+      <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#D7B267]">
         {label}
       </p>
 
-      <p className="mt-2 text-lg font-semibold text-[#16120E]">{value}</p>
+      <p className="mt-1.5 text-sm font-semibold text-white">{value}</p>
     </div>
   );
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9B6F3B]">
+    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">
       {children}
     </p>
   );

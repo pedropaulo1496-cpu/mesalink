@@ -1,6 +1,6 @@
 import { CalendarClock, CheckCircle2, Clock3, MapPin, ShieldCheck, UsersRound, XCircle } from "lucide-react";
 import { calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
-import { findExternalReferralOffer } from "@/lib/external-referral-requests";
+import { findExternalReferralOffer, isExternalReferralSimulation } from "@/lib/external-referral-requests";
 
 export default async function ExternalReservationRequestPage({
   params,
@@ -13,6 +13,11 @@ export default async function ExternalReservationRequestPage({
   const { result } = await searchParams;
   const offer = await findExternalReferralOffer(token);
   if (!offer || offer.group.targetMode !== "EXTERNAL") return <StatePage title="Ligação inválida" text="Este pedido não existe ou a ligação já não é válida." tone="error" />;
+  const simulation = isExternalReferralSimulation(offer);
+
+  if (simulation && result === "simulated-accepted") return <StatePage title="Simulação: reserva confirmada" text="O teste foi concluído com sucesso. Nenhuma reserva real foi criada e não houve qualquer cobrança." tone="success" />;
+  if (simulation && result === "simulated-declined") return <StatePage title="Simulação: pedido recusado" text="A resposta de teste ficou concluída. Nenhum pedido real foi alterado." tone="neutral" />;
+  if (simulation && result === "simulated-alternative") return <StatePage title="Simulação: novo horário sugerido" text="A proposta de teste foi recebida. Nenhum cliente real foi contactado." tone="neutral" />;
 
   const expired = !offer.publicAccessExpiresAt || offer.publicAccessExpiresAt <= new Date() || offer.group.desiredDate <= new Date();
   const booked = offer.status === "ACCEPTED" || offer.group.status === "BOOKED";
@@ -31,8 +36,9 @@ export default async function ExternalReservationRequestPage({
 
   return <main className="min-h-screen bg-[#F2ECE3] px-4 py-8 text-[#17120D] sm:py-14">
     <div className="mx-auto max-w-2xl overflow-hidden rounded-[30px] border border-[#DCC9AA] bg-white shadow-[0_25px_70px_rgba(65,43,22,0.12)]">
-      <header className="bg-[#17120D] px-6 py-6 text-white sm:px-9"><p className="font-serif text-2xl font-bold"><span className="text-[#D7B267]">Mesa</span>Link</p><p className="mt-4 text-[10px] font-black uppercase tracking-[.22em] text-[#D7B267]">Reserva pendente de confirmação</p><h1 className="mt-2 text-3xl font-semibold tracking-[-.045em] sm:text-4xl">Novo pedido para {offer.restaurant.name}</h1></header>
+      <header className="bg-[#17120D] px-6 py-6 text-white sm:px-9"><p className="font-serif text-2xl font-bold"><span className="text-[#D7B267]">Mesa</span>Link</p><p className="mt-4 text-[10px] font-black uppercase tracking-[.22em] text-[#D7B267]">{simulation ? "Simulação · " : ""}Reserva pendente de confirmação</p><h1 className="mt-2 text-3xl font-semibold tracking-[-.045em] sm:text-4xl">Novo pedido para {offer.restaurant.name}</h1></header>
       <div className="p-5 sm:p-9">
+        {simulation && <div className="mb-5 rounded-[18px] border border-[#A9CDAA] bg-[#EFF9EF] px-4 py-3 text-xs font-semibold leading-5 text-[#315B36]"><strong>Simulação segura.</strong> Podes experimentar qualquer resposta: não existe um cliente real, não é criada uma reserva e não há qualquer cobrança.</div>}
         {resultMessage && <div className="mb-5 rounded-[18px] border border-[#E5C897] bg-[#FFF7E5] px-4 py-3 text-xs font-semibold leading-5 text-[#76552E]">{resultMessage}</div>}
         <section className="grid gap-3 rounded-[22px] border border-[#E4D5BD] bg-[#FFF9EF] p-5 sm:grid-cols-2">
           <Info icon={<CalendarClock size={16}/>} label="Data e hora" value={formatDateTime(offer.group.desiredDate)} />
@@ -42,7 +48,7 @@ export default async function ExternalReservationRequestPage({
         </section>
         {offer.group.notes && <div className="mt-4 rounded-[18px] border border-[#E9DED0] px-4 py-3"><p className="text-[9px] font-black uppercase tracking-[.16em] text-[#8A7863]">Observações</p><p className="mt-1 text-xs leading-5 text-[#655A4E]">{offer.group.notes}</p></div>}
 
-        <section className="mt-5 rounded-[20px] border border-[#CFE0CC] bg-[#F3FAF2] p-4 text-[#405C42]"><p className="text-xs font-black">Confirmação segura</p><p className="mt-1 text-[11px] leading-5">Para confirmar, será pedida uma autorização segura no cartão de {money(amounts.gross)} de garantia base, acrescida de {money(serviceFee)} de proteção/processamento e impostos aplicáveis. A cobrança só é concluída após a visita; em caso de no-show, a autorização é libertada.</p></section>
+        <section className="mt-5 rounded-[20px] border border-[#CFE0CC] bg-[#F3FAF2] p-4 text-[#405C42]"><p className="text-xs font-black">{simulation ? "Teste sem pagamento" : "Confirmação segura"}</p><p className="mt-1 text-[11px] leading-5">{simulation ? "Nesta simulação, confirmar não pede cartão nem cria qualquer cobrança. O fluxo real apresentará aqui a garantia e os custos aplicáveis." : <>Para confirmar, será pedida uma autorização segura no cartão de {money(amounts.gross)} de garantia base, acrescida de {money(serviceFee)} de proteção/processamento e impostos aplicáveis. A cobrança só é concluída após a visita; em caso de no-show, a autorização é libertada.</>}</p></section>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <form action={`/api/public/partner-reservations/${token}/accept`} method="POST"><button className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#315B36] px-5 text-xs font-black text-white"><CheckCircle2 size={16}/> Confirmar reserva</button></form>

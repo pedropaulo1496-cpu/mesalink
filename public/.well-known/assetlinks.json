@@ -7,7 +7,8 @@
       "namespace": "android_app",
       "package_name": "pt.mesalink.app",
       "sha256_cert_fingerprints": [
-        "60:71:72:F9:24:AB:D1:48:3D:EE:28:D9:19:5D:ED:14:CC:05:7B:DC:36:E3:43:C2:5B:BE:0D:E3:A3:02:CE:1F"
+        "60:71:72:F9:24:AB:D1:48:3D:EE:28:D9:19:5D:ED:14:CC:05:7B:DC:36:E3:43:C2:5B:BE:0D:E3:A3:02:CE:1F",
+        "70:EB:93:BC:24:16:B9:CB:BD:06:99:30:AF:02:7F:53:47:C0:AE:0D:F6:44:33:E7:A9:E0:C4:6B:A3:BA:67:D4"
       ]
     }
   },

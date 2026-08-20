@@ -4,6 +4,11 @@ import { prisma } from "@/lib/prisma";
 
 export const EXTERNAL_REFERRAL_COMMISSION_PER_PERSON = 1.5;
 export const EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS = 6;
+export const EXTERNAL_REFERRAL_SIMULATION_MARKER = "[SIMULAÇÃO]";
+
+export function isExternalReferralSimulation(offer: { group: { publicCode: string; notes: string | null } }) {
+  return offer.group.publicCode.startsWith("SIM-") && offer.group.notes?.startsWith(EXTERNAL_REFERRAL_SIMULATION_MARKER) === true;
+}
 
 export function externalReferralTokenHash(token: string) {
   return createHash("sha256").update(token).digest("hex");
@@ -46,13 +51,14 @@ export async function issueExternalReferralAccess(offerId: string, requestUrl?: 
 
   const responseUrl = `${externalReferralBaseUrl(requestUrl)}/partner-reservation/${token}`;
   const date = formatDateTime(offer.group.desiredDate);
+  const simulation = isExternalReferralSimulation(offer);
   const resend = mailer();
   const delivery = await resend.emails.send({
     from: "MesaLink Reservas <info@mesalink.pt>",
     to: offer.restaurant.email,
     replyTo: "info@mesalink.pt",
-    subject: `Reserva pendente de confirmação · ${offer.group.guests} pessoas · ${date}`,
-    text: `Olá,\n\nRecebemos um pedido de reserva para ${offer.restaurant.name}.\n\nReserva pendente de confirmação\nData e hora: ${date}\nPessoas: ${offer.group.guests}\nNome da reserva: ${offer.group.customerName || "Cliente MesaLink"}\nReferência: ${offer.group.publicCode}\n\nAceite, recuse ou sugira outro horário através desta ligação segura:\n${responseUrl}\n\nA ligação é válida até ${formatDateTime(expiresAt)}. Os contactos completos do cliente são disponibilizados após a confirmação.\n\nMesaLink Reservas\ninfo@mesalink.pt`,
+    subject: `${simulation ? "[SIMULAÇÃO] " : ""}Reserva pendente de confirmação · ${offer.group.guests} pessoas · ${date}`,
+    text: `Olá,\n\n${simulation ? "Esta é uma simulação segura do fluxo de pedidos de grupo. Não existe um cliente real e nenhuma opção gera cobrança.\n\n" : ""}Recebemos um pedido de reserva para ${offer.restaurant.name}.\n\nReserva pendente de confirmação\nData e hora: ${date}\nPessoas: ${offer.group.guests}\nNome da reserva: ${offer.group.customerName || "Cliente MesaLink"}\nReferência: ${offer.group.publicCode}\n\nAceite, recuse ou sugira outro horário através desta ligação segura:\n${responseUrl}\n\nA ligação é válida até ${formatDateTime(expiresAt)}.${simulation ? " Todas as respostas são apenas demonstrativas." : " Os contactos completos do cliente são disponibilizados após a confirmação."}\n\nMesaLink Reservas\ninfo@mesalink.pt`,
     html: requestEmailHtml({
       restaurantName: offer.restaurant.name,
       customerName: offer.group.customerName || "Cliente MesaLink",
@@ -61,6 +67,7 @@ export async function issueExternalReferralAccess(offerId: string, requestUrl?: 
       code: offer.group.publicCode,
       responseUrl,
       expiresAt: formatDateTime(expiresAt),
+      simulation,
     }),
   });
   if (delivery.error) throw new Error(delivery.error.message);
@@ -97,8 +104,9 @@ function mailer() {
   return new Resend(process.env.RESEND_API_KEY);
 }
 
-function requestEmailHtml(input: { restaurantName: string; customerName: string; guests: number; date: string; code: string; responseUrl: string; expiresAt: string }) {
-  return `<div style="margin:0;background:#f4eee5;padding:28px 14px;font-family:Arial,sans-serif;color:#17120d"><div style="max-width:620px;margin:auto;border:1px solid #dfcfb8;border-radius:22px;background:white;overflow:hidden"><div style="background:#17120d;padding:22px 26px;color:white"><strong style="font-family:Georgia,serif;font-size:24px"><span style="color:#d7b267">Mesa</span>Link</strong></div><div style="padding:30px 28px"><p style="font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#9b6f3b">Reserva pendente de confirmação</p><h1 style="margin:10px 0 14px;font:700 29px/1.16 Georgia,serif">Novo pedido para ${escapeHtml(input.restaurantName)}</h1><div style="border:1px solid #e4d3b9;border-radius:16px;background:#fff9ef;padding:18px;font-size:15px;line-height:1.75"><strong>${escapeHtml(input.customerName)}</strong><br>${input.guests} pessoas<br>${escapeHtml(input.date)}<br><span style="font-size:12px;color:#806f5c">Referência ${escapeHtml(input.code)}</span></div><p style="font-size:14px;line-height:1.65;color:#685d52">Confirme a reserva, recuse ou sugira outro horário através da ligação segura. Os contactos completos do cliente são disponibilizados após a confirmação.</p><a href="${input.responseUrl}" style="display:inline-block;margin-top:8px;border-radius:999px;background:#17120d;padding:15px 24px;color:white;text-decoration:none;font-weight:700">Responder ao pedido</a><p style="margin-top:22px;font-size:11px;line-height:1.55;color:#918577">Ligação válida até ${escapeHtml(input.expiresAt)}.</p></div></div></div>`;
+function requestEmailHtml(input: { restaurantName: string; customerName: string; guests: number; date: string; code: string; responseUrl: string; expiresAt: string; simulation: boolean }) {
+  const simulationNotice = input.simulation ? `<div style="margin-bottom:18px;border:1px solid #9fc9a2;border-radius:14px;background:#edf8ee;padding:13px 15px;color:#315b36;font-size:13px;line-height:1.55"><strong>Simulação segura</strong><br>Não existe um cliente real e nenhuma resposta gera cobrança.</div>` : "";
+  return `<div style="margin:0;background:#f4eee5;padding:28px 14px;font-family:Arial,sans-serif;color:#17120d"><div style="max-width:620px;margin:auto;border:1px solid #dfcfb8;border-radius:22px;background:white;overflow:hidden"><div style="background:#17120d;padding:22px 26px;color:white"><strong style="font-family:Georgia,serif;font-size:24px"><span style="color:#d7b267">Mesa</span>Link</strong></div><div style="padding:30px 28px">${simulationNotice}<p style="font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#9b6f3b">${input.simulation ? "Simulação · " : ""}Reserva pendente de confirmação</p><h1 style="margin:10px 0 14px;font:700 29px/1.16 Georgia,serif">Novo pedido para ${escapeHtml(input.restaurantName)}</h1><div style="border:1px solid #e4d3b9;border-radius:16px;background:#fff9ef;padding:18px;font-size:15px;line-height:1.75"><strong>${escapeHtml(input.customerName)}</strong><br>${input.guests} pessoas<br>${escapeHtml(input.date)}<br><span style="font-size:12px;color:#806f5c">Referência ${escapeHtml(input.code)}</span></div><p style="font-size:14px;line-height:1.65;color:#685d52">Confirme a reserva, recuse ou sugira outro horário através da ligação segura. ${input.simulation ? "Todas as respostas são apenas demonstrativas." : "Os contactos completos do cliente são disponibilizados após a confirmação."}</p><a href="${input.responseUrl}" style="display:inline-block;margin-top:8px;border-radius:999px;background:#17120d;padding:15px 24px;color:white;text-decoration:none;font-weight:700">Responder ao pedido</a><p style="margin-top:22px;font-size:11px;line-height:1.55;color:#918577">Ligação válida até ${escapeHtml(input.expiresAt)}.</p></div></div></div>`;
 }
 
 function formatDateTime(value: Date) {

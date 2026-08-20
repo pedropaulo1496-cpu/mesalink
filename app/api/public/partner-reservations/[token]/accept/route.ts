@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
-import { externalReferralBaseUrl, findExternalReferralOffer } from "@/lib/external-referral-requests";
+import { externalReferralBaseUrl, findExternalReferralOffer, isExternalReferralSimulation } from "@/lib/external-referral-requests";
 import { referralPriceData } from "@/lib/stripe-tax";
 import { stripe } from "@/lib/stripe";
 
@@ -13,6 +13,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
   if (!offer || offer.group.targetMode !== "EXTERNAL" || offer.status !== "PENDING" || offer.group.status !== "OPEN" || !offer.publicAccessExpiresAt || offer.publicAccessExpiresAt <= new Date() || offer.group.desiredDate <= new Date()) {
     return NextResponse.redirect(`${backUrl}?result=unavailable`, 303);
   }
+  if (isExternalReferralSimulation(offer)) return NextResponse.redirect(`${backUrl}?result=simulated-accepted`, 303);
 
   const type = isCommissionType(offer.commissionType) ? offer.commissionType : "PER_PERSON";
   const amounts = calculateReferralCommission({ guests: offer.group.guests, commissionType: type, commissionAmount: Number(offer.commissionAmount), platformFeePercent: Number(offer.platformFeePercent) });
