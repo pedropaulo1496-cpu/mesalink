@@ -15,9 +15,10 @@ import {
   issueExternalReferralAccess,
 } from "@/lib/external-referral-requests";
 import { getExternalRestaurant } from "@/lib/geoapify-places";
+import { getGoogleRestaurant } from "@/lib/google-places";
 import { discoverRestaurantEmail } from "@/lib/restaurant-contact-discovery";
 
-const EXTERNAL_PLACE_PROVIDERS = new Set(["GEOAPIFY", "CURATED"]);
+const EXTERNAL_PLACE_PROVIDERS = new Set(["GEOAPIFY", "GOOGLE_PLACES", "CURATED"]);
 
 function placeFromCatalog(placeId: string, row: {
   name: string | null;
@@ -115,7 +116,11 @@ export async function POST(request: Request) {
       if (externalPlaceProvider === "CURATED" && (!catalog?.published || !catalog.heroImage || !catalog.contactEmail)) {
         return NextResponse.json({ error: "Este restaurante deixou de estar disponível no catálogo verificado." }, { status: 409 });
       }
-      const place = externalPlaceProvider === "CURATED" ? placeFromCatalog(externalPlaceId, catalog!) : await getExternalRestaurant(externalPlaceId);
+      const place = externalPlaceProvider === "CURATED"
+        ? placeFromCatalog(externalPlaceId, catalog!)
+        : externalPlaceProvider === "GOOGLE_PLACES"
+          ? await getGoogleRestaurant(externalPlaceId)
+          : await getExternalRestaurant(externalPlaceId);
       let contactEmail = catalog?.contactEmail || placeRestaurant?.email || externalRestaurantEmail || place.email || "";
       if (!contactEmail && place.websiteUrl) contactEmail = await discoverRestaurantEmail(place.websiteUrl) || "";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { getPartnerIdentity } from "@/lib/partner-auth";
 import { externalPlacesConfigured, searchExternalRestaurants } from "@/lib/geoapify-places";
+import { googlePlacesConfigured, searchGoogleRestaurants } from "@/lib/google-places";
 import { prisma } from "@/lib/prisma";
 
 const GEO_PROVIDER = "GEOAPIFY";
+const GOOGLE_PROVIDER = "GOOGLE_PLACES";
 const CURATED_PROVIDER = "CURATED";
 
 export async function GET(request: Request) {
@@ -49,27 +51,42 @@ export async function GET(request: Request) {
         ratingSource: row.ratingSource || "",
       }));
 
-    let geoResult: Awaited<ReturnType<typeof searchExternalRestaurants>> = { restaurants: [], nextPageToken: null };
-    if (externalPlacesConfigured() && (query || location || (latitude !== null && longitude !== null))) {
+    const hasSearch = Boolean(query || location || (latitude !== null && longitude !== null));
+    let liveResult: Awaited<ReturnType<typeof searchGoogleRestaurants>> | Awaited<ReturnType<typeof searchExternalRestaurants>> = { restaurants: [], nextPageToken: null };
+    let liveProvider = googlePlacesConfigured() ? GOOGLE_PROVIDER : GEO_PROVIDER;
+    if (googlePlacesConfigured() && hasSearch) {
       try {
-        geoResult = await searchExternalRestaurants({ query, location, latitude, longitude, pageToken });
+        liveResult = await searchGoogleRestaurants({ query, location, latitude, longitude, pageToken });
+      } catch (error) {
+        console.error("Google Places restaurant search failed", error);
+        if (externalPlacesConfigured()) {
+          liveProvider = GEO_PROVIDER;
+          liveResult = await searchExternalRestaurants({ query, location, latitude, longitude, pageToken }).catch((fallbackError) => {
+            console.error("Geoapify restaurant fallback failed; serving curated directory", fallbackError);
+            return { restaurants: [], nextPageToken: null };
+          });
+        }
+      }
+    } else if (externalPlacesConfigured() && hasSearch) {
+      try {
+        liveResult = await searchExternalRestaurants({ query, location, latitude, longitude, pageToken });
       } catch (error) {
         console.error("Geoapify restaurant search failed; serving curated directory", error);
       }
     }
 
-    const geoPlaceIds = geoResult.restaurants.map((restaurant) => restaurant.placeId);
-    const cachedProfiles = geoPlaceIds.length ? await prisma.externalRestaurantPlace.findMany({
-      where: { provider: GEO_PROVIDER, placeId: { in: geoPlaceIds } },
+    const livePlaceIds = liveResult.restaurants.map((restaurant) => restaurant.placeId);
+    const cachedProfiles = livePlaceIds.length ? await prisma.externalRestaurantPlace.findMany({
+      where: { provider: liveProvider, placeId: { in: livePlaceIds } },
       select: { placeId: true, websiteUrl: true, heroImage: true, galleryImages: true, description: true, openingHours: true, rating: true, reviewCount: true, ratingSource: true, priceLevel: true, contactEmail: true },
     }) : [];
     const profileByPlaceId = new Map(cachedProfiles.map((item) => [item.placeId, item]));
-    if (geoPlaceIds.length) {
+    if (livePlaceIds.length) {
       const seenAt = new Date();
-      await prisma.externalRestaurantPlace.createMany({ data: geoPlaceIds.map((placeId) => ({ provider: GEO_PROVIDER, placeId, lastSeenAt: seenAt })), skipDuplicates: true });
-      await prisma.externalRestaurantPlace.updateMany({ where: { provider: GEO_PROVIDER, placeId: { in: geoPlaceIds } }, data: { lastSeenAt: seenAt } });
+      await prisma.externalRestaurantPlace.createMany({ data: livePlaceIds.map((placeId) => ({ provider: liveProvider, placeId, lastSeenAt: seenAt })), skipDuplicates: true });
+      await prisma.externalRestaurantPlace.updateMany({ where: { provider: liveProvider, placeId: { in: livePlaceIds } }, data: { lastSeenAt: seenAt } });
     }
-    const geo = geoResult.restaurants.map((restaurant) => {
+    const live = liveResult.restaurants.map((restaurant) => {
       const profile = profileByPlaceId.get(restaurant.placeId);
       return {
         ...restaurant,
@@ -86,7 +103,7 @@ export async function GET(request: Request) {
       };
     });
 
-    const combined = deduplicate([...curated, ...geo]);
+    const combined = deduplicate([...curated, ...live]);
     const externalKeys = combined.map((item) => ({ provider: item.provider, placeId: item.placeId }));
     const existing = externalKeys.length ? await prisma.restaurant.findMany({
       where: { OR: externalKeys.map((key) => ({ externalPlaceProvider: key.provider, externalPlaceId: key.placeId })) },
@@ -113,7 +130,12 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json({ configured: curatedRows.length > 0 || externalPlacesConfigured(), restaurants, nextPageToken: geoResult.nextPageToken });
+    return NextResponse.json({
+      configured: curatedRows.length > 0 || googlePlacesConfigured() || externalPlacesConfigured(),
+      source: googlePlacesConfigured() ? "GOOGLE_PLACES" : externalPlacesConfigured() ? "GEOAPIFY" : "CURATED",
+      restaurants,
+      nextPageToken: liveResult.nextPageToken,
+    });
   } catch (error) {
     console.error("External restaurant search failed", error);
     return NextResponse.json({ error: "Não foi possível pesquisar restaurantes agora.", configured: true }, { status: 502 });

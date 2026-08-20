@@ -40,6 +40,8 @@ export type PartnerRestaurant = {
   googleReviewCount: number | null;
   googlePriceLevel: number | null;
   ratingSource: string;
+  photoAttribution?: string;
+  photoAttributionUri?: string;
   websiteUrl: string;
   openingHours: string;
   googleMapsUrl: string;
@@ -70,12 +72,14 @@ type ExternalRestaurantSearchItem = {
   description: string;
   openingHours: string;
   ratingSource: string;
+  photoAttribution?: string;
+  photoAttributionUri?: string;
   contactEmail: string;
   mesalinkRestaurantId: string | null;
   bookingReady: boolean;
 };
 
-type ExternalRestaurantEnrichment = Pick<ExternalRestaurantSearchItem, "provider" | "placeId" | "websiteUrl" | "heroImage" | "galleryImages" | "description" | "openingHours" | "rating" | "reviewCount" | "ratingSource" | "priceLevel" | "contactEmail">;
+type ExternalRestaurantEnrichment = Pick<ExternalRestaurantSearchItem, "provider" | "placeId" | "websiteUrl" | "heroImage" | "galleryImages" | "description" | "openingHours" | "rating" | "reviewCount" | "ratingSource" | "priceLevel" | "contactEmail" | "photoAttribution" | "photoAttributionUri">;
 
 export default function NewReferralGroupForm({ restaurants, publishingEnabled = true }: { restaurants: PartnerRestaurant[]; publishingEnabled?: boolean }) {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState("");
@@ -140,17 +144,19 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   }, []);
 
   const enrichCatalogRestaurants = useCallback(async (items: PartnerRestaurant[], signal?: AbortSignal) => {
-    const placeIds = items.filter((item) => item.source === "OPEN_DATA" && item.externalPlaceProvider === "GEOAPIFY" && item.externalPlaceId).map((item) => item.externalPlaceId!);
-    if (!placeIds.length) return items;
     const profiles = new Map<string, ExternalRestaurantEnrichment>();
-    const batches: string[][] = [];
-    for (let start = 0; start < placeIds.length; start += 8) batches.push(placeIds.slice(start, start + 8));
+    const batches: Array<{ provider: string; placeIds: string[] }> = [];
+    for (const provider of ["GOOGLE_PLACES", "GEOAPIFY"]) {
+      const placeIds = items.filter((item) => item.source === "OPEN_DATA" && item.externalPlaceProvider === provider && item.externalPlaceId).map((item) => item.externalPlaceId!);
+      for (let start = 0; start < placeIds.length; start += 8) batches.push({ provider, placeIds: placeIds.slice(start, start + 8) });
+    }
+    if (!batches.length) return items;
     await Promise.all(batches.map(async (batch) => {
       try {
         const response = await fetch("/api/partners/restaurants/enrich", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ placeIds: batch }),
+          body: JSON.stringify(batch),
           signal,
         });
         const data = await response.json().catch(() => null);
@@ -173,6 +179,8 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         googleReviewCount: profile.reviewCount ?? restaurant.googleReviewCount,
         googlePriceLevel: profile.priceLevel ?? restaurant.googlePriceLevel,
         ratingSource: profile.ratingSource || restaurant.ratingSource,
+        photoAttribution: profile.photoAttribution || restaurant.photoAttribution,
+        photoAttributionUri: profile.photoAttributionUri || restaurant.photoAttributionUri,
         websiteUrl: profile.websiteUrl || restaurant.websiteUrl,
       };
     }).filter((restaurant) => restaurant.source !== "OPEN_DATA" || (validEmail(restaurant.contactEmail) && Boolean(restaurant.heroImage)));
@@ -324,7 +332,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
                 <button type="button" aria-pressed={selected} aria-label={`Escolher ${restaurant.name}`} onClick={() => setSelectedRestaurantId(restaurant.id)} className={`absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full border ${selected ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#D3BE9C] bg-white text-transparent"}`}>{selected ? <Check size={15} /> : restaurant.bookingReady ? <Check size={15} /> : <ShieldCheck size={14} />}</button>
                 <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-2.5 pr-11 sm:grid-cols-[84px_minmax(0,1fr)_150px] sm:gap-3">
                   {restaurant.heroImage ? <div className="relative h-[72px] overflow-hidden rounded-[13px] bg-[#EADCC7] bg-cover bg-center shadow-[inset_0_0_0_1px_rgba(79,59,34,.08)] sm:h-[78px]" style={{ backgroundImage: `url(${restaurant.heroImage})` }} role="img" aria-label={`Fotografia de ${restaurant.name}`} /> : <div className="grid h-[72px] place-items-center rounded-[13px] bg-[linear-gradient(145deg,#F0E4D1,#E2CFB3)] text-center text-[#9B7D57] sm:h-[78px]"><span><ImageIcon size={18} className="mx-auto" /><small className="mt-1 block text-[7px] font-bold uppercase tracking-[.08em]">Sem foto</small></span></div>}
-                  <div className="min-w-0"><div className="flex flex-wrap items-start gap-1.5"><p className="line-clamp-2 break-words text-sm font-semibold leading-4">{restaurant.name}</p>{restaurant.bookingReady ? <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">RESERVA IMEDIATA</span> : <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">CONFIRMAÇÃO PENDENTE</span>}{restaurant.source === "OPEN_DATA" && <span className="rounded-full bg-[#EDF7EF] px-1.5 py-0.5 text-[7px] font-black text-[#4F6C4D]">CATÁLOGO ABERTO</span>}{restaurant.googleBusinessConnected && <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">PERFIL LIGADO</span>}{restaurant.isDemo && <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">DEMO</span>}</div><div className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] font-bold"><span className="text-[#80613D]">{restaurant.cuisine}</span>{restaurant.googleRating != null && <span className="text-[#A36D19]" title={ratingSourceLabel(restaurant.ratingSource)}>★ {restaurant.googleRating.toFixed(1)}{restaurant.googleReviewCount != null && restaurant.googleReviewCount > 0 ? <span className="font-normal text-[#8A7863]"> ({restaurant.googleReviewCount})</span> : restaurant.ratingSource ? <span className="font-normal text-[#8A7863]"> · {ratingSourceShort(restaurant.ratingSource)}</span> : null}</span>}{restaurant.googlePriceLevel != null && <span className="tracking-[0.08em] text-[#4F6C4D]">{"€".repeat(Math.min(4, Math.max(1, restaurant.googlePriceLevel)))}</span>}</div><p className="mt-1 flex items-center gap-1 text-[10px] text-[#6B6258]"><MapPin size={11} className="shrink-0 text-[#9B6F3B]" />{distance !== null && Number.isFinite(distance) ? <strong className="shrink-0 text-[#4F6C4D]">{formatDistance(distance)} ·</strong> : null}<span className="line-clamp-1">{restaurant.address || "Portugal"}</span></p></div>
+                  <div className="min-w-0"><div className="flex flex-wrap items-start gap-1.5"><p className="line-clamp-2 break-words text-sm font-semibold leading-4">{restaurant.name}</p>{restaurant.bookingReady ? <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">RESERVA IMEDIATA</span> : <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">CONFIRMAÇÃO PENDENTE</span>}{restaurant.source === "OPEN_DATA" && <span className="rounded-full bg-[#EDF7EF] px-1.5 py-0.5 text-[7px] font-black text-[#4F6C4D]">CATÁLOGO ABERTO</span>}{restaurant.externalPlaceProvider === "GOOGLE_PLACES" && <span className="rounded-full bg-[#E9F1FF] px-1.5 py-0.5 text-[7px] font-black text-[#315C9A]">GOOGLE MAPS</span>}{restaurant.googleBusinessConnected && <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">PERFIL LIGADO</span>}{restaurant.isDemo && <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">DEMO</span>}</div><div className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] font-bold"><span className="text-[#80613D]">{restaurant.cuisine}</span>{restaurant.googleRating != null && <span className="text-[#A36D19]" title={ratingSourceLabel(restaurant.ratingSource)}>★ {restaurant.googleRating.toFixed(1)}{restaurant.googleReviewCount != null && restaurant.googleReviewCount > 0 ? <span className="font-normal text-[#8A7863]"> ({restaurant.googleReviewCount})</span> : restaurant.ratingSource ? <span className="font-normal text-[#8A7863]"> · {ratingSourceShort(restaurant.ratingSource)}</span> : null}</span>}{restaurant.googlePriceLevel != null && <span className="tracking-[0.08em] text-[#4F6C4D]">{"€".repeat(Math.min(4, Math.max(1, restaurant.googlePriceLevel)))}</span>}</div><p className="mt-1 flex items-center gap-1 text-[10px] text-[#6B6258]"><MapPin size={11} className="shrink-0 text-[#9B6F3B]" />{distance !== null && Number.isFinite(distance) ? <strong className="shrink-0 text-[#4F6C4D]">{formatDistance(distance)} ·</strong> : null}<span className="line-clamp-1">{restaurant.address || "Portugal"}</span></p>{restaurant.photoAttribution && <p className="mt-1 truncate text-[8px] text-[#8A7863]">Foto: {restaurant.photoAttributionUri ? <a href={restaurant.photoAttributionUri} target="_blank" rel="noreferrer" className="underline">{restaurant.photoAttribution}</a> : restaurant.photoAttribution}</p>}</div>
                   <div className="col-start-2 text-left sm:col-start-auto sm:text-right"><p className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8A7863]">Comissão atual</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{money(perPerson)} / pessoa</p><p className="text-[9px] text-[#8A7863]">{money(gross)} total</p>{desiredDate && restaurant.bookingReady && <p className="mt-0.5 text-[8px] font-bold text-[#4F6C4D]">{remainingCapacity(restaurant, desiredDate)} lugares livres</p>}</div>
                 </div>
                 {!restaurant.bookingReady && <p className="mt-2 rounded-xl bg-[#FFF4DE] px-3 py-2 text-[9px] leading-4 text-[#74613F]">Este restaurante aparece no catálogo público. A reserva fica pendente até o restaurante confirmar, recusar ou sugerir outro horário. Comissão inicial de 1,50 € por pessoa.</p>}
@@ -465,6 +473,8 @@ function externalPartnerRestaurant(item: ExternalRestaurantSearchItem): PartnerR
     googleReviewCount: item.reviewCount,
     googlePriceLevel: item.priceLevel,
     ratingSource: item.ratingSource || "",
+    photoAttribution: item.photoAttribution || "",
+    photoAttributionUri: item.photoAttributionUri || "",
     websiteUrl: item.websiteUrl || "",
     openingHours: item.openingHours || "",
     googleMapsUrl: item.mapUrl,
@@ -520,7 +530,7 @@ function ratingSourceShort(source: string) {
 function ratingSourceLabel(source: string) {
   if (source === "SITE_OFICIAL") return "Avaliação publicada pelo site oficial do restaurante";
   if (source === "CLASSIFICACAO_ESTABELECIMENTO") return "Classificação pública do estabelecimento; não representa avaliações MesaLink";
-  if (source === "GOOGLE") return "Avaliação Google ligada pelo restaurante";
+  if (source === "GOOGLE") return "Avaliação publicada no Google Maps";
   if (source === "DEMO") return "Dados de demonstração";
   return "Avaliação pública disponível";
 }

@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAndSendAdminPromotion } from "@/lib/admin-promotions";
 import { requireAcceptedEmail } from "@/lib/email-delivery";
-import { notifyRestaurantSupportReply } from "@/lib/hq-notifications";
+import { notifyPartnerSupportReply, notifyRestaurantSupportReply } from "@/lib/hq-notifications";
 import { prisma } from "@/lib/prisma";
 import { assertBackofficeAdmin, assertClientAccess, assertStaff } from "@/lib/staff-auth";
 import { isValidEmail } from "@/lib/validation";
@@ -551,6 +551,37 @@ export async function sendSupportReply(formData: FormData) {
     preview: body.slice(0, 120),
   }).catch((error) => console.error("Restaurant support reply push failed", error));
   finish(`/backoffice/chat?mode=clients&client=${conversationId}`, "support-message-sent");
+}
+
+export async function sendPartnerSupportReply(formData: FormData) {
+  const staff = await assertStaff();
+  if (staff.role !== "ADMIN") throw new Error("Apenas a Administração pode responder aos parceiros.");
+  const conversationId = clean(formData.get("conversationId"));
+  const body = clean(formData.get("body"), 2000);
+  if (!conversationId || !body) throw new Error("Conversa ou mensagem inválida.");
+  const conversation = await prisma.supportConversation.findFirst({
+    where: { id: conversationId, partnerId: { not: null } },
+    select: { id: true, partner: { select: { userId: true } } },
+  });
+  if (!conversation?.partner) throw new Error("Conversa de parceiro não encontrada.");
+  const now = new Date();
+  await prisma.supportConversation.update({
+    where: { id: conversationId },
+    data: {
+      lastMessageAt: now,
+      lastStaffMessageAt: now,
+      clientReadAt: null,
+      staffReadAt: now,
+      messages: { create: { senderUserId: staff.userId, senderRole: "STAFF", body } },
+    },
+  });
+  await notifyPartnerSupportReply({
+    conversationId,
+    partnerUserId: conversation.partner.userId,
+    staffName: staff.name || "Equipa MesaLink",
+    preview: body.slice(0, 120),
+  }).catch((error) => console.error("Partner support reply push failed", error));
+  finish(`/backoffice/chat?mode=partners&partner=${conversationId}`, "partner-support-message-sent");
 }
 
 export async function openClientSupportChat(formData: FormData) {

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowUpRight, BarChart3, CalendarPlus2, CheckCircle2, Clock3, Euro, FileCheck2, FileText, Landmark, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
+import { ArrowUpRight, BarChart3, CalendarPlus2, CheckCircle2, Clock3, Euro, FileCheck2, FileText, Landmark, MessageCircleMore, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import NewReferralGroupForm from "@/components/partners/NewReferralGroupForm";
 import PartnerInvoiceUpload from "@/components/partners/PartnerInvoiceUpload";
 import PartnerSignOutButton from "@/components/partners/PartnerSignOutButton";
 import PartnerCodeCopy from "@/components/partners/PartnerCodeCopy";
+import PartnerHelpButton from "@/components/partners/PartnerHelpButton";
+import PartnerSupportChat from "@/components/partners/PartnerSupportChat";
 import ExternalReferralAlternativeActions from "@/components/partners/ExternalReferralAlternativeActions";
 import { requirePartner } from "@/lib/partner-auth";
 import { buildPartnerProfile } from "@/lib/partner-profile";
@@ -19,7 +21,7 @@ export default async function PartnerAppPage({
   searchParams: Promise<{ connect?: string; tab?: string }>;
 }) {
   const { connect, tab: requestedTab } = await searchParams;
-  const tab = ["groups", "history", "stats", "account"].includes(requestedTab || "") ? requestedTab! : "groups";
+  const tab = ["groups", "history", "stats", "account", "help"].includes(requestedTab || "") ? requestedTab! : "groups";
   const identity = await requirePartner();
   const partner = await prisma.referralPartner.findUnique({
     where: { id: identity.id },
@@ -257,12 +259,13 @@ export default async function PartnerAppPage({
       </header>
 
       <div className="mx-auto max-w-[1380px] px-4 pb-16 pt-5 sm:px-6 sm:pt-6">
-        <nav className="mb-5 grid grid-cols-2 gap-1.5 rounded-[22px] border border-[#D9C7AA] bg-white/70 p-1.5 shadow-[0_12px_35px_rgba(79,56,32,0.06)] backdrop-blur-xl sm:grid-cols-4 lg:w-fit">
+        <nav className="mb-5 grid grid-cols-2 gap-1.5 rounded-[22px] border border-[#D9C7AA] bg-white/70 p-1.5 shadow-[0_12px_35px_rgba(79,56,32,0.06)] backdrop-blur-xl sm:grid-cols-5 lg:w-fit">
           {[
             { id: "groups", label: "Nova reserva", note: "Escolher restaurante", icon: <CalendarPlus2 size={14} /> },
             { id: "history", label: "Reservas", note: "Histórico e faturas", icon: <FileText size={14} /> },
             { id: "stats", label: "Resultados", note: "Receita gerada", icon: <BarChart3 size={14} /> },
             { id: "account", label: "Pagamentos", note: "IBAN e estado", icon: <Landmark size={14} /> },
+            { id: "help", label: "Ajuda", note: "Chat com o HQ", icon: <MessageCircleMore size={14} /> },
           ].map((item) => (
             <Link key={item.id} href={`/partners/app?tab=${item.id}`} className={`relative flex min-h-12 items-center gap-2.5 rounded-[16px] px-3 py-2 text-[11px] font-bold transition ${tab === item.id ? "bg-[#17120D] text-white shadow-[0_9px_24px_rgba(23,18,13,0.2)]" : "text-[#5F574F] hover:bg-white"}`}>
               <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-[11px] ${tab === item.id ? "bg-[#D7B267] text-[#17120D]" : "bg-[#F1E6D5] text-[#8A6130]"}`}>{item.icon}</span><span className="min-w-0"><span className="block truncate">{item.label}</span><span className={`hidden truncate text-[8px] font-medium sm:block ${tab === item.id ? "text-white/40" : "text-[#918577]"}`}>{item.note}</span></span>
@@ -300,6 +303,8 @@ export default async function PartnerAppPage({
 
         <div className="mt-5"><NewReferralGroupForm restaurants={restaurantOptions} publishingEnabled={partner.stripeOnboardingComplete} /></div>
         </>}
+
+        {tab === "help" && <PartnerSupportChat />}
 
         {tab === "stats" && <>
         <section className="relative overflow-hidden rounded-[26px] border border-[#E1D0B8] bg-white p-5 shadow-[0_12px_34px_rgba(75,52,29,0.04)] sm:p-6">
@@ -359,6 +364,7 @@ export default async function PartnerAppPage({
           </div>
         </section></>}
       </div>
+      <PartnerHelpButton active={tab === "help"} />
     </main>
   );
 }

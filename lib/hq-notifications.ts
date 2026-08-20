@@ -74,6 +74,24 @@ export async function notifyClientMessage(input: { conversationId: string; clien
   }, input.salesRepresentativeUserId ? [input.salesRepresentativeUserId] : undefined);
 }
 
+export async function notifyPartnerMessage(input: { conversationId: string; partnerName: string; preview: string }) {
+  await sendHqPush({
+    title: "Nova mensagem de parceiro",
+    body: `${input.partnerName}: ${input.preview}`,
+    url: `/backoffice/chat?mode=partners&partner=${input.conversationId}`,
+    tag: `partner-support-${input.conversationId}`,
+  });
+}
+
+export async function notifyPartnerSupportReply(input: { conversationId: string; partnerUserId: string; staffName: string; preview: string }) {
+  await sendHqPush({
+    title: "Nova mensagem da MesaLink",
+    body: `${input.staffName}: ${input.preview}`,
+    url: "/partners/app?tab=help",
+    tag: `partner-support-reply-${input.conversationId}`,
+  }, [input.partnerUserId]);
+}
+
 export async function notifyRestaurantSupportReply(input: { conversationId: string; clientUserId: string; restaurantId: string | null; staffName: string; preview: string }) {
   const selectedRestaurant = input.restaurantId
     ? await prisma.restaurant.findFirst({ where: { id: input.restaurantId, userId: input.clientUserId }, select: { id: true } })

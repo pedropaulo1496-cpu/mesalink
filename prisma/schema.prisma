@@ -275,8 +275,11 @@ model CommercialMessage {
 model SupportConversation {
   id String @id @default(cuid())
 
-  clientUserId String @unique
-  clientUser   User   @relation("SupportClient", fields: [clientUserId], references: [id], onDelete: Cascade)
+  clientUserId String? @unique
+  clientUser   User?   @relation("SupportClient", fields: [clientUserId], references: [id], onDelete: Cascade)
+
+  partnerId String?          @unique
+  partner   ReferralPartner? @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   salesRepresentativeId String?
   salesRepresentative   SalesRepresentative? @relation(fields: [salesRepresentativeId], references: [id], onDelete: SetNull)
@@ -1417,6 +1420,7 @@ model ReferralPartner {
   payments           ReferralPayment[]
   benefitCards       ReferralBenefitCard[]
   sourceRestaurant   Restaurant?                 @relation("RestaurantOutboundReferralPartner")
+  supportConversation SupportConversation?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

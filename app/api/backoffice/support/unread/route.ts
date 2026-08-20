@@ -8,7 +8,7 @@ export async function GET() {
 
   const count = await prisma.supportMessage.count({
     where: {
-      senderRole: "CLIENT",
+      senderRole: { in: staff.role === "ADMIN" ? ["CLIENT", "PARTNER"] : ["CLIENT"] },
       readAt: null,
       ...(staff.role === "SALES"
         ? { conversation: { salesRepresentativeId: staff.salesRepresentativeId! } }

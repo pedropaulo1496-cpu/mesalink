@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { getPartnerIdentity } from "@/lib/partner-auth";
 import { getExternalRestaurant } from "@/lib/geoapify-places";
+import { getGoogleRestaurant } from "@/lib/google-places";
 import { prisma } from "@/lib/prisma";
 import { discoverRestaurantContact, discoverRestaurantPresentation } from "@/lib/restaurant-contact-discovery";
 
-const EXTERNAL_PROVIDER = "GEOAPIFY";
+const EXTERNAL_PROVIDERS = new Set(["GEOAPIFY", "GOOGLE_PLACES"]);
 const MAX_PLACES = 8;
 const CACHE_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -14,13 +15,14 @@ export async function POST(request: Request) {
   const partner = await getPartnerIdentity();
   if (!partner) return NextResponse.json({ error: "Não autenticado na app Partners." }, { status: 401 });
   const body = await request.json().catch(() => null);
+  const provider = typeof body?.provider === "string" && EXTERNAL_PROVIDERS.has(body.provider) ? body.provider : "GEOAPIFY";
   const rawPlaceIds: unknown[] = Array.isArray(body?.placeIds) ? body.placeIds : [];
   const validPlaceIds = rawPlaceIds.filter((value): value is string => typeof value === "string" && /^[A-Za-z0-9:_-]{8,500}$/.test(value));
   const placeIds: string[] = [...new Set(validPlaceIds.slice(0, MAX_PLACES))];
   if (!placeIds.length) return NextResponse.json({ restaurants: [] });
 
   const cachedRows = await prisma.externalRestaurantPlace.findMany({
-    where: { provider: EXTERNAL_PROVIDER, placeId: { in: placeIds } },
+    where: { provider, placeId: { in: placeIds } },
     select: profileSelect,
   });
   const cached = new Map(cachedRows.map((row) => [row.placeId, row]));
@@ -31,22 +33,23 @@ export async function POST(request: Request) {
     const contactAlreadyChecked = Boolean(row?.contactCheckedAt && row.contactCheckedAt > freshAfter);
     if (row?.enrichedAt && row.enrichedAt > freshAfter && (row.heroImage || photoAlreadyChecked) && contactAlreadyChecked) return profileFromRow(row);
     try {
-      const place = await getExternalRestaurant(placeId);
+      const place = provider === "GOOGLE_PLACES" ? await getGoogleRestaurant(placeId) : await getExternalRestaurant(placeId);
       const [websiteProfile, discoveredContact] = await Promise.all([
         place.websiteUrl ? discoverRestaurantPresentation(place.websiteUrl) : null,
         place.email ? Promise.resolve({ email: place.email, sourceUrl: place.websiteUrl }) : place.websiteUrl ? discoverRestaurantContact(place.websiteUrl) : null,
       ]);
-      const heroImage = websiteProfile?.heroImage || place.heroImage;
+      const officialHeroImage = websiteProfile?.heroImage || "";
+      const liveHeroImage = officialHeroImage || place.heroImage;
       const galleryImages = uniqueStrings([...(websiteProfile?.galleryImages || []), ...place.galleryImages]).slice(0, 4);
       const rating = websiteProfile?.rating ?? place.rating;
       const reviewCount = websiteProfile?.rating != null ? websiteProfile.reviewCount : place.reviewCount;
       const ratingSource = websiteProfile?.rating != null ? websiteProfile.ratingSource : place.ratingSource;
       const profile = {
-        provider: EXTERNAL_PROVIDER,
+        provider,
         placeId,
         websiteUrl: websiteProfile?.websiteUrl || place.websiteUrl || null,
-        heroImage: heroImage || null,
-        galleryImages,
+        heroImage: liveHeroImage || null,
+        galleryImages: officialHeroImage ? galleryImages : [],
         description: websiteProfile?.description || place.description || null,
         openingHours: websiteProfile?.openingHours || place.openingHours || null,
         rating,
@@ -56,9 +59,9 @@ export async function POST(request: Request) {
         contactEmail: discoveredContact?.email || null,
         contactCheckedAt: new Date(),
         contactSourceUrl: discoveredContact?.sourceUrl || null,
-        photoSourceUrl: heroImage ? websiteProfile?.websiteUrl || place.websiteUrl || null : null,
-        published: Boolean(discoveredContact?.email && heroImage),
-        verifiedAt: discoveredContact?.email && heroImage ? new Date() : null,
+        photoSourceUrl: officialHeroImage ? websiteProfile?.websiteUrl || place.websiteUrl || null : null,
+        published: Boolean(discoveredContact?.email && liveHeroImage),
+        verifiedAt: discoveredContact?.email && liveHeroImage ? new Date() : null,
         enrichedAt: new Date(),
         photoCheckedAt: new Date(),
       };
@@ -68,7 +71,17 @@ export async function POST(request: Request) {
         update: profile,
         select: profileSelect,
       });
-      return profileFromRow(saved);
+      return {
+        ...profileFromRow(saved),
+        heroImage: saved.heroImage || liveHeroImage,
+        galleryImages: stringArray(saved.galleryImages).length ? stringArray(saved.galleryImages) : place.galleryImages,
+        rating: place.rating ?? saved.rating,
+        reviewCount: place.reviewCount ?? saved.reviewCount,
+        ratingSource: place.ratingSource || saved.ratingSource || "",
+        priceLevel: place.priceLevel ?? saved.priceLevel,
+        photoAttribution: "photoAttribution" in place ? place.photoAttribution : "",
+        photoAttributionUri: "photoAttributionUri" in place ? place.photoAttributionUri : "",
+      };
     } catch (error) {
       console.error("External restaurant enrichment failed", placeId, error);
       return row ? profileFromRow(row) : null;
