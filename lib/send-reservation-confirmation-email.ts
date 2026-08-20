@@ -51,16 +51,16 @@ export async function sendReservationConfirmationEmail(reservationId: string) {
     const restaurantAddress = reservation.restaurant.googleBusinessAddress?.trim() || reservation.restaurant.address?.trim() || "";
     const restaurantPhone = reservation.restaurant.phone?.trim() || "";
     const restaurantEmail = reservation.restaurant.email?.trim() || "";
-    const mapsUrl = restaurantAddress
+    const mapsUrl = reservation.restaurant.externalMapUrl?.trim() || (restaurantAddress
       ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurantAddress)}${reservation.restaurant.googlePlaceId ? `&query_place_id=${encodeURIComponent(reservation.restaurant.googlePlaceId)}` : ""}`
-      : "";
+      : "");
     const locationAndContacts = restaurantAddress || restaurantPhone || restaurantEmail ? `
       <div style="margin:0 0 24px;padding:18px;border-radius:18px;background:#17120D;color:#fff">
         <p style="margin:0 0 10px;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#D7B267">Localização e contactos</p>
         ${restaurantAddress ? `<p style="margin:0 0 8px"><strong>Morada:</strong> ${escapeHtml(restaurantAddress)}</p>` : ""}
         ${restaurantPhone ? `<p style="margin:0 0 8px"><strong>Telefone:</strong> <a href="tel:${escapeHtml(restaurantPhone.replace(/[^+\d]/g, ""))}" style="color:#fff">${escapeHtml(restaurantPhone)}</a></p>` : ""}
         ${restaurantEmail ? `<p style="margin:0 0 8px"><strong>Email:</strong> <a href="mailto:${escapeHtml(restaurantEmail)}" style="color:#fff">${escapeHtml(restaurantEmail)}</a></p>` : ""}
-        ${mapsUrl ? `<a href="${escapeHtml(mapsUrl)}" style="display:inline-block;margin-top:6px;padding:10px 15px;border-radius:999px;background:#D7B267;color:#17120D;text-decoration:none;font-size:13px;font-weight:700">Abrir no Google Maps</a>` : ""}
+        ${mapsUrl ? `<a href="${escapeHtml(mapsUrl)}" style="display:inline-block;margin-top:6px;padding:10px 15px;border-radius:999px;background:#D7B267;color:#17120D;text-decoration:none;font-size:13px;font-weight:700">Abrir mapa</a>` : ""}
       </div>
     ` : "";
 

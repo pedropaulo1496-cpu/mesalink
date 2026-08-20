@@ -598,6 +598,10 @@ model Restaurant {
   googleRating                     Float?
   googleReviewCount                Int?
   googlePriceLevel                 Int?
+  externalPlaceProvider            String?
+  externalPlaceId                  String?
+  externalPlaceSyncedAt            DateTime?
+  externalMapUrl                   String?
   googleBusinessAccountName        String?
   googleBusinessLocationName       String?
   googleBusinessRefreshToken       String?
@@ -681,6 +685,22 @@ model Restaurant {
 
   @@unique([userId])
   @@index([customDomain])
+  @@index([externalPlaceProvider, externalPlaceId])
+}
+
+model ExternalRestaurantPlace {
+  provider         String
+  placeId          String    @id
+  contactEmail     String?
+  contactCheckedAt DateTime?
+  firstSeenAt      DateTime  @default(now())
+  lastSeenAt       DateTime  @default(now())
+  lastSelectedAt   DateTime?
+  selectionCount   Int       @default(0)
+
+  @@unique([provider, placeId])
+  @@index([lastSeenAt])
+  @@index([contactCheckedAt])
 }
 
 model ReservationTimeBlock {
@@ -1491,11 +1511,13 @@ model ReferralOffer {
   commissionAmount   Decimal @db.Decimal(10, 2)
   platformFeePercent Decimal @default(7) @db.Decimal(5, 2)
 
-  status      String    @default("PENDING")
-  message     String?
-  respondedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  status                String    @default("PENDING")
+  message               String?
+  respondedAt           DateTime?
+  publicAccessTokenHash String?   @unique
+  publicAccessExpiresAt DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@unique([groupId, restaurantId])
   @@index([restaurantId, status])

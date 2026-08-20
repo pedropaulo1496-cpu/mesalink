@@ -5,6 +5,7 @@ import NewReferralGroupForm from "@/components/partners/NewReferralGroupForm";
 import PartnerInvoiceUpload from "@/components/partners/PartnerInvoiceUpload";
 import PartnerSignOutButton from "@/components/partners/PartnerSignOutButton";
 import PartnerCodeCopy from "@/components/partners/PartnerCodeCopy";
+import ExternalReferralAlternativeActions from "@/components/partners/ExternalReferralAlternativeActions";
 import { requirePartner } from "@/lib/partner-auth";
 import { buildPartnerProfile } from "@/lib/partner-profile";
 import { referralAttendanceDeadline, referralInvoiceCutoff, referralInvoiceDeadline } from "@/lib/referral-deadlines";
@@ -57,6 +58,10 @@ export default async function PartnerAppPage({
       address: true,
       latitude: true,
       longitude: true,
+      googlePlaceId: true,
+      externalPlaceProvider: true,
+      externalPlaceId: true,
+      externalMapUrl: true,
       websiteCuisine: true,
       websiteDescription: true,
       websiteAboutText: true,
@@ -183,6 +188,10 @@ export default async function PartnerAppPage({
     const partnerLimit = restaurant.referralDefaultDailyCapacity > 0 ? Math.min(totalCapacity, restaurant.referralDefaultDailyCapacity) : totalCapacity;
     return {
       id: restaurant.id,
+      source: "MESALINK" as const,
+      googlePlaceId: restaurant.googlePlaceId,
+      externalPlaceProvider: restaurant.externalPlaceProvider,
+      externalPlaceId: restaurant.externalPlaceId,
       name: restaurant.googleBusinessTitle || restaurant.name,
       isDemo,
       bookingReady,
@@ -216,7 +225,7 @@ export default async function PartnerAppPage({
       googleRating: restaurant.googleRating ?? (isDemo ? 4.6 : null),
       googleReviewCount: restaurant.googleReviewCount ?? (isDemo ? 284 : null),
       googlePriceLevel: restaurant.googlePriceLevel ?? (isDemo ? 2 : null),
-      googleMapsUrl: restaurant.googleReviewUrl || "",
+      googleMapsUrl: restaurant.googleReviewUrl || restaurant.externalMapUrl || "",
       googleBusinessConnected: Boolean(restaurant.googleBusinessConnectedAt),
       negotiationStatus: negotiation?.status || null,
       negotiationRequestId: negotiation?.id || null,
@@ -279,7 +288,7 @@ export default async function PartnerAppPage({
 
         {tab === "groups" && <>
         <section className="relative overflow-hidden rounded-[28px] bg-[#17120D] p-5 text-white shadow-[0_22px_55px_rgba(23,18,13,0.16)] sm:p-6" style={{ backgroundImage: "radial-gradient(circle at 78% 20%, rgba(215,178,103,.24), transparent 22rem), linear-gradient(125deg, rgba(255,255,255,.025), transparent 48%)" }}>
-          <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"><div><div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.24em] text-[#D7B267]"><Sparkles size={13} /> MesaLink Partners</div><h1 className="mt-3 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-0.055em] sm:text-[2.65rem]">Reserva o restaurante certo. A comissão fica registada.</h1><p className="mt-3 max-w-2xl text-xs leading-5 text-white/52 sm:text-sm">Disponibilidade real, confirmação imediata e todo o histórico numa única conta.</p></div><div className="grid grid-cols-3 gap-2"><PartnerHeroMetric label="Restaurantes" value={String(restaurantOptions.length)} /><PartnerHeroMetric label="Próximas" value={String(upcomingGroupsCount)} /><PartnerHeroMetric label="Recebido" value={formatMoney(paidRevenue)} /></div></div>
+          <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"><div><div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.24em] text-[#D7B267]"><Sparkles size={13} /> MesaLink Partners</div><h1 className="mt-3 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-0.055em] sm:text-[2.65rem]">Reserva o restaurante certo. A comissão fica registada.</h1><p className="mt-3 max-w-2xl text-xs leading-5 text-white/52 sm:text-sm">Restaurantes MesaLink e catálogo aberto de restaurantes, com confirmação imediata ou pendente numa única conta.</p></div><div className="grid grid-cols-3 gap-2"><PartnerHeroMetric label="Rede ativa" value={String(restaurantOptions.length)} /><PartnerHeroMetric label="Próximas" value={String(upcomingGroupsCount)} /><PartnerHeroMetric label="Recebido" value={formatMoney(paidRevenue)} /></div></div>
           <div className="relative mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 pt-4 text-[9px] font-semibold text-white/48"><span className="inline-flex items-center gap-1.5 text-[#9BC99D]"><ShieldCheck size={13} /> Contactos protegidos</span><span className="inline-flex items-center gap-1.5"><CheckCircle2 size={13} /> Comissão definida pelo restaurante</span><span className="inline-flex items-center gap-1.5"><Clock3 size={13} /> Pagamentos acompanhados na app</span></div>
         </section>
 
@@ -314,8 +323,11 @@ export default async function PartnerAppPage({
               const type = isCommissionType(group.commissionType) ? group.commissionType : "TOTAL";
               const amounts = calculateReferralCommission({ guests: group.guests, commissionType: type, commissionAmount: Number(group.commissionAmount) });
               const accepted = group.acceptedRestaurant?.name;
+              const destination = accepted || group.targetSummary || "Reserva em processamento";
+              const externalPending = group.targetMode === "EXTERNAL" && group.status === "OPEN";
+              const alternativeProposed = group.targetMode === "EXTERNAL" && group.status === "ALTERNATIVE_PROPOSED" && group.alternativeDate;
               return <div key={group.id} className="grid gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} /></div><p className="mt-2 text-sm text-[#6B6258]">{group.actualGuests != null ? `${group.actualGuests} pessoas confirmadas · reserva inicial ${group.guests}` : groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · {accepted || "Reserva em processamento"}</p><PartnerInvoiceState group={group} /></div>
+                <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} targetMode={group.targetMode} /></div><p className="mt-2 text-sm text-[#6B6258]">{group.actualGuests != null ? `${group.actualGuests} pessoas confirmadas · reserva inicial ${group.guests}` : groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · {destination}</p>{externalPending && <div className="mt-3 w-fit rounded-full border border-[#E4D2B4] bg-[#FFF3DC] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">Pedido enviado · aguardamos a resposta do restaurante</div>}{alternativeProposed && <div className="mt-3 rounded-[16px] border border-[#C9D9C5] bg-[#F2F8F0] p-3"><p className="text-[9px] font-black uppercase tracking-[.13em] text-[#4F6C4D]">Novo horário proposto</p><p className="mt-1 text-xs font-bold text-[#315B36]">{formatDateTime(group.alternativeDate!)}</p><ExternalReferralAlternativeActions groupId={group.id} /></div>}<PartnerInvoiceState group={group} /></div>
                 <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">{partnerPaymentLabel(group.payment?.status)}</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(Number(group.payment?.partnerInvoiceTotal || group.payment?.partnerNet || amounts.partnerNet))}</p><p className="text-[9px] text-[#8A7863]">líquido · comissão e taxas descontadas</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
               </div>;
             })}
@@ -424,8 +436,8 @@ function StatDetail({ title, value, note }: { title: string; value: string; note
   return <div className="rounded-[22px] border border-[#E1D0B8] bg-white p-5"><p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#8A7863]">{title}</p><p className="mt-2 text-2xl font-semibold tracking-[-0.05em]">{value}</p><p className="mt-2 text-xs leading-5 text-[#6B6258]">{note}</p></div>;
 }
 
-function Status({ status }: { status: string }) {
-  const label = status === "OPEN" ? "À espera" : status === "ACCEPTED" || status === "BOOKED" ? "Aceite" : status === "COMPLETED" || status === "PAID" ? "Concluído" : status === "REFUNDED" ? "Reembolsado" : status === "PARTIALLY_REFUNDED" ? "Reembolso parcial" : status === "DISPUTED" ? "Pagamento contestado" : status === "CANCELLED" ? "Cancelado" : status;
+function Status({ status, targetMode }: { status: string; targetMode?: string }) {
+  const label = status === "OPEN" && targetMode === "EXTERNAL" ? "Reserva pendente de confirmação" : status === "OPEN" ? "À espera" : status === "ALTERNATIVE_PROPOSED" ? "Novo horário proposto" : status === "ACCEPTED" || status === "BOOKED" ? "Aceite" : status === "COMPLETED" || status === "PAID" ? "Concluído" : status === "REFUNDED" ? "Reembolsado" : status === "PARTIALLY_REFUNDED" ? "Reembolso parcial" : status === "DISPUTED" ? "Pagamento contestado" : status === "CANCELLED" ? "Cancelado" : status;
   return <span className="rounded-full border border-[#DCCCAD] bg-[#FFF9ED] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-[#7D5B31]">{label}</span>;
 }
 

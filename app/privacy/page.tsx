@@ -50,6 +50,10 @@ export default async function PrivacyPage() {
         {t("sections.security.text")}
       </LegalSection>
 
+      <LegalSection title="Pesquisa no catálogo aberto de restaurantes">
+        Na aplicação MesaLink Partners, utilizamos a Geoapify e dados do OpenStreetMap para apresentar restaurantes relevantes. A pesquisa, a zona indicada e, apenas quando autorizada pelo utilizador, a localização aproximada podem ser transmitidas à Geoapify para devolver resultados. O MesaLink conserva os identificadores dos locais, contactos públicos e os dados necessários para gerir pedidos de reserva. Aplicam-se também a <a href="https://www.geoapify.com/privacy-policy/" target="_blank" rel="noreferrer" className="font-semibold text-[#9B6F3B] underline">Política de Privacidade da Geoapify</a> e a <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noreferrer" className="font-semibold text-[#9B6F3B] underline">Política de Privacidade do OpenStreetMap</a>.
+      </LegalSection>
+
       <LegalSection title="Candidaturas comerciais / Sales partner applications">
         Os dados fornecidos numa candidatura, incluindo CV, contacto, experiência, mercados, idiomas e respostas profissionais, são usados para avaliar uma possível parceria comercial. O MesaLink pode atribuir uma pontuação explicável baseada apenas em critérios relevantes para a função, para ordenar a revisão; nenhuma candidatura é recusada automaticamente e a decisão final é humana. Não usamos idade, género, nacionalidade, fotografia, estado civil, deficiência ou outros dados sensíveis para esta avaliação. O candidato pode pedir acesso, correção ou eliminação através de info@mesalink.pt.
       </LegalSection>

@@ -36,6 +36,10 @@ export default async function TermsPage() {
         {t("sections.partnerNetwork.text")}
       </LegalSection>
 
+      <LegalSection title="Catálogo aberto de restaurantes">
+        A pesquisa de restaurantes na aplicação Partners utiliza a Geoapify e dados do OpenStreetMap. Os resultados podem variar, estar incompletos ou ser atualizados pelos respetivos fornecedores e colaboradores. A utilização está sujeita aos <a href="https://www.geoapify.com/terms-and-conditions/" target="_blank" rel="noreferrer" className="font-semibold text-[#9B6F3B] underline">Termos da Geoapify</a> e à <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="font-semibold text-[#9B6F3B] underline">licença OpenStreetMap</a>. Um restaurante apresentado no catálogo só fica reservado depois de confirmação imediata pela rede MesaLink ou de aceitação expressa do pedido pelo próprio restaurante.
+      </LegalSection>
+
       <LegalSection title={t("sections.cancellation.title")}>
         {t("sections.cancellation.text")}
       </LegalSection>

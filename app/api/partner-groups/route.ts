@@ -9,6 +9,15 @@ import {
 } from "@/lib/referral-tags";
 import { InstantReferralBookingError, finalizeInstantReferralBooking } from "@/lib/referral-auto-booking";
 import { MESALINK_REFERRAL_FEE_PERCENT, createReferralCode, isCommissionType } from "@/lib/referrals";
+import {
+  EXTERNAL_REFERRAL_COMMISSION_PER_PERSON,
+  EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS,
+  issueExternalReferralAccess,
+} from "@/lib/external-referral-requests";
+import { getExternalRestaurant } from "@/lib/geoapify-places";
+import { discoverRestaurantEmail } from "@/lib/restaurant-contact-discovery";
+
+const EXTERNAL_PLACE_PROVIDER = "GEOAPIFY";
 
 export async function POST(request: Request) {
   let createdGroupId: string | null = null;
@@ -22,6 +31,10 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => null);
     const restaurantId = typeof body?.restaurantId === "string" ? body.restaurantId : "";
+    const externalPlaceId = typeof body?.externalPlaceId === "string" ? body.externalPlaceId.trim().slice(0, 500) : "";
+    const externalPlaceProvider = body?.externalPlaceProvider === EXTERNAL_PLACE_PROVIDER ? EXTERNAL_PLACE_PROVIDER : "";
+    const externalRestaurantEmail = typeof body?.externalRestaurantEmail === "string" ? body.externalRestaurantEmail.trim().toLowerCase().slice(0, 160) : "";
+    const externalRequest = !restaurantId && Boolean(externalPlaceId && externalPlaceProvider);
     const adults = Number(body?.adults);
     const children = Number(body?.children);
     const guests = adults + children;
@@ -33,7 +46,7 @@ export async function POST(request: Request) {
       ? Array.from(new Set(body.requirements.filter((item: unknown): item is string => typeof item === "string" && (REFERRAL_REQUIREMENT_TAGS as readonly string[]).includes(item)))).slice(0, 5)
       : [];
     if (
-      !restaurantId
+      (!restaurantId && !externalRequest)
       || !Number.isInteger(adults) || adults < 1
       || !Number.isInteger(children) || children < 0
       || !Number.isInteger(guests) || guests < 1 || guests > 200
@@ -41,6 +54,127 @@ export async function POST(request: Request) {
       || !customerName || customerPhone.replace(/\D/g, "").length < 7
       || !customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)
     ) return NextResponse.json({ error: "Revê o restaurante, data, número de pessoas, telemóvel e email do cliente." }, { status: 400 });
+
+    if (externalRequest) {
+      const maxDate = new Date(Date.now() + EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
+      if (
+        !externalPlaceId || externalPlaceProvider !== EXTERNAL_PLACE_PROVIDER
+        || (externalRestaurantEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(externalRestaurantEmail))
+        || desiredDate > maxDate
+      ) {
+        return NextResponse.json({ error: `Escolhe um restaurante válido do catálogo, confirma o email de reservas e seleciona uma data nos próximos ${EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS} dias.` }, { status: 400 });
+      }
+    }
+
+    const tagNote = (tags: readonly { value: string; note: string | null }[], value: unknown) => tags.find((tag) => tag.value === value)?.note;
+    const notes = [
+      tagNote(REFERRAL_OCCASION_TAGS, body?.occasion),
+      tagNote(REFERRAL_ACCESSIBILITY_TAGS, body?.accessibility),
+      tagNote(REFERRAL_DIETARY_TAGS, body?.dietary),
+      requirements.length ? `Pedidos: ${requirements.join(", ")}.` : null,
+    ].filter(Boolean).join(" ") || null;
+    const publicCode = createReferralCode();
+
+    if (externalRequest) {
+      const [place, catalog, placeRestaurant] = await Promise.all([
+        getExternalRestaurant(externalPlaceId),
+        prisma.externalRestaurantPlace.findUnique({ where: { placeId: externalPlaceId }, select: { contactEmail: true } }),
+        prisma.restaurant.findFirst({
+          where: { externalPlaceProvider, externalPlaceId },
+          select: { id: true, name: true, email: true, externalPlaceProvider: true, externalPlaceId: true },
+        }),
+      ]);
+      let contactEmail = externalRestaurantEmail || placeRestaurant?.email || catalog?.contactEmail || place.email || "";
+      if (!contactEmail && place.websiteUrl) contactEmail = await discoverRestaurantEmail(place.websiteUrl) || "";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+        return NextResponse.json({ error: "Não encontrámos automaticamente o email deste restaurante. Confirma o email de reservas para enviar o pedido." }, { status: 400 });
+      }
+
+      let restaurant = placeRestaurant;
+      if (!restaurant) {
+        restaurant = await prisma.restaurant.findFirst({
+          where: { email: { equals: contactEmail, mode: "insensitive" }, externalPlaceId: null },
+          select: { id: true, name: true, email: true, externalPlaceProvider: true, externalPlaceId: true },
+        });
+      }
+      if (!restaurant) {
+        restaurant = await prisma.restaurant.create({
+          data: {
+            name: place.name,
+            slug: `pending-${publicCode.toLowerCase()}`,
+            email: contactEmail,
+            phone: place.phone || null,
+            address: place.address || null,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            externalPlaceProvider,
+            externalPlaceId,
+            externalMapUrl: place.mapUrl,
+            externalPlaceSyncedAt: new Date(),
+            onlineReservationsEnabled: false,
+          },
+          select: { id: true, name: true, email: true, externalPlaceProvider: true, externalPlaceId: true },
+        });
+      } else {
+        restaurant = await prisma.restaurant.update({
+          where: { id: restaurant.id },
+          data: {
+            name: place.name,
+            email: contactEmail,
+            phone: place.phone || undefined,
+            address: place.address || undefined,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            externalPlaceProvider,
+            externalPlaceId,
+            externalMapUrl: place.mapUrl,
+            externalPlaceSyncedAt: new Date(),
+          },
+          select: { id: true, name: true, email: true, externalPlaceProvider: true, externalPlaceId: true },
+        });
+      }
+
+      await prisma.externalRestaurantPlace.upsert({
+        where: { placeId: externalPlaceId },
+        create: { provider: externalPlaceProvider, placeId: externalPlaceId, contactEmail, contactCheckedAt: new Date(), lastSelectedAt: new Date(), selectionCount: 1 },
+        update: { contactEmail, contactCheckedAt: new Date(), lastSelectedAt: new Date(), selectionCount: { increment: 1 } },
+      });
+
+      const group = await prisma.referralGroup.create({
+        data: {
+          publicCode,
+          partnerId: partner.id,
+          desiredDate,
+          guests,
+          adults,
+          children,
+          customerName,
+          customerPhone,
+          customerEmail,
+          targetMode: "EXTERNAL",
+          targetSummary: place.name,
+          area: place.address || null,
+          notes,
+          commissionType: "PER_PERSON",
+          commissionAmount: EXTERNAL_REFERRAL_COMMISSION_PER_PERSON,
+          platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT,
+          expiresAt: desiredDate,
+          offers: {
+            create: {
+              restaurantId: restaurant.id,
+              commissionType: "PER_PERSON",
+              commissionAmount: EXTERNAL_REFERRAL_COMMISSION_PER_PERSON,
+              platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT,
+              status: "PENDING",
+            },
+          },
+        },
+        include: { offers: { select: { id: true } } },
+      });
+      createdGroupId = group.id;
+      await issueExternalReferralAccess(group.offers[0].id, request.url);
+      return NextResponse.json({ success: true, pending: true, publicCode: group.publicCode, restaurantName: place.name });
+    }
 
     const restaurant = await prisma.restaurant.findUnique({
       where: { id: restaurantId },
@@ -73,14 +207,6 @@ export async function POST(request: Request) {
       ? agreement.commissionType
       : isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON";
     const commissionAmount = isDemo ? 1.5 : Number(agreement?.commissionAmount ?? restaurant.referralDefaultCommissionAmount);
-    const tagNote = (tags: readonly { value: string; note: string | null }[], value: unknown) => tags.find((tag) => tag.value === value)?.note;
-    const notes = [
-      tagNote(REFERRAL_OCCASION_TAGS, body?.occasion),
-      tagNote(REFERRAL_ACCESSIBILITY_TAGS, body?.accessibility),
-      tagNote(REFERRAL_DIETARY_TAGS, body?.dietary),
-      requirements.length ? `Pedidos: ${requirements.join(", ")}.` : null,
-    ].filter(Boolean).join(" ") || null;
-    const publicCode = createReferralCode();
     const group = await prisma.referralGroup.create({
       data: {
         publicCode,
