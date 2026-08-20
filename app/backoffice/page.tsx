@@ -16,7 +16,7 @@ export default async function BackofficeOverview({ searchParams }: { searchParam
   const referenceTime = new Date();
   const activeThreshold = new Date(referenceTime.getTime() - 7 * 86_400_000);
   const newThreshold = new Date(referenceTime.getTime() - 30 * 86_400_000);
-  const clientWhere = { isAdmin: false, salesProfile: null, referralPartner: null, ...(staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId! } : {}) };
+  const clientWhere = { isAdmin: false, salesProfile: null, OR: [{ referralPartner: null }, { restaurants: { some: {} } }], ...(staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId! } : {}) };
   const [clients, finance, totalClientCount, activeClientCount, newClientCount, traffic, clientImpact] = await Promise.all([
     getBackofficeClients(staff),
     staff.role === "ADMIN" ? getBackofficeFinance() : Promise.resolve(null),

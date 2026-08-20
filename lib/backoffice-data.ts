@@ -71,10 +71,10 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
     where: {
       isAdmin: false,
       salesProfile: null,
-      referralPartner: null,
       ...(staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId } : {}),
-      ...(normalizedQuery ? {
-        OR: [
+      AND: [
+        { OR: [{ referralPartner: null }, { restaurants: { some: {} } }] },
+        ...(normalizedQuery ? [{ OR: [
           { id: normalizedQuery },
           { name: { contains: normalizedQuery, mode: "insensitive" as const } },
           { email: { contains: normalizedQuery, mode: "insensitive" as const } },
@@ -84,8 +84,8 @@ export async function getBackofficeClients(staff: StaffIdentity, query = "") {
             { phone: { contains: normalizedQuery, mode: "insensitive" as const } },
             { address: { contains: normalizedQuery, mode: "insensitive" as const } },
           ] } } },
-        ],
-      } : {}),
+        ] }] : []),
+      ],
     },
     include: {
       subscription: true,
@@ -215,7 +215,7 @@ export async function getBackofficeClientImpact(staff: StaffIdentity) {
   const userScope = {
     isAdmin: false,
     salesProfile: null,
-    referralPartner: null,
+    OR: [{ referralPartner: null }, { restaurants: { some: {} } }],
     ...(staff.role === "SALES" ? { salesRepresentativeId: staff.salesRepresentativeId! } : {}),
   };
   const [restaurantRows, newAccounts] = await Promise.all([

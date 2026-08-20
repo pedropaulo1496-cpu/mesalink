@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
 import { getPartnerIdentity } from "@/lib/partner-auth";
-import { externalPlacesConfigured, searchExternalRestaurants } from "@/lib/geoapify-places";
 import { googlePlacesConfigured, searchGoogleRestaurants } from "@/lib/google-places";
 import { prisma } from "@/lib/prisma";
 
-const GEO_PROVIDER = "GEOAPIFY";
 const GOOGLE_PROVIDER = "GOOGLE_PLACES";
-const CURATED_PROVIDER = "CURATED";
 
 export async function GET(request: Request) {
   const partner = await getPartnerIdentity();
@@ -18,74 +15,35 @@ export async function GET(request: Request) {
   const latitude = numberOrNull(url.searchParams.get("lat"));
   const longitude = numberOrNull(url.searchParams.get("lng"));
   const pageToken = url.searchParams.get("pageToken") || "";
+  const hasSearch = Boolean(query || location || (latitude !== null && longitude !== null));
+
+  if (!googlePlacesConfigured()) {
+    return NextResponse.json({ error: "A pesquisa de restaurantes está temporariamente indisponível.", configured: false }, { status: 503 });
+  }
 
   try {
-    const curatedRows = await prisma.externalRestaurantPlace.findMany({
-      where: { provider: CURATED_PROVIDER, published: true, contactEmail: { not: null }, heroImage: { not: null } },
-      orderBy: [{ city: "asc" }, { name: "asc" }],
-      take: 120,
-    });
-    const curated = curatedRows
-      .filter((row) => matchesDirectory(row, query, location))
-      .map((row) => ({
-        provider: CURATED_PROVIDER,
-        placeId: row.placeId,
-        name: row.name || "Restaurante",
-        address: row.address || row.city || "Portugal",
-        latitude: row.latitude,
-        longitude: row.longitude,
-        cuisine: row.cuisine || "Restaurante",
-        rating: row.rating,
-        reviewCount: row.reviewCount,
-        priceLevel: row.priceLevel,
-        mapUrl: row.mapUrl || mapSearchUrl(row.name || "Restaurante", row.address || row.city || "Portugal"),
-        businessStatus: "OPERATIONAL",
-        phone: row.phone || "",
-        email: row.contactEmail || "",
-        contactEmail: row.contactEmail || "",
-        websiteUrl: row.websiteUrl || "",
-        heroImage: row.heroImage || "",
-        galleryImages: stringArray(row.galleryImages),
-        description: row.description || "",
-        openingHours: row.openingHours || "",
-        ratingSource: row.ratingSource || "",
-      }));
-
-    const hasSearch = Boolean(query || location || (latitude !== null && longitude !== null));
-    let liveResult: Awaited<ReturnType<typeof searchGoogleRestaurants>> | Awaited<ReturnType<typeof searchExternalRestaurants>> = { restaurants: [], nextPageToken: null };
-    let liveProvider = googlePlacesConfigured() ? GOOGLE_PROVIDER : GEO_PROVIDER;
-    if (googlePlacesConfigured() && hasSearch) {
-      try {
-        liveResult = await searchGoogleRestaurants({ query, location, latitude, longitude, pageToken });
-      } catch (error) {
-        console.error("Google Places restaurant search failed", error);
-        if (externalPlacesConfigured()) {
-          liveProvider = GEO_PROVIDER;
-          liveResult = await searchExternalRestaurants({ query, location, latitude, longitude, pageToken }).catch((fallbackError) => {
-            console.error("Geoapify restaurant fallback failed; serving curated directory", fallbackError);
-            return { restaurants: [], nextPageToken: null };
-          });
-        }
-      }
-    } else if (externalPlacesConfigured() && hasSearch) {
-      try {
-        liveResult = await searchExternalRestaurants({ query, location, latitude, longitude, pageToken });
-      } catch (error) {
-        console.error("Geoapify restaurant search failed; serving curated directory", error);
-      }
-    }
-
+    const liveResult = hasSearch
+      ? await searchGoogleRestaurants({ query, location, latitude, longitude, pageToken })
+      : { restaurants: [], nextPageToken: null };
     const livePlaceIds = liveResult.restaurants.map((restaurant) => restaurant.placeId);
     const cachedProfiles = livePlaceIds.length ? await prisma.externalRestaurantPlace.findMany({
-      where: { provider: liveProvider, placeId: { in: livePlaceIds } },
+      where: { provider: GOOGLE_PROVIDER, placeId: { in: livePlaceIds } },
       select: { placeId: true, websiteUrl: true, heroImage: true, galleryImages: true, description: true, openingHours: true, rating: true, reviewCount: true, ratingSource: true, priceLevel: true, contactEmail: true },
     }) : [];
     const profileByPlaceId = new Map(cachedProfiles.map((item) => [item.placeId, item]));
+
     if (livePlaceIds.length) {
       const seenAt = new Date();
-      await prisma.externalRestaurantPlace.createMany({ data: livePlaceIds.map((placeId) => ({ provider: liveProvider, placeId, lastSeenAt: seenAt })), skipDuplicates: true });
-      await prisma.externalRestaurantPlace.updateMany({ where: { provider: liveProvider, placeId: { in: livePlaceIds } }, data: { lastSeenAt: seenAt } });
+      await prisma.externalRestaurantPlace.createMany({
+        data: livePlaceIds.map((placeId) => ({ provider: GOOGLE_PROVIDER, placeId, lastSeenAt: seenAt })),
+        skipDuplicates: true,
+      });
+      await prisma.externalRestaurantPlace.updateMany({
+        where: { provider: GOOGLE_PROVIDER, placeId: { in: livePlaceIds } },
+        data: { lastSeenAt: seenAt },
+      });
     }
+
     const live = liveResult.restaurants.map((restaurant) => {
       const profile = profileByPlaceId.get(restaurant.placeId);
       return {
@@ -103,14 +61,11 @@ export async function GET(request: Request) {
       };
     });
 
-    const combined = deduplicate([...curated, ...live]);
-    const externalKeys = combined.map((item) => ({ provider: item.provider, placeId: item.placeId }));
-    const existing = externalKeys.length ? await prisma.restaurant.findMany({
-      where: { OR: externalKeys.map((key) => ({ externalPlaceProvider: key.provider, externalPlaceId: key.placeId })) },
+    const existing = livePlaceIds.length ? await prisma.restaurant.findMany({
+      where: { externalPlaceProvider: GOOGLE_PROVIDER, externalPlaceId: { in: livePlaceIds } },
       select: {
         id: true,
         email: true,
-        externalPlaceProvider: true,
         externalPlaceId: true,
         referralNetworkEnabled: true,
         referralAutoAcceptEnabled: true,
@@ -118,9 +73,9 @@ export async function GET(request: Request) {
         referralPaymentBlockedAt: true,
       },
     }) : [];
-    const localByKey = new Map(existing.map((item) => [`${item.externalPlaceProvider}:${item.externalPlaceId}`, item]));
-    const restaurants = combined.map((restaurant) => {
-      const local = localByKey.get(`${restaurant.provider}:${restaurant.placeId}`);
+    const localByPlaceId = new Map(existing.map((item) => [item.externalPlaceId, item]));
+    const restaurants = live.map((restaurant) => {
+      const local = localByPlaceId.get(restaurant.placeId);
       const bookingReady = Boolean(local?.referralNetworkEnabled && local.referralAutoAcceptEnabled && local.referralPaymentMethodId && !local.referralPaymentBlockedAt);
       return {
         ...restaurant,
@@ -131,42 +86,15 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json({
-      configured: curatedRows.length > 0 || googlePlacesConfigured() || externalPlacesConfigured(),
-      googlePlacesEnabled: googlePlacesConfigured(),
-      source: hasSearch ? liveProvider : googlePlacesConfigured() ? "GOOGLE_PLACES" : externalPlacesConfigured() ? "GEOAPIFY" : "CURATED",
+      configured: true,
+      source: GOOGLE_PROVIDER,
       restaurants,
       nextPageToken: liveResult.nextPageToken,
     });
   } catch (error) {
-    console.error("External restaurant search failed", error);
+    console.error("Google restaurant search failed", error);
     return NextResponse.json({ error: "Não foi possível pesquisar restaurantes agora.", configured: true }, { status: 502 });
   }
-}
-
-function matchesDirectory(row: { name: string | null; city: string | null; address: string | null; cuisine: string | null; description: string | null }, query: string, location: string) {
-  const identity = normalize(`${row.name || ""} ${row.cuisine || ""} ${row.description || ""}`);
-  const place = normalize(`${row.city || ""} ${row.address || ""}`);
-  return (!query || identity.includes(normalize(query))) && (!location || place.includes(normalize(location)));
-}
-
-function deduplicate<T extends { provider: string; placeId: string; name: string; address: string }>(items: T[]) {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    const key = normalize(`${item.name}:${item.address}`).replace(/\b(portugal|pt)\b/g, "").replace(/\d{4}-\d{3}/g, "");
-    const providerKey = `${item.provider}:${item.placeId}`;
-    if (seen.has(key) || seen.has(providerKey)) return false;
-    seen.add(key);
-    seen.add(providerKey);
-    return true;
-  });
-}
-
-function mapSearchUrl(name: string, address: string) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name}, ${address}`)}`;
-}
-
-function normalize(value: string) {
-  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 function stringArray(value: unknown) {

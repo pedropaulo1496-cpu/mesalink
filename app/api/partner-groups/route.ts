@@ -14,37 +14,10 @@ import {
   EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS,
   issueExternalReferralAccess,
 } from "@/lib/external-referral-requests";
-import { getExternalRestaurant } from "@/lib/geoapify-places";
 import { getGoogleRestaurant } from "@/lib/google-places";
 import { discoverRestaurantEmail } from "@/lib/restaurant-contact-discovery";
 
-const EXTERNAL_PLACE_PROVIDERS = new Set(["GEOAPIFY", "GOOGLE_PLACES", "CURATED"]);
-
-function placeFromCatalog(placeId: string, row: {
-  name: string | null;
-  address: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  phone: string | null;
-  mapUrl: string | null;
-  websiteUrl: string | null;
-  contactEmail: string | null;
-}) {
-  const name = row.name || "Restaurante";
-  const address = row.address || "Portugal";
-  return {
-    provider: "CURATED" as const,
-    placeId,
-    name,
-    address,
-    latitude: row.latitude,
-    longitude: row.longitude,
-    phone: row.phone || "",
-    email: row.contactEmail || "",
-    websiteUrl: row.websiteUrl || "",
-    mapUrl: row.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name}, ${address}`)}`,
-  };
-}
+const EXTERNAL_PLACE_PROVIDERS = new Set(["GOOGLE_PLACES"]);
 
 export async function POST(request: Request) {
   let createdGroupId: string | null = null;
@@ -113,18 +86,11 @@ export async function POST(request: Request) {
           select: { id: true, name: true, email: true, externalPlaceProvider: true, externalPlaceId: true },
         }),
       ]);
-      if (externalPlaceProvider === "CURATED" && (!catalog?.published || !catalog.heroImage || !catalog.contactEmail)) {
-        return NextResponse.json({ error: "Este restaurante deixou de estar disponível no catálogo verificado." }, { status: 409 });
-      }
-      const place = externalPlaceProvider === "CURATED"
-        ? placeFromCatalog(externalPlaceId, catalog!)
-        : externalPlaceProvider === "GOOGLE_PLACES"
-          ? await getGoogleRestaurant(externalPlaceId)
-          : await getExternalRestaurant(externalPlaceId);
+      const place = await getGoogleRestaurant(externalPlaceId);
       let contactEmail = catalog?.contactEmail || placeRestaurant?.email || externalRestaurantEmail || place.email || "";
       if (!contactEmail && place.websiteUrl) contactEmail = await discoverRestaurantEmail(place.websiteUrl) || "";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
-        return NextResponse.json({ error: "O contacto público deste restaurante deixou de estar disponível. Escolhe outro restaurante." }, { status: 409 });
+        return NextResponse.json({ error: "Este restaurante deixou de estar disponível. Escolhe outro restaurante." }, { status: 409 });
       }
 
       let restaurant = placeRestaurant;

@@ -259,17 +259,17 @@ export default async function PartnerAppPage({
       </header>
 
       <div className="mx-auto max-w-[1380px] px-4 pb-16 pt-5 sm:px-6 sm:pt-6">
-        <nav className="mb-5 grid grid-cols-2 gap-1.5 rounded-[22px] border border-[#D9C7AA] bg-white/70 p-1.5 shadow-[0_12px_35px_rgba(79,56,32,0.06)] backdrop-blur-xl sm:grid-cols-5 lg:w-fit">
+        <nav className="mx-auto mb-4 grid w-full max-w-[520px] grid-cols-5 gap-1 rounded-[18px] border border-[#D9C7AA] bg-white/80 p-1 shadow-[0_10px_28px_rgba(79,56,32,0.06)] backdrop-blur-xl sm:mb-5 sm:max-w-none sm:gap-1.5 sm:rounded-[22px] sm:p-1.5 lg:mx-0 lg:w-fit">
           {[
-            { id: "groups", label: "Nova reserva", note: "Escolher restaurante", icon: <CalendarPlus2 size={14} /> },
-            { id: "history", label: "Reservas", note: "Histórico e faturas", icon: <FileText size={14} /> },
-            { id: "stats", label: "Resultados", note: "Receita gerada", icon: <BarChart3 size={14} /> },
-            { id: "account", label: "Pagamentos", note: "IBAN e estado", icon: <Landmark size={14} /> },
-            { id: "help", label: "Ajuda", note: "Chat com o HQ", icon: <MessageCircleMore size={14} /> },
+            { id: "groups", label: "Nova reserva", short: "Nova", note: "Escolher restaurante", icon: <CalendarPlus2 size={14} /> },
+            { id: "history", label: "Reservas", short: "Reservas", note: "Histórico e faturas", icon: <FileText size={14} /> },
+            { id: "stats", label: "Resultados", short: "Resultados", note: "Receita gerada", icon: <BarChart3 size={14} /> },
+            { id: "account", label: "Pagamentos", short: "Pagamentos", note: "IBAN e estado", icon: <Landmark size={14} /> },
+            { id: "help", label: "Ajuda", short: "Ajuda", note: "Chat com o HQ", icon: <MessageCircleMore size={14} /> },
           ].map((item) => (
-            <Link key={item.id} href={`/partners/app?tab=${item.id}`} className={`relative flex min-h-12 items-center gap-2.5 rounded-[16px] px-3 py-2 text-[11px] font-bold transition ${tab === item.id ? "bg-[#17120D] text-white shadow-[0_9px_24px_rgba(23,18,13,0.2)]" : "text-[#5F574F] hover:bg-white"}`}>
-              <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-[11px] ${tab === item.id ? "bg-[#D7B267] text-[#17120D]" : "bg-[#F1E6D5] text-[#8A6130]"}`}>{item.icon}</span><span className="min-w-0"><span className="block truncate">{item.label}</span><span className={`hidden truncate text-[8px] font-medium sm:block ${tab === item.id ? "text-white/40" : "text-[#918577]"}`}>{item.note}</span></span>
-              {item.id === "account" && !partner.stripeOnboardingComplete && <span className="h-2 w-2 rounded-full bg-[#D79A4A]" />}
+            <Link key={item.id} href={`/partners/app?tab=${item.id}`} className={`relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-1 rounded-[14px] px-0.5 py-1.5 text-center text-[8px] font-bold leading-none transition sm:min-h-12 sm:flex-row sm:justify-start sm:gap-2.5 sm:rounded-[16px] sm:px-3 sm:py-2 sm:text-left sm:text-[11px] ${tab === item.id ? "bg-[#17120D] text-white shadow-[0_7px_20px_rgba(23,18,13,0.18)]" : "text-[#5F574F] hover:bg-white"}`}>
+              <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-[9px] sm:h-8 sm:w-8 sm:rounded-[11px] ${tab === item.id ? "bg-[#D7B267] text-[#17120D]" : "bg-[#F1E6D5] text-[#8A6130]"}`}>{item.icon}</span><span className="block w-full truncate sm:hidden">{item.short}</span><span className="hidden min-w-0 sm:block"><span className="block truncate">{item.label}</span><span className={`hidden truncate text-[8px] font-medium lg:block ${tab === item.id ? "text-white/40" : "text-[#918577]"}`}>{item.note}</span></span>
+              {item.id === "account" && !partner.stripeOnboardingComplete && <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#D79A4A] sm:static sm:h-2 sm:w-2" />}
             </Link>
           ))}
         </nav>
@@ -297,7 +297,7 @@ export default async function PartnerAppPage({
 
         {tab === "groups" && <>
         <section className="relative overflow-hidden rounded-[28px] bg-[#17120D] p-5 text-white shadow-[0_22px_55px_rgba(23,18,13,0.16)] sm:p-6" style={{ backgroundImage: "radial-gradient(circle at 78% 20%, rgba(215,178,103,.24), transparent 22rem), linear-gradient(125deg, rgba(255,255,255,.025), transparent 48%)" }}>
-          <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"><div><div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.24em] text-[#D7B267]"><Sparkles size={13} /> MesaLink Partners</div><h1 className="mt-3 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-0.055em] sm:text-[2.65rem]">Reserva o restaurante certo. A comissão fica registada.</h1><p className="mt-3 max-w-2xl text-xs leading-5 text-white/52 sm:text-sm">Restaurantes MesaLink e catálogo aberto de restaurantes, com confirmação imediata ou pendente numa única conta.</p></div><div className="grid grid-cols-3 gap-2"><PartnerHeroMetric label="Rede ativa" value={String(restaurantOptions.length)} /><PartnerHeroMetric label="Próximas" value={String(upcomingGroupsCount)} /><PartnerHeroMetric label="Recebido" value={formatMoney(paidRevenue)} /></div></div>
+          <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"><div><div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.24em] text-[#D7B267]"><Sparkles size={13} /> MesaLink Partners</div><h1 className="mt-3 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-0.055em] sm:text-[2.65rem]">Reserva o restaurante certo. A comissão fica registada.</h1><p className="mt-3 max-w-2xl text-xs leading-5 text-white/52 sm:text-sm">Escolhe o restaurante e vê logo se a reserva é imediata ou fica pendente de confirmação.</p></div><div className="grid grid-cols-3 gap-2"><PartnerHeroMetric label="Rede ativa" value={String(restaurantOptions.length)} /><PartnerHeroMetric label="Próximas" value={String(upcomingGroupsCount)} /><PartnerHeroMetric label="Recebido" value={formatMoney(paidRevenue)} /></div></div>
           <div className="relative mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 pt-4 text-[9px] font-semibold text-white/48"><span className="inline-flex items-center gap-1.5 text-[#9BC99D]"><ShieldCheck size={13} /> Contactos protegidos</span><span className="inline-flex items-center gap-1.5"><CheckCircle2 size={13} /> Comissão definida pelo restaurante</span><span className="inline-flex items-center gap-1.5"><Clock3 size={13} /> Pagamentos acompanhados na app</span></div>
         </section>
 

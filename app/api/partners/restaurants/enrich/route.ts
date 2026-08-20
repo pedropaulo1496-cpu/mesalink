@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { getPartnerIdentity } from "@/lib/partner-auth";
-import { getExternalRestaurant } from "@/lib/geoapify-places";
 import { getGoogleRestaurant } from "@/lib/google-places";
 import { prisma } from "@/lib/prisma";
 import { discoverRestaurantContact, discoverRestaurantPresentation } from "@/lib/restaurant-contact-discovery";
 
-const EXTERNAL_PROVIDERS = new Set(["GEOAPIFY", "GOOGLE_PLACES"]);
+const GOOGLE_PROVIDER = "GOOGLE_PLACES";
 const MAX_PLACES = 8;
 const CACHE_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -15,11 +14,11 @@ export async function POST(request: Request) {
   const partner = await getPartnerIdentity();
   if (!partner) return NextResponse.json({ error: "Não autenticado na app Partners." }, { status: 401 });
   const body = await request.json().catch(() => null);
-  const provider = typeof body?.provider === "string" && EXTERNAL_PROVIDERS.has(body.provider) ? body.provider : "GEOAPIFY";
+  const provider = body?.provider === GOOGLE_PROVIDER ? GOOGLE_PROVIDER : "";
   const rawPlaceIds: unknown[] = Array.isArray(body?.placeIds) ? body.placeIds : [];
   const validPlaceIds = rawPlaceIds.filter((value): value is string => typeof value === "string" && /^[A-Za-z0-9:_-]{8,500}$/.test(value));
   const placeIds: string[] = [...new Set(validPlaceIds.slice(0, MAX_PLACES))];
-  if (!placeIds.length) return NextResponse.json({ restaurants: [] });
+  if (!provider || !placeIds.length) return NextResponse.json({ restaurants: [] });
 
   const cachedRows = await prisma.externalRestaurantPlace.findMany({
     where: { provider, placeId: { in: placeIds } },
@@ -33,7 +32,7 @@ export async function POST(request: Request) {
     const contactAlreadyChecked = Boolean(row?.contactCheckedAt && row.contactCheckedAt > freshAfter);
     if (row?.enrichedAt && row.enrichedAt > freshAfter && (row.heroImage || photoAlreadyChecked) && contactAlreadyChecked) return profileFromRow(row);
     try {
-      const place = provider === "GOOGLE_PLACES" ? await getGoogleRestaurant(placeId) : await getExternalRestaurant(placeId);
+      const place = await getGoogleRestaurant(placeId);
       const [websiteProfile, discoveredContact] = await Promise.all([
         place.websiteUrl ? discoverRestaurantPresentation(place.websiteUrl) : null,
         place.email ? Promise.resolve({ email: place.email, sourceUrl: place.websiteUrl }) : place.websiteUrl ? discoverRestaurantContact(place.websiteUrl) : null,

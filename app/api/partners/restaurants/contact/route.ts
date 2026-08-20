@@ -1,22 +1,21 @@
 import { NextResponse } from "next/server";
 import { getPartnerIdentity } from "@/lib/partner-auth";
-import { getExternalRestaurant } from "@/lib/geoapify-places";
 import { getGoogleRestaurant } from "@/lib/google-places";
 import { prisma } from "@/lib/prisma";
 import { discoverRestaurantEmail } from "@/lib/restaurant-contact-discovery";
 
-const EXTERNAL_PROVIDERS = new Set(["GEOAPIFY", "GOOGLE_PLACES"]);
+const GOOGLE_PROVIDER = "GOOGLE_PLACES";
 
 export async function POST(request: Request) {
   const partner = await getPartnerIdentity();
   if (!partner) return NextResponse.json({ error: "Não autenticado na app Partners." }, { status: 401 });
   const body = await request.json().catch(() => null);
-  const provider = typeof body?.provider === "string" && EXTERNAL_PROVIDERS.has(body.provider) ? body.provider : "";
+  const provider = body?.provider === GOOGLE_PROVIDER ? GOOGLE_PROVIDER : "";
   const placeId = typeof body?.placeId === "string" ? body.placeId.trim().slice(0, 500) : "";
   if (!provider || !placeId) return NextResponse.json({ error: "Restaurante inválido." }, { status: 400 });
   try {
     const [place, knownRestaurant, catalog] = await Promise.all([
-      provider === "GOOGLE_PLACES" ? getGoogleRestaurant(placeId) : getExternalRestaurant(placeId),
+      getGoogleRestaurant(placeId),
       prisma.restaurant.findFirst({ where: { externalPlaceProvider: provider, externalPlaceId: placeId }, select: { email: true } }),
       prisma.externalRestaurantPlace.findUnique({ where: { placeId }, select: { contactEmail: true, contactCheckedAt: true } }),
     ]);
