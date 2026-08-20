@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/validation";
 import { createPartnerCode } from "@/lib/partner-code";
+import { sendPartnerWelcomeEmail } from "@/lib/partner-welcome-email";
 
 const partnerTypes = new Set(["HOTEL", "CONCIERGE", "INFLUENCER", "GUIDE", "AGENCY", "COMPANY", "OTHER"]);
 
@@ -51,6 +52,10 @@ export async function POST(request: Request) {
           termsVersion: "partners-v1-2026-08-11",
         },
       });
+    });
+
+    await sendPartnerWelcomeEmail({ email, contactName, businessName }).catch((emailError) => {
+      console.error("Partner welcome email failed:", emailError);
     });
 
     return NextResponse.json({ success: true });

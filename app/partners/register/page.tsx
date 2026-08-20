@@ -61,7 +61,7 @@ export default function PartnerRegisterPage() {
           <div className="bg-[#17120D] p-7 text-white sm:p-9">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D7B267]">Conta de parceiro</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.06em]">Começa a enviar grupos.</h1>
-            <p className="mt-3 text-sm leading-6 text-white/60">Para hotéis, concierges, influencers, guias, empresas ou particulares. Cada parceiro tem conta pessoal, IBAN verificado e histórico próprio.</p>
+            <p className="mt-3 text-sm leading-6 text-white/60">Para hotéis, concierges, influencers, guias, empresas ou particulares. Funciona no computador e na app Android, sempre com a mesma conta, reservas e histórico.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 p-6 sm:p-8">
@@ -87,6 +87,7 @@ export default function PartnerRegisterPage() {
             <label className="flex items-start gap-3 text-xs leading-5 text-[#6B6258]"><input name="acceptedPrivacy" type="checkbox" required className="mt-1 h-4 w-4 accent-[#17120D]" /><span>Li a <Link href="/privacy" target="_blank" className="font-bold text-[#17120D] underline">Política de Privacidade</Link> e confirmo que tenho autorização para fornecer o contacto necessário à reserva.</span></label>
             {error && <p className="rounded-2xl bg-[#FFF0EA] px-4 py-3 text-sm font-semibold text-[#A14E36]">{error}</p>}
             <button disabled={loading} className="h-13 w-full rounded-full bg-[#17120D] px-6 text-sm font-black text-white disabled:opacity-50">{loading ? "A criar conta…" : "Criar conta Partner"}</button>
+            <p className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-3 text-center text-[11px] leading-5 text-[#6B6258]">Depois do registo enviamos por email o acesso para computador e o link direto para instalar a app MesaLink Partners.</p>
             <p className="text-center text-xs text-[#766C61]">Já tens conta? <Link href="/partners/login" className="font-bold text-[#17120D]">Entrar em Partners</Link></p>
           </form>
         </div>

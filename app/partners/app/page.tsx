@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowUpRight, BarChart3, CalendarPlus2, CheckCircle2, Clock3, Euro, FileCheck2, FileText, Landmark, MessageCircleMore, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
+import { ArrowDownToLine, ArrowUpRight, BarChart3, CalendarPlus2, CheckCircle2, Clock3, Euro, FileCheck2, FileText, Landmark, MessageCircleMore, Monitor, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import NewReferralGroupForm from "@/components/partners/NewReferralGroupForm";
 import PartnerInvoiceUpload from "@/components/partners/PartnerInvoiceUpload";
 import PartnerSignOutButton from "@/components/partners/PartnerSignOutButton";
@@ -346,7 +346,7 @@ export default async function PartnerAppPage({
           </div>
         </section>}
 
-        {tab === "account" && <><div className="mb-4"><PushNotificationToggle apiPath="/api/partners/push" storageKey="mesalink:partner-notifications" title="Notificações da app Partners" description="Recebe avisos importantes sobre reservas, comissões e pagamentos." /></div><section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        {tab === "account" && <><section className="mb-4 grid gap-3 rounded-[24px] border border-[#D9C7AA] bg-white p-4 sm:grid-cols-2"><a href="https://www.mesalink.pt/partners/app" className="flex items-center gap-3 rounded-[18px] bg-[#F7F0E5] p-4"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] bg-[#17120D] text-[#D7B267]"><Monitor size={18} /></span><span><strong className="block text-sm">Usar no computador</strong><small className="mt-1 block text-[10px] text-[#6B6258]">Acesso web, sem instalar nada.</small></span></a><a href="/downloads/MesaLink-Parceiros-v1.0.3.apk" download className="flex items-center gap-3 rounded-[18px] bg-[#17120D] p-4 text-white"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] bg-[#D7B267] text-[#17120D]"><ArrowDownToLine size={18} /></span><span><strong className="block text-sm">Instalar app Android</strong><small className="mt-1 block text-[10px] text-white/50">Download oficial MesaLink Partners.</small></span></a></section><div className="mb-4"><PushNotificationToggle apiPath="/api/partners/push" storageKey="mesalink:partner-notifications" title="Notificações da app Partners" description="Recebe avisos importantes sobre reservas, comissões e pagamentos." /></div><section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[26px] border border-[#E1D0B8] bg-white p-5">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Dados de pagamento</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.055em]">Conta bancária e verificação</h1>
