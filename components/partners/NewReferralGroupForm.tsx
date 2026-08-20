@@ -534,7 +534,12 @@ function ratingSourceLabel(source: string) {
 }
 
 function validEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  const normalized = value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return false;
+  const [local, domain] = normalized.split("@");
+  if (/^(usuario|utilizador|user|username|yourname|your-email|seuemail|seu-email)$/i.test(local || "")) return false;
+  if (/(^|\.)(dominio|domain|example)\.(com|pt|net|org)$/i.test(domain || "")) return false;
+  return !/(^|[.@_-])(websystems|wixpress|sentry|hosting|wordpress|cloudflare)([.@_-]|$)/i.test(normalized);
 }
 
 function externalPlaceKey(restaurant: Pick<PartnerRestaurant, "externalPlaceProvider" | "externalPlaceId">) {

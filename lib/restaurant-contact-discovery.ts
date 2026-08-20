@@ -134,8 +134,11 @@ function extractEmails(html: string) {
 export function isValidPublicRestaurantEmail(email: string) {
   const normalized = email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(normalized)) return false;
+  const [local, domain] = normalized.split("@");
+  if (/^(usuario|utilizador|user|username|yourname|your-email|seuemail|seu-email)$/i.test(local || "")) return false;
   if (/(^|[.@_-])(example|teste?|sample|yourname|email|name)([.@_-]|$)/i.test(normalized)) return false;
-  if (/@(?:websystems|wixpress|sentry|domain|hosting|wordpress)\./i.test(normalized)) return false;
+  if (/(^|\.)(dominio|domain|example)\.(com|pt|net|org)$/i.test(domain || "")) return false;
+  if (/(^|[.@_-])(websystems|wixpress|sentry|hosting|wordpress|cloudflare)([.@_-]|$)/i.test(normalized)) return false;
   return true;
 }
 

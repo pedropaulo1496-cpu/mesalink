@@ -15,7 +15,7 @@ import {
   issueExternalReferralAccess,
 } from "@/lib/external-referral-requests";
 import { getGoogleRestaurant } from "@/lib/google-places";
-import { discoverRestaurantEmail } from "@/lib/restaurant-contact-discovery";
+import { discoverRestaurantEmail, isValidPublicRestaurantEmail } from "@/lib/restaurant-contact-discovery";
 
 const EXTERNAL_PLACE_PROVIDERS = new Set(["GOOGLE_PLACES"]);
 
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       const maxDate = new Date(Date.now() + EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
       if (
         !externalPlaceId || !EXTERNAL_PLACE_PROVIDERS.has(externalPlaceProvider)
-        || (externalRestaurantEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(externalRestaurantEmail))
+        || (externalRestaurantEmail && !isValidPublicRestaurantEmail(externalRestaurantEmail))
         || desiredDate > maxDate
       ) {
         return NextResponse.json({ error: `Escolhe um restaurante válido do catálogo e seleciona uma data nos próximos ${EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS} dias.` }, { status: 400 });
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
       const place = await getGoogleRestaurant(externalPlaceId);
       let contactEmail = catalog?.contactEmail || placeRestaurant?.email || externalRestaurantEmail || place.email || "";
       if (!contactEmail && place.websiteUrl) contactEmail = await discoverRestaurantEmail(place.websiteUrl) || "";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+      if (!isValidPublicRestaurantEmail(contactEmail)) {
         return NextResponse.json({ error: "Este restaurante deixou de estar disponível. Escolhe outro restaurante." }, { status: 409 });
       }
 
