@@ -18,6 +18,8 @@ type GooglePlace = {
   displayName?: { text?: string };
   formattedAddress?: string;
   location?: { latitude?: number; longitude?: number };
+  primaryType?: string;
+  types?: string[];
   primaryTypeDisplayName?: { text?: string };
   businessStatus?: string;
   googleMapsUri?: string;
@@ -41,6 +43,7 @@ export type GoogleRestaurantPlace = {
   provider: typeof PROVIDER;
   placeId: string;
   name: string;
+  primaryType: string;
   address: string;
   latitude: number | null;
   longitude: number | null;
@@ -114,6 +117,8 @@ export async function searchGoogleRestaurants(input: {
     "places.displayName",
     "places.formattedAddress",
     "places.location",
+    "places.primaryType",
+    "places.types",
     "places.primaryTypeDisplayName",
     "places.businessStatus",
     "places.googleMapsUri",
@@ -154,7 +159,7 @@ export async function getGoogleRestaurant(placeId: string) {
   const response = await fetch(url, {
     headers: {
       "X-Goog-Api-Key": apiKey(),
-      "X-Goog-FieldMask": "id,displayName,formattedAddress,location,primaryTypeDisplayName,businessStatus,googleMapsUri,websiteUri,nationalPhoneNumber,rating,userRatingCount,priceLevel,regularOpeningHours,editorialSummary,photos",
+      "X-Goog-FieldMask": "id,displayName,formattedAddress,location,primaryType,types,primaryTypeDisplayName,businessStatus,googleMapsUri,websiteUri,nationalPhoneNumber,rating,userRatingCount,priceLevel,regularOpeningHours,editorialSummary,photos",
     },
     cache: "no-store",
     signal: AbortSignal.timeout(9000),
@@ -194,12 +199,15 @@ function normalizePlace(place: GooglePlace, includePhoto = false): GoogleRestaur
   const placeId = place.id?.trim();
   const name = place.displayName?.text?.trim();
   if (!placeId || !name) return null;
+  const primaryType = place.primaryType?.trim().toLowerCase() || "";
+  if (!isReservationRestaurantType(primaryType, place.types)) return null;
   const photo = includePhoto ? place.photos?.[0] : undefined;
   const attribution = photo?.authorAttributions?.[0];
   return {
     provider: PROVIDER,
     placeId,
     name,
+    primaryType,
     address: place.formattedAddress?.trim() || "Portugal",
     latitude: finiteOrNull(place.location?.latitude),
     longitude: finiteOrNull(place.location?.longitude),
@@ -220,6 +228,18 @@ function normalizePlace(place: GooglePlace, includePhoto = false): GoogleRestaur
     photoAttribution: attribution?.displayName?.trim() || "",
     photoAttributionUri: attribution?.uri?.trim() || "",
   };
+}
+
+const RESERVATION_RESTAURANT_TYPES = new Set([
+  "restaurant",
+  "bar_and_grill",
+  "steak_house",
+]);
+
+function isReservationRestaurantType(primaryType: string, types?: string[]) {
+  if (RESERVATION_RESTAURANT_TYPES.has(primaryType) || primaryType.endsWith("_restaurant")) return true;
+  if (primaryType) return false;
+  return (types || []).some((type) => RESERVATION_RESTAURANT_TYPES.has(type) || type.endsWith("_restaurant"));
 }
 
 function googlePriceLevel(value?: string) {

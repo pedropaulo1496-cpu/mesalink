@@ -58,6 +58,7 @@ type ExternalRestaurantSearchItem = {
   provider: string;
   placeId: string;
   name: string;
+  primaryType?: string;
   address: string;
   latitude: number | null;
   longitude: number | null;
@@ -437,6 +438,7 @@ function CommissionNegotiation({ restaurant }: { restaurant: PartnerRestaurant }
 
 function externalPartnerRestaurant(item: ExternalRestaurantSearchItem): PartnerRestaurant | null {
   if (!item?.provider || !item?.placeId || !item.name) return null;
+  if (!isRestaurantSearchItem(item)) return null;
   return {
     id: item.mesalinkRestaurantId || `open:${item.provider}:${item.placeId}`,
     source: item.bookingReady && item.mesalinkRestaurantId ? "MESALINK" : "OPEN_DATA",
@@ -484,6 +486,20 @@ function externalPartnerRestaurant(item: ExternalRestaurantSearchItem): PartnerR
     negotiationAmount: null,
     negotiationMessage: null,
   };
+}
+
+function isRestaurantSearchItem(item: ExternalRestaurantSearchItem) {
+  const primaryType = item.primaryType?.trim().toLowerCase() || "";
+  if (primaryType) return primaryType === "restaurant" || primaryType === "bar_and_grill" || primaryType === "steak_house" || primaryType.endsWith("_restaurant");
+
+  const category = normalizeSearchText(item.cuisine || "");
+  const nonRestaurantCategories = ["centro comercial", "shopping", "retail park", "loja", "hotel", "alojamento", "supermercado", "hipermercado", "mercado municipal", "atracao turistica"];
+  if (nonRestaurantCategories.some((blocked) => category.includes(blocked))) return false;
+  return category.includes("restaurant") || category.includes("restaurante") || category.includes("churrascaria") || category.includes("pizzaria");
+}
+
+function normalizeSearchText(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
 function remainingCapacity(restaurant: PartnerRestaurant, desiredDate: string) {
