@@ -693,6 +693,16 @@ model ExternalRestaurantPlace {
   placeId          String    @id
   contactEmail     String?
   contactCheckedAt DateTime?
+  websiteUrl       String?
+  heroImage        String?
+  galleryImages    Json?
+  description      String?
+  openingHours     String?
+  rating           Float?
+  reviewCount      Int?
+  ratingSource     String?
+  priceLevel       Int?
+  enrichedAt       DateTime?
   firstSeenAt      DateTime  @default(now())
   lastSeenAt       DateTime  @default(now())
   lastSelectedAt   DateTime?
@@ -701,6 +711,7 @@ model ExternalRestaurantPlace {
   @@unique([provider, placeId])
   @@index([lastSeenAt])
   @@index([contactCheckedAt])
+  @@index([enrichedAt])
 }
 
 model ReservationTimeBlock {

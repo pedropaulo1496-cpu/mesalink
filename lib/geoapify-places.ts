@@ -12,6 +12,20 @@ type GeoapifyProperties = {
   categories?: string[];
   result_type?: string;
   website?: string;
+  description?: string;
+  opening_hours?: string;
+  wiki_and_media?: {
+    image?: string;
+    wikidata?: string;
+    wikipedia?: string;
+    wikimedia_commons?: string;
+  };
+  catering?: {
+    stars?: string | number;
+    cuisine?: string;
+    capacity?: string;
+    reservation?: string;
+  };
   contact?: { phone?: string; email?: string; website?: string };
   datasource?: {
     raw?: Record<string, unknown> & {
@@ -20,6 +34,11 @@ type GeoapifyProperties = {
       email?: string;
       phone?: string;
       website?: string;
+      image?: string;
+      stars?: string | number;
+      description?: string;
+      opening_hours?: string;
+      price?: string | number;
       osm_id?: string | number;
       osm_type?: string;
     };
@@ -54,6 +73,11 @@ export type ExternalRestaurantPlace = {
   phone: string;
   email: string;
   websiteUrl: string;
+  heroImage: string;
+  galleryImages: string[];
+  description: string;
+  openingHours: string;
+  ratingSource: string;
 };
 
 function apiKey() {
@@ -203,6 +227,8 @@ function normalizePlace(feature: GeoapifyFeature): ExternalRestaurantPlace | nul
   const longitude = finiteOrNull(place.lon ?? feature.geometry?.coordinates?.[0]);
   const latitude = finiteOrNull(place.lat ?? feature.geometry?.coordinates?.[1]);
   const websiteUrl = firstString(place.website, place.contact?.website, raw.website, raw["contact:website"]);
+  const heroImage = firstString(place.wiki_and_media?.image, raw.image);
+  const rating = ratingOrNull(place.catering?.stars ?? raw.stars);
   return {
     provider: PROVIDER,
     placeId,
@@ -211,14 +237,19 @@ function normalizePlace(feature: GeoapifyFeature): ExternalRestaurantPlace | nul
     latitude,
     longitude,
     cuisine: cuisineLabel(raw.cuisine, categories),
-    rating: null,
+    rating,
     reviewCount: null,
-    priceLevel: null,
+    priceLevel: priceLevelOrNull(raw.price),
     mapUrl: openStreetMapUrl(raw, latitude, longitude),
     businessStatus: "OPERATIONAL",
     phone: firstString(place.contact?.phone, raw.phone, raw["contact:phone"]),
     email: firstString(place.contact?.email, raw.email, raw["contact:email"]),
     websiteUrl,
+    heroImage,
+    galleryImages: heroImage ? [heroImage] : [],
+    description: firstString(place.description, raw.description),
+    openingHours: firstString(place.opening_hours, raw.opening_hours),
+    ratingSource: rating === null ? "" : "CLASSIFICACAO_ESTABELECIMENTO",
   };
 }
 
@@ -253,6 +284,20 @@ function pageOffset(value?: string) {
 
 function finiteOrNull(value?: number) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function ratingOrNull(value: unknown) {
+  const parsed = typeof value === "number" ? value : typeof value === "string" ? Number(value.replace(",", ".").replace(/[^\d.]/g, "")) : NaN;
+  return Number.isFinite(parsed) && parsed >= 1 && parsed <= 5 ? parsed : null;
+}
+
+function priceLevelOrNull(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return Math.min(4, Math.max(1, Math.round(value)));
+  if (typeof value !== "string") return null;
+  const symbols = (value.match(/[€$£]/g) || []).length;
+  if (symbols) return Math.min(4, symbols);
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.min(4, Math.max(1, Math.round(parsed))) : null;
 }
 
 function validCoordinate(value: number | null | undefined, min: number, max: number): value is number {
