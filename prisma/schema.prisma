@@ -703,6 +703,7 @@ model ExternalRestaurantPlace {
   ratingSource     String?
   priceLevel       Int?
   enrichedAt       DateTime?
+  photoCheckedAt   DateTime?
   firstSeenAt      DateTime  @default(now())
   lastSeenAt       DateTime  @default(now())
   lastSelectedAt   DateTime?
@@ -712,6 +713,17 @@ model ExternalRestaurantPlace {
   @@index([lastSeenAt])
   @@index([contactCheckedAt])
   @@index([enrichedAt])
+}
+
+model ExternalApiUsage {
+  id        String   @id
+  provider  String
+  period    String
+  callCount Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, period])
+  @@index([provider, period])
 }
 
 model ReservationTimeBlock {
