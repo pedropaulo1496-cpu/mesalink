@@ -109,13 +109,28 @@ export async function searchGoogleRestaurants(input: {
           circle: { center: { latitude: input.latitude, longitude: input.longitude }, radius: 30000 },
         },
       };
+  const fieldMask = [
+    "places.id",
+    "places.displayName",
+    "places.formattedAddress",
+    "places.location",
+    "places.primaryTypeDisplayName",
+    "places.businessStatus",
+    "places.googleMapsUri",
+    "places.websiteUri",
+    "places.nationalPhoneNumber",
+    "places.rating",
+    "places.userRatingCount",
+    "places.priceLevel",
+    ...(textSearch ? ["nextPageToken"] : []),
+  ].join(",");
   await claimGooglePlacesCalls(1);
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey(),
-      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location,places.primaryTypeDisplayName,places.businessStatus,places.googleMapsUri,places.websiteUri,places.nationalPhoneNumber,places.rating,places.userRatingCount,places.priceLevel,nextPageToken",
+      "X-Goog-FieldMask": fieldMask,
     },
     body: JSON.stringify(body),
     cache: "no-store",

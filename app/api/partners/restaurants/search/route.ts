@@ -132,7 +132,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       configured: curatedRows.length > 0 || googlePlacesConfigured() || externalPlacesConfigured(),
-      source: googlePlacesConfigured() ? "GOOGLE_PLACES" : externalPlacesConfigured() ? "GEOAPIFY" : "CURATED",
+      googlePlacesEnabled: googlePlacesConfigured(),
+      source: hasSearch ? liveProvider : googlePlacesConfigured() ? "GOOGLE_PLACES" : externalPlacesConfigured() ? "GEOAPIFY" : "CURATED",
       restaurants,
       nextPageToken: liveResult.nextPageToken,
     });

@@ -96,6 +96,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogMessage, setCatalogMessage] = useState("");
   const [catalogConfigured, setCatalogConfigured] = useState(true);
+  const [googlePlacesEnabled, setGooglePlacesEnabled] = useState(false);
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -207,6 +208,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         return;
       }
       setCatalogConfigured(true);
+      setGooglePlacesEnabled(data?.googlePlacesEnabled === true);
       const items: PartnerRestaurant[] = Array.isArray(data?.restaurants)
         ? (data.restaurants as ExternalRestaurantSearchItem[]).map(externalPartnerRestaurant).filter((item): item is PartnerRestaurant => Boolean(item))
         : [];
@@ -314,7 +316,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         </section>
 
         <section className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 shadow-[0_10px_34px_rgba(83,59,32,0.045)] sm:p-5">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Pesquisa qualquer restaurante</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{filtered.length} opções</span></div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Pesquisa qualquer restaurante</h2></div><div className="flex flex-wrap items-center justify-end gap-2"><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{filtered.length} opções</span>{googlePlacesEnabled && <span className="rounded-full border border-[#B9CFF0] bg-[#EAF2FF] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#315C9A]">Google Maps ligado</span>}</div></div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
             <label className="relative block"><Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7E6E]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome ou especialidade" className={compactInputClass} style={{ paddingLeft: "2.25rem" }} /></label>
             <select value={cuisineFilter} onChange={(event) => setCuisineFilter(event.target.value)} className={compactInputClass}><option value="ALL">Todas as cozinhas</option>{cuisines.map((item) => <option key={item} value={item}>{item}</option>)}</select>
@@ -348,7 +350,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
             <div><strong className="block text-sm">Catálogo aberto de restaurantes</strong><span className="mt-1 block text-[10px] leading-5 text-[#75695D]">Os restaurantes MesaLink confirmam de imediato. Todos os restantes ficam como “Reserva pendente de confirmação”.</span>{catalogMessage && <span className={`mt-1 block text-[9px] font-semibold ${catalogConfigured ? "text-[#8A6130]" : "text-[#A14E36]"}`}>{catalogMessage}</span>}</div>
             <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
               {nextPageToken && <button type="button" disabled={catalogLoading} onClick={() => void fetchCatalogRestaurants(nextPageToken, true)} className="h-9 rounded-full border border-[#CDBA9C] bg-white px-4 text-[9px] font-bold text-[#6E5232] disabled:opacity-50">{catalogLoading ? "A carregar…" : "Mostrar mais restaurantes"}</button>}
-              <span className="text-[8px] font-semibold text-[#7E7469]">Dados e fotografias: sites oficiais dos restaurantes · Localização complementar: <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer" className="underline">Geoapify</a> e <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="underline">© OpenStreetMap</a></span>
+              <span className="text-[8px] font-semibold text-[#7E7469]">Pesquisa, localização e avaliações: <a href="https://www.google.com/maps" target="_blank" rel="noreferrer" className="font-bold text-[#315C9A] underline">Google Maps</a> · Fotografias: Google Maps e sites oficiais · Complemento: <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer" className="underline">Geoapify</a> e <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="underline">© OpenStreetMap</a></span>
             </div>
           </div>
         </section>
