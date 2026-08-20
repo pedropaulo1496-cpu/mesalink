@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Check } from "lucide-react";
+import { Check, CirclePlus } from "lucide-react";
 import { setLocale } from "@/i18n/actions";
 import RestaurantPushNotifications from "@/components/RestaurantPushNotifications";
 import { locales, localeNames, type Locale } from "@/i18n/locales";
@@ -66,6 +66,11 @@ export default function BottomNav({ id }: { id: string }) {
 
   const tabs = [
     { href: `/restaurants/${id}`, icon: HomeIcon, label: t("dash") },
+    {
+      href: `/restaurants/${id}/reservations/new`,
+      icon: CirclePlus,
+      label: "Nova",
+    },
     { href: `/restaurants/${id}/day`, icon: FlashIcon, label: t("today") },
     {
       href: `/restaurants/${id}/calendar`,
@@ -153,13 +158,13 @@ export default function BottomNav({ id }: { id: string }) {
   return (
     <nav className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
       <RestaurantPushNotifications variant="first-run" />
-      <div className="pointer-events-auto mx-auto grid max-w-lg grid-cols-5 gap-1 rounded-[24px] border border-white/10 bg-[#17130F]/96 p-1.5 shadow-[0_22px_65px_rgba(23,19,15,0.36)] backdrop-blur-2xl">
+      <div className="pointer-events-auto mx-auto grid max-w-xl grid-cols-6 gap-0.5 rounded-[24px] border border-white/10 bg-[#17130F]/96 p-1.5 shadow-[0_22px_65px_rgba(23,19,15,0.36)] backdrop-blur-2xl">
         {tabs.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             aria-current={isActive(item.href) ? "page" : undefined}
-            className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-[18px] py-2 transition ${
+            className={`flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-[18px] px-0.5 py-2 transition ${
               isActive(item.href)
                 ? "bg-[#C8A56A] text-[#17130F] shadow-[0_8px_24px_rgba(200,165,106,0.25)]"
                 : "text-white/60 active:bg-white/10 active:text-white"
@@ -174,7 +179,7 @@ export default function BottomNav({ id }: { id: string }) {
                 </span>
               )}
             </span>
-            <span className="max-w-full truncate text-[10px] font-black leading-none">
+            <span className="max-w-full truncate text-[9px] font-black leading-none min-[390px]:text-[10px]">
               {item.label}
             </span>
           </Link>
@@ -184,14 +189,14 @@ export default function BottomNav({ id }: { id: string }) {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className={`flex min-h-12 w-full flex-col items-center justify-center gap-1 rounded-[18px] py-2 transition aria-expanded:bg-[#C8A56A] aria-expanded:text-[#17130F] ${
+              className={`flex min-h-12 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-[18px] px-0.5 py-2 transition aria-expanded:bg-[#C8A56A] aria-expanded:text-[#17130F] ${
                 isMoreActive
                   ? "bg-[#C8A56A] text-[#17130F] shadow-[0_8px_24px_rgba(200,165,106,0.25)]"
                   : "text-white/60 active:bg-white/10 active:text-white"
               }`}
             >
               <MoreIcon />
-              <span className="max-w-full truncate text-[10px] font-black leading-none">
+              <span className="max-w-full truncate text-[9px] font-black leading-none min-[390px]:text-[10px]">
                 {t("more")}
               </span>
             </button>
