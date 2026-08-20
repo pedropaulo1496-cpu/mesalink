@@ -7,6 +7,17 @@ import BottomNav from "@/components/BottomNav";
 import PhoneField from "@/components/PhoneField";
 import { getTranslations } from "next-intl/server";
 import { assertRestaurantOwner } from "@/lib/restaurant-auth";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Check,
+  Clock3,
+  Info,
+  MapPin,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
 
 async function createReservation(formData: FormData) {
   "use server";
@@ -218,43 +229,80 @@ export default async function NewReservationPage({
   const usesTables = restaurant.reservationMode === "TABLES";
 
   return (
-    <main className="min-h-screen bg-[#F5EFE6] text-[#16120E]">
-      <section className="mx-auto max-w-6xl px-5 pt-7 pb-28 sm:px-8 lg:pb-7">
-        <Link
-          href={`/restaurants/${id}/calendar`}
-          className="text-sm font-semibold text-[#9B6F3B] hover:text-[#16120E]"
-        >
-          ← {t("back")}
-        </Link>
+    <main className="min-h-screen bg-[#F1EBE2] text-[#17120D]">
+      <section className="mx-auto max-w-[1240px] px-3 pb-28 pt-3 sm:px-5 sm:pt-5 lg:px-7 lg:pb-7 lg:pt-7">
+        <header className="mb-3 flex h-11 items-center justify-between gap-3 px-1 sm:mb-5 sm:px-2">
+          <Link
+            href={`/restaurants/${id}/calendar`}
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-[#DCCBB3] bg-white px-4 text-xs font-bold text-[#765C3A] shadow-[0_8px_24px_rgba(80,55,30,0.04)] transition hover:border-[#B8915D] hover:text-[#17120D]"
+          >
+            <ArrowLeft size={15} />
+            {t("back")}
+          </Link>
+          <span className="font-serif text-xl font-bold tracking-[-0.04em]">
+            <span className="text-[#B48645]">Mesa</span>Link
+          </span>
+        </header>
 
-        <div className="mt-7 grid gap-6 lg:grid-cols-[0.82fr_1.18fr]">
-          <aside className="rounded-[32px] border border-[#E1D0B8] bg-white p-7 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
-            <SectionLabel>{t("eyebrow")}</SectionLabel>
+        <div className="grid min-w-0 overflow-hidden rounded-[28px] border border-[#DCCBB2] bg-white shadow-[0_30px_90px_rgba(69,48,28,.1)] lg:min-h-[720px] lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[390px_minmax(0,1fr)]">
+          <aside
+            className="relative min-h-[285px] overflow-hidden bg-[#17120D] text-white lg:min-h-full"
+            style={restaurant.websiteHeroImage ? { backgroundImage: `url(${restaurant.websiteHeroImage})`, backgroundPosition: "center", backgroundSize: "cover" } : undefined}
+          >
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,10,6,.15),rgba(15,10,6,.95))]" />
+            <div className="relative flex min-h-[285px] flex-col justify-between p-5 sm:p-7 lg:min-h-full lg:p-8">
+              <div className="flex items-start justify-between gap-3">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/25 px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.16em] backdrop-blur">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#8DD08B]" />
+                  {t("eyebrow")}
+                </span>
+                {restaurant.websiteLogoImage && (
+                  <span
+                    className="h-12 w-12 shrink-0 rounded-full border-2 border-white/30 bg-white bg-cover bg-center shadow-lg"
+                    style={{ backgroundImage: `url(${restaurant.websiteLogoImage})` }}
+                  />
+                )}
+              </div>
 
-            <h1 className="mt-4 text-5xl font-semibold leading-[0.9] tracking-[-0.065em]">
-              {t("title")}
-            </h1>
-
-            <p className="mt-5 text-sm leading-6 text-[#6B6258]">
-              {t("description.prefix")}{" "}
-              <span className="font-semibold text-[#16120E]">
-                {restaurant.name}
-              </span>
-              {t("description.suffix")}
-            </p>
-
-            <div className="mt-8 grid gap-3">
-              <MiniCard label={t("miniCards.status.label")} value={t("miniCards.status.value")} />
-              <MiniCard
-                label={t("miniCards.table.label")}
-                value={usesTables ? t("miniCards.table.auto") : t("miniCards.table.none")}
-              />
-              <MiniCard label={t("miniCards.crm.label")} value={t("miniCards.crm.value")} />
+              <div>
+                <div className="mb-4 h-px w-10 bg-[#D7B267]" />
+                <h1 className="max-w-[300px] text-[2.2rem] font-semibold leading-[0.95] tracking-[-0.06em] sm:text-[2.65rem]">
+                  {t("title")}
+                </h1>
+                <p className="mt-3 text-sm font-semibold text-white/78">{restaurant.name}</p>
+                {restaurant.address && (
+                  <p className="mt-2 flex max-w-[300px] items-start gap-2 text-[10px] leading-5 text-white/55">
+                    <MapPin size={13} className="mt-0.5 shrink-0 text-[#D7B267]" />
+                    {restaurant.address}
+                  </p>
+                )}
+                <div className="mt-5 grid grid-cols-3 gap-2">
+                  <MiniCard label={t("miniCards.status.label")} value={t("miniCards.status.value")} />
+                  <MiniCard
+                    label={t("miniCards.table.label")}
+                    value={usesTables ? t("miniCards.table.auto") : t("miniCards.table.none")}
+                  />
+                  <MiniCard label={t("miniCards.crm.label")} value={t("miniCards.crm.value")} />
+                </div>
+              </div>
             </div>
           </aside>
 
-          <section className="rounded-[32px] border border-[#E1D0B8] bg-white p-7 shadow-[0_22px_70px_rgba(80,55,30,0.055)]">
-            <form action={createReservation} className="space-y-8">
+          <section className="min-w-0 p-4 sm:p-6 lg:p-8 xl:p-10">
+            <div className="mx-auto max-w-3xl">
+              <div className="mb-5 flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#A27438]">{t("eyebrow")}</p>
+                  <h2 className="mt-1.5 text-[1.65rem] font-semibold leading-none tracking-[-0.05em] sm:text-3xl">
+                    {t("description.prefix")} {restaurant.name}{t("description.suffix")}
+                  </h2>
+                </div>
+                <span className="hidden shrink-0 items-center gap-1.5 rounded-full bg-[#EDF6EC] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#46704A] sm:inline-flex">
+                  <ShieldCheck size={13} /> {t("miniCards.status.value")}
+                </span>
+              </div>
+
+              <form action={createReservation} className="space-y-4 sm:space-y-5">
               <input type="hidden" name="restaurantId" value={restaurant.id} />
               <input
                 type="hidden"
@@ -280,8 +328,8 @@ export default async function NewReservationPage({
                 </div>
               )}
 
-              <FormSection title={t("sections.customer")}>
-                <div className="grid gap-4 md:grid-cols-2">
+              <FormSection icon={<UserRound size={16} />} title={t("sections.customer")}>
+                <div className="grid gap-3 sm:grid-cols-2">
                   <Field label={t("fields.customerName.label")}>
                     <input
                       name="customerName"
@@ -320,8 +368,8 @@ export default async function NewReservationPage({
                 </div>
               </FormSection>
 
-              <FormSection title={t("sections.reservation")}>
-                <div className="grid gap-4 md:grid-cols-2">
+              <FormSection icon={<CalendarDays size={16} />} title={t("sections.reservation")}>
+                <div className="grid gap-3 sm:grid-cols-2">
                   <Field label={t("fields.guests.label")}>
                     <input
                       name="guests"
@@ -344,8 +392,8 @@ export default async function NewReservationPage({
                 </div>
               </FormSection>
 
-              <FormSection title={t("sections.time")}>
-                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+              <FormSection icon={<Clock3 size={16} />} title={t("sections.time")}>
+                <div className="grid grid-cols-3 gap-2 min-[480px]:grid-cols-4 xl:grid-cols-7">
                   {times.map((time) => (
                     <label key={time} className="group cursor-pointer">
                       <input
@@ -356,7 +404,7 @@ export default async function NewReservationPage({
                         className="peer sr-only"
                       />
 
-                      <span className="flex h-12 items-center justify-center rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] text-sm font-semibold text-[#16120E] transition peer-checked:border-[#16120E] peer-checked:bg-[#16120E] peer-checked:text-white group-hover:border-[#C8A56A]">
+                      <span className="flex h-11 items-center justify-center rounded-full border border-[#DED0BC] bg-white px-2 text-xs font-bold text-[#655B50] transition peer-checked:border-[#17120D] peer-checked:bg-[#17120D] peer-checked:text-white peer-checked:shadow-[0_8px_20px_rgba(23,18,13,.18)] group-hover:border-[#A97C42]">
                         {time}
                       </span>
                     </label>
@@ -364,40 +412,46 @@ export default async function NewReservationPage({
                 </div>
               </FormSection>
 
-              <FormSection title={t("sections.notes")}>
+              <FormSection icon={<Sparkles size={16} />} title={t("sections.notes")}>
                 <textarea
                   name="notes"
                   rows={5}
                   placeholder={t("fields.notes.placeholder")}
-                  className="min-h-[130px] w-full resize-none rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] px-4 py-4 text-[#16120E] outline-none transition placeholder:text-[#9B8B7A] focus:border-[#C8A56A] focus:bg-white"
+                  className="min-h-[110px] w-full resize-none rounded-[16px] border border-[#DED0BC] bg-white px-4 py-3 text-sm text-[#17120D] outline-none transition placeholder:text-[#A49788] focus:border-[#A97C42] focus:ring-4 focus:ring-[#D7B267]/15"
                 />
               </FormSection>
 
               {usesTables ? (
-                <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 text-sm leading-6 text-[#6B6258]">
-                  {t("tableInfo.auto")}
+                <div className="flex items-start gap-3 rounded-[18px] border border-[#CFE0CC] bg-[#F3FAF2] p-4 text-xs leading-5 text-[#405C42]">
+                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white text-[#4D7550]"><Info size={15} /></span>
+                  <p>{t("tableInfo.auto")}</p>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4 text-sm leading-6 text-[#6B6258]">
-                  {t("tableInfo.capacityMode.prefix")}{" "}
-                  <strong>{t("tableInfo.capacityMode.bold")}</strong>
-                  {t("tableInfo.capacityMode.suffix")}
+                <div className="flex items-start gap-3 rounded-[18px] border border-[#CFE0CC] bg-[#F3FAF2] p-4 text-xs leading-5 text-[#405C42]">
+                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white text-[#4D7550]"><Info size={15} /></span>
+                  <p>
+                    {t("tableInfo.capacityMode.prefix")} {" "}
+                    <strong>{t("tableInfo.capacityMode.bold")}</strong>
+                    {t("tableInfo.capacityMode.suffix")}
+                  </p>
                 </div>
               )}
 
-              <div className="flex flex-col gap-3 border-t border-[#E1D0B8] pt-6 md:flex-row">
-                <button className="h-14 flex-1 rounded-full bg-[#16120E] px-6 font-semibold text-white transition hover:bg-[#2A2118]">
+              <div className="rounded-[21px] border border-white/10 bg-[#17120D] p-2.5 shadow-[0_18px_45px_rgba(23,18,13,.22)] sm:flex sm:gap-2">
+                <button className="inline-flex h-12 w-full flex-1 items-center justify-center gap-2 rounded-[15px] bg-[#D7B267] px-6 text-sm font-black text-[#17120D] transition hover:bg-[#E4C47F]">
                   {t("submit")}
+                  <Check size={16} />
                 </button>
 
                 <Link
                   href={`/restaurants/${id}/calendar`}
-                  className="flex h-14 flex-1 items-center justify-center rounded-full border border-[#E1D0B8] bg-[#FFF9F0] px-6 font-semibold text-[#16120E] transition hover:bg-white"
+                  className="mt-2 flex h-12 flex-1 items-center justify-center rounded-[15px] border border-white/12 px-6 text-sm font-bold text-white/70 transition hover:bg-white/10 hover:text-white sm:mt-0"
                 >
                   {t("cancel")}
                 </Link>
               </div>
             </form>
+            </div>
           </section>
         </div>
       </section>
@@ -408,17 +462,24 @@ export default async function NewReservationPage({
 }
 
 function FormSection({
+  icon,
   title,
   children,
 }: {
+  icon: ReactNode;
   title: string;
   children: ReactNode;
 }) {
   return (
-    <div>
-      <SectionLabel>{title}</SectionLabel>
-      <div className="mt-5">{children}</div>
-    </div>
+    <section className="rounded-[22px] border border-[#E4D7C6] bg-[#FBF8F4] p-3.5 sm:p-5">
+      <div className="flex items-center gap-2 text-[#704F2C]">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[11px] bg-[#F1E5D3]">
+          {icon}
+        </span>
+        <h3 className="text-sm font-bold text-[#17120D]">{title}</h3>
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
   );
 }
 
@@ -431,7 +492,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-semibold text-[#6B6258]">
+      <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-[#786A5C]">
         {label}
       </span>
       {children}
@@ -441,20 +502,12 @@ function Field({
 
 function MiniCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[#E1D0B8] bg-[#FFF9F0] p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B6F3B]">
+    <div className="min-w-0 rounded-[14px] border border-white/10 bg-white/[0.07] px-3 py-3 backdrop-blur-sm">
+      <p className="truncate text-[7px] font-black uppercase tracking-[0.14em] text-[#D7B267]">
         {label}
       </p>
 
-      <p className="mt-2 text-lg font-semibold text-[#16120E]">{value}</p>
+      <p className="mt-1.5 line-clamp-2 text-[10px] font-bold leading-4 text-white">{value}</p>
     </div>
-  );
-}
-
-function SectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9B6F3B]">
-      {children}
-    </p>
   );
 }
