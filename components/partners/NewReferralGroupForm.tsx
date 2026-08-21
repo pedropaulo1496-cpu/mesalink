@@ -93,6 +93,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const [children, setChildren] = useState(0);
   const [desiredDate, setDesiredDate] = useState("");
   const [currentPosition, setCurrentPosition] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [fallbackPosition, setFallbackPosition] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationState, setLocationState] = useState<"loading" | "ready" | "denied" | "unsupported">("loading");
   const [catalogRestaurants, setCatalogRestaurants] = useState<PartnerRestaurant[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
@@ -104,6 +105,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const [success, setSuccess] = useState(false);
 
   const guests = adults + children;
+  const effectivePosition = currentPosition || fallbackPosition;
   const allRestaurants = useMemo(() => {
     const localPlaceIds = new Set(restaurants.map(externalPlaceKey).filter(Boolean));
     const localIdentities = new Set(restaurants.map(restaurantIdentity));
@@ -117,7 +119,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     const normalizedLocation = locationFilter.trim().toLowerCase();
-    const proximityPosition = !normalizedLocation ? currentPosition : null;
+    const proximityPosition = !normalizedLocation ? effectivePosition : null;
     const matches = allRestaurants.filter((restaurant) => {
       const remaining = remainingCapacity(restaurant, desiredDate);
       const distance = proximityPosition ? distanceTo(restaurant, proximityPosition) : null;
@@ -139,17 +141,27 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
       if (a.bookingReady !== b.bookingReady) return a.bookingReady ? -1 : 1;
       return a.name.localeCompare(b.name, "pt");
     });
-  }, [allRestaurants, query, cuisineFilter, locationFilter, currentPosition, desiredDate, guests]);
+  }, [allRestaurants, query, cuisineFilter, locationFilter, effectivePosition, desiredDate, guests]);
   const selectedRestaurant = allRestaurants.find((restaurant) => restaurant.id === selectedRestaurantId) || null;
   const pendingSelection = Boolean(selectedRestaurant && !selectedRestaurant.bookingReady);
 
   useEffect(() => {
+    try {
+      const cached = JSON.parse(window.localStorage.getItem("mesalink-partner-location") || "null");
+      if (Number.isFinite(cached?.latitude) && Number.isFinite(cached?.longitude)) queueMicrotask(() => setFallbackPosition({ latitude: cached.latitude, longitude: cached.longitude }));
+    } catch { /* A localização por IP continua disponível. */ }
     if (!("geolocation" in navigator)) {
       queueMicrotask(() => setLocationState("unsupported"));
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (position) => { setCurrentPosition({ latitude: position.coords.latitude, longitude: position.coords.longitude }); setLocationState("ready"); },
+      (position) => {
+        const next = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+        setCurrentPosition(next);
+        setFallbackPosition(null);
+        try { window.localStorage.setItem("mesalink-partner-location", JSON.stringify(next)); } catch { /* armazenamento opcional */ }
+        setLocationState("ready");
+      },
       () => setLocationState("denied"),
       { enableHighAccuracy: false, timeout: 7000, maximumAge: 10 * 60 * 1000 },
     );
@@ -205,9 +217,10 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
       const params = new URLSearchParams();
       if (query.trim()) params.set("q", query.trim());
       if (locationFilter.trim()) params.set("location", locationFilter.trim());
-      if (currentPosition) {
-        params.set("lat", String(currentPosition.latitude));
-        params.set("lng", String(currentPosition.longitude));
+      const positionForSearch = currentPosition || fallbackPosition;
+      if (positionForSearch) {
+        params.set("lat", String(positionForSearch.latitude));
+        params.set("lng", String(positionForSearch.longitude));
       }
       if (pageToken) params.set("pageToken", pageToken);
       const response = await fetch(`/api/partners/restaurants/search?${params}`, { signal });
@@ -219,6 +232,9 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         return;
       }
       setCatalogConfigured(true);
+      if (!currentPosition && !fallbackPosition && Number.isFinite(data?.searchCenter?.latitude) && Number.isFinite(data?.searchCenter?.longitude)) {
+        setFallbackPosition({ latitude: data.searchCenter.latitude, longitude: data.searchCenter.longitude });
+      }
       const items: PartnerRestaurant[] = Array.isArray(data?.restaurants)
         ? (data.restaurants as ExternalRestaurantSearchItem[]).map(externalPartnerRestaurant).filter((item): item is PartnerRestaurant => Boolean(item))
         : [];
@@ -235,7 +251,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     } finally {
       if (!signal?.aborted) setCatalogLoading(false);
     }
-  }, [query, locationFilter, currentPosition, enrichCatalogRestaurants]);
+  }, [query, locationFilter, currentPosition, fallbackPosition, enrichCatalogRestaurants]);
 
   useEffect(() => {
     if (locationState === "loading") return;
@@ -253,7 +269,14 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     if (!("geolocation" in navigator)) return setLocationState("unsupported");
     setLocationState("loading");
     navigator.geolocation.getCurrentPosition(
-      (position) => { setLocationFilter(""); setCurrentPosition({ latitude: position.coords.latitude, longitude: position.coords.longitude }); setLocationState("ready"); },
+      (position) => {
+        const next = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+        setLocationFilter("");
+        setCurrentPosition(next);
+        setFallbackPosition(null);
+        try { window.localStorage.setItem("mesalink-partner-location", JSON.stringify(next)); } catch { /* armazenamento opcional */ }
+        setLocationState("ready");
+      },
       () => setLocationState("denied"),
       { enableHighAccuracy: false, timeout: 7000, maximumAge: 0 },
     );
@@ -326,7 +349,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         </section>
 
         <section className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 shadow-[0_10px_34px_rgba(83,59,32,0.045)] sm:p-5">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Pesquisa qualquer restaurante</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{locationFilter.trim() ? `${locationFilter.trim()} · ${filtered.length}` : locationState === "ready" ? `Até 20 km · ${filtered.length}` : `${filtered.length} opções`}</span></div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Restaurantes perto de ti</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{locationFilter.trim() ? `${locationFilter.trim()} · ${filtered.length}` : effectivePosition ? `Até 20 km · ${filtered.length}` : `${filtered.length} opções`}</span></div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
             <label className="relative block"><Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7E6E]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome ou especialidade" className={compactInputClass} style={{ paddingLeft: "2.25rem" }} /></label>
             <select value={cuisineFilter} onChange={(event) => setCuisineFilter(event.target.value)} className={compactInputClass}><option value="ALL">Todas as cozinhas</option>{cuisines.map((item) => <option key={item} value={item}>{item}</option>)}</select>
@@ -337,7 +360,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
           <div className="mt-3 space-y-2">
             {filtered.map((restaurant) => {
               const selected = restaurant.id === selectedRestaurantId;
-              const distance = currentPosition && !locationFilter.trim() ? distanceTo(restaurant, currentPosition) : null;
+              const distance = effectivePosition && !locationFilter.trim() ? distanceTo(restaurant, effectivePosition) : null;
               const gross = restaurant.commissionType === "PER_PERSON" ? restaurant.commissionAmount * guests : restaurant.commissionAmount;
               const perPerson = gross / Math.max(1, guests);
               return <article key={restaurant.id} className={`relative overflow-hidden rounded-[18px] border p-2.5 transition ${selected ? "border-[#9E733D] bg-[#FFF7E9] shadow-[0_10px_28px_rgba(119,81,34,0.10)] ring-1 ring-[#C8A56A]/25" : restaurant.bookingReady ? "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A] hover:bg-white" : "border-[#E5DBCC] bg-[#FAF7F2]"}`}>{selected && <span className="absolute inset-y-0 left-0 w-1 bg-[#B88745]" />}

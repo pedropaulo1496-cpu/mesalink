@@ -127,6 +127,7 @@ export async function searchGoogleRestaurants(input: {
     "places.rating",
     "places.userRatingCount",
     "places.priceLevel",
+    "places.photos",
     ...(textSearch ? ["nextPageToken"] : []),
   ].join(",");
   await claimGooglePlacesCalls(1);
@@ -144,7 +145,7 @@ export async function searchGoogleRestaurants(input: {
   const payload = await response.json().catch(() => null) as GoogleSearchResponse | null;
   if (!response.ok) throw new Error(`GOOGLE_PLACES_${response.status}:${payload?.error?.message || "SEARCH_FAILED"}`);
   return {
-    restaurants: (payload?.places || []).map((place) => normalizePlace(place)).filter((place): place is GoogleRestaurantPlace => Boolean(place)),
+    restaurants: (payload?.places || []).map((place) => normalizePlace(place, true)).filter((place): place is GoogleRestaurantPlace => Boolean(place)),
     nextPageToken: payload?.nextPageToken || null,
   };
 }

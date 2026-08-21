@@ -12,8 +12,13 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const query = url.searchParams.get("q")?.trim() || "";
   const location = url.searchParams.get("location")?.trim() || "";
-  const latitude = numberOrNull(url.searchParams.get("lat"));
-  const longitude = numberOrNull(url.searchParams.get("lng"));
+  const requestedLatitude = numberOrNull(url.searchParams.get("lat"));
+  const requestedLongitude = numberOrNull(url.searchParams.get("lng"));
+  const ipLatitude = numberOrNull(request.headers.get("x-vercel-ip-latitude"));
+  const ipLongitude = numberOrNull(request.headers.get("x-vercel-ip-longitude"));
+  const useIpLocation = requestedLatitude === null && requestedLongitude === null && !query && !location && ipLatitude !== null && ipLongitude !== null;
+  const latitude = useIpLocation ? ipLatitude : requestedLatitude;
+  const longitude = useIpLocation ? ipLongitude : requestedLongitude;
   const pageToken = url.searchParams.get("pageToken") || "";
   const hasSearch = Boolean(query || location || (latitude !== null && longitude !== null));
 
@@ -88,6 +93,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       configured: true,
       source: GOOGLE_PROVIDER,
+      searchCenter: latitude !== null && longitude !== null ? { latitude, longitude, source: useIpLocation ? "IP" : "DEVICE" } : null,
       restaurants,
       nextPageToken: liveResult.nextPageToken,
     });
