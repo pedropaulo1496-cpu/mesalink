@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Check, Crosshair, ExternalLink, Handshake, ImageIcon, LoaderCircle, MapPin, Search, ShieldCheck, UtensilsCrossed } from "lucide-react";
+import { Check, Crosshair, ExternalLink, Handshake, ImageIcon, LoaderCircle, MapPin, Search, ShieldCheck, UserPlus, UtensilsCrossed } from "lucide-react";
 import { REFERRAL_ACCESSIBILITY_TAGS, REFERRAL_DIETARY_TAGS, REFERRAL_OCCASION_TAGS, REFERRAL_REQUIREMENT_TAGS } from "@/lib/referral-tags";
 
 const compactInputClass = "input-premium partner-compact-input";
@@ -385,6 +385,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
                   <div className="col-start-2 text-left sm:col-start-auto sm:text-right"><p className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8A7863]">Comissão atual</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{money(perPerson)} / pessoa</p><p className="text-[9px] text-[#8A7863]">{money(gross)} total + IVA</p>{desiredDate && restaurant.bookingReady && <p className="mt-0.5 text-[8px] font-bold text-[#4F6C4D]">{remainingCapacity(restaurant, desiredDate)} lugares livres</p>}</div>
                 </div>
                 {!restaurant.bookingReady && <p className="mt-2 rounded-xl bg-[#FFF4DE] px-3 py-2 text-[9px] leading-4 text-[#74613F]">A reserva fica pendente até o restaurante confirmar, recusar ou sugerir outro horário. Comissão de 1,50 € por pessoa + IVA.</p>}
+                {!restaurant.bookingReady && <div className="mt-2 flex justify-end"><RestaurantInviteButton restaurant={restaurant} /></div>}
                 <details className="group mt-2 border-t border-[#EEE3D3] pt-2"><summary className="flex cursor-pointer list-none items-center justify-between text-[10px] font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><UtensilsCrossed size={12} /> Mini-perfil, fotografias e menu</span><span className="transition group-open:rotate-180">⌄</span></summary><div className="mt-2 rounded-xl bg-white p-3"><p className="text-[11px] leading-4 text-[#6B6258]">{restaurant.description}</p>{restaurant.openingHours && <p className="mt-2 text-[9px] leading-4 text-[#75695D]"><strong>Horário:</strong> {restaurant.openingHours}</p>}{restaurant.galleryImages.length > 0 && <div className="mt-2 grid grid-cols-3 gap-2">{restaurant.galleryImages.slice(0, 3).map((image) => <div key={image} className="h-20 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} role="img" aria-label={`Fotografia de ${restaurant.name}`} />)}</div>}<div className="mt-3 flex flex-wrap gap-3">{restaurant.menuUrl && <a href={restaurant.menuUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Abrir menu <ExternalLink size={12} /></a>}{restaurant.websiteUrl && <a href={restaurant.websiteUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Site oficial <ExternalLink size={12} /></a>}{restaurant.googleMapsUrl && <a href={restaurant.googleMapsUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#4F6C4D]">Abrir mapa <ExternalLink size={12} /></a>}</div></div></details>
                 {restaurant.bookingReady && !restaurant.isDemo && <CommissionNegotiation restaurant={restaurant} />}
               </article>;
@@ -412,6 +413,27 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
       </aside>
     </form>
   );
+}
+
+function RestaurantInviteButton({ restaurant }: { restaurant: PartnerRestaurant }) {
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  async function invite() {
+    if (!restaurant.externalPlaceProvider || !restaurant.externalPlaceId || state === "sending" || state === "sent") return;
+    setState("sending");
+    try {
+      const response = await fetch("/api/partners/restaurants/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: restaurant.externalPlaceProvider, placeId: restaurant.externalPlaceId }),
+      });
+      setState(response.ok ? "sent" : "error");
+    } catch {
+      setState("error");
+    }
+  }
+
+  return <button type="button" onClick={invite} disabled={state === "sending" || state === "sent"} className={`inline-flex h-8 items-center justify-center gap-1.5 rounded-full border px-3 text-[9px] font-bold transition disabled:cursor-default ${state === "sent" ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : state === "error" ? "border-[#E2B8A9] bg-[#FFF0EA] text-[#934A35]" : "border-[#CDBA9C] bg-white text-[#6E5232] hover:border-[#9E733D]"}`}><UserPlus size={11} />{state === "sending" ? "A enviar…" : state === "sent" ? "Convite enviado" : state === "error" ? "Tentar novamente" : "Convidar restaurante"}</button>;
 }
 
 function CommissionNegotiation({ restaurant }: { restaurant: PartnerRestaurant }) {
