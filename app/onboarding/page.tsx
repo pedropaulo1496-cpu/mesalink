@@ -7,7 +7,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 export default async function OnboardingPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<{ error?: string; partnerRestaurantInvite?: string }>;
 }) {
   const query = searchParams ? await searchParams : {};
   const t = await getTranslations("onboarding");
@@ -68,11 +68,13 @@ export default async function OnboardingPage({
             </p>
 
             <form action={createRestaurant} className="mt-8 space-y-4">
+              {query.partnerRestaurantInvite && <input type="hidden" name="partnerRestaurantInvite" value={query.partnerRestaurantInvite} />}
               {query.error === "email" && (
                 <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] px-4 py-3 text-sm font-semibold text-[#A14E36]">
                   {t("form.errorEmail")}
                 </div>
               )}
+              {query.error === "invite" && <div className="rounded-2xl border border-[#E7B7A8] bg-[#FFF0EA] px-4 py-3 text-sm font-semibold text-[#A14E36]">O convite do parceiro expirou ou já foi utilizado. Pede um novo convite e tenta novamente.</div>}
 
               <input
                 name="name"

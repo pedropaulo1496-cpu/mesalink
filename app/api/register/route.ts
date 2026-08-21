@@ -4,14 +4,16 @@ import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/validation";
 import { notifyNewClient } from "@/lib/hq-notifications";
+import { partnerRestaurantInvitationTokenHash, validPartnerRestaurantInvitationToken } from "@/lib/partner-restaurant-invitations";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password, commercialInvite } = await request.json();
+    const { name, email, password, commercialInvite, partnerRestaurantInvite } = await request.json();
     const normalizedEmail = String(email || "").trim().toLowerCase();
     const invitationToken = String(commercialInvite || "").trim();
+    const restaurantInvitationToken = String(partnerRestaurantInvite || "").trim();
 
     if (!normalizedEmail || !password) {
       return NextResponse.json({ error: "Email e password são obrigatórios." }, { status: 400 });
@@ -26,6 +28,13 @@ export async function POST(request: Request) {
     }) : null;
     if (invitationToken && (!invitation || invitation.acceptedAt || invitation.expiresAt <= new Date() || !invitation.salesRepresentative.active || invitation.email !== normalizedEmail)) {
       return NextResponse.json({ error: "Este convite comercial é inválido, expirou ou pertence a outro email." }, { status: 400 });
+    }
+    const restaurantInvitation = restaurantInvitationToken && validPartnerRestaurantInvitationToken(restaurantInvitationToken) ? await prisma.referralPartnerRestaurantInvitation.findUnique({
+      where: { tokenHash: partnerRestaurantInvitationTokenHash(restaurantInvitationToken) },
+      select: { email: true, acceptedAt: true, expiresAt: true },
+    }) : null;
+    if (restaurantInvitationToken && (!restaurantInvitation || restaurantInvitation.acceptedAt || restaurantInvitation.expiresAt <= new Date() || restaurantInvitation.email !== normalizedEmail)) {
+      return NextResponse.json({ error: "Este convite de restaurante é inválido, expirou ou pertence a outro email." }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findUnique({

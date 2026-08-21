@@ -24,14 +24,17 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [commercialInvite, setCommercialInvite] = useState("");
+  const [partnerRestaurantInvite, setPartnerRestaurantInvite] = useState("");
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     const invitedEmail = query.get("email");
     const invite = query.get("commercialInvite");
+    const restaurantInvite = query.get("partnerRestaurantInvite");
     const timer = window.setTimeout(() => {
       if (invitedEmail) setEmailAddress(invitedEmail);
       if (invite) setCommercialInvite(invite);
+      if (restaurantInvite) setPartnerRestaurantInvite(restaurantInvite);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -61,7 +64,7 @@ export default function RegisterPage() {
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email: emailAddress, password, commercialInvite }),
+        body: JSON.stringify({ name, email: emailAddress, password, commercialInvite, partnerRestaurantInvite }),
       });
 
       const data = await response.json();
@@ -82,7 +85,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/onboarding");
+      router.push(partnerRestaurantInvite ? `/onboarding?partnerRestaurantInvite=${encodeURIComponent(partnerRestaurantInvite)}` : "/onboarding");
       router.refresh();
     } catch {
       setError(t("errors.generic"));
@@ -125,7 +128,7 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <input value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder={t("namePlaceholder")} className={inputClass} required />
-                <input value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} readOnly={Boolean(commercialInvite)} type="email" placeholder={t("emailPlaceholder")} className={`${inputClass} ${commercialInvite ? "cursor-not-allowed opacity-75" : ""}`} required />
+                <input value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} readOnly={Boolean(commercialInvite || partnerRestaurantInvite)} type="email" placeholder={t("emailPlaceholder")} className={`${inputClass} ${commercialInvite || partnerRestaurantInvite ? "cursor-not-allowed opacity-75" : ""}`} required />
                 <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder={t("passwordPlaceholder")} className={inputClass} required />
                 <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" placeholder={t("confirmPasswordPlaceholder")} className={inputClass} required />
               </div>

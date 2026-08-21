@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { isValidEmail } from "@/lib/validation";
 import { geocodeRestaurantAddress } from "@/lib/geocoding";
+import { acceptPartnerRestaurantInvitation } from "@/lib/partner-restaurant-invitations";
 
 function slugify(value: string) {
   return value.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
@@ -38,6 +39,7 @@ export async function createRestaurant(formData: FormData) {
   const email = String(formData.get("email") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
   const address = String(formData.get("address") || "").trim();
+  const partnerRestaurantInvite = String(formData.get("partnerRestaurantInvite") || "").trim();
   if (!name) redirect("/onboarding");
   if (email && !isValidEmail(email)) redirect("/onboarding?error=email");
 
@@ -50,6 +52,16 @@ export async function createRestaurant(formData: FormData) {
   }
 
   const coordinates = await geocodeRestaurantAddress(address);
-  const restaurant = await prisma.restaurant.create({ data: { name, email, phone, address, slug, userId: user.id, plan: "ESSENTIALS", ...coordinates } });
+  let restaurant;
+  try {
+    restaurant = await prisma.$transaction(async (tx) => {
+      const created = await tx.restaurant.create({ data: { name, email, phone, address, slug, userId: user.id, plan: "ESSENTIALS", ...coordinates } });
+      if (partnerRestaurantInvite) await acceptPartnerRestaurantInvitation(tx, { token: partnerRestaurantInvite, email: user.email, restaurantId: created.id });
+      return created;
+    });
+  } catch (error) {
+    if (error instanceof Error && ["INVITATION_INVALID", "RESTAURANT_NOT_FOUND"].includes(error.message)) redirect(`/onboarding?error=invite&partnerRestaurantInvite=${encodeURIComponent(partnerRestaurantInvite)}`);
+    throw error;
+  }
   redirect(`/restaurants/${restaurant.id}`);
 }

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { isValidPublicRestaurantEmail } from "@/lib/restaurant-contact-discovery";
 
 const GOOGLE_PROVIDER = "GOOGLE_PLACES";
+const MESALINK_PROVIDER = "MESALINK";
 
 export async function GET() {
   const partner = await getPartnerIdentity();
@@ -14,29 +15,34 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     select: { provider: true, placeId: true, name: true, address: true },
   });
-  const placeIds = favorites.map((favorite) => favorite.placeId);
-  const [profiles, localRestaurants] = placeIds.length ? await Promise.all([
+  const googlePlaceIds = favorites.filter((favorite) => favorite.provider === GOOGLE_PROVIDER).map((favorite) => favorite.placeId);
+  const mesalinkRestaurantIds = favorites.filter((favorite) => favorite.provider === MESALINK_PROVIDER).map((favorite) => favorite.placeId);
+  const [profiles, localRestaurants] = favorites.length ? await Promise.all([
     prisma.externalRestaurantPlace.findMany({
-      where: { provider: GOOGLE_PROVIDER, placeId: { in: placeIds } },
+      where: { provider: GOOGLE_PROVIDER, placeId: { in: googlePlaceIds } },
       select: { provider: true, placeId: true, name: true, address: true, latitude: true, longitude: true, cuisine: true, rating: true, reviewCount: true, priceLevel: true, mapUrl: true, websiteUrl: true, heroImage: true, galleryImages: true, description: true, openingHours: true, ratingSource: true, contactEmail: true },
     }),
     prisma.restaurant.findMany({
-      where: { externalPlaceProvider: GOOGLE_PROVIDER, externalPlaceId: { in: placeIds } },
-      select: { id: true, externalPlaceId: true, name: true, email: true, address: true, latitude: true, longitude: true, referralProfileCuisine: true, referralProfileDescription: true, referralProfileHeroImage: true, referralProfileGallery: true, websiteCuisine: true, websiteDescription: true, websiteHeroImage: true, websiteGalleryImage1: true, websiteGalleryImage2: true, websiteGalleryImage3: true, websiteGalleryImage4: true, googleRating: true, googleReviewCount: true, googlePriceLevel: true, externalMapUrl: true, referralNetworkEnabled: true, referralAutoAcceptEnabled: true, referralPaymentMethodId: true, referralPaymentBlockedAt: true },
+      where: { OR: [{ id: { in: mesalinkRestaurantIds } }, { externalPlaceProvider: GOOGLE_PROVIDER, externalPlaceId: { in: googlePlaceIds } }] },
+      select: { id: true, externalPlaceProvider: true, externalPlaceId: true, name: true, email: true, address: true, latitude: true, longitude: true, referralProfileCuisine: true, referralProfileDescription: true, referralProfileHeroImage: true, referralProfileGallery: true, websiteCuisine: true, websiteDescription: true, websiteHeroImage: true, websiteGalleryImage1: true, websiteGalleryImage2: true, websiteGalleryImage3: true, websiteGalleryImage4: true, googleRating: true, googleReviewCount: true, googlePriceLevel: true, externalMapUrl: true, referralNetworkEnabled: true, referralAutoAcceptEnabled: true, referralPaymentMethodId: true, referralPaymentBlockedAt: true },
     }),
   ]) : [[], []];
   const profileById = new Map(profiles.map((profile) => [profile.placeId, profile]));
-  const localById = new Map(localRestaurants.map((restaurant) => [restaurant.externalPlaceId, restaurant]));
+  const localByKey = new Map<string, (typeof localRestaurants)[number]>();
+  for (const restaurant of localRestaurants) {
+    localByKey.set(`${MESALINK_PROVIDER}:${restaurant.id}`, restaurant);
+    if (restaurant.externalPlaceProvider && restaurant.externalPlaceId) localByKey.set(`${restaurant.externalPlaceProvider}:${restaurant.externalPlaceId}`, restaurant);
+  }
   return NextResponse.json({
     favorites: favorites.map((favorite) => {
-      const profile = profileById.get(favorite.placeId);
-      const local = localById.get(favorite.placeId);
+      const profile = favorite.provider === GOOGLE_PROVIDER ? profileById.get(favorite.placeId) : undefined;
+      const local = localByKey.get(`${favorite.provider}:${favorite.placeId}`);
       const bookingReady = Boolean(local?.referralNetworkEnabled && local.referralAutoAcceptEnabled && local.referralPaymentMethodId && !local.referralPaymentBlockedAt);
       return {
         ...favorite,
         restaurant: profile || local ? {
-          provider: profile?.provider || favorite.provider,
-          placeId: profile?.placeId || favorite.placeId,
+          provider: favorite.provider,
+          placeId: favorite.placeId,
           name: profile?.name || local?.name || favorite.name,
           primaryType: "restaurant",
           address: profile?.address || local?.address || favorite.address || "Portugal",
@@ -109,7 +115,7 @@ export async function DELETE(request: Request) {
 
 async function favoriteInput(request: Request) {
   const body = await request.json().catch(() => null);
-  const provider = body?.provider === GOOGLE_PROVIDER ? GOOGLE_PROVIDER : "";
+  const provider = body?.provider === GOOGLE_PROVIDER ? GOOGLE_PROVIDER : body?.provider === MESALINK_PROVIDER ? MESALINK_PROVIDER : "";
   const placeId = typeof body?.placeId === "string" && /^[A-Za-z0-9:_-]{8,500}$/.test(body.placeId) ? body.placeId : "";
   return provider && placeId ? { provider, placeId } : null;
 }

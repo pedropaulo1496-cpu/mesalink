@@ -17,7 +17,7 @@ import {
 import { getGoogleRestaurant } from "@/lib/google-places";
 import { discoverRestaurantEmail, isValidPublicRestaurantEmail } from "@/lib/restaurant-contact-discovery";
 
-const EXTERNAL_PLACE_PROVIDERS = new Set(["GOOGLE_PLACES"]);
+const EXTERNAL_PLACE_PROVIDERS = new Set(["GOOGLE_PLACES", "MESALINK"]);
 
 export async function POST(request: Request) {
   let createdGroupId: string | null = null;
@@ -76,6 +76,43 @@ export async function POST(request: Request) {
     const publicCode = createReferralCode();
 
     if (externalRequest) {
+      if (externalPlaceProvider === "MESALINK") {
+        const registeredRestaurant = await prisma.restaurant.findUnique({
+          where: { id: externalPlaceId },
+          select: { id: true, name: true, email: true, address: true, user: { select: { email: true } } },
+        });
+        const contactEmail = registeredRestaurant?.email || registeredRestaurant?.user?.email || "";
+        if (!registeredRestaurant || !isValidPublicRestaurantEmail(contactEmail)) {
+          return NextResponse.json({ error: "Este restaurante deixou de estar disponível. Escolhe outro restaurante." }, { status: 409 });
+        }
+        if (!registeredRestaurant.email) await prisma.restaurant.update({ where: { id: registeredRestaurant.id }, data: { email: contactEmail } });
+        const group = await prisma.referralGroup.create({
+          data: {
+            publicCode,
+            partnerId: partner.id,
+            desiredDate,
+            guests,
+            adults,
+            children,
+            customerName,
+            customerPhone,
+            customerEmail,
+            targetMode: "EXTERNAL",
+            targetSummary: registeredRestaurant.name,
+            area: registeredRestaurant.address || null,
+            notes,
+            commissionType: "PER_PERSON",
+            commissionAmount: EXTERNAL_REFERRAL_COMMISSION_PER_PERSON,
+            platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT,
+            expiresAt: desiredDate,
+            offers: { create: { restaurantId: registeredRestaurant.id, commissionType: "PER_PERSON", commissionAmount: EXTERNAL_REFERRAL_COMMISSION_PER_PERSON, platformFeePercent: MESALINK_REFERRAL_FEE_PERCENT, status: "PENDING" } },
+          },
+          include: { offers: { select: { id: true } } },
+        });
+        createdGroupId = group.id;
+        await issueExternalReferralAccess(group.offers[0].id, request.url);
+        return NextResponse.json({ success: true, pending: true, publicCode: group.publicCode, restaurantName: registeredRestaurant.name });
+      }
       const [catalog, placeRestaurant] = await Promise.all([
         prisma.externalRestaurantPlace.findFirst({
           where: { provider: externalPlaceProvider, placeId: externalPlaceId },
