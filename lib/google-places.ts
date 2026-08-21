@@ -88,7 +88,7 @@ export async function searchGoogleRestaurants(input: {
   const hasCoordinates = validCoordinate(input.latitude, -90, 90) && validCoordinate(input.longitude, -180, 180);
   if (!query && !location && !hasCoordinates) return { restaurants: [] as GoogleRestaurantPlace[], nextPageToken: null };
 
-  const textSearch = Boolean(query || location || pageToken);
+  const textSearch = Boolean(query || location || pageToken || hasCoordinates);
   const endpoint = textSearch
     ? "https://places.googleapis.com/v1/places:searchText"
     : "https://places.googleapis.com/v1/places:searchNearby";
@@ -101,6 +101,9 @@ export async function searchGoogleRestaurants(input: {
         regionCode: "PT",
         includedType: "restaurant",
         strictTypeFiltering: true,
+        locationBias: hasCoordinates && !location ? {
+          circle: { center: { latitude: input.latitude, longitude: input.longitude }, radius: 20000 },
+        } : undefined,
       }
     : {
         includedTypes: ["restaurant"],

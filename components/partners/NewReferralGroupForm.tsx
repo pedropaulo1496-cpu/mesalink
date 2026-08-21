@@ -100,6 +100,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const [catalogMessage, setCatalogMessage] = useState("");
   const [catalogConfigured, setCatalogConfigured] = useState(true);
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
+  const [automaticPagesLoaded, setAutomaticPagesLoaded] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
@@ -213,6 +214,10 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const fetchCatalogRestaurants = useCallback(async (pageToken: string | null, append: boolean, signal?: AbortSignal) => {
     setCatalogLoading(true);
     setCatalogMessage("");
+    if (!append) {
+      setNextPageToken(null);
+      setAutomaticPagesLoaded(0);
+    }
     try {
       const params = new URLSearchParams();
       if (query.trim()) params.set("q", query.trim());
@@ -264,6 +269,15 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
       controller.abort();
     };
   }, [fetchCatalogRestaurants, locationState]);
+
+  useEffect(() => {
+    if (catalogLoading || !nextPageToken || catalogRestaurants.length >= 10 || automaticPagesLoaded >= 2) return;
+    const timer = window.setTimeout(() => {
+      setAutomaticPagesLoaded((count) => count + 1);
+      void fetchCatalogRestaurants(nextPageToken, true);
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [automaticPagesLoaded, catalogLoading, catalogRestaurants.length, fetchCatalogRestaurants, nextPageToken]);
 
   function requestLocation() {
     if (!("geolocation" in navigator)) return setLocationState("unsupported");
