@@ -1419,6 +1419,7 @@ model ReferralPartner {
   groups             ReferralGroup[]
   payments           ReferralPayment[]
   benefitCards       ReferralBenefitCard[]
+  favoriteRestaurants ReferralPartnerFavorite[]
   sourceRestaurant   Restaurant?                 @relation("RestaurantOutboundReferralPartner")
   supportConversation SupportConversation?
 
@@ -1427,6 +1428,23 @@ model ReferralPartner {
 
   @@index([status])
   @@index([partnerType, city])
+}
+
+model ReferralPartnerFavorite {
+  id String @id @default(cuid())
+
+  partnerId String
+  partner   ReferralPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  provider String
+  placeId  String
+  name     String
+  address  String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([partnerId, provider, placeId])
+  @@index([partnerId, createdAt])
 }
 
 model ReferralAgreement {

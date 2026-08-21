@@ -1,8 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Check, Crosshair, ExternalLink, Handshake, ImageIcon, LoaderCircle, MapPin, Search, ShieldCheck, UserPlus, UtensilsCrossed } from "lucide-react";
-import { REFERRAL_ACCESSIBILITY_TAGS, REFERRAL_DIETARY_TAGS, REFERRAL_OCCASION_TAGS, REFERRAL_REQUIREMENT_TAGS } from "@/lib/referral-tags";
+import { Check, Crosshair, ExternalLink, Handshake, ImageIcon, LoaderCircle, MapPin, Search, ShieldCheck, Star, UserPlus, UtensilsCrossed, X } from "lucide-react";
 
 const compactInputClass = "input-premium partner-compact-input";
 const MAX_PROXIMITY_KM = 20;
@@ -82,13 +81,13 @@ type ExternalRestaurantSearchItem = {
 };
 
 type ExternalRestaurantEnrichment = Pick<ExternalRestaurantSearchItem, "provider" | "placeId" | "websiteUrl" | "heroImage" | "galleryImages" | "description" | "openingHours" | "rating" | "reviewCount" | "ratingSource" | "priceLevel" | "contactEmail" | "photoAttribution" | "photoAttributionUri">;
+type FavoriteRestaurant = { provider: string; placeId: string; name: string; address: string | null };
 
 export default function NewReferralGroupForm({ restaurants, publishingEnabled = true }: { restaurants: PartnerRestaurant[]; publishingEnabled?: boolean }) {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState("");
   const [query, setQuery] = useState("");
   const [cuisineFilter, setCuisineFilter] = useState("ALL");
   const [locationFilter, setLocationFilter] = useState("");
-  const [requirements, setRequirements] = useState<string[]>([]);
   const [adults, setAdults] = useState(6);
   const [children, setChildren] = useState(0);
   const [desiredDate, setDesiredDate] = useState("");
@@ -99,6 +98,9 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogMessage, setCatalogMessage] = useState("");
   const [catalogConfigured, setCatalogConfigured] = useState(true);
+  const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
+  const [favoriteSearch, setFavoriteSearch] = useState("");
+  const [favoriteMessage, setFavoriteMessage] = useState("");
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [automaticPagesLoaded, setAutomaticPagesLoaded] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -107,6 +109,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
 
   const guests = adults + children;
   const effectivePosition = currentPosition || fallbackPosition;
+  const favoriteKeys = useMemo(() => new Set(favorites.map((favorite) => `${favorite.provider}:${favorite.placeId}`)), [favorites]);
   const allRestaurants = useMemo(() => {
     const localPlaceIds = new Set(restaurants.map(externalPlaceKey).filter(Boolean));
     const localIdentities = new Set(restaurants.map(restaurantIdentity));
@@ -128,7 +131,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         && (distance === null || (Number.isFinite(distance) && distance <= MAX_PROXIMITY_KM))
         && (cuisineFilter === "ALL" || restaurant.cuisine === cuisineFilter)
         && (!normalizedLocation || restaurant.address.toLowerCase().includes(normalizedLocation))
-        && (!normalized || `${restaurant.name} ${restaurant.cuisine} ${restaurant.description} ${restaurant.highlights.join(" ")}`.toLowerCase().includes(normalized));
+        && (!normalized || fuzzyTextMatch(`${restaurant.name} ${restaurant.cuisine} ${restaurant.description} ${restaurant.highlights.join(" ")}`, normalized));
     });
     return [...matches].sort((a, b) => {
       if (proximityPosition) {
@@ -166,6 +169,15 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
       () => setLocationState("denied"),
       { enableHighAccuracy: false, timeout: 7000, maximumAge: 10 * 60 * 1000 },
     );
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch("/api/partners/restaurants/favorites", { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (Array.isArray(data?.favorites)) setFavorites(data.favorites); })
+      .catch(() => undefined);
+    return () => controller.abort();
   }, []);
 
   const enrichCatalogRestaurants = useCallback(async (items: PartnerRestaurant[], signal?: AbortSignal) => {
@@ -296,8 +308,37 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     );
   }
 
-  function toggleRequirement(value: string) {
-    setRequirements((items) => items.includes(value) ? items.filter((item) => item !== value) : items.length < 5 ? [...items, value] : items);
+  function searchFavorite() {
+    const value = favoriteSearch.trim();
+    if (!value) return;
+    setQuery(value);
+    setFavoriteMessage("Escolhe a estrela no restaurante certo para o guardares nos favoritos.");
+  }
+
+  async function toggleFavorite(restaurant: PartnerRestaurant) {
+    if (!restaurant.externalPlaceProvider || !restaurant.externalPlaceId) return;
+    const key = externalPlaceKey(restaurant);
+    const saved = favoriteKeys.has(key);
+    setFavoriteMessage("");
+    const response = await fetch("/api/partners/restaurants/favorites", {
+      method: saved ? "DELETE" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: restaurant.externalPlaceProvider, placeId: restaurant.externalPlaceId }),
+    }).catch(() => null);
+    const data = await response?.json().catch(() => null);
+    if (!response?.ok) return setFavoriteMessage(data?.error || "Não foi possível atualizar os favoritos.");
+    if (saved) setFavorites((items) => items.filter((item) => `${item.provider}:${item.placeId}` !== key));
+    else if (data?.favorite) setFavorites((items) => [data.favorite, ...items.filter((item) => `${item.provider}:${item.placeId}` !== key)]);
+    setFavoriteMessage(saved ? "Restaurante removido dos favoritos." : "Restaurante guardado nos favoritos.");
+  }
+
+  async function removeFavorite(favorite: FavoriteRestaurant) {
+    const response = await fetch("/api/partners/restaurants/favorites", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: favorite.provider, placeId: favorite.placeId }),
+    }).catch(() => null);
+    if (response?.ok) setFavorites((items) => items.filter((item) => `${item.provider}:${item.placeId}` !== `${favorite.provider}:${favorite.placeId}`));
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -321,11 +362,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
           adults,
           children,
           guests,
-          occasion: form.get("occasion"),
-          accessibility: form.get("accessibility"),
-          dietary: form.get("dietary"),
           cuisineTypes: selectedRestaurant ? [selectedRestaurant.cuisine] : [],
-          requirements,
           customerName: form.get("customerName"),
           customerPhone: form.get("customerPhone"),
           customerEmail: form.get("customerEmail"),
@@ -355,15 +392,17 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
             <Field label="Email"><input name="customerEmail" type="email" required maxLength={160} autoComplete="email" placeholder="cliente@email.com" className={compactInputClass} /></Field>
             <Field label="Data e hora"><input value={desiredDate} onChange={(event) => setDesiredDate(event.target.value)} name="desiredDate" type="datetime-local" required className={compactInputClass} /></Field>
             <div className="grid grid-cols-2 gap-2"><Field label="Adultos"><input value={adults} onChange={(event) => setAdults(Math.max(1, Number(event.target.value)))} type="number" min="1" max="200" className={compactInputClass} /></Field><Field label="Crianças"><input value={children} onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))} type="number" min="0" max="199" className={compactInputClass} /></Field></div>
-            <Field label="Ocasião"><select name="occasion" className={compactInputClass}>{REFERRAL_OCCASION_TAGS.map((tag) => <option key={tag.value} value={tag.value}>{tag.label}</option>)}</select></Field>
-            <Field label="Acessibilidade"><select name="accessibility" className={compactInputClass}>{REFERRAL_ACCESSIBILITY_TAGS.map((tag) => <option key={tag.value} value={tag.value}>{tag.label}</option>)}</select></Field>
-            <Field label="Alimentação"><select name="dietary" className={compactInputClass}>{REFERRAL_DIETARY_TAGS.map((tag) => <option key={tag.value} value={tag.value}>{tag.label}</option>)}</select></Field>
           </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">{REFERRAL_REQUIREMENT_TAGS.map((tag) => { const active = requirements.includes(tag); return <button key={tag} type="button" onClick={() => toggleRequirement(tag)} className={`rounded-full border px-3 py-1.5 text-[9px] font-bold ${active ? "border-[#8A6130] bg-[#FFF0D3] text-[#69491F]" : "border-[#DCC9AC] bg-white text-[#6E563A]"}`}>{active && <Check size={9} className="mr-1 inline" />}{tag}</button>; })}</div>
         </section>
 
         <section className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 shadow-[0_10px_34px_rgba(83,59,32,0.045)] sm:p-5">
           <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Restaurantes perto de ti</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{locationFilter.trim() ? `${locationFilter.trim()} · ${filtered.length}` : effectivePosition ? `Até 20 km · ${filtered.length}` : `${filtered.length} opções`}</span></div>
+          <div className="mt-3 rounded-[18px] border border-[#E4D5BE] bg-[#FCF8F2] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[.13em] text-[#7B572B]"><Star size={12} /> Restaurantes favoritos</p><p className="mt-1 text-[9px] text-[#817364]">Procura pelo nome — não precisa de estar escrito exatamente igual.</p></div><span className="text-[9px] font-bold text-[#8A7863]">{favorites.length} guardados</span></div>
+            <div className="mt-2 flex gap-2"><input value={favoriteSearch} onChange={(event) => setFavoriteSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); searchFavorite(); } }} placeholder="Ex.: Taberna Tga" className={compactInputClass} /><button type="button" onClick={searchFavorite} className="h-10 shrink-0 rounded-full bg-[#17120D] px-4 text-[9px] font-bold text-white">Encontrar</button></div>
+            {favorites.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{favorites.map((favorite) => <span key={`${favorite.provider}:${favorite.placeId}`} className="inline-flex items-center overflow-hidden rounded-full border border-[#D8C6A9] bg-white text-[9px] font-bold text-[#6E5232]"><button type="button" onClick={() => { setQuery(favorite.name); setFavoriteSearch(favorite.name); }} className="px-3 py-1.5">{favorite.name}</button><button type="button" onClick={() => void removeFavorite(favorite)} aria-label={`Remover ${favorite.name} dos favoritos`} className="border-l border-[#E7D9C5] px-2 py-1.5 text-[#9A8060]"><X size={10} /></button></span>)}</div>}
+            {favoriteMessage && <p className="mt-2 text-[9px] font-semibold text-[#75552F]">{favoriteMessage}</p>}
+          </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
             <label className="relative block"><Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7E6E]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome ou especialidade" className={compactInputClass} style={{ paddingLeft: "2.25rem" }} /></label>
             <select value={cuisineFilter} onChange={(event) => setCuisineFilter(event.target.value)} className={compactInputClass}><option value="ALL">Todas as cozinhas</option>{cuisines.map((item) => <option key={item} value={item}>{item}</option>)}</select>
@@ -377,15 +416,17 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
               const distance = effectivePosition && !locationFilter.trim() ? distanceTo(restaurant, effectivePosition) : null;
               const gross = restaurant.commissionType === "PER_PERSON" ? restaurant.commissionAmount * guests : restaurant.commissionAmount;
               const perPerson = gross / Math.max(1, guests);
+              const favorite = favoriteKeys.has(externalPlaceKey(restaurant));
               return <article key={restaurant.id} className={`relative overflow-hidden rounded-[18px] border p-2.5 transition ${selected ? "border-[#9E733D] bg-[#FFF7E9] shadow-[0_10px_28px_rgba(119,81,34,0.10)] ring-1 ring-[#C8A56A]/25" : restaurant.bookingReady ? "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A] hover:bg-white" : "border-[#E5DBCC] bg-[#FAF7F2]"}`}>{selected && <span className="absolute inset-y-0 left-0 w-1 bg-[#B88745]" />}
                 <button type="button" aria-pressed={selected} aria-label={`Escolher ${restaurant.name}`} onClick={() => setSelectedRestaurantId(restaurant.id)} className={`absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full border ${selected ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#D3BE9C] bg-white text-transparent"}`}>{selected ? <Check size={15} /> : restaurant.bookingReady ? <Check size={15} /> : <ShieldCheck size={14} />}</button>
+                {restaurant.externalPlaceProvider && restaurant.externalPlaceId && <button type="button" onClick={() => void toggleFavorite(restaurant)} aria-label={`${favorite ? "Remover" : "Adicionar"} ${restaurant.name} ${favorite ? "dos" : "aos"} favoritos`} className={`absolute right-12 top-2.5 grid h-9 w-9 place-items-center rounded-full border ${favorite ? "border-[#C59A4E] bg-[#FFF1CF] text-[#9A6A1D]" : "border-[#D3BE9C] bg-white text-[#A38D70]"}`}><Star size={14} fill={favorite ? "currentColor" : "none"} /></button>}
                 <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-2.5 pr-11 sm:grid-cols-[84px_minmax(0,1fr)_150px] sm:gap-3">
                   {restaurant.heroImage ? <div className="relative h-[72px] overflow-hidden rounded-[13px] bg-[#EADCC7] bg-cover bg-center shadow-[inset_0_0_0_1px_rgba(79,59,34,.08)] sm:h-[78px]" style={{ backgroundImage: `url(${restaurant.heroImage})` }} role="img" aria-label={`Fotografia de ${restaurant.name}`} /> : <div className="grid h-[72px] place-items-center rounded-[13px] bg-[linear-gradient(145deg,#F0E4D1,#E2CFB3)] text-center text-[#9B7D57] sm:h-[78px]"><span><ImageIcon size={18} className="mx-auto" /><small className="mt-1 block text-[7px] font-bold uppercase tracking-[.08em]">Sem foto</small></span></div>}
                   <div className="min-w-0"><div className="flex flex-wrap items-start gap-1.5"><p className="line-clamp-2 break-words text-sm font-semibold leading-4">{restaurant.name}</p>{restaurant.bookingReady ? <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">RESERVA IMEDIATA</span> : <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">CONFIRMAÇÃO PENDENTE</span>}</div><div className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] font-bold"><span className="text-[#80613D]">{restaurant.cuisine}</span>{restaurant.googleRating != null && <span className="text-[#A36D19]" title={ratingSourceLabel(restaurant.ratingSource)}>★ {restaurant.googleRating.toFixed(1)}{restaurant.googleReviewCount != null && restaurant.googleReviewCount > 0 ? <span className="font-normal text-[#8A7863]"> ({restaurant.googleReviewCount})</span> : restaurant.ratingSource ? <span className="font-normal text-[#8A7863]"> · {ratingSourceShort(restaurant.ratingSource)}</span> : null}</span>}{restaurant.googlePriceLevel != null && <span className="tracking-[0.08em] text-[#4F6C4D]">{"€".repeat(Math.min(4, Math.max(1, restaurant.googlePriceLevel)))}</span>}</div><p className="mt-1 flex items-center gap-1 text-[10px] text-[#6B6258]"><MapPin size={11} className="shrink-0 text-[#9B6F3B]" />{distance !== null && Number.isFinite(distance) ? <strong className="shrink-0 text-[#4F6C4D]">{formatDistance(distance)} ·</strong> : null}<span className="line-clamp-1">{restaurant.address || "Portugal"}</span></p>{restaurant.photoAttribution && <p className="mt-1 truncate text-[8px] text-[#8A7863]">Foto: {restaurant.photoAttributionUri ? <a href={restaurant.photoAttributionUri} target="_blank" rel="noreferrer" className="underline">{restaurant.photoAttribution}</a> : restaurant.photoAttribution}</p>}</div>
                   <div className="col-start-2 text-left sm:col-start-auto sm:text-right"><p className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8A7863]">Comissão atual</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{money(perPerson)} / pessoa</p><p className="text-[9px] text-[#8A7863]">{money(gross)} total + IVA</p>{desiredDate && restaurant.bookingReady && <p className="mt-0.5 text-[8px] font-bold text-[#4F6C4D]">{remainingCapacity(restaurant, desiredDate)} lugares livres</p>}</div>
                 </div>
                 {!restaurant.bookingReady && <p className="mt-2 rounded-xl bg-[#FFF4DE] px-3 py-2 text-[9px] leading-4 text-[#74613F]">A reserva fica pendente até o restaurante confirmar, recusar ou sugerir outro horário. Comissão de 1,50 € por pessoa + IVA.</p>}
-                {!restaurant.bookingReady && <div className="mt-2 flex justify-end"><RestaurantInviteButton restaurant={restaurant} /></div>}
+                {!restaurant.bookingReady && <div className="mt-2 flex justify-end"><RestaurantInviteActions restaurant={restaurant} /></div>}
                 <details className="group mt-2 border-t border-[#EEE3D3] pt-2"><summary className="flex cursor-pointer list-none items-center justify-between text-[10px] font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><UtensilsCrossed size={12} /> Mini-perfil, fotografias e menu</span><span className="transition group-open:rotate-180">⌄</span></summary><div className="mt-2 rounded-xl bg-white p-3"><p className="text-[11px] leading-4 text-[#6B6258]">{restaurant.description}</p>{restaurant.openingHours && <p className="mt-2 text-[9px] leading-4 text-[#75695D]"><strong>Horário:</strong> {restaurant.openingHours}</p>}{restaurant.galleryImages.length > 0 && <div className="mt-2 grid grid-cols-3 gap-2">{restaurant.galleryImages.slice(0, 3).map((image) => <div key={image} className="h-20 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} role="img" aria-label={`Fotografia de ${restaurant.name}`} />)}</div>}<div className="mt-3 flex flex-wrap gap-3">{restaurant.menuUrl && <a href={restaurant.menuUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Abrir menu <ExternalLink size={12} /></a>}{restaurant.websiteUrl && <a href={restaurant.websiteUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Site oficial <ExternalLink size={12} /></a>}{restaurant.googleMapsUrl && <a href={restaurant.googleMapsUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#4F6C4D]">Abrir mapa <ExternalLink size={12} /></a>}</div></div></details>
                 {restaurant.bookingReady && !restaurant.isDemo && <CommissionNegotiation restaurant={restaurant} />}
               </article>;
@@ -415,25 +456,35 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   );
 }
 
-function RestaurantInviteButton({ restaurant }: { restaurant: PartnerRestaurant }) {
-  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+type RestaurantInviteKind = "INSTANT_BOOKING" | "JOIN_NETWORK";
 
-  async function invite() {
+function RestaurantInviteActions({ restaurant }: { restaurant: PartnerRestaurant }) {
+  const [states, setStates] = useState<Record<RestaurantInviteKind, "idle" | "sending" | "sent" | "error">>({ INSTANT_BOOKING: "idle", JOIN_NETWORK: "idle" });
+
+  async function invite(kind: RestaurantInviteKind) {
+    const state = states[kind];
     if (!restaurant.externalPlaceProvider || !restaurant.externalPlaceId || state === "sending" || state === "sent") return;
-    setState("sending");
+    setStates((current) => ({ ...current, [kind]: "sending" }));
     try {
       const response = await fetch("/api/partners/restaurants/invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: restaurant.externalPlaceProvider, placeId: restaurant.externalPlaceId }),
+        body: JSON.stringify({ provider: restaurant.externalPlaceProvider, placeId: restaurant.externalPlaceId, kind }),
       });
-      setState(response.ok ? "sent" : "error");
+      setStates((current) => ({ ...current, [kind]: response.ok ? "sent" : "error" }));
     } catch {
-      setState("error");
+      setStates((current) => ({ ...current, [kind]: "error" }));
     }
   }
 
-  return <button type="button" onClick={invite} disabled={state === "sending" || state === "sent"} className={`inline-flex h-8 items-center justify-center gap-1.5 rounded-full border px-3 text-[9px] font-bold transition disabled:cursor-default ${state === "sent" ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : state === "error" ? "border-[#E2B8A9] bg-[#FFF0EA] text-[#934A35]" : "border-[#CDBA9C] bg-white text-[#6E5232] hover:border-[#9E733D]"}`}><UserPlus size={11} />{state === "sending" ? "A enviar…" : state === "sent" ? "Convite enviado" : state === "error" ? "Tentar novamente" : "Convidar restaurante"}</button>;
+  return <div className="flex flex-wrap justify-end gap-1.5">
+    <InviteActionButton state={states.INSTANT_BOOKING} onClick={() => invite("INSTANT_BOOKING")} label="Convidar a aceitar reservas imediatas" />
+    <InviteActionButton state={states.JOIN_NETWORK} onClick={() => invite("JOIN_NETWORK")} label="Apresentar a rede MesaLink" />
+  </div>;
+}
+
+function InviteActionButton({ state, onClick, label }: { state: "idle" | "sending" | "sent" | "error"; onClick: () => void; label: string }) {
+  return <button type="button" onClick={onClick} disabled={state === "sending" || state === "sent"} className={`inline-flex min-h-8 items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 text-[9px] font-bold leading-3 transition disabled:cursor-default ${state === "sent" ? "border-[#A8D3A6] bg-[#EFF9EF] text-[#3F6A4D]" : state === "error" ? "border-[#E2B8A9] bg-[#FFF0EA] text-[#934A35]" : "border-[#CDBA9C] bg-white text-[#6E5232] hover:border-[#9E733D]"}`}><UserPlus size={11} className="shrink-0" />{state === "sending" ? "A enviar…" : state === "sent" ? "Convite enviado" : state === "error" ? "Tentar novamente" : label}</button>;
 }
 
 function CommissionNegotiation({ restaurant }: { restaurant: PartnerRestaurant }) {
@@ -644,6 +695,35 @@ function restaurantIdentity(restaurant: Pick<PartnerRestaurant, "name" | "addres
 
 function normalizeIdentity(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function fuzzyTextMatch(value: string, query: string) {
+  const normalizedValue = normalizeIdentity(value);
+  const normalizedQuery = normalizeIdentity(query);
+  if (!normalizedQuery || normalizedValue.includes(normalizedQuery)) return true;
+  const words = normalizedValue.split(" ").filter(Boolean);
+  return normalizedQuery.split(" ").filter(Boolean).every((term) => words.some((word) => {
+    if (word.startsWith(term) || term.startsWith(word)) return true;
+    const tolerance = term.length >= 8 ? 2 : term.length >= 4 ? 1 : 0;
+    return tolerance > 0 && editDistanceWithin(word, term, tolerance);
+  }));
+}
+
+function editDistanceWithin(left: string, right: string, limit: number) {
+  if (Math.abs(left.length - right.length) > limit) return false;
+  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let row = 1; row <= left.length; row += 1) {
+    const current = [row];
+    let smallest = current[0];
+    for (let column = 1; column <= right.length; column += 1) {
+      const cost = left[row - 1] === right[column - 1] ? 0 : 1;
+      current[column] = Math.min(current[column - 1] + 1, previous[column] + 1, previous[column - 1] + cost);
+      smallest = Math.min(smallest, current[column]);
+    }
+    if (smallest > limit) return false;
+    previous = current;
+  }
+  return previous[right.length] <= limit;
 }
 
 function distanceTo(restaurant: Pick<PartnerRestaurant, "latitude" | "longitude">, position: { latitude: number; longitude: number }) {
