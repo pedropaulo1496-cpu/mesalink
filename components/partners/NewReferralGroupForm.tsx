@@ -81,7 +81,7 @@ type ExternalRestaurantSearchItem = {
 };
 
 type ExternalRestaurantEnrichment = Pick<ExternalRestaurantSearchItem, "provider" | "placeId" | "websiteUrl" | "heroImage" | "galleryImages" | "description" | "openingHours" | "rating" | "reviewCount" | "ratingSource" | "priceLevel" | "contactEmail" | "photoAttribution" | "photoAttributionUri">;
-type FavoriteRestaurant = { provider: string; placeId: string; name: string; address: string | null };
+type FavoriteRestaurant = { provider: string; placeId: string; name: string; address: string | null; restaurant: ExternalRestaurantSearchItem | null };
 
 export default function NewReferralGroupForm({ restaurants, publishingEnabled = true }: { restaurants: PartnerRestaurant[]; publishingEnabled?: boolean }) {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState("");
@@ -101,6 +101,9 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
   const [favoriteSearch, setFavoriteSearch] = useState("");
   const [favoriteMessage, setFavoriteMessage] = useState("");
+  const [favoriteLookupResults, setFavoriteLookupResults] = useState<PartnerRestaurant[]>([]);
+  const [favoriteLookupLoading, setFavoriteLookupLoading] = useState(false);
+  const [restaurantView, setRestaurantView] = useState<"NEARBY" | "FAVORITES">("NEARBY");
   const [networkRestaurantName, setNetworkRestaurantName] = useState("");
   const [networkRestaurantEmail, setNetworkRestaurantEmail] = useState("");
   const [networkInviteState, setNetworkInviteState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -114,6 +117,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const guests = adults + children;
   const effectivePosition = currentPosition || fallbackPosition;
   const favoriteKeys = useMemo(() => new Set(favorites.map((favorite) => `${favorite.provider}:${favorite.placeId}`)), [favorites]);
+  const favoriteOptions = useMemo(() => favorites.map((favorite) => favorite.restaurant ? externalPartnerRestaurant(favorite.restaurant) : null).filter((restaurant): restaurant is PartnerRestaurant => Boolean(restaurant)), [favorites]);
   const allRestaurants = useMemo(() => {
     const localPlaceIds = new Set(restaurants.map(externalPlaceKey).filter(Boolean));
     const localIdentities = new Set(restaurants.map(restaurantIdentity));
@@ -121,8 +125,9 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     return [
       ...restaurants,
       ...catalogRestaurants.filter((restaurant) => !localIds.has(restaurant.id) && !localPlaceIds.has(externalPlaceKey(restaurant)) && !localIdentities.has(restaurantIdentity(restaurant))),
+      ...favoriteOptions.filter((restaurant) => !localIds.has(restaurant.id) && !localPlaceIds.has(externalPlaceKey(restaurant)) && !localIdentities.has(restaurantIdentity(restaurant))),
     ];
-  }, [restaurants, catalogRestaurants]);
+  }, [restaurants, catalogRestaurants, favoriteOptions]);
   const cuisines = useMemo(() => [...new Set(allRestaurants.map((restaurant) => restaurant.cuisine).filter(Boolean))].sort(), [allRestaurants]);
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -312,11 +317,31 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     );
   }
 
-  function searchFavorite() {
+  async function searchFavorite() {
     const value = favoriteSearch.trim();
     if (!value) return;
-    setQuery(value);
-    setFavoriteMessage("Escolhe a estrela no restaurante certo para o guardares nos favoritos.");
+    setFavoriteLookupLoading(true);
+    setFavoriteMessage("");
+    try {
+      const params = new URLSearchParams({ q: value });
+      const response = await fetch(`/api/partners/restaurants/search?${params}`);
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setFavoriteLookupResults([]);
+        return setFavoriteMessage(data?.error || "Não foi possível pesquisar restaurantes.");
+      }
+      const items = Array.isArray(data?.restaurants)
+        ? (data.restaurants as ExternalRestaurantSearchItem[]).map(externalPartnerRestaurant).filter((item): item is PartnerRestaurant => Boolean(item))
+        : [];
+      const enriched = await enrichCatalogRestaurants(items);
+      setFavoriteLookupResults(enriched.filter((restaurant) => !favoriteKeys.has(externalPlaceKey(restaurant))));
+      if (!enriched.some((restaurant) => !favoriteKeys.has(externalPlaceKey(restaurant)))) setFavoriteMessage("Não encontrámos novos restaurantes com esse nome.");
+    } catch {
+      setFavoriteLookupResults([]);
+      setFavoriteMessage("Não foi possível pesquisar restaurantes.");
+    } finally {
+      setFavoriteLookupLoading(false);
+    }
   }
 
   async function toggleFavorite(restaurant: PartnerRestaurant) {
@@ -332,7 +357,11 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     const data = await response?.json().catch(() => null);
     if (!response?.ok) return setFavoriteMessage(data?.error || "Não foi possível atualizar os favoritos.");
     if (saved) setFavorites((items) => items.filter((item) => `${item.provider}:${item.placeId}` !== key));
-    else if (data?.favorite) setFavorites((items) => [data.favorite, ...items.filter((item) => `${item.provider}:${item.placeId}` !== key)]);
+    else {
+      const refreshed = await fetch("/api/partners/restaurants/favorites").then((result) => result.ok ? result.json() : null).catch(() => null);
+      if (Array.isArray(refreshed?.favorites)) setFavorites(refreshed.favorites);
+      setFavoriteLookupResults((items) => items.filter((item) => externalPlaceKey(item) !== key));
+    }
     setFavoriteMessage(saved ? "Restaurante removido dos favoritos." : "Restaurante guardado nos favoritos.");
   }
 
@@ -426,13 +455,9 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         </section>
 
         <section className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 shadow-[0_10px_34px_rgba(83,59,32,0.045)] sm:p-5">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Restaurantes perto de ti</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{locationFilter.trim() ? `${locationFilter.trim()} · ${filtered.length}` : effectivePosition ? `Até 20 km · ${filtered.length}` : `${filtered.length} opções`}</span></div>
-          <div className="mt-3 rounded-[18px] border border-[#E4D5BE] bg-[#FCF8F2] p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[.13em] text-[#7B572B]"><Star size={12} /> Restaurantes favoritos</p><p className="mt-1 text-[9px] text-[#817364]">Procura pelo nome — não precisa de estar escrito exatamente igual.</p></div><span className="text-[9px] font-bold text-[#8A7863]">{favorites.length} guardados</span></div>
-            <div className="mt-2 flex gap-2"><input value={favoriteSearch} onChange={(event) => setFavoriteSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); searchFavorite(); } }} placeholder="Ex.: Taberna Tga" className={compactInputClass} /><button type="button" onClick={searchFavorite} className="h-10 shrink-0 rounded-full bg-[#17120D] px-4 text-[9px] font-bold text-white">Encontrar</button></div>
-            {favorites.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{favorites.map((favorite) => <span key={`${favorite.provider}:${favorite.placeId}`} className="inline-flex items-center overflow-hidden rounded-full border border-[#D8C6A9] bg-white text-[9px] font-bold text-[#6E5232]"><button type="button" onClick={() => { setQuery(favorite.name); setFavoriteSearch(favorite.name); }} className="px-3 py-1.5">{favorite.name}</button><button type="button" onClick={() => void removeFavorite(favorite)} aria-label={`Remover ${favorite.name} dos favoritos`} className="border-l border-[#E7D9C5] px-2 py-1.5 text-[#9A8060]"><X size={10} /></button></span>)}</div>}
-            {favoriteMessage && <p className="mt-2 text-[9px] font-semibold text-[#75552F]">{favoriteMessage}</p>}
-          </div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">{restaurantView === "FAVORITES" ? "Restaurantes favoritos" : "Restaurantes perto de ti"}</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{restaurantView === "FAVORITES" ? `${favorites.length} favoritos` : locationFilter.trim() ? `${locationFilter.trim()} · ${filtered.length}` : effectivePosition ? `Até 20 km · ${filtered.length}` : `${filtered.length} opções`}</span></div>
+          <div className="mt-3 inline-flex rounded-full border border-[#D8C6A9] bg-[#F6EFE5] p-1"><button type="button" onClick={() => setRestaurantView("NEARBY")} className={`rounded-full px-4 py-2 text-[10px] font-bold ${restaurantView === "NEARBY" ? "bg-[#17120D] text-white" : "text-[#715536]"}`}>Perto de ti</button><button type="button" onClick={() => setRestaurantView("FAVORITES")} className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[10px] font-bold ${restaurantView === "FAVORITES" ? "bg-[#17120D] text-white" : "text-[#715536]"}`}><Star size={11} /> Favoritos {favorites.length > 0 && `(${favorites.length})`}</button></div>
+          <div className={restaurantView === "NEARBY" ? "block" : "hidden"}>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
             <label className="relative block"><Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7E6E]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome ou especialidade" className={compactInputClass} style={{ paddingLeft: "2.25rem" }} /></label>
             <select value={cuisineFilter} onChange={(event) => setCuisineFilter(event.target.value)} className={compactInputClass}><option value="ALL">Todas as cozinhas</option>{cuisines.map((item) => <option key={item} value={item}>{item}</option>)}</select>
@@ -469,6 +494,12 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
             <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
               {nextPageToken && <button type="button" disabled={catalogLoading} onClick={() => void fetchCatalogRestaurants(nextPageToken, true)} className="h-9 rounded-full border border-[#CDBA9C] bg-white px-4 text-[9px] font-bold text-[#6E5232] disabled:opacity-50">{catalogLoading ? "A carregar…" : "Mostrar mais restaurantes"}</button>}
             </div>
+          </div>
+          </div>
+          <div className={restaurantView === "FAVORITES" ? "mt-3 block" : "hidden"}>
+            <div className="rounded-[18px] border border-[#E4D5BE] bg-[#FCF8F2] p-3"><p className="text-[10px] font-black uppercase tracking-[.13em] text-[#7B572B]">Adicionar aos favoritos</p><div className="mt-2 flex gap-2"><input value={favoriteSearch} onChange={(event) => setFavoriteSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void searchFavorite(); } }} placeholder="Nome do restaurante" className={compactInputClass} /><button type="button" onClick={() => void searchFavorite()} disabled={favoriteLookupLoading} className="h-10 shrink-0 rounded-full bg-[#17120D] px-4 text-[9px] font-bold text-white disabled:opacity-50">{favoriteLookupLoading ? "A pesquisar…" : "Pesquisar"}</button></div>{favoriteMessage && <p className="mt-2 text-[9px] font-semibold text-[#75552F]">{favoriteMessage}</p>}</div>
+            {favoriteLookupResults.length > 0 && <div className="mt-3 grid gap-2 sm:grid-cols-2">{favoriteLookupResults.filter((restaurant) => !favoriteKeys.has(externalPlaceKey(restaurant))).map((restaurant) => <article key={restaurant.id} className="flex items-center gap-3 rounded-[16px] border border-[#E1D0B8] bg-white p-2.5"><div className="h-14 w-14 shrink-0 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: restaurant.heroImage ? `url(${restaurant.heroImage})` : undefined }} /><div className="min-w-0 flex-1"><p className="truncate text-xs font-bold">{restaurant.name}</p><p className="mt-1 line-clamp-1 text-[9px] text-[#75695D]">{restaurant.address}</p></div><button type="button" onClick={() => void toggleFavorite(restaurant)} aria-label={`Adicionar ${restaurant.name} aos favoritos`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#D3BE9C] bg-[#FFF7E8] text-[#8B642C]"><Star size={14} /></button></article>)}</div>}
+            <div className="mt-4"><div className="mb-2 flex items-center justify-between"><p className="text-[10px] font-black uppercase tracking-[.13em] text-[#7B572B]">Os teus favoritos</p><span className="text-[9px] font-bold text-[#8A7863]">{favorites.length}</span></div>{favorites.length === 0 ? <div className="rounded-[18px] border border-dashed border-[#D6C3A5] p-6 text-center text-xs text-[#75695D]">Ainda não tens restaurantes favoritos.</div> : <div className="space-y-2">{favorites.map((favorite) => { const restaurant = favoriteOptions.find((option) => externalPlaceKey(option) === `${favorite.provider}:${favorite.placeId}`); const selected = restaurant?.id === selectedRestaurantId; return <article key={`${favorite.provider}:${favorite.placeId}`} className={`flex items-center gap-3 rounded-[18px] border p-3 ${selected ? "border-[#9E733D] bg-[#FFF7E9]" : "border-[#E1D0B8] bg-white"}`}><div className="h-16 w-16 shrink-0 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: restaurant?.heroImage ? `url(${restaurant.heroImage})` : undefined }} /><button type="button" disabled={!restaurant} onClick={() => restaurant && setSelectedRestaurantId(restaurant.id)} className="min-w-0 flex-1 text-left"><p className="truncate text-sm font-bold">{favorite.name}</p><p className="mt-1 line-clamp-1 text-[10px] text-[#75695D]">{favorite.address}</p>{restaurant && <span className="mt-2 inline-flex rounded-full bg-[#FFF2D5] px-2 py-1 text-[7px] font-black text-[#805D2B]">{restaurant.bookingReady ? "RESERVA IMEDIATA" : "CONFIRMAÇÃO PENDENTE"}</span>}</button><button type="button" onClick={() => void removeFavorite(favorite)} aria-label={`Remover ${favorite.name} dos favoritos`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#DCCBB1] bg-white text-[#8A7863]"><X size={13} /></button></article>; })}</div>}</div>
           </div>
         </section>
       </div>
