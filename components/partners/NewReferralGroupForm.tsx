@@ -104,6 +104,10 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const [favoriteMessage, setFavoriteMessage] = useState("");
   const [favoriteLookupResults, setFavoriteLookupResults] = useState<PartnerRestaurant[]>([]);
   const [favoriteLookupLoading, setFavoriteLookupLoading] = useState(false);
+  const [partnerInviteOpen, setPartnerInviteOpen] = useState(false);
+  const [partnerInviteEmail, setPartnerInviteEmail] = useState("");
+  const [partnerInviteState, setPartnerInviteState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [partnerInviteMessage, setPartnerInviteMessage] = useState("");
   const [restaurantView, setRestaurantView] = useState<"NEARBY" | "FAVORITES">("NEARBY");
   const [networkRestaurantName, setNetworkRestaurantName] = useState("");
   const [networkRestaurantEmail, setNetworkRestaurantEmail] = useState("");
@@ -422,6 +426,28 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     setNetworkRestaurantEmail("");
   }
 
+  async function sendPartnerInvite() {
+    if (!validEmail(partnerInviteEmail)) {
+      setPartnerInviteState("error");
+      return setPartnerInviteMessage("Indica um email válido.");
+    }
+    setPartnerInviteState("sending");
+    setPartnerInviteMessage("");
+    const response = await fetch("/api/partners/invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: partnerInviteEmail.trim() }),
+    }).catch(() => null);
+    const data = await response?.json().catch(() => null);
+    if (!response?.ok) {
+      setPartnerInviteState("error");
+      return setPartnerInviteMessage(data?.error || "Não foi possível enviar o convite.");
+    }
+    setPartnerInviteState("sent");
+    setPartnerInviteMessage("Convite enviado com sucesso.");
+    setPartnerInviteEmail("");
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
@@ -536,6 +562,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
                 <p className="text-[10px] font-black uppercase tracking-[.13em] text-[#7B572B]">Encontrar restaurante</p><p className="mt-1 text-[10px] text-[#807264]">Pesquisa pelo nome e adiciona-o aos teus favoritos.</p>
                 <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"><input value={favoriteSearch} onChange={(event) => setFavoriteSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void searchFavorite(); } }} placeholder="Nome do restaurante" className={`${compactInputClass} min-w-0 w-full`} /><button type="button" onClick={() => void searchFavorite()} disabled={favoriteLookupLoading} className="h-10 w-full rounded-full bg-[#17120D] px-5 text-[9px] font-bold text-white disabled:opacity-50 sm:w-auto">{favoriteLookupLoading ? "A pesquisar…" : "Pesquisar"}</button></div>
                 {favoriteMessage && <p className="mt-2 text-[9px] font-semibold text-[#75552F]">{favoriteMessage}</p>}
+                <div className="mt-3 border-t border-[#E4D5BE] pt-3"><button type="button" onClick={() => { setPartnerInviteOpen((open) => !open); setPartnerInviteState("idle"); setPartnerInviteMessage(""); }} className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-full border border-[#CDBA9C] bg-white px-4 text-[9px] font-bold text-[#6E5232]"><Handshake size={13} /> Convidar um parceiro</button>{partnerInviteOpen && <div className="mt-2 rounded-[15px] border border-[#E1D0B8] bg-white p-3"><p className="text-[10px] leading-4 text-[#75695D]">Envia um convite para aderir ao MesaLink Partners.</p><div className="mt-2 grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"><input type="email" value={partnerInviteEmail} onChange={(event) => { setPartnerInviteEmail(event.target.value); setPartnerInviteState("idle"); setPartnerInviteMessage(""); }} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void sendPartnerInvite(); } }} placeholder="Email do parceiro" className={`${compactInputClass} min-w-0 w-full`} /><button type="button" disabled={partnerInviteState === "sending"} onClick={() => void sendPartnerInvite()} className="h-10 w-full rounded-full bg-[#17120D] px-5 text-[9px] font-bold text-white disabled:opacity-50 sm:w-auto">{partnerInviteState === "sending" ? "A enviar…" : "Enviar convite"}</button></div>{partnerInviteMessage && <p className={`mt-2 text-[9px] font-semibold ${partnerInviteState === "error" ? "text-[#934A35]" : "text-[#4F6C4D]"}`}>{partnerInviteMessage}</p>}</div>}</div>
                 {favoriteLookupResults.length > 0 && <div className="mt-3 grid gap-2">{favoriteLookupResults.filter((restaurant) => !favoriteKeys.has(externalPlaceKey(restaurant))).map((restaurant) => { const key = externalPlaceKey(restaurant); const pending = favoritePendingKeys.has(key); return <article key={restaurant.id} className="grid min-w-0 grid-cols-[52px_minmax(0,1fr)] items-center gap-2.5 rounded-[16px] border border-[#E1D0B8] bg-white p-2.5 sm:grid-cols-[52px_minmax(0,1fr)_auto]"><div className="h-[52px] w-[52px] rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: restaurant.heroImage ? `url(${restaurant.heroImage})` : undefined }} /><div className="min-w-0"><p className="truncate text-xs font-bold">{restaurant.name}</p><p className="mt-1 truncate text-[9px] text-[#75695D]">{restaurant.address}</p></div><button type="button" disabled={pending} onClick={() => void toggleFavorite(restaurant)} className="col-span-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-[#D3BE9C] bg-[#FFF7E8] px-4 text-[9px] font-bold text-[#8B642C] disabled:opacity-50 sm:col-span-1 sm:w-auto"><Star size={12} />{pending ? "A guardar…" : "Adicionar"}</button></article>; })}</div>}
               </section>
             </div>

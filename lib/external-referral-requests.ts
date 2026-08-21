@@ -42,35 +42,45 @@ export async function issueExternalReferralAccess(offerId: string, requestUrl?: 
   }
 
   const token = randomBytes(32).toString("base64url");
+  const tokenHash = externalReferralTokenHash(token);
   const expiresAt = externalReferralExpiry(offer.group.desiredDate);
   if (expiresAt <= new Date()) throw new Error("EXTERNAL_REFERRAL_EXPIRED");
   await prisma.referralOffer.update({
     where: { id: offer.id },
-    data: { publicAccessTokenHash: externalReferralTokenHash(token), publicAccessExpiresAt: expiresAt },
+    data: { publicAccessTokenHash: tokenHash, publicAccessExpiresAt: expiresAt },
   });
 
   const responseUrl = `${externalReferralBaseUrl(requestUrl)}/partner-reservation/${token}`;
   const date = formatDateTime(offer.group.desiredDate);
   const simulation = isExternalReferralSimulation(offer);
   const resend = mailer();
-  const delivery = await resend.emails.send({
-    from: "MesaLink Reservas <info@mesalink.pt>",
-    to: offer.restaurant.email,
-    replyTo: "info@mesalink.pt",
-    subject: `${simulation ? "[SIMULAÇÃO] " : ""}Reserva pendente de confirmação · ${offer.group.guests} pessoas · ${date}`,
-    text: `Olá,\n\n${simulation ? "Esta é uma simulação segura do fluxo de pedidos de grupo. Não existe um cliente real e nenhuma opção gera cobrança.\n\n" : ""}Recebemos um pedido de reserva para ${offer.restaurant.name}.\n\nReserva pendente de confirmação\nData e hora: ${date}\nPessoas: ${offer.group.guests}\nNome da reserva: ${offer.group.customerName || "Cliente MesaLink"}\nReferência: ${offer.group.publicCode}\n\nAceite, recuse ou sugira outro horário através desta ligação segura:\n${responseUrl}\n\nA ligação é válida até ${formatDateTime(expiresAt)}.${simulation ? " Todas as respostas são apenas demonstrativas." : " Os contactos completos do cliente são disponibilizados após a confirmação."}\n\nMesaLink Reservas\ninfo@mesalink.pt`,
-    html: requestEmailHtml({
-      restaurantName: offer.restaurant.name,
-      customerName: offer.group.customerName || "Cliente MesaLink",
-      guests: offer.group.guests,
-      date,
-      code: offer.group.publicCode,
-      responseUrl,
-      expiresAt: formatDateTime(expiresAt),
-      simulation,
-    }),
-  });
-  if (delivery.error) throw new Error(delivery.error.message);
+  let delivery;
+  try {
+    delivery = await resend.emails.send({
+      from: "MesaLink Reservas <info@mesalink.pt>",
+      to: offer.restaurant.email,
+      replyTo: "info@mesalink.pt",
+      subject: `${simulation ? "[SIMULAÇÃO] " : ""}Reserva pendente de confirmação · ${offer.group.guests} pessoas · ${date}`,
+      text: `Olá,\n\n${simulation ? "Esta é uma simulação segura do fluxo de pedidos de grupo. Não existe um cliente real e nenhuma opção gera cobrança.\n\n" : ""}Recebemos um pedido de reserva para ${offer.restaurant.name}.\n\nReserva pendente de confirmação\nData e hora: ${date}\nPessoas: ${offer.group.guests}\nNome da reserva: ${offer.group.customerName || "Cliente MesaLink"}\nReferência: ${offer.group.publicCode}\n\nAceite, recuse ou sugira outro horário através desta ligação segura:\n${responseUrl}\n\nA ligação é válida até ${formatDateTime(expiresAt)}.${simulation ? " Todas as respostas são apenas demonstrativas." : " Os contactos completos do cliente são disponibilizados após a confirmação."}\n\nMesaLink Reservas\ninfo@mesalink.pt`,
+      html: requestEmailHtml({
+        restaurantName: offer.restaurant.name,
+        customerName: offer.group.customerName || "Cliente MesaLink",
+        guests: offer.group.guests,
+        date,
+        code: offer.group.publicCode,
+        responseUrl,
+        expiresAt: formatDateTime(expiresAt),
+        simulation,
+      }),
+    });
+    if (delivery.error) throw new Error(delivery.error.message);
+  } catch (error) {
+    await prisma.referralOffer.updateMany({
+      where: { id: offer.id, publicAccessTokenHash: tokenHash },
+      data: { publicAccessTokenHash: offer.publicAccessTokenHash, publicAccessExpiresAt: offer.publicAccessExpiresAt },
+    }).catch(() => undefined);
+    throw error;
+  }
   return { token, expiresAt, deliveryId: delivery.data?.id || null };
 }
 
