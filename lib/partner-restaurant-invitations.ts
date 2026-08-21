@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-type InvitationClient = Pick<Prisma.TransactionClient, "referralPartnerRestaurantInvitation" | "referralPartnerFavorite" | "restaurant">;
+type InvitationClient = Pick<Prisma.TransactionClient, "referralPartnerRestaurantInvitation" | "referralPartnerFavorite" | "referralPartnerRecruitmentReward" | "restaurant">;
 
 export function partnerRestaurantInvitationTokenHash(token: string) {
   return createHash("sha256").update(token).digest("hex");
@@ -25,7 +25,7 @@ export async function acceptPartnerRestaurantInvitation(client: InvitationClient
   const email = input.email.trim().toLowerCase();
   const invitation = await client.referralPartnerRestaurantInvitation.findUnique({
     where: { tokenHash: partnerRestaurantInvitationTokenHash(input.token) },
-    select: { id: true, partnerId: true, email: true, expiresAt: true, acceptedAt: true },
+    select: { id: true, partnerId: true, email: true, expiresAt: true, acceptedAt: true, rewardEligible: true },
   });
   if (!invitation || invitation.acceptedAt || invitation.expiresAt <= new Date() || invitation.email !== email) throw new Error("INVITATION_INVALID");
   const restaurant = await client.restaurant.findUnique({
@@ -44,5 +44,12 @@ export async function acceptPartnerRestaurantInvitation(client: InvitationClient
     where: { id: invitation.id },
     data: { acceptedAt: new Date(), restaurantId: restaurant.id },
   });
+  if (invitation.rewardEligible) {
+    await client.referralPartnerRecruitmentReward.upsert({
+      where: { restaurantId: restaurant.id },
+      create: { invitationId: invitation.id, partnerId: invitation.partnerId, restaurantId: restaurant.id },
+      update: {},
+    });
+  }
   return { partnerId: invitation.partnerId, restaurantId: restaurant.id, provider, placeId };
 }

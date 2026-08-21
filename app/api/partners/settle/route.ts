@@ -3,6 +3,7 @@ import { referralInvoiceCutoff } from "@/lib/referral-deadlines";
 import { transferPartnerCommission } from "@/lib/referral-payouts";
 import { refundReferralWithoutValidInvoice, settleReferralAttendance } from "@/lib/referral-settlement";
 import { prisma } from "@/lib/prisma";
+import { refreshTrackingRecruitmentRewards, transferPartnerRecruitmentReward } from "@/lib/partner-recruitment-rewards";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -33,6 +34,10 @@ export async function GET(request: Request) {
     invoiceRefundFailed: 0,
     weeklyPaid: 0,
     weeklyPaymentFailed: 0,
+    recruitmentChecked: 0,
+    recruitmentQualified: 0,
+    recruitmentPaid: 0,
+    recruitmentPaymentFailed: 0,
   };
 
   for (const group of attendanceGroups) {
@@ -84,6 +89,30 @@ export async function GET(request: Request) {
     } catch (error) {
       results.weeklyPaymentFailed += 1;
       console.error("Automatic weekly partner payment failed", payment.id, error);
+    }
+  }
+
+  const recruitmentProgress = await refreshTrackingRecruitmentRewards(now);
+  results.recruitmentChecked = recruitmentProgress.checked;
+  results.recruitmentQualified = recruitmentProgress.qualified;
+  const recruitmentRewards = await prisma.referralPartnerRecruitmentReward.findMany({
+    where: {
+      status: { in: ["QUALIFIED", "TRANSFER_FAILED"] },
+      payoutDueAt: { lte: now },
+      partnerInvoiceStatus: "VERIFIED",
+      partnerInvoiceUrl: { not: null },
+    },
+    orderBy: { payoutDueAt: "asc" },
+    select: { id: true },
+    take: 100,
+  });
+  for (const reward of recruitmentRewards) {
+    try {
+      await transferPartnerRecruitmentReward(reward.id);
+      results.recruitmentPaid += 1;
+    } catch (error) {
+      results.recruitmentPaymentFailed += 1;
+      console.error("Automatic partner recruitment reward failed", reward.id, error);
     }
   }
 

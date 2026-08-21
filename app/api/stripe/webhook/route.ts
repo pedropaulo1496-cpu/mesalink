@@ -16,6 +16,7 @@ import {
   settleDomainCheckout,
 } from "@/lib/domain-orders";
 import { expireReservationCheckoutSession, settleReservationCheckoutSession } from "@/lib/reservation-payments";
+import { recordRecruitmentSubscriptionInvoice } from "@/lib/partner-recruitment-rewards";
 
 type Product = "ESSENTIALS" | "GROWTH";
 
@@ -437,6 +438,7 @@ export async function POST(req: Request) {
       const invoice = event.data.object as Stripe.Invoice;
       await settleReferralInvoice(invoice);
       await settlePlanInvoiceCommission(invoice);
+      await recordRecruitmentSubscriptionInvoice(invoice);
     }
 
     if (event.type === "checkout.session.async_payment_failed") {

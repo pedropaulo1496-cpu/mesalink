@@ -9,6 +9,7 @@ import PartnerHelpButton from "@/components/partners/PartnerHelpButton";
 import PartnerSupportChat from "@/components/partners/PartnerSupportChat";
 import ExternalReferralAlternativeActions from "@/components/partners/ExternalReferralAlternativeActions";
 import PartnerReservationEditor from "@/components/partners/PartnerReservationEditor";
+import PartnerRecruitmentInvoiceUpload from "@/components/partners/PartnerRecruitmentInvoiceUpload";
 import { requirePartner } from "@/lib/partner-auth";
 import { buildPartnerProfile } from "@/lib/partner-profile";
 import { referralAttendanceDeadline, referralInvoiceCutoff, referralInvoiceDeadline } from "@/lib/referral-deadlines";
@@ -43,7 +44,7 @@ export default async function PartnerAppPage({
   const availabilityStart = new Date(requestTime);
   availabilityStart.setUTCHours(0, 0, 0, 0);
   const invoiceCutoff = referralInvoiceCutoff(requestTime);
-  const [restaurants, paidTotals, pendingTotals, invoicedTotals, toInvoiceTotals, acceptedGroupsCount, upcomingGroupsCount] = await Promise.all([
+  const [restaurants, paidTotals, pendingTotals, invoicedTotals, toInvoiceTotals, acceptedGroupsCount, upcomingGroupsCount, recruitmentRewards] = await Promise.all([
     prisma.restaurant.findMany({
     where: {
       userId: { not: null },
@@ -173,6 +174,12 @@ export default async function PartnerAppPage({
     }),
     prisma.referralGroup.count({ where: { partnerId: partner.id, status: { in: ["BOOKED", "COMPLETED", "PAID"] } } }),
     prisma.referralGroup.count({ where: { partnerId: partner.id, status: "BOOKED", desiredDate: { gte: requestTime } } }),
+    prisma.referralPartnerRecruitmentReward.findMany({
+      where: { partnerId: partner.id },
+      include: { restaurant: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
   ]);
 
   const restaurantOptions = restaurants.map((restaurant) => {
@@ -326,6 +333,13 @@ export default async function PartnerAppPage({
           <StatDetail title="Pagamento" value="Semanal" note="Inclui apenas faturas anexadas e verificadas." />
           <StatDetail title="Faturas por tratar" value={formatMoney(toInvoiceRevenue)} note="Tens 30 dias após a cobrança para anexar uma fatura válida." />
         </section>
+        <section className="mt-5 rounded-[26px] border border-[#D8BF8D] bg-[#FFF9EE] p-5 shadow-[0_12px_34px_rgba(75,52,29,0.04)] sm:p-6">
+          <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start"><div><p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#9B6F3B]">Convida e ganha</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.05em]">100 € + IVA por cada novo restaurante</h2><p className="mt-2 max-w-3xl text-xs leading-5 text-[#6B6258]">Por cada restaurante que recomendares e que ainda não utilize o MesaLink, recebes o prémio depois de o restaurante aderir e completar seis meses consecutivos de subscrição paga.</p></div><div className="rounded-[18px] bg-[#17120D] px-5 py-4 text-center text-white"><p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/45">Prémio</p><p className="mt-1 text-2xl font-semibold text-[#F2D79C]">100 €</p><p className="text-[9px] text-white/45">+ IVA aplicável</p></div></div>
+          <div className="mt-5 space-y-3">
+            {recruitmentRewards.map((reward) => <article key={reward.id} className="rounded-[20px] border border-[#DFCBA8] bg-white p-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold">{reward.restaurant.name}</p><p className="mt-1 text-[11px] text-[#74685B]">{recruitmentRewardLabel(reward.status, reward.paidMonths)}</p></div><div className="min-w-44"><div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.1em] text-[#7A592F]"><span>Progresso</span><span>{Math.min(6, reward.paidMonths)}/6 meses</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-[#EDE2D1]"><div className="h-full rounded-full bg-[#B58A47]" style={{ width: `${Math.min(100, (reward.paidMonths / 6) * 100)}%` }} /></div></div></div>{reward.status === "QUALIFIED" && reward.partnerInvoiceStatus === "MISSING" && <PartnerRecruitmentInvoiceUpload rewardId={reward.id} />}{reward.status === "QUALIFIED" && reward.partnerInvoiceStatus === "PENDING" && <p className="mt-3 rounded-xl bg-[#FFF0CB] p-3 text-xs font-semibold text-[#7A592F]">Fatura enviada e em verificação.</p>}{reward.status === "QUALIFIED" && reward.partnerInvoiceStatus === "REJECTED" && <><p className="mt-3 rounded-xl bg-[#FFF0EA] p-3 text-xs font-semibold text-[#934A35]">Fatura rejeitada: {reward.partnerInvoiceRejectionReason || "corrige os dados e volta a enviar."}</p><PartnerRecruitmentInvoiceUpload rewardId={reward.id} /></>}{reward.status === "TRANSFERRED" && <p className="mt-3 rounded-xl bg-[#EFF8EF] p-3 text-xs font-semibold text-[#3F6A4D]">Prémio de {formatMoney(Number(reward.totalAmount))} enviado para a tua conta Stripe.</p>}{reward.status === "PAID" && <p className="mt-3 rounded-xl bg-[#EFF8EF] p-3 text-xs font-semibold text-[#3F6A4D]">Prémio recebido.</p>}</article>)}
+            {!recruitmentRewards.length && <div className="rounded-[20px] border border-dashed border-[#D6C3A5] bg-white/70 p-6 text-center text-xs text-[#6B6258]">Os restaurantes novos que aderirem através dos teus convites aparecem aqui.</div>}
+          </div>
+        </section>
         </>}
 
         {tab === "history" && <section className="rounded-[26px] border border-[#E1D0B8] bg-white p-5 shadow-[0_12px_34px_rgba(75,52,29,0.04)] sm:p-6">
@@ -465,6 +479,16 @@ function partnerPaymentLabel(status?: string) {
   if (status === "CANCELLED_NO_SHOW") return "Sem comissão";
   if (status === "REFUNDED_INVOICE_EXPIRED") return "Prazo perdido · devolvido";
   return "Comissão prevista";
+}
+
+function recruitmentRewardLabel(status: string, paidMonths: number) {
+  if (status === "INELIGIBLE") return "Não elegível: o restaurante já utilizava o MesaLink antes do convite.";
+  if (status === "PAID") return "Prémio de 100 € + IVA recebido.";
+  if (status === "TRANSFERRED") return "Pagamento enviado ao Stripe.";
+  if (status === "TRANSFER_FAILED") return "Pagamento pendente de nova tentativa.";
+  if (status === "QUALIFIED") return "Seis meses concluídos · prémio conquistado.";
+  if (paidMonths > 0) return `${paidMonths} ${paidMonths === 1 ? "mês pago" : "meses pagos"} sem interrupções.`;
+  return "A aguardar o primeiro mês de subscrição paga.";
 }
 
 function formatDateTime(value: Date) {

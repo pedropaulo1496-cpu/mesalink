@@ -541,6 +541,7 @@ model Restaurant {
   outboundReferralPartnerId       String?                               @unique
   outboundReferralPartner         ReferralPartner?                      @relation("RestaurantOutboundReferralPartner", fields: [outboundReferralPartnerId], references: [id], onDelete: SetNull)
   partnerInvitations              ReferralPartnerRestaurantInvitation[]
+  partnerRecruitmentReward        ReferralPartnerRecruitmentReward?
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
@@ -1422,6 +1423,7 @@ model ReferralPartner {
   benefitCards          ReferralBenefitCard[]
   favoriteRestaurants   ReferralPartnerFavorite[]
   restaurantInvitations ReferralPartnerRestaurantInvitation[]
+  recruitmentRewards    ReferralPartnerRecruitmentReward[]
   sourceRestaurant      Restaurant?                           @relation("RestaurantOutboundReferralPartner")
   supportConversation   SupportConversation?
 
@@ -1458,14 +1460,85 @@ model ReferralPartnerRestaurantInvitation {
   restaurantId String?
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
 
-  email      String
-  tokenHash  String    @unique
-  expiresAt  DateTime
-  acceptedAt DateTime?
-  createdAt  DateTime  @default(now())
+  email          String
+  tokenHash      String    @unique
+  expiresAt      DateTime
+  rewardEligible Boolean   @default(false)
+  acceptedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  recruitmentReward ReferralPartnerRecruitmentReward?
 
   @@index([partnerId, email, createdAt])
   @@index([email, acceptedAt])
+}
+
+model ReferralPartnerRecruitmentReward {
+  id String @id @default(cuid())
+
+  invitationId String                              @unique
+  invitation   ReferralPartnerRestaurantInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+
+  partnerId String
+  partner   ReferralPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  restaurantId String     @unique
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  status     String @default("TRACKING")
+  paidMonths Int    @default(0)
+
+  baseAmount  Decimal @default(100) @db.Decimal(10, 2)
+  taxRate     Decimal @default(23) @db.Decimal(5, 2)
+  taxAmount   Decimal @default(23) @db.Decimal(10, 2)
+  totalAmount Decimal @default(123) @db.Decimal(10, 2)
+  currency    String  @default("EUR")
+
+  coverageStartedAt DateTime?
+  paidThroughAt     DateTime?
+  qualifiedAt       DateTime?
+  payoutDueAt       DateTime?
+
+  partnerInvoiceUrl             String?
+  partnerInvoiceNumber          String?
+  partnerInvoiceUploadedAt      DateTime?
+  partnerInvoiceStatus          String    @default("MISSING")
+  partnerInvoiceVerifiedAt      DateTime?
+  partnerInvoiceVerifiedBy      String?
+  partnerInvoiceRejectedAt      DateTime?
+  partnerInvoiceRejectionReason String?
+
+  stripeTransferId  String?   @unique
+  transferredAt     DateTime?
+  payoutConfirmedAt DateTime?
+  lastError         String?
+
+  subscriptionInvoices PartnerRecruitmentSubscriptionInvoice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerId, status])
+  @@index([status, payoutDueAt])
+}
+
+model PartnerRecruitmentSubscriptionInvoice {
+  id String @id @default(cuid())
+
+  rewardId String
+  reward   ReferralPartnerRecruitmentReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  stripeInvoiceId      String   @unique
+  stripeSubscriptionId String?
+  amountPaid           Int
+  currency             String   @default("eur")
+  periodStart          DateTime
+  periodEnd            DateTime
+  paidAt               DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([rewardId, periodStart])
 }
 
 model ReferralAgreement {

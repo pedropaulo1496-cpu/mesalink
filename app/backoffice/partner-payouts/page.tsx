@@ -3,7 +3,7 @@ import { DoneNotice, PageHeading, StatCard, euroAmount } from "@/components/back
 import { referralInvoiceDeadline } from "@/lib/referral-deadlines";
 import { prisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff-auth";
-import { confirmPartnerPayout, processDuePartnerPayments, processPartnerPayment, reviewPartnerInvoice } from "./actions";
+import { confirmPartnerPayout, confirmPartnerRecruitmentPayout, processDuePartnerPayments, processPartnerPayment, processPartnerRecruitmentReward, reviewPartnerInvoice, reviewPartnerRecruitmentInvoice } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +17,11 @@ export default async function PartnerPayoutsPage({ searchParams }: { searchParam
       group: { include: { acceptedRestaurant: { select: { name: true, billingLegalName: true, billingTaxId: true } } } },
     },
     orderBy: [{ payoutDueAt: "asc" }, { createdAt: "desc" }],
+    take: 200,
+  });
+  const recruitmentRewards = await prisma.referralPartnerRecruitmentReward.findMany({
+    include: { partner: { select: { businessName: true, contactName: true, email: true } }, restaurant: { select: { name: true } } },
+    orderBy: { createdAt: "desc" },
     take: 200,
   });
   const awaiting = payments.filter((payment) => ["CAPTURED_AWAITING_PAYOUT", "TRANSFER_FAILED"].includes(payment.status));
@@ -63,10 +68,19 @@ export default async function PartnerPayoutsPage({ searchParams }: { searchParam
       </article>)}
       {!payments.length && <div className="rounded-2xl border border-dashed border-[#DCC9AA] bg-white p-7 text-center text-[13px] text-[#6B6258]">Ainda não existem comissões capturadas para pagar.</div>}
     </section>
+    <section className="mt-8">
+      <div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]">Convida e ganha</p><h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em]">Prémios de recrutamento</h2><p className="mt-1 text-xs text-[#74685B]">100 € + IVA aplicável após seis meses consecutivos de subscrição paga.</p></div>
+      <div className="mt-4 space-y-2.5">
+        {recruitmentRewards.map((reward) => <article key={reward.id} className="rounded-2xl border border-[#DCC9AA] bg-white p-4"><div className="grid gap-3 lg:grid-cols-[1fr_1fr_0.65fr_0.8fr_auto] lg:items-center"><div><p className="font-bold">{reward.partner.businessName}</p><p className="mt-1 text-xs text-[#74685B]">{reward.partner.contactName || reward.partner.email}</p></div><div><p className="font-semibold">{reward.restaurant.name}</p><p className="mt-1 text-xs text-[#74685B]">{reward.paidMonths}/6 meses pagos</p></div><div><p className="font-black text-[#6C4B25]">{euroAmount(Number(reward.totalAmount))}</p><p className="mt-1 text-[10px] text-[#8A7863]">100 € + 23 € IVA</p></div><PaymentState status={reward.status} dueAt={reward.payoutDueAt} /><div>{staff.role === "ADMIN" && ["QUALIFIED", "TRANSFER_FAILED"].includes(reward.status) && (reward.partnerInvoiceStatus === "VERIFIED" ? <form action={processPartnerRecruitmentReward}><input type="hidden" name="rewardId" value={reward.id} /><button className="h-10 rounded-full bg-[#17130F] px-4 text-xs font-bold text-white">Transferir</button></form> : <span className="text-[10px] font-black uppercase tracking-[0.1em] text-[#A14E36]">Pagamento bloqueado</span>)}{staff.role === "ADMIN" && reward.status === "TRANSFERRED" && <form action={confirmPartnerRecruitmentPayout}><input type="hidden" name="rewardId" value={reward.id} /><button className="h-10 rounded-full border border-[#9BC49B] bg-[#EFF8EF] px-3 text-xs font-bold text-[#3F6A4D]">Confirmar recebido</button></form>}</div></div>{reward.partnerInvoiceUrl && <details className="mt-3 rounded-xl border border-[#E6D8C3] bg-[#FFF9F0]"><summary className="cursor-pointer list-none px-3 py-2.5 text-[11px] font-bold text-[#76572F]">Fatura · {invoiceStatusLabel(reward.partnerInvoiceStatus)} <span className="float-right text-[10px]">Ver detalhe ↓</span></summary><div className="border-t border-[#E6D8C3] p-3"><a href={reward.partnerInvoiceUrl} target="_blank" rel="noreferrer" className="text-sm font-bold text-[#6C4B25] underline">{reward.partnerInvoiceNumber || "Abrir PDF"}</a>{reward.partnerInvoiceRejectionReason && <p className="mt-2 text-xs font-semibold text-[#A14E36]">Motivo: {reward.partnerInvoiceRejectionReason}</p>}{staff.role === "ADMIN" && reward.partnerInvoiceStatus !== "VERIFIED" && !["TRANSFERRED", "PAID"].includes(reward.status) && <div className="mt-3 flex flex-col gap-2 sm:max-w-md"><form action={reviewPartnerRecruitmentInvoice}><input type="hidden" name="rewardId" value={reward.id} /><input type="hidden" name="decision" value="VERIFY" /><button className="h-10 w-full rounded-full bg-[#3F6A4D] px-4 text-xs font-bold text-white">Verifiquei · aprovar fatura</button></form><form action={reviewPartnerRecruitmentInvoice} className="flex gap-2"><input type="hidden" name="rewardId" value={reward.id} /><input type="hidden" name="decision" value="REJECT" /><input name="reason" placeholder="Motivo da rejeição" className="h-10 min-w-0 flex-1 rounded-full border border-[#D8C6A9] bg-white px-3 text-xs" /><button className="h-10 rounded-full border border-[#E0B7A8] bg-[#FFF0EA] px-3 text-xs font-bold text-[#934A35]">Rejeitar</button></form></div>}</div></details>}</article>)}
+        {!recruitmentRewards.length && <div className="rounded-2xl border border-dashed border-[#DCC9AA] bg-white p-7 text-center text-[13px] text-[#6B6258]">Ainda não existem prémios de recrutamento.</div>}
+      </div>
+    </section>
   </>;
 }
 
 function PaymentState({ status, dueAt }: { status: string; dueAt: Date | null }) {
+  if (status === "INELIGIBLE") return <span className="text-xs font-bold text-[#A14E36]">Não elegível</span>;
+  if (status === "TRACKING") return <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#725A3E]"><Clock3 size={14} /> Em acompanhamento</span>;
   if (status === "REFUNDED_INVOICE_EXPIRED") return <span className="text-xs font-bold text-[#A14E36]">Devolvido · prazo da fatura</span>;
   if (status === "PAID") return <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#3F6A4D]"><Landmark size={14} /> Recebido</span>;
   if (status === "TRANSFERRED") return <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#7A5B31]"><CircleDollarSign size={14} /> Enviado ao Stripe</span>;

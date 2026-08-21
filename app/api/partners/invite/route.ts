@@ -12,13 +12,16 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const email = typeof body?.email === "string" ? body.email.trim().toLowerCase().slice(0, 160) : "";
   if (!isValidEmail(email)) return NextResponse.json({ error: "Indica um email válido." }, { status: 400 });
-  const existingRestaurant = await prisma.restaurant.findFirst({ where: { email: { equals: email, mode: "insensitive" } }, select: { id: true, userId: true } });
+  const [existingRestaurant, existingUser] = await Promise.all([
+    prisma.restaurant.findFirst({ where: { email: { equals: email, mode: "insensitive" } }, select: { id: true, userId: true } }),
+    prisma.user.findUnique({ where: { email }, select: { id: true } }),
+  ]);
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: "Envio temporariamente indisponível." }, { status: 503 });
 
   const partnerName = partner.businessName || partner.contactName || "Um parceiro MesaLink";
   const token = randomBytes(32).toString("base64url");
   const invitation = await prisma.referralPartnerRestaurantInvitation.create({
-    data: { partnerId: partner.id, restaurantId: existingRestaurant?.id || null, email, tokenHash: partnerRestaurantInvitationTokenHash(token), expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) },
+    data: { partnerId: partner.id, restaurantId: existingRestaurant?.id || null, email, tokenHash: partnerRestaurantInvitationTokenHash(token), expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), rewardEligible: !existingRestaurant && !existingUser },
     select: { id: true },
   });
   const destinationUrl = `https://www.mesalink.pt/restaurant-invite/${token}`;
@@ -34,7 +37,7 @@ export async function POST(request: Request) {
     await prisma.referralPartnerRestaurantInvitation.deleteMany({ where: { id: invitation.id, acceptedAt: null } }).catch(() => undefined);
     return NextResponse.json({ error: "Não foi possível enviar o convite." }, { status: 502 });
   }
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, rewardEligible: !existingRestaurant && !existingUser });
 }
 
 function escapeHtml(value: string) {
