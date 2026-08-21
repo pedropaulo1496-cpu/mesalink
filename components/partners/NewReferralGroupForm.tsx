@@ -101,6 +101,10 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
   const [favoriteSearch, setFavoriteSearch] = useState("");
   const [favoriteMessage, setFavoriteMessage] = useState("");
+  const [networkRestaurantName, setNetworkRestaurantName] = useState("");
+  const [networkRestaurantEmail, setNetworkRestaurantEmail] = useState("");
+  const [networkInviteState, setNetworkInviteState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [networkInviteMessage, setNetworkInviteMessage] = useState("");
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [automaticPagesLoaded, setAutomaticPagesLoaded] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -341,6 +345,26 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     if (response?.ok) setFavorites((items) => items.filter((item) => `${item.provider}:${item.placeId}` !== `${favorite.provider}:${favorite.placeId}`));
   }
 
+  async function sendNetworkIntroduction() {
+    if (!networkRestaurantName.trim() || !validEmail(networkRestaurantEmail)) return setNetworkInviteMessage("Indica o nome e um email válido do restaurante.");
+    setNetworkInviteState("sending");
+    setNetworkInviteMessage("");
+    const response = await fetch("/api/partners/restaurants/invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "JOIN_NETWORK", restaurantName: networkRestaurantName.trim(), restaurantEmail: networkRestaurantEmail.trim() }),
+    }).catch(() => null);
+    const data = await response?.json().catch(() => null);
+    if (!response?.ok) {
+      setNetworkInviteState("error");
+      return setNetworkInviteMessage(data?.error || "Não foi possível enviar a apresentação.");
+    }
+    setNetworkInviteState("sent");
+    setNetworkInviteMessage("Apresentação enviada em teu nome. As respostas seguem para o teu email.");
+    setNetworkRestaurantName("");
+    setNetworkRestaurantEmail("");
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
@@ -395,6 +419,12 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
           </div>
         </section>
 
+        <section className="rounded-[22px] border border-[#D8C4A4] bg-[#FBF5EB] p-4 shadow-[0_10px_34px_rgba(83,59,32,0.04)] sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#9B6F3B]"><UserPlus size={13} /> A tua rede</p><h2 className="mt-2 text-lg font-semibold tracking-[-0.03em]">Apresenta a MesaLink a um restaurante que conheces</h2><p className="mt-1 text-[10px] leading-5 text-[#75695D]">Um convite independente da lista de reservas, enviado em teu nome. As respostas seguem diretamente para o teu email.</p></div></div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"><input value={networkRestaurantName} onChange={(event) => { setNetworkRestaurantName(event.target.value); setNetworkInviteState("idle"); }} placeholder="Nome do restaurante" className={compactInputClass} /><input value={networkRestaurantEmail} onChange={(event) => { setNetworkRestaurantEmail(event.target.value); setNetworkInviteState("idle"); }} type="email" placeholder="Email do restaurante" className={compactInputClass} /><button type="button" onClick={() => void sendNetworkIntroduction()} disabled={networkInviteState === "sending"} className="h-10 rounded-full bg-[#17120D] px-5 text-[9px] font-bold text-white disabled:opacity-50">{networkInviteState === "sending" ? "A enviar…" : "Enviar apresentação"}</button></div>
+          {networkInviteMessage && <p className={`mt-2 text-[9px] font-semibold ${networkInviteState === "error" ? "text-[#934A35]" : "text-[#4F6C4D]"}`}>{networkInviteMessage}</p>}
+        </section>
+
         <section className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 shadow-[0_10px_34px_rgba(83,59,32,0.045)] sm:p-5">
           <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Restaurantes perto de ti</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{locationFilter.trim() ? `${locationFilter.trim()} · ${filtered.length}` : effectivePosition ? `Até 20 km · ${filtered.length}` : `${filtered.length} opções`}</span></div>
           <div className="mt-3 rounded-[18px] border border-[#E4D5BE] bg-[#FCF8F2] p-3">
@@ -420,7 +450,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
               return <article key={restaurant.id} className={`relative overflow-hidden rounded-[18px] border p-2.5 transition ${selected ? "border-[#9E733D] bg-[#FFF7E9] shadow-[0_10px_28px_rgba(119,81,34,0.10)] ring-1 ring-[#C8A56A]/25" : restaurant.bookingReady ? "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A] hover:bg-white" : "border-[#E5DBCC] bg-[#FAF7F2]"}`}>{selected && <span className="absolute inset-y-0 left-0 w-1 bg-[#B88745]" />}
                 <button type="button" aria-pressed={selected} aria-label={`Escolher ${restaurant.name}`} onClick={() => setSelectedRestaurantId(restaurant.id)} className={`absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full border ${selected ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#D3BE9C] bg-white text-transparent"}`}>{selected ? <Check size={15} /> : restaurant.bookingReady ? <Check size={15} /> : <ShieldCheck size={14} />}</button>
                 {restaurant.externalPlaceProvider && restaurant.externalPlaceId && <button type="button" onClick={() => void toggleFavorite(restaurant)} aria-label={`${favorite ? "Remover" : "Adicionar"} ${restaurant.name} ${favorite ? "dos" : "aos"} favoritos`} className={`absolute right-12 top-2.5 grid h-9 w-9 place-items-center rounded-full border ${favorite ? "border-[#C59A4E] bg-[#FFF1CF] text-[#9A6A1D]" : "border-[#D3BE9C] bg-white text-[#A38D70]"}`}><Star size={14} fill={favorite ? "currentColor" : "none"} /></button>}
-                <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-2.5 pr-11 sm:grid-cols-[84px_minmax(0,1fr)_150px] sm:gap-3">
+                <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-2.5 pr-24 sm:grid-cols-[84px_minmax(0,1fr)_150px] sm:gap-3 sm:pr-24">
                   {restaurant.heroImage ? <div className="relative h-[72px] overflow-hidden rounded-[13px] bg-[#EADCC7] bg-cover bg-center shadow-[inset_0_0_0_1px_rgba(79,59,34,.08)] sm:h-[78px]" style={{ backgroundImage: `url(${restaurant.heroImage})` }} role="img" aria-label={`Fotografia de ${restaurant.name}`} /> : <div className="grid h-[72px] place-items-center rounded-[13px] bg-[linear-gradient(145deg,#F0E4D1,#E2CFB3)] text-center text-[#9B7D57] sm:h-[78px]"><span><ImageIcon size={18} className="mx-auto" /><small className="mt-1 block text-[7px] font-bold uppercase tracking-[.08em]">Sem foto</small></span></div>}
                   <div className="min-w-0"><div className="flex flex-wrap items-start gap-1.5"><p className="line-clamp-2 break-words text-sm font-semibold leading-4">{restaurant.name}</p>{restaurant.bookingReady ? <span className="rounded-full bg-[#EAF4E8] px-1.5 py-0.5 text-[7px] font-black text-[#456846]">RESERVA IMEDIATA</span> : <span className="rounded-full bg-[#FFF2D5] px-1.5 py-0.5 text-[7px] font-black text-[#805D2B]">CONFIRMAÇÃO PENDENTE</span>}</div><div className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] font-bold"><span className="text-[#80613D]">{restaurant.cuisine}</span>{restaurant.googleRating != null && <span className="text-[#A36D19]" title={ratingSourceLabel(restaurant.ratingSource)}>★ {restaurant.googleRating.toFixed(1)}{restaurant.googleReviewCount != null && restaurant.googleReviewCount > 0 ? <span className="font-normal text-[#8A7863]"> ({restaurant.googleReviewCount})</span> : restaurant.ratingSource ? <span className="font-normal text-[#8A7863]"> · {ratingSourceShort(restaurant.ratingSource)}</span> : null}</span>}{restaurant.googlePriceLevel != null && <span className="tracking-[0.08em] text-[#4F6C4D]">{"€".repeat(Math.min(4, Math.max(1, restaurant.googlePriceLevel)))}</span>}</div><p className="mt-1 flex items-center gap-1 text-[10px] text-[#6B6258]"><MapPin size={11} className="shrink-0 text-[#9B6F3B]" />{distance !== null && Number.isFinite(distance) ? <strong className="shrink-0 text-[#4F6C4D]">{formatDistance(distance)} ·</strong> : null}<span className="line-clamp-1">{restaurant.address || "Portugal"}</span></p>{restaurant.photoAttribution && <p className="mt-1 truncate text-[8px] text-[#8A7863]">Foto: {restaurant.photoAttributionUri ? <a href={restaurant.photoAttributionUri} target="_blank" rel="noreferrer" className="underline">{restaurant.photoAttribution}</a> : restaurant.photoAttribution}</p>}</div>
                   <div className="col-start-2 text-left sm:col-start-auto sm:text-right"><p className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8A7863]">Comissão atual</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{money(perPerson)} / pessoa</p><p className="text-[9px] text-[#8A7863]">{money(gross)} total + IVA</p>{desiredDate && restaurant.bookingReady && <p className="mt-0.5 text-[8px] font-bold text-[#4F6C4D]">{remainingCapacity(restaurant, desiredDate)} lugares livres</p>}</div>
@@ -456,31 +486,25 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   );
 }
 
-type RestaurantInviteKind = "INSTANT_BOOKING" | "JOIN_NETWORK";
-
 function RestaurantInviteActions({ restaurant }: { restaurant: PartnerRestaurant }) {
-  const [states, setStates] = useState<Record<RestaurantInviteKind, "idle" | "sending" | "sent" | "error">>({ INSTANT_BOOKING: "idle", JOIN_NETWORK: "idle" });
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
-  async function invite(kind: RestaurantInviteKind) {
-    const state = states[kind];
+  async function invite() {
     if (!restaurant.externalPlaceProvider || !restaurant.externalPlaceId || state === "sending" || state === "sent") return;
-    setStates((current) => ({ ...current, [kind]: "sending" }));
+    setState("sending");
     try {
       const response = await fetch("/api/partners/restaurants/invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: restaurant.externalPlaceProvider, placeId: restaurant.externalPlaceId, kind }),
+        body: JSON.stringify({ provider: restaurant.externalPlaceProvider, placeId: restaurant.externalPlaceId, kind: "INSTANT_BOOKING" }),
       });
-      setStates((current) => ({ ...current, [kind]: response.ok ? "sent" : "error" }));
+      setState(response.ok ? "sent" : "error");
     } catch {
-      setStates((current) => ({ ...current, [kind]: "error" }));
+      setState("error");
     }
   }
 
-  return <div className="flex flex-wrap justify-end gap-1.5">
-    <InviteActionButton state={states.INSTANT_BOOKING} onClick={() => invite("INSTANT_BOOKING")} label="Convidar a aceitar reservas imediatas" />
-    <InviteActionButton state={states.JOIN_NETWORK} onClick={() => invite("JOIN_NETWORK")} label="Apresentar a rede MesaLink" />
-  </div>;
+  return <InviteActionButton state={state} onClick={invite} label="Convidar a aceitar reservas imediatas" />;
 }
 
 function InviteActionButton({ state, onClick, label }: { state: "idle" | "sending" | "sent" | "error"; onClick: () => void; label: string }) {
