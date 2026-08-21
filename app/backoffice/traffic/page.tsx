@@ -12,7 +12,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
   if (staff.role !== "ADMIN") notFound();
 
   const params = await searchParams;
-  const requestedDays = Number(params.days || 30);
+  const requestedDays = Number(params.days || 1);
   const analytics = await getSiteTrafficAnalytics(requestedDays);
   const maxDailyVisitors = Math.max(1, ...analytics.daily.map((day) => day.visitors));
 
@@ -45,10 +45,10 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
           <div className="hidden items-center gap-4 text-[9px] font-bold text-[#6B6258] sm:flex"><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-[#B78642]" /> Visitantes</span><span>{formatDate(analytics.start)}–{formatDate(analytics.end)}</span></div>
         </div>
         <div className="mt-5 overflow-x-auto pb-1">
-          <div className={`flex h-44 items-end gap-1 ${analytics.days > 30 ? "min-w-[900px]" : "min-w-[560px]"}`}>
+          <div className={`flex h-44 items-end gap-1 ${analytics.days > 30 ? "min-w-[900px]" : analytics.days === 1 ? "max-w-[320px] min-w-[220px]" : "min-w-[560px]"}`}>
             {analytics.daily.map((day, index) => {
               const height = day.visitors ? Math.max(7, Math.round((day.visitors / maxDailyVisitors) * 100)) : 2;
-              const showLabel = analytics.days === 7 || index === 0 || index === analytics.daily.length - 1 || index % (analytics.days === 30 ? 5 : 10) === 0;
+              const showLabel = analytics.days === 1 || analytics.days === 7 || index === 0 || index === analytics.daily.length - 1 || index % (analytics.days === 30 ? 5 : 10) === 0;
               return <div key={day.key} className="group flex h-full min-w-0 flex-1 flex-col justify-end" title={`${formatDate(day.date)} · ${day.visitors} visitantes · ${day.views} páginas`}><div className="relative flex flex-1 items-end"><span className="absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-[#17130F] px-2 py-1 text-[9px] font-bold text-white group-hover:block">{day.visitors} visitantes</span><div className="w-full rounded-t-md bg-gradient-to-t from-[#8B622D] to-[#D9B96F] transition group-hover:from-[#5B3D1B]" style={{ height: `${height}%` }} /></div><p className="mt-2 h-4 text-center text-[8px] font-bold text-[#8A7C6D]">{showLabel ? day.date.getUTCDate() : ""}</p></div>;
             })}
           </div>
@@ -93,7 +93,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
 }
 
 function RangePicker({ active }: { active: number }) {
-  return <div className="inline-flex rounded-xl border border-[#DCC9AA] bg-[#FFF9F0] p-1">{[7, 30, 90].map((days) => <Link key={days} href={`/backoffice/traffic?days=${days}`} className={`grid h-8 min-w-12 place-items-center rounded-lg px-2 text-[10px] font-black ${active === days ? "bg-[#17130F] text-white" : "text-[#76552E]"}`}>{days}d</Link>)}</div>;
+  return <div className="inline-flex rounded-xl border border-[#DCC9AA] bg-[#FFF9F0] p-1">{[1, 7, 30, 90].map((days) => <Link key={days} href={`/backoffice/traffic?days=${days}`} className={`grid h-8 min-w-12 place-items-center rounded-lg px-2 text-[10px] font-black ${active === days ? "bg-[#17130F] text-white" : "text-[#76552E]"}`}>{days}d</Link>)}</div>;
 }
 
 function CompactMetric({ label, value }: { label: string; value: string }) {

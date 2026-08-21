@@ -18,15 +18,48 @@ type SessionQualityRow = { pagesPerSession: number; singlePageRate: number };
 
 const emptyAggregate: AggregateRow = { views: 0, visitors: 0, sessions: 0, newVisitors: 0, mobileVisitors: 0 };
 
-function startOfUtcDay(date: Date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+function lisbonDateParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Lisbon",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  return { year: Number(values.year), month: Number(values.month), day: Number(values.day) };
+}
+
+function lisbonOffsetMilliseconds(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Lisbon",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  return Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day), Number(values.hour), Number(values.minute), Number(values.second)) - Math.floor(date.getTime() / 1000) * 1000;
+}
+
+function startOfLisbonDay(date: Date) {
+  const { year, month, day } = lisbonDateParts(date);
+  const utcMidnight = new Date(Date.UTC(year, month - 1, day));
+  return new Date(utcMidnight.getTime() - lisbonOffsetMilliseconds(utcMidnight));
+}
+
+function lisbonDateKey(date: Date) {
+  const { year, month, day } = lisbonDateParts(date);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 function rangeDates(days: number, now = new Date()) {
   const end = now;
-  const start = startOfUtcDay(new Date(now.getTime() - (days - 1) * 86_400_000));
+  const start = startOfLisbonDay(new Date(now.getTime() - (days - 1) * 86_400_000));
   const previousEnd = start;
-  const previousStart = new Date(previousEnd.getTime() - days * 86_400_000);
+  const previousStart = startOfLisbonDay(new Date(previousEnd.getTime() - days * 86_400_000));
   return { start, end, previousStart, previousEnd };
 }
 
@@ -54,10 +87,10 @@ export async function getSiteTrafficSummary(days = 30, now = new Date()) {
   return { days, current, previous, registrations };
 }
 
-export async function getSiteTrafficAnalytics(days = 30, now = new Date()) {
-  const safeDays = [7, 30, 90].includes(days) ? days : 30;
+export async function getSiteTrafficAnalytics(days = 1, now = new Date()) {
+  const safeDays = [1, 7, 30, 90].includes(days) ? days : 1;
   const { start, end, previousStart, previousEnd } = rangeDates(safeDays, now);
-  const todayStart = startOfUtcDay(now);
+  const todayStart = startOfLisbonDay(now);
 
   const [current, previous, today, daily, pages, sources, countries, devices, quality, registrations, previousRegistrations, registerVisitors] = await Promise.all([
     aggregateBetween(start, end),
@@ -65,7 +98,7 @@ export async function getSiteTrafficAnalytics(days = 30, now = new Date()) {
     aggregateBetween(todayStart, end),
     prisma.$queryRaw<DailyRow[]>(Prisma.sql`
       SELECT
-        date_trunc('day', "createdAt") AS "day",
+        date_trunc('day', "createdAt" AT TIME ZONE 'Europe/Lisbon') AS "day",
         COUNT(*)::int AS "views",
         COUNT(DISTINCT "visitorId")::int AS "visitors",
         COUNT(DISTINCT "sessionId")::int AS "sessions"
@@ -119,9 +152,10 @@ export async function getSiteTrafficAnalytics(days = 30, now = new Date()) {
     }),
   ]);
 
-  const dailyByKey = new Map(daily.map((row) => [startOfUtcDay(row.day).toISOString().slice(0, 10), row]));
+  const dailyByKey = new Map(daily.map((row) => [row.day.toISOString().slice(0, 10), row]));
+  const firstLocalDate = new Date(`${lisbonDateKey(start)}T00:00:00.000Z`);
   const completeDaily = Array.from({ length: safeDays }, (_, index) => {
-    const date = new Date(start.getTime() + index * 86_400_000);
+    const date = new Date(firstLocalDate.getTime() + index * 86_400_000);
     const key = date.toISOString().slice(0, 10);
     const row = dailyByKey.get(key);
     return { key, date, views: row?.views || 0, visitors: row?.visitors || 0, sessions: row?.sessions || 0 };
