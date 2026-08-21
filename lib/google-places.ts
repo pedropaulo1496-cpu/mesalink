@@ -107,7 +107,7 @@ export async function searchGoogleRestaurants(input: {
         maxResultCount: PAGE_SIZE,
         languageCode: "pt-PT",
         regionCode: "PT",
-        rankPreference: "POPULARITY",
+        rankPreference: "DISTANCE",
         locationRestriction: {
           circle: { center: { latitude: input.latitude, longitude: input.longitude }, radius: 30000 },
         },
