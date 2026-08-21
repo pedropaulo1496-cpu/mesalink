@@ -94,9 +94,19 @@ export async function createAndSendAdminPromotion(input: {
 
     try {
       const delivery = await resend.emails.send({
-        from: "MesaLink <noreply@mesalink.pt>",
+        from: "Equipa MesaLink <info@mesalink.pt>",
         to: target.email,
-        subject: `Oferta MesaLink: ${input.percentOff}% de desconto`,
+        replyTo: "info@mesalink.pt",
+        subject: "Atualização da sua mensalidade MesaLink",
+        text: promotionEmailText({
+          name: target.name || target.restaurants[0]?.name || "Olá",
+          code,
+          percentOff: input.percentOff,
+          duration: input.duration,
+          durationMonths,
+          expiresAt,
+          note: input.note,
+        }),
         html: promotionEmailHtml({
           name: target.name || target.restaurants[0]?.name || "Olá",
           code,
@@ -157,7 +167,25 @@ function promotionEmailHtml(input: {
     : input.duration === "REPEATING"
       ? `durante ${input.durationMonths} ${input.durationMonths === 1 ? "mês" : "meses"}`
       : "na primeira cobrança";
-  return `<div style="font-family:Arial,sans-serif;background:#F4ECDF;padding:32px 14px;color:#17130F"><div style="max-width:600px;margin:auto;background:#fff;border:1px solid #DCC9AA;border-radius:30px;overflow:hidden"><div style="background:#17130F;padding:28px 34px;color:#fff"><p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#D7B267;font-weight:800">MesaLink</p><h1 style="margin:12px 0 0;font-size:32px">Uma oferta para fazer o restaurante crescer.</h1></div><div style="padding:34px"><p style="font-size:16px;line-height:1.7">Olá ${escapeHtml(input.name)},</p><p style="font-size:16px;line-height:1.7;color:#62584E">Preparámos um código exclusivo de <strong>${input.percentOff}% de desconto</strong>, válido ${validity}.</p><div style="margin:28px 0;padding:24px;border:1px dashed #B78B49;border-radius:20px;text-align:center;background:#FFF9F0"><p style="margin:0 0 8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8A6130">Código promocional</p><strong style="font-size:28px;letter-spacing:2px">${escapeHtml(input.code)}</strong></div>${input.note ? `<p style="font-size:14px;line-height:1.7;color:#62584E">${escapeHtml(input.note)}</p>` : ""}<a href="${baseUrl}/billing" style="display:inline-block;background:#17130F;color:white;text-decoration:none;padding:15px 24px;border-radius:999px;font-weight:800">Escolher plano MesaLink</a><p style="margin-top:24px;font-size:12px;line-height:1.6;color:#8A7C6D">Utilização única. Pode aplicar o código no checkout até ${input.expiresAt.toLocaleDateString("pt-PT")}.</p></div></div></div>`;
+  return `<div style="font-family:Arial,sans-serif;color:#201A15;line-height:1.65"><p>Olá ${escapeHtml(input.name)},</p><p>A equipa MesaLink atribuiu à sua conta uma condição especial para a mensalidade: <strong>${input.percentOff}% de desconto</strong>, válido ${validity}.</p><p>O código a utilizar é:</p><p style="font-size:20px;font-weight:700;letter-spacing:1px">${escapeHtml(input.code)}</p>${input.note ? `<p>${escapeHtml(input.note)}</p>` : ""}<p>Pode aplicá-lo na área de faturação até ${input.expiresAt.toLocaleDateString("pt-PT")}:</p><p><a href="${baseUrl}/billing">Abrir faturação MesaLink</a></p><p>Se precisar de ajuda, basta responder a este email.</p><p>Cumprimentos,<br>Equipa MesaLink<br><a href="mailto:info@mesalink.pt">info@mesalink.pt</a></p></div>`;
+}
+
+function promotionEmailText(input: {
+  name: string;
+  code: string;
+  percentOff: number;
+  duration: PromotionDuration;
+  durationMonths?: number;
+  expiresAt: Date;
+  note?: string;
+}) {
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.mesalink.pt").replace(/\/+$/, "");
+  const validity = input.duration === "FOREVER"
+    ? "em todas as mensalidades enquanto o plano se mantiver ativo"
+    : input.duration === "REPEATING"
+      ? `durante ${input.durationMonths} ${input.durationMonths === 1 ? "mês" : "meses"}`
+      : "na primeira cobrança";
+  return `Olá ${input.name},\n\nA equipa MesaLink atribuiu à sua conta uma condição especial para a mensalidade: ${input.percentOff}% de desconto, válido ${validity}.\n\nCódigo: ${input.code}\n${input.note ? `\n${input.note}\n` : ""}\nPode aplicá-lo na área de faturação até ${input.expiresAt.toLocaleDateString("pt-PT")}:\n${baseUrl}/billing\n\nSe precisar de ajuda, basta responder a este email.\n\nCumprimentos,\nEquipa MesaLink\ninfo@mesalink.pt`;
 }
 
 function escapeHtml(value: string) {
