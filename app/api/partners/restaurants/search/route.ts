@@ -72,6 +72,8 @@ export async function GET(request: Request) {
         id: true,
         email: true,
         externalPlaceId: true,
+        referralProfileHeroImage: true,
+        websiteHeroImage: true,
         referralNetworkEnabled: true,
         referralAutoAcceptEnabled: true,
         referralPaymentMethodId: true,
@@ -84,6 +86,8 @@ export async function GET(request: Request) {
       const bookingReady = Boolean(local?.referralNetworkEnabled && local.referralAutoAcceptEnabled && local.referralPaymentMethodId && !local.referralPaymentBlockedAt);
       return {
         ...restaurant,
+        heroImage: local?.referralProfileHeroImage || local?.websiteHeroImage || restaurant.heroImage,
+        contactEmail: local?.email || restaurant.contactEmail,
         mesalinkRestaurantId: bookingReady ? local!.id : null,
         bookingReady,
         contactKnown: Boolean(local?.email || restaurant.contactEmail),

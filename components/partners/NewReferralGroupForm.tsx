@@ -99,6 +99,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const [catalogMessage, setCatalogMessage] = useState("");
   const [catalogConfigured, setCatalogConfigured] = useState(true);
   const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
+  const [favoritePendingKeys, setFavoritePendingKeys] = useState<Set<string>>(() => new Set());
   const [favoriteSearch, setFavoriteSearch] = useState("");
   const [favoriteMessage, setFavoriteMessage] = useState("");
   const [favoriteLookupResults, setFavoriteLookupResults] = useState<PartnerRestaurant[]>([]);
@@ -347,31 +348,58 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   async function toggleFavorite(restaurant: PartnerRestaurant) {
     if (!restaurant.externalPlaceProvider || !restaurant.externalPlaceId) return;
     const key = externalPlaceKey(restaurant);
+    if (favoritePendingKeys.has(key)) return;
     const saved = favoriteKeys.has(key);
+    const previous = favorites.find((item) => `${item.provider}:${item.placeId}` === key) || null;
+    const optimistic: FavoriteRestaurant = {
+      provider: restaurant.externalPlaceProvider,
+      placeId: restaurant.externalPlaceId,
+      name: restaurant.name,
+      address: restaurant.address || null,
+      restaurant: null,
+    };
     setFavoriteMessage("");
+    setFavoritePendingKeys((items) => new Set(items).add(key));
+    setFavorites((items) => saved
+      ? items.filter((item) => `${item.provider}:${item.placeId}` !== key)
+      : [optimistic, ...items.filter((item) => `${item.provider}:${item.placeId}` !== key)]);
     const response = await fetch("/api/partners/restaurants/favorites", {
       method: saved ? "DELETE" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ provider: restaurant.externalPlaceProvider, placeId: restaurant.externalPlaceId }),
     }).catch(() => null);
     const data = await response?.json().catch(() => null);
-    if (!response?.ok) return setFavoriteMessage(data?.error || "Não foi possível atualizar os favoritos.");
-    if (saved) setFavorites((items) => items.filter((item) => `${item.provider}:${item.placeId}` !== key));
-    else {
-      const refreshed = await fetch("/api/partners/restaurants/favorites").then((result) => result.ok ? result.json() : null).catch(() => null);
-      if (Array.isArray(refreshed?.favorites)) setFavorites(refreshed.favorites);
+    setFavoritePendingKeys((items) => { const next = new Set(items); next.delete(key); return next; });
+    if (!response?.ok) {
+      setFavorites((items) => saved && previous
+        ? [previous, ...items.filter((item) => `${item.provider}:${item.placeId}` !== key)]
+        : items.filter((item) => `${item.provider}:${item.placeId}` !== key));
+      return setFavoriteMessage(data?.error || "Não foi possível atualizar os favoritos.");
+    }
+    if (!saved) {
+      if (data?.favorite?.provider && data?.favorite?.placeId) {
+        setFavorites((items) => [data.favorite as FavoriteRestaurant, ...items.filter((item) => `${item.provider}:${item.placeId}` !== key)]);
+      }
       setFavoriteLookupResults((items) => items.filter((item) => externalPlaceKey(item) !== key));
     }
     setFavoriteMessage(saved ? "Restaurante removido dos favoritos." : "Restaurante guardado nos favoritos.");
   }
 
   async function removeFavorite(favorite: FavoriteRestaurant) {
+    const key = `${favorite.provider}:${favorite.placeId}`;
+    if (favoritePendingKeys.has(key)) return;
+    setFavoritePendingKeys((items) => new Set(items).add(key));
+    setFavorites((items) => items.filter((item) => `${item.provider}:${item.placeId}` !== key));
     const response = await fetch("/api/partners/restaurants/favorites", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ provider: favorite.provider, placeId: favorite.placeId }),
     }).catch(() => null);
-    if (response?.ok) setFavorites((items) => items.filter((item) => `${item.provider}:${item.placeId}` !== `${favorite.provider}:${favorite.placeId}`));
+    setFavoritePendingKeys((items) => { const next = new Set(items); next.delete(key); return next; });
+    if (!response?.ok) {
+      setFavorites((items) => [favorite, ...items.filter((item) => `${item.provider}:${item.placeId}` !== key)]);
+      setFavoriteMessage("Não foi possível remover o restaurante dos favoritos.");
+    }
   }
 
   async function sendNetworkIntroduction() {
@@ -471,7 +499,9 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
               const distance = effectivePosition && !locationFilter.trim() ? distanceTo(restaurant, effectivePosition) : null;
               const gross = restaurant.commissionType === "PER_PERSON" ? restaurant.commissionAmount * guests : restaurant.commissionAmount;
               const perPerson = gross / Math.max(1, guests);
-              const favorite = favoriteKeys.has(externalPlaceKey(restaurant));
+              const restaurantFavoriteKey = externalPlaceKey(restaurant);
+              const favorite = favoriteKeys.has(restaurantFavoriteKey);
+              const favoritePending = favoritePendingKeys.has(restaurantFavoriteKey);
               return <article key={restaurant.id} className={`relative overflow-hidden rounded-[18px] border p-2.5 transition ${selected ? "border-[#9E733D] bg-[#FFF7E9] shadow-[0_10px_28px_rgba(119,81,34,0.10)] ring-1 ring-[#C8A56A]/25" : restaurant.bookingReady ? "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A] hover:bg-white" : "border-[#E5DBCC] bg-[#FAF7F2]"}`}>{selected && <span className="absolute inset-y-0 left-0 w-1 bg-[#B88745]" />}
                 <button type="button" aria-pressed={selected} aria-label={`Escolher ${restaurant.name}`} onClick={() => setSelectedRestaurantId(restaurant.id)} className={`absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full border ${selected ? "border-[#17120D] bg-[#17120D] text-white" : "border-[#D3BE9C] bg-white text-transparent"}`}>{selected ? <Check size={15} /> : restaurant.bookingReady ? <Check size={15} /> : <ShieldCheck size={14} />}</button>
                 <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-2.5 pr-11 sm:grid-cols-[84px_minmax(0,1fr)_150px] sm:gap-3">
@@ -480,7 +510,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
                   <div className="col-start-2 text-left sm:col-start-auto sm:text-right"><p className="text-[8px] font-black uppercase tracking-[0.12em] text-[#8A7863]">Comissão atual</p><p className="mt-0.5 text-sm font-bold text-[#704E27]">{money(perPerson)} / pessoa</p><p className="text-[9px] text-[#8A7863]">{money(gross)} total + IVA</p>{desiredDate && restaurant.bookingReady && <p className="mt-0.5 text-[8px] font-bold text-[#4F6C4D]">{remainingCapacity(restaurant, desiredDate)} lugares livres</p>}</div>
                 </div>
                 {!restaurant.bookingReady && <p className="mt-2 rounded-xl bg-[#FFF4DE] px-3 py-2 text-[9px] leading-4 text-[#74613F]">A reserva fica pendente até o restaurante confirmar, recusar ou sugerir outro horário. Comissão de 1,50 € por pessoa + IVA.</p>}
-                <div className="mt-2 flex flex-wrap justify-end gap-1.5">{restaurant.externalPlaceProvider && restaurant.externalPlaceId && <button type="button" onClick={() => void toggleFavorite(restaurant)} className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[9px] font-bold ${favorite ? "border-[#D6AE62] bg-[#FFF1CF] text-[#8A5F1D]" : "border-[#D8C6A9] bg-white text-[#6E5232]"}`}><Star size={11} fill={favorite ? "currentColor" : "none"} />{favorite ? "Guardado nos favoritos" : "Guardar nos favoritos"}</button>}{!restaurant.bookingReady && <RestaurantInviteActions restaurant={restaurant} />}</div>
+                <div className="mt-2 flex flex-wrap justify-end gap-1.5">{restaurant.externalPlaceProvider && restaurant.externalPlaceId && <button type="button" disabled={favoritePending} onClick={() => void toggleFavorite(restaurant)} className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[9px] font-bold disabled:opacity-65 ${favorite ? "border-[#D6AE62] bg-[#FFF1CF] text-[#8A5F1D]" : "border-[#D8C6A9] bg-white text-[#6E5232]"}`}><Star size={11} fill={favorite ? "currentColor" : "none"} />{favorite ? "Guardado nos favoritos" : "Guardar nos favoritos"}</button>}{!restaurant.bookingReady && <RestaurantInviteActions restaurant={restaurant} />}</div>
                 <details className="group mt-2 border-t border-[#EEE3D3] pt-2"><summary className="flex cursor-pointer list-none items-center justify-between text-[10px] font-bold text-[#6E5232]"><span className="inline-flex items-center gap-2"><UtensilsCrossed size={12} /> Mini-perfil, fotografias e menu</span><span className="transition group-open:rotate-180">⌄</span></summary><div className="mt-2 rounded-xl bg-white p-3"><p className="text-[11px] leading-4 text-[#6B6258]">{restaurant.description}</p>{restaurant.openingHours && <p className="mt-2 text-[9px] leading-4 text-[#75695D]"><strong>Horário:</strong> {restaurant.openingHours}</p>}{restaurant.galleryImages.length > 0 && <div className="mt-2 grid grid-cols-3 gap-2">{restaurant.galleryImages.slice(0, 3).map((image) => <div key={image} className="h-20 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} role="img" aria-label={`Fotografia de ${restaurant.name}`} />)}</div>}<div className="mt-3 flex flex-wrap gap-3">{restaurant.menuUrl && <a href={restaurant.menuUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Abrir menu <ExternalLink size={12} /></a>}{restaurant.websiteUrl && <a href={restaurant.websiteUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#7B572B]">Site oficial <ExternalLink size={12} /></a>}{restaurant.googleMapsUrl && <a href={restaurant.googleMapsUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black text-[#4F6C4D]">Abrir mapa <ExternalLink size={12} /></a>}</div></div></details>
                 {restaurant.bookingReady && !restaurant.isDemo && <CommissionNegotiation restaurant={restaurant} />}
               </article>;
@@ -495,10 +525,20 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
             </div>
           </div>
           </div>
-          <div className={restaurantView === "FAVORITES" ? "mt-3 block" : "hidden"}>
-            <div className="rounded-[18px] border border-[#E4D5BE] bg-[#FCF8F2] p-3"><p className="text-[10px] font-black uppercase tracking-[.13em] text-[#7B572B]">Adicionar aos favoritos</p><div className="mt-2 flex gap-2"><input value={favoriteSearch} onChange={(event) => setFavoriteSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void searchFavorite(); } }} placeholder="Nome do restaurante" className={compactInputClass} /><button type="button" onClick={() => void searchFavorite()} disabled={favoriteLookupLoading} className="h-10 shrink-0 rounded-full bg-[#17120D] px-4 text-[9px] font-bold text-white disabled:opacity-50">{favoriteLookupLoading ? "A pesquisar…" : "Pesquisar"}</button></div>{favoriteMessage && <p className="mt-2 text-[9px] font-semibold text-[#75552F]">{favoriteMessage}</p>}</div>
-            {favoriteLookupResults.length > 0 && <div className="mt-3 grid gap-2 sm:grid-cols-2">{favoriteLookupResults.filter((restaurant) => !favoriteKeys.has(externalPlaceKey(restaurant))).map((restaurant) => <article key={restaurant.id} className="flex items-center gap-3 rounded-[16px] border border-[#E1D0B8] bg-white p-2.5"><div className="h-14 w-14 shrink-0 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: restaurant.heroImage ? `url(${restaurant.heroImage})` : undefined }} /><div className="min-w-0 flex-1"><p className="truncate text-xs font-bold">{restaurant.name}</p><p className="mt-1 line-clamp-1 text-[9px] text-[#75695D]">{restaurant.address}</p></div><button type="button" onClick={() => void toggleFavorite(restaurant)} aria-label={`Adicionar ${restaurant.name} aos favoritos`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#D3BE9C] bg-[#FFF7E8] text-[#8B642C]"><Star size={14} /></button></article>)}</div>}
-            <div className="mt-4"><div className="mb-2 flex items-center justify-between"><p className="text-[10px] font-black uppercase tracking-[.13em] text-[#7B572B]">Os teus favoritos</p><span className="text-[9px] font-bold text-[#8A7863]">{favorites.length}</span></div>{favorites.length === 0 ? <div className="rounded-[18px] border border-dashed border-[#D6C3A5] p-6 text-center text-xs text-[#75695D]">Ainda não tens restaurantes favoritos.</div> : <div className="space-y-2">{favorites.map((favorite) => { const restaurant = favoriteOptions.find((option) => externalPlaceKey(option) === `${favorite.provider}:${favorite.placeId}`); const selected = restaurant?.id === selectedRestaurantId; return <article key={`${favorite.provider}:${favorite.placeId}`} className={`flex items-center gap-3 rounded-[18px] border p-3 ${selected ? "border-[#9E733D] bg-[#FFF7E9]" : "border-[#E1D0B8] bg-white"}`}><div className="h-16 w-16 shrink-0 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: restaurant?.heroImage ? `url(${restaurant.heroImage})` : undefined }} /><button type="button" disabled={!restaurant} onClick={() => restaurant && setSelectedRestaurantId(restaurant.id)} className="min-w-0 flex-1 text-left"><p className="truncate text-sm font-bold">{favorite.name}</p><p className="mt-1 line-clamp-1 text-[10px] text-[#75695D]">{favorite.address}</p>{restaurant && <span className="mt-2 inline-flex rounded-full bg-[#FFF2D5] px-2 py-1 text-[7px] font-black text-[#805D2B]">{restaurant.bookingReady ? "RESERVA IMEDIATA" : "CONFIRMAÇÃO PENDENTE"}</span>}</button><button type="button" onClick={() => void removeFavorite(favorite)} aria-label={`Remover ${favorite.name} dos favoritos`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#DCCBB1] bg-white text-[#8A7863]"><X size={13} /></button></article>; })}</div>}</div>
+          <div className={restaurantView === "FAVORITES" ? "mt-4 block" : "hidden"}>
+            <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+              <section className="min-w-0 rounded-[18px] border border-[#E1D0B8] bg-[#FCFAF7] p-3 sm:p-4">
+                <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[.13em] text-[#7B572B]">Os teus favoritos</p><p className="mt-1 text-[10px] text-[#807264]">Acesso rápido aos restaurantes que guardaste.</p></div><span className="grid h-8 min-w-8 place-items-center rounded-full bg-[#F2E3CB] px-2 text-[10px] font-black text-[#71502A]">{favorites.length}</span></div>
+                {favorites.length === 0 ? <div className="mt-3 rounded-[16px] border border-dashed border-[#D6C3A5] p-6 text-center text-xs text-[#75695D]">Ainda não tens restaurantes favoritos.</div> : <div className="mt-3 grid gap-2">{favorites.map((favorite) => { const key = `${favorite.provider}:${favorite.placeId}`; const restaurant = favoriteOptions.find((option) => externalPlaceKey(option) === key) || allRestaurants.find((option) => externalPlaceKey(option) === key); const selected = restaurant?.id === selectedRestaurantId; const pending = favoritePendingKeys.has(key); return <article key={key} className={`grid min-w-0 grid-cols-[56px_minmax(0,1fr)_36px] items-center gap-2.5 rounded-[16px] border p-2.5 ${selected ? "border-[#9E733D] bg-[#FFF7E9]" : "border-[#E1D0B8] bg-white"}`}><div className="h-14 w-14 rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: restaurant?.heroImage ? `url(${restaurant.heroImage})` : undefined }} /><button type="button" disabled={!restaurant || pending} onClick={() => restaurant && setSelectedRestaurantId(restaurant.id)} className="min-w-0 text-left disabled:opacity-70"><p className="truncate text-xs font-bold">{favorite.name}</p><p className="mt-1 truncate text-[9px] text-[#75695D]">{favorite.address}</p>{restaurant && <span className={`mt-1.5 inline-flex rounded-full px-2 py-1 text-[7px] font-black ${restaurant.bookingReady ? "bg-[#EAF4E8] text-[#456846]" : "bg-[#FFF2D5] text-[#805D2B]"}`}>{restaurant.bookingReady ? "RESERVA IMEDIATA" : "CONFIRMAÇÃO PENDENTE"}</span>}</button><button type="button" disabled={pending} onClick={() => void removeFavorite(favorite)} aria-label={`Remover ${favorite.name} dos favoritos`} className="grid h-9 w-9 place-items-center rounded-full border border-[#DCCBB1] bg-white text-[#8A7863] disabled:opacity-45">{pending ? <LoaderCircle size={13} className="animate-spin" /> : <X size={13} />}</button></article>; })}</div>}
+              </section>
+
+              <section className="min-w-0 rounded-[18px] border border-[#E4D5BE] bg-[#FCF8F2] p-3 sm:p-4">
+                <p className="text-[10px] font-black uppercase tracking-[.13em] text-[#7B572B]">Encontrar restaurante</p><p className="mt-1 text-[10px] text-[#807264]">Pesquisa pelo nome e adiciona-o aos teus favoritos.</p>
+                <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"><input value={favoriteSearch} onChange={(event) => setFavoriteSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void searchFavorite(); } }} placeholder="Nome do restaurante" className={`${compactInputClass} min-w-0 w-full`} /><button type="button" onClick={() => void searchFavorite()} disabled={favoriteLookupLoading} className="h-10 w-full rounded-full bg-[#17120D] px-5 text-[9px] font-bold text-white disabled:opacity-50 sm:w-auto">{favoriteLookupLoading ? "A pesquisar…" : "Pesquisar"}</button></div>
+                {favoriteMessage && <p className="mt-2 text-[9px] font-semibold text-[#75552F]">{favoriteMessage}</p>}
+                {favoriteLookupResults.length > 0 && <div className="mt-3 grid gap-2">{favoriteLookupResults.filter((restaurant) => !favoriteKeys.has(externalPlaceKey(restaurant))).map((restaurant) => { const key = externalPlaceKey(restaurant); const pending = favoritePendingKeys.has(key); return <article key={restaurant.id} className="grid min-w-0 grid-cols-[52px_minmax(0,1fr)] items-center gap-2.5 rounded-[16px] border border-[#E1D0B8] bg-white p-2.5 sm:grid-cols-[52px_minmax(0,1fr)_auto]"><div className="h-[52px] w-[52px] rounded-xl bg-[#EADCC7] bg-cover bg-center" style={{ backgroundImage: restaurant.heroImage ? `url(${restaurant.heroImage})` : undefined }} /><div className="min-w-0"><p className="truncate text-xs font-bold">{restaurant.name}</p><p className="mt-1 truncate text-[9px] text-[#75695D]">{restaurant.address}</p></div><button type="button" disabled={pending} onClick={() => void toggleFavorite(restaurant)} className="col-span-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-[#D3BE9C] bg-[#FFF7E8] px-4 text-[9px] font-bold text-[#8B642C] disabled:opacity-50 sm:col-span-1 sm:w-auto"><Star size={12} />{pending ? "A guardar…" : "Adicionar"}</button></article>; })}</div>}
+              </section>
+            </div>
           </div>
         </section>
       </div>
