@@ -30,7 +30,11 @@ async function updateReservation(formData: FormData) {
     await prisma.$transaction(async (tx) => {
       const reservation = await tx.reservation.findUnique({
         where: { id: reservationId },
-        include: { payment: true, restaurant: { include: { tables: { orderBy: { capacity: "asc" } } } } },
+        include: {
+          payment: true,
+          referralGroup: { select: { id: true, children: true } },
+          restaurant: { include: { tables: { orderBy: { capacity: "asc" } } } },
+        },
       });
       if (!reservation?.restaurant || !reservation.email || !verifyReservationManagementToken(reservation.id, reservation.email, token)) throw new Error("INVALID");
       if (!ACTIVE_STATUSES.includes(reservation.status) || reservation.date <= new Date() || reservation.experienceId || reservation.payment?.status === "PAID") throw new Error("LOCKED");
@@ -79,6 +83,18 @@ async function updateReservation(formData: FormData) {
         where: { id: reservation.id },
         data: { date: target, guests, tableId, status, approvalReason },
       });
+      if (reservation.referralGroup) {
+        const children = Math.min(reservation.referralGroup.children, Math.max(0, guests - 1));
+        await tx.referralGroup.update({
+          where: { id: reservation.referralGroup.id },
+          data: {
+            desiredDate: target,
+            guests,
+            adults: guests - children,
+            children,
+          },
+        });
+      }
       if (reservation.customerId) {
         await tx.customer.update({ where: { id: reservation.customerId }, data: { lastReservationAt: target } });
       }
