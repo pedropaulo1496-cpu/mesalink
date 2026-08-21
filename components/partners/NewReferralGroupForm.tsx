@@ -5,6 +5,7 @@ import { Check, Crosshair, ExternalLink, Handshake, ImageIcon, LoaderCircle, Map
 import { REFERRAL_ACCESSIBILITY_TAGS, REFERRAL_DIETARY_TAGS, REFERRAL_OCCASION_TAGS, REFERRAL_REQUIREMENT_TAGS } from "@/lib/referral-tags";
 
 const compactInputClass = "input-premium partner-compact-input";
+const MAX_PROXIMITY_KM = 20;
 
 export type PartnerRestaurant = {
   id: string;
@@ -116,17 +117,20 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     const normalizedLocation = locationFilter.trim().toLowerCase();
+    const proximityPosition = !normalizedLocation ? currentPosition : null;
     const matches = allRestaurants.filter((restaurant) => {
       const remaining = remainingCapacity(restaurant, desiredDate);
+      const distance = proximityPosition ? distanceTo(restaurant, proximityPosition) : null;
       return (!restaurant.bookingReady || remaining >= guests)
+        && (distance === null || (Number.isFinite(distance) && distance <= MAX_PROXIMITY_KM))
         && (cuisineFilter === "ALL" || restaurant.cuisine === cuisineFilter)
         && (!normalizedLocation || restaurant.address.toLowerCase().includes(normalizedLocation))
         && (!normalized || `${restaurant.name} ${restaurant.cuisine} ${restaurant.description} ${restaurant.highlights.join(" ")}`.toLowerCase().includes(normalized));
     });
     return [...matches].sort((a, b) => {
-      if (currentPosition) {
-        const distanceA = distanceTo(a, currentPosition);
-        const distanceB = distanceTo(b, currentPosition);
+      if (proximityPosition) {
+        const distanceA = distanceTo(a, proximityPosition);
+        const distanceB = distanceTo(b, proximityPosition);
         const hasDistanceA = Number.isFinite(distanceA);
         const hasDistanceB = Number.isFinite(distanceB);
         if (hasDistanceA !== hasDistanceB) return hasDistanceA ? -1 : 1;
@@ -249,7 +253,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     if (!("geolocation" in navigator)) return setLocationState("unsupported");
     setLocationState("loading");
     navigator.geolocation.getCurrentPosition(
-      (position) => { setCurrentPosition({ latitude: position.coords.latitude, longitude: position.coords.longitude }); setLocationState("ready"); },
+      (position) => { setLocationFilter(""); setCurrentPosition({ latitude: position.coords.latitude, longitude: position.coords.longitude }); setLocationState("ready"); },
       () => setLocationState("denied"),
       { enableHighAccuracy: false, timeout: 7000, maximumAge: 0 },
     );
@@ -322,7 +326,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         </section>
 
         <section className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 shadow-[0_10px_34px_rgba(83,59,32,0.045)] sm:p-5">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Pesquisa qualquer restaurante</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{locationState === "ready" ? `Por proximidade · ${filtered.length}` : `${filtered.length} opções`}</span></div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Pesquisa qualquer restaurante</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{locationFilter.trim() ? `${locationFilter.trim()} · ${filtered.length}` : locationState === "ready" ? `Até 20 km · ${filtered.length}` : `${filtered.length} opções`}</span></div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
             <label className="relative block"><Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7E6E]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome ou especialidade" className={compactInputClass} style={{ paddingLeft: "2.25rem" }} /></label>
             <select value={cuisineFilter} onChange={(event) => setCuisineFilter(event.target.value)} className={compactInputClass}><option value="ALL">Todas as cozinhas</option>{cuisines.map((item) => <option key={item} value={item}>{item}</option>)}</select>
@@ -333,7 +337,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
           <div className="mt-3 space-y-2">
             {filtered.map((restaurant) => {
               const selected = restaurant.id === selectedRestaurantId;
-              const distance = currentPosition ? distanceTo(restaurant, currentPosition) : null;
+              const distance = currentPosition && !locationFilter.trim() ? distanceTo(restaurant, currentPosition) : null;
               const gross = restaurant.commissionType === "PER_PERSON" ? restaurant.commissionAmount * guests : restaurant.commissionAmount;
               const perPerson = gross / Math.max(1, guests);
               return <article key={restaurant.id} className={`relative overflow-hidden rounded-[18px] border p-2.5 transition ${selected ? "border-[#9E733D] bg-[#FFF7E9] shadow-[0_10px_28px_rgba(119,81,34,0.10)] ring-1 ring-[#C8A56A]/25" : restaurant.bookingReady ? "border-[#E1D0B8] bg-[#FFFDFC] hover:border-[#C8A56A] hover:bg-white" : "border-[#E5DBCC] bg-[#FAF7F2]"}`}>{selected && <span className="absolute inset-y-0 left-0 w-1 bg-[#B88745]" />}

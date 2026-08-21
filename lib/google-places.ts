@@ -109,7 +109,7 @@ export async function searchGoogleRestaurants(input: {
         regionCode: "PT",
         rankPreference: "DISTANCE",
         locationRestriction: {
-          circle: { center: { latitude: input.latitude, longitude: input.longitude }, radius: 30000 },
+          circle: { center: { latitude: input.latitude, longitude: input.longitude }, radius: 20000 },
         },
       };
   const fieldMask = [
