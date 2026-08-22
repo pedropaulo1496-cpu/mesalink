@@ -9,6 +9,8 @@ class PartnerReservationUpdateError extends Error {
   constructor(public code: "NOT_EDITABLE" | "CAPACITY" | "AUTHORIZATION" | "GUEST_LIMIT") { super(code); }
 }
 
+class PartnerReservationCancelError extends Error {}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ groupId: string }> }) {
   const partner = await getPartnerIdentity();
   if (!partner) return NextResponse.json({ error: "Não autenticado na app Partners." }, { status: 401 });
@@ -106,5 +108,70 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ gr
     }
     console.error("Partner reservation update failed", error);
     return NextResponse.json({ error: "Não foi possível atualizar a reserva." }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ groupId: string }> }) {
+  const partner = await getPartnerIdentity();
+  if (!partner) return NextResponse.json({ error: "Não autenticado na app Partners." }, { status: 401 });
+  const { groupId } = await params;
+
+  try {
+    const cancelled = await prisma.$transaction(async (tx) => {
+      const group = await tx.referralGroup.findFirst({
+        where: { id: groupId, partnerId: partner.id },
+        include: {
+          payment: { select: { id: true } },
+          offers: {
+            where: { status: { in: ["PENDING", "ALTERNATIVE_PROPOSED"] } },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: { id: true },
+          },
+        },
+      });
+      const offerId = group?.offers[0]?.id;
+      if (!group || group.targetMode !== "EXTERNAL" || !["OPEN", "ALTERNATIVE_PROPOSED"].includes(group.status) || group.reservationId || group.payment || !offerId) {
+        throw new PartnerReservationCancelError("NOT_CANCELLABLE");
+      }
+
+      const claim = await tx.referralGroup.updateMany({
+        where: {
+          id: group.id,
+          partnerId: partner.id,
+          targetMode: "EXTERNAL",
+          status: { in: ["OPEN", "ALTERNATIVE_PROPOSED"] },
+          reservationId: null,
+        },
+        data: { status: "CANCELLED", alternativeDate: null },
+      });
+      if (claim.count !== 1) throw new PartnerReservationCancelError("NOT_CANCELLABLE");
+
+      await tx.referralOffer.updateMany({
+        where: { groupId: group.id, status: { in: ["PENDING", "ALTERNATIVE_PROPOSED"] } },
+        data: {
+          status: "CANCELLED",
+          respondedAt: new Date(),
+          publicAccessTokenHash: null,
+          publicAccessExpiresAt: null,
+        },
+      });
+      return { offerId };
+    }, { isolationLevel: "Serializable" });
+
+    const { notifyExternalReferralCancellation } = await import("@/lib/external-referral-requests");
+    const restaurantNotified = await notifyExternalReferralCancellation(cancelled.offerId)
+      .then(() => true)
+      .catch((error) => {
+        console.error("External referral cancellation email failed", error);
+        return false;
+      });
+    return NextResponse.json({ success: true, status: "CANCELLED", restaurantNotified });
+  } catch (error) {
+    if (error instanceof PartnerReservationCancelError) {
+      return NextResponse.json({ error: "Este pedido já não pode ser cancelado porque deixou de estar pendente." }, { status: 409 });
+    }
+    console.error("Partner reservation cancellation failed", error);
+    return NextResponse.json({ error: "Não foi possível cancelar o pedido." }, { status: 500 });
   }
 }

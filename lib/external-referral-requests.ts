@@ -109,6 +109,26 @@ export async function notifyExternalReferralOutcome(offerId: string, outcome: "D
   if (delivery.error) throw new Error(delivery.error.message);
 }
 
+export async function notifyExternalReferralCancellation(offerId: string) {
+  const offer = await prisma.referralOffer.findUnique({
+    where: { id: offerId },
+    include: { group: { include: { partner: true } }, restaurant: { select: { name: true, email: true } } },
+  });
+  if (!offer?.restaurant.email) return;
+  const simulation = isExternalReferralSimulation(offer);
+  const subject = `${simulation ? "[SIMULAÇÃO] " : ""}Pedido de reserva ${offer.group.publicCode} cancelado`;
+  const message = `${offer.group.partner.businessName} cancelou o pedido para ${formatDateTime(offer.group.desiredDate)}. Não é necessária qualquer ação e a ligação anterior já não permite responder.`;
+  const delivery = await mailer().emails.send({
+    from: "MesaLink Reservas <info@mesalink.pt>",
+    to: offer.restaurant.email,
+    replyTo: "info@mesalink.pt",
+    subject,
+    text: `Olá equipa ${offer.restaurant.name},\n\n${message}\n\nReferência: ${offer.group.publicCode}\n\nMesaLink Reservas\ninfo@mesalink.pt`,
+    html: `<div style="margin:0;background:#f4eee5;padding:28px 14px;font-family:Arial,sans-serif;color:#17120d"><div style="max-width:600px;margin:auto;border:1px solid #dfcfb8;border-radius:22px;background:white;overflow:hidden"><div style="background:#17120d;padding:22px 26px;color:white"><strong style="font-family:Georgia,serif;font-size:24px"><span style="color:#d7b267">Mesa</span>Link</strong></div><div style="padding:28px"><p style="font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#934a35">Pedido cancelado</p><h1 style="font:700 27px/1.2 Georgia,serif">${escapeHtml(subject)}</h1><p style="font-size:15px;line-height:1.65;color:#685d52">${escapeHtml(message)}</p><div style="margin-top:18px;border:1px solid #e4d3b9;border-radius:14px;background:#fff9ef;padding:14px;font-size:12px;color:#806f5c">Referência ${escapeHtml(offer.group.publicCode)}</div></div></div></div>`,
+  });
+  if (delivery.error) throw new Error(delivery.error.message);
+}
+
 function mailer() {
   if (!process.env.RESEND_API_KEY) throw new Error("RESEND_NOT_CONFIGURED");
   return new Resend(process.env.RESEND_API_KEY);
