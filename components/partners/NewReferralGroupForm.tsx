@@ -137,7 +137,9 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     const normalizedLocation = locationFilter.trim().toLowerCase();
-    const proximityPosition = !normalizedLocation ? effectivePosition : null;
+    // A pesquisa explícita por nome/especialidade é nacional. O limite de 20 km
+    // só se aplica à listagem automática "Perto de ti".
+    const proximityPosition = !normalizedLocation && !normalized ? effectivePosition : null;
     const matches = allRestaurants.filter((restaurant) => {
       const remaining = remainingCapacity(restaurant, desiredDate);
       const distance = proximityPosition ? distanceTo(restaurant, proximityPosition) : null;
@@ -148,6 +150,12 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         && (!normalized || fuzzyTextMatch(`${restaurant.name} ${restaurant.cuisine} ${restaurant.description} ${restaurant.highlights.join(" ")}`, normalized));
     });
     return [...matches].sort((a, b) => {
+      if (normalized) {
+        const rankA = restaurantSearchRank(a, normalized);
+        const rankB = restaurantSearchRank(b, normalized);
+        if (rankA !== rankB) return rankA - rankB;
+        if (a.source !== b.source) return a.source === "MESALINK" ? -1 : 1;
+      }
       if (proximityPosition) {
         const distanceA = distanceTo(a, proximityPosition);
         const distanceB = distanceTo(b, proximityPosition);
@@ -327,23 +335,40 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     if (!value) return;
     setFavoriteLookupLoading(true);
     setFavoriteMessage("");
+    const localMatches = restaurants.filter((restaurant) => fuzzyTextMatch(
+      `${restaurant.name} ${restaurant.cuisine} ${restaurant.description} ${restaurant.address}`,
+      value,
+    ));
+    const availableResults = (items: PartnerRestaurant[]) => uniqueRestaurants(items)
+      .filter((restaurant) => !favoriteKeys.has(externalPlaceKey(restaurant)))
+      .sort((a, b) => {
+        const rankA = restaurantSearchRank(a, value);
+        const rankB = restaurantSearchRank(b, value);
+        if (rankA !== rankB) return rankA - rankB;
+        if (a.source !== b.source) return a.source === "MESALINK" ? -1 : 1;
+        return a.name.localeCompare(b.name, "pt");
+      });
     try {
       const params = new URLSearchParams({ q: value });
       const response = await fetch(`/api/partners/restaurants/search?${params}`);
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setFavoriteLookupResults([]);
-        return setFavoriteMessage(data?.error || "Não foi possível pesquisar restaurantes.");
+        const localResults = availableResults(localMatches);
+        setFavoriteLookupResults(localResults);
+        if (localResults.length === 0) setFavoriteMessage(data?.error || "Não foi possível pesquisar restaurantes.");
+        return;
       }
       const items = Array.isArray(data?.restaurants)
         ? (data.restaurants as ExternalRestaurantSearchItem[]).map(externalPartnerRestaurant).filter((item): item is PartnerRestaurant => Boolean(item))
         : [];
       const enriched = await enrichCatalogRestaurants(items);
-      setFavoriteLookupResults(enriched.filter((restaurant) => !favoriteKeys.has(externalPlaceKey(restaurant))));
-      if (!enriched.some((restaurant) => !favoriteKeys.has(externalPlaceKey(restaurant)))) setFavoriteMessage("Não encontrámos novos restaurantes com esse nome.");
+      const combined = availableResults([...localMatches, ...enriched]);
+      setFavoriteLookupResults(combined);
+      if (combined.length === 0) setFavoriteMessage("Não encontrámos novos restaurantes com esse nome.");
     } catch {
-      setFavoriteLookupResults([]);
-      setFavoriteMessage("Não foi possível pesquisar restaurantes.");
+      const localResults = availableResults(localMatches);
+      setFavoriteLookupResults(localResults);
+      if (localResults.length === 0) setFavoriteMessage("Não foi possível pesquisar restaurantes.");
     } finally {
       setFavoriteLookupLoading(false);
     }
@@ -509,7 +534,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
         </section>
 
         <section className="rounded-[22px] border border-[#E1D0B8] bg-white p-4 shadow-[0_10px_34px_rgba(83,59,32,0.045)] sm:p-5">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">{restaurantView === "FAVORITES" ? "Restaurantes favoritos" : "Restaurantes perto de ti"}</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{restaurantView === "FAVORITES" ? `${favorites.length} favoritos` : locationFilter.trim() ? `${locationFilter.trim()} · ${filtered.length}` : effectivePosition ? `Até 20 km · ${filtered.length}` : `${filtered.length} opções`}</span></div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]"><span className="grid h-7 w-7 place-items-center rounded-[10px] bg-[#F2E3CB] text-[9px] text-[#71502A]">02</span> Restaurante</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">{restaurantView === "FAVORITES" ? "Restaurantes favoritos" : "Restaurantes perto de ti"}</h2></div><span className="rounded-full border border-[#DECEB4] bg-[#F8F1E7] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#795D38]">{restaurantView === "FAVORITES" ? `${favorites.length} favoritos` : query.trim() ? `${filtered.length} resultados` : locationFilter.trim() ? `${locationFilter.trim()} · ${filtered.length}` : effectivePosition ? `Até 20 km · ${filtered.length}` : `${filtered.length} opções`}</span></div>
           <div className="mt-3 inline-flex rounded-full border border-[#D8C6A9] bg-[#F6EFE5] p-1"><button type="button" onClick={() => setRestaurantView("NEARBY")} className={`rounded-full px-4 py-2 text-[10px] font-bold ${restaurantView === "NEARBY" ? "bg-[#17120D] text-white" : "text-[#715536]"}`}>Perto de ti</button><button type="button" onClick={() => setRestaurantView("FAVORITES")} className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[10px] font-bold ${restaurantView === "FAVORITES" ? "bg-[#17120D] text-white" : "text-[#715536]"}`}><Star size={11} /> Favoritos {favorites.length > 0 && `(${favorites.length})`}</button></div>
           <div className={restaurantView === "NEARBY" ? "block" : "hidden"}>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
@@ -828,6 +853,31 @@ function fuzzyTextMatch(value: string, query: string) {
     const tolerance = term.length >= 8 ? 2 : term.length >= 4 ? 1 : 0;
     return tolerance > 0 && editDistanceWithin(word, term, tolerance);
   }));
+}
+
+function restaurantSearchRank(restaurant: Pick<PartnerRestaurant, "name" | "cuisine" | "description" | "address">, query: string) {
+  const normalizedName = normalizeIdentity(restaurant.name);
+  const normalizedQuery = normalizeIdentity(query);
+  if (normalizedName === normalizedQuery) return 0;
+  if (normalizedName.startsWith(normalizedQuery)) return 1;
+  if (normalizedName.includes(normalizedQuery)) return 2;
+  if (normalizeIdentity(`${restaurant.cuisine} ${restaurant.description} ${restaurant.address}`).includes(normalizedQuery)) return 3;
+  return 4;
+}
+
+function uniqueRestaurants(items: PartnerRestaurant[]) {
+  const seenIds = new Set<string>();
+  const seenPlaces = new Set<string>();
+  const seenIdentities = new Set<string>();
+  return items.filter((restaurant) => {
+    const place = externalPlaceKey(restaurant);
+    const identity = restaurantIdentity(restaurant);
+    if (seenIds.has(restaurant.id) || (place && seenPlaces.has(place)) || seenIdentities.has(identity)) return false;
+    seenIds.add(restaurant.id);
+    if (place) seenPlaces.add(place);
+    seenIdentities.add(identity);
+    return true;
+  });
 }
 
 function editDistanceWithin(left: string, right: string, limit: number) {
