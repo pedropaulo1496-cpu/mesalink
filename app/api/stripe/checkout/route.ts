@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       mode: "subscription",
       ...(subscription.stripeCustomerId
         ? { customer: subscription.stripeCustomerId, customer_update: { address: "auto" as const, name: "auto" as const } }
-        : { customer_email: user.email, customer_creation: "always" as const }),
+        : { customer_email: user.email }),
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
       automatic_tax: { enabled: true },

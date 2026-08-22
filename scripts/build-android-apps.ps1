@@ -12,6 +12,7 @@ $keystoreFile = Join-Path $projectRoot ".android-signing\mesalink-release.keysto
 $publicRoot = Join-Path $projectRoot "public"
 $downloadsRoot = Join-Path $publicRoot "downloads"
 $restaurantManifest = Join-Path $androidRoot "twa-manifest.json"
+$directRestaurantManifest = Join-Path $androidRoot "direct-manifest.json"
 $gradleWrapper = Join-Path $androidRoot "gradlew.bat"
 
 function Stop-AndroidGradle {
@@ -74,7 +75,7 @@ if (-not (Test-Path -LiteralPath $keystoreFile)) {
 
 $restaurantPaths = @("/login", "/dashboard", "/restaurants", "/billing", "/onboarding", "/trial-expired")
 $variants = @(
-  @{ Name = "Restaurant"; Manifest = $restaurantManifest; Output = "MesaLink-Restaurantes-v1.1.3.apk"; Paths = $restaurantPaths },
+  @{ Name = "Restaurant"; Manifest = $directRestaurantManifest; Output = "MesaLink-Restaurantes-v1.1.4.apk"; Paths = $restaurantPaths },
   # Partners e HQ abrem pelo ícone. Sem App Links, nunca capturam páginas públicas
   # como /reserve/... que pertencem ao browser e aos clientes do restaurante.
   @{ Name = "Partners"; Manifest = (Join-Path $androidRoot "partners-manifest.json"); Output = "MesaLink-Parceiros-v1.0.3.apk"; Paths = @() },

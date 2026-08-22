@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import { cookies } from "next/headers";
 import SiteAnalytics from "@/components/analytics/SiteAnalytics";
 import "./globals.css";
 
@@ -75,6 +76,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const distributionCookie = (await cookies()).get("mesalink_app_distribution")?.value;
+  const appDistribution = distributionCookie === "direct" || distributionCookie === "play"
+    ? distributionCookie
+    : "unknown";
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -101,7 +106,7 @@ export default async function RootLayout({
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full overflow-x-hidden antialiased`}
     >
-      <body className="min-h-full w-full overflow-x-hidden bg-[#070504]">
+      <body data-app-distribution={appDistribution} className="min-h-full w-full overflow-x-hidden bg-[#070504]">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

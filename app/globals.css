@@ -385,17 +385,17 @@ select.input-premium {
   transform: scale(0.995);
 }
 
-/* Google Play build: the TWA is consumption-only. Billing remains available on the web. */
+/* Only the Google Play build is consumption-only until Play Billing is configured. */
 @media (display-mode: standalone) {
-  a[href^="/billing"] {
+  [data-app-distribution]:not([data-app-distribution="direct"]) a[href^="/billing"] {
     display: none !important;
   }
 
-  .play-store-billing-content {
+  [data-app-distribution]:not([data-app-distribution="direct"]) .play-store-billing-content {
     display: none !important;
   }
 
-  .play-store-consumption-note {
+  [data-app-distribution]:not([data-app-distribution="direct"]) .play-store-consumption-note {
     display: block !important;
   }
 }

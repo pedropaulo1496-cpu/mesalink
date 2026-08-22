@@ -274,7 +274,7 @@ function PlanRow({ name, price, text, perMonth, badge, featured = false }: { nam
 
 function MobileApps({ copy }: { copy: MobileCopy }) {
   const apps = [
-    { name: "MesaLink", icon: "/icons/apps/restaurant-192.png", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk" },
+    { name: "MesaLink", icon: "/icons/apps/restaurant-192.png", href: "/downloads/MesaLink-Restaurantes-v1.1.4.apk" },
     { name: "MesaLink Partners", icon: "/icons/apps/partners-192.png", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk" },
   ];
   return (

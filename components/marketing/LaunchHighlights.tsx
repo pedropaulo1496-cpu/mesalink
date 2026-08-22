@@ -40,7 +40,7 @@ const copy = {
     version: "Android 7 ou superior",
     installNote: "Ao instalar por APK, o Android pode pedir autorização para instalar aplicações deste browser. Os ficheiros abaixo são assinados oficialmente pela MesaLink.",
     apps: [
-      { name: "MesaLink Restaurantes", audience: "Para restaurantes", text: "Reservas, serviço do dia, clientes, marketing, Revenue AI, website, visibilidade e operação diária.", version: "v1.1.3", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk", icon: "/icons/apps/restaurant-192.png" },
+      { name: "MesaLink Restaurantes", audience: "Para restaurantes", text: "Reservas, serviço do dia, clientes, marketing, Revenue AI, website, visibilidade e operação diária.", version: "v1.1.4", href: "/downloads/MesaLink-Restaurantes-v1.1.4.apk", icon: "/icons/apps/restaurant-192.png" },
       { name: "MesaLink Parceiros", audience: "Para parceiros", text: "Escolher restaurantes disponíveis, confirmar reservas imediatas e acompanhar comissões, faturas e pagamentos.", version: "v1.0.3", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk", icon: "/icons/apps/partners-192.png" },
     ],
   },
@@ -67,7 +67,7 @@ const copy = {
     version: "Android 7 or newer",
     installNote: "Android may ask permission to install apps from this browser. Every file below is officially signed by MesaLink.",
     apps: [
-      { name: "MesaLink Restaurants", audience: "For restaurants", text: "Bookings, daily service, customers, marketing, Revenue AI, website, visibility and daily operations.", version: "v1.1.3", href: "/downloads/MesaLink-Restaurantes-v1.1.3.apk", icon: "/icons/apps/restaurant-192.png" },
+      { name: "MesaLink Restaurants", audience: "For restaurants", text: "Bookings, daily service, customers, marketing, Revenue AI, website, visibility and daily operations.", version: "v1.1.4", href: "/downloads/MesaLink-Restaurantes-v1.1.4.apk", icon: "/icons/apps/restaurant-192.png" },
       { name: "MesaLink Partners", audience: "For partners", text: "Choose available restaurants, confirm instant bookings, and track commissions, invoices, and payouts.", version: "v1.0.3", href: "/downloads/MesaLink-Parceiros-v1.0.3.apk", icon: "/icons/apps/partners-192.png" },
     ],
   },

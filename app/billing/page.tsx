@@ -165,7 +165,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
     }));
 
   return (
-    <>
+    <div>
       <section className="play-store-consumption-note hidden min-h-screen bg-[#F5EFE6] px-6 py-16 text-[#16120E]">
         <div className="mx-auto max-w-xl rounded-[32px] border border-[#E1D0B8] bg-white p-7 shadow-[0_24px_70px_rgba(80,55,30,0.10)] sm:p-10">
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B6F3B]">MesaLink Android</p>
@@ -453,7 +453,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       </div>
     </main>
       </div>
-    </>
+    </div>
   );
 }
 
