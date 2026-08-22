@@ -1,6 +1,7 @@
 import { CalendarClock, CheckCircle2, Clock3, MapPin, ShieldCheck, UsersRound, XCircle } from "lucide-react";
 import { calculateReferralCommission, calculateReferralServiceFee, isCommissionType } from "@/lib/referrals";
 import { findExternalReferralOffer, isExternalReferralSimulation } from "@/lib/external-referral-requests";
+import { formatDateTimeInTimeZone, reservationTimeZone } from "@/lib/reservation-time-zone";
 
 export default async function ExternalReservationRequestPage({
   params,
@@ -14,6 +15,7 @@ export default async function ExternalReservationRequestPage({
   const offer = await findExternalReferralOffer(token);
   if (!offer || offer.group.targetMode !== "EXTERNAL") return <StatePage title="Ligação inválida" text="Este pedido não existe ou a ligação já não é válida." tone="error" />;
   const simulation = isExternalReferralSimulation(offer);
+  const timeZone = reservationTimeZone(offer.restaurant);
 
   if (simulation && result === "simulated-accepted") return <StatePage title="Simulação: reserva confirmada" text="O teste foi concluído com sucesso. Nenhuma reserva real foi criada e não houve qualquer cobrança." tone="success" />;
   if (simulation && result === "simulated-declined") return <StatePage title="Simulação: pedido recusado" text="A resposta de teste ficou concluída. Nenhum pedido real foi alterado." tone="neutral" />;
@@ -25,7 +27,7 @@ export default async function ExternalReservationRequestPage({
   const alternative = offer.status === "ALTERNATIVE_PROPOSED" || offer.group.status === "ALTERNATIVE_PROPOSED";
   if (booked || result === "accepted") return <StatePage title="Reserva confirmada" text="A reserva ficou registada. O cliente recebeu a confirmação por email com a localização e os contactos do restaurante." tone="success" />;
   if (declined) return <StatePage title="Pedido recusado" text="A resposta ficou registada e a pessoa que efetuou o pedido foi avisada." tone="neutral" />;
-  if (alternative) return <StatePage title="Novo horário proposto" text={`A proposta para ${offer.group.alternativeDate ? formatDateTime(offer.group.alternativeDate) : "outro horário"} foi enviada. Receberá uma nova mensagem se for aceite.`} tone="neutral" />;
+  if (alternative) return <StatePage title="Novo horário proposto" text={`A proposta para ${offer.group.alternativeDate ? formatDateTime(offer.group.alternativeDate, timeZone) : "outro horário"} foi enviada. Receberá uma nova mensagem se for aceite.`} tone="neutral" />;
   if (expired) return <StatePage title="Pedido expirado" text="Já não é possível responder através desta ligação. Se ainda tiver disponibilidade, contacte info@mesalink.pt." tone="error" />;
 
   const type = isCommissionType(offer.commissionType) ? offer.commissionType : "PER_PERSON";
@@ -41,7 +43,7 @@ export default async function ExternalReservationRequestPage({
         {simulation && <div className="mb-5 rounded-[18px] border border-[#A9CDAA] bg-[#EFF9EF] px-4 py-3 text-xs font-semibold leading-5 text-[#315B36]"><strong>Simulação segura.</strong> Podes experimentar qualquer resposta: não existe um cliente real, não é criada uma reserva e não há qualquer cobrança.</div>}
         {resultMessage && <div className="mb-5 rounded-[18px] border border-[#E5C897] bg-[#FFF7E5] px-4 py-3 text-xs font-semibold leading-5 text-[#76552E]">{resultMessage}</div>}
         <section className="grid gap-3 rounded-[22px] border border-[#E4D5BD] bg-[#FFF9EF] p-5 sm:grid-cols-2">
-          <Info icon={<CalendarClock size={16}/>} label="Data e hora" value={formatDateTime(offer.group.desiredDate)} />
+          <Info icon={<CalendarClock size={16}/>} label="Data e hora" value={formatDateTime(offer.group.desiredDate, timeZone)} />
           <Info icon={<UsersRound size={16}/>} label="Pessoas" value={`${offer.group.guests} · ${adults} adultos${offer.group.children ? ` · ${offer.group.children} crianças` : ""}`} />
           <Info icon={<ShieldCheck size={16}/>} label="Nome da reserva" value={offer.group.customerName || "Cliente MesaLink"} />
           <Info icon={<MapPin size={16}/>} label="Referência" value={offer.group.publicCode} />
@@ -67,5 +69,5 @@ function Info({ icon, label, value }: { icon: React.ReactNode; label: string; va
 function StatePage({ title, text, tone }: { title: string; text: string; tone: "success" | "error" | "neutral" }) { const icon = tone === "success" ? <CheckCircle2 size={30}/> : tone === "error" ? <XCircle size={30}/> : <Clock3 size={30}/>; return <main className="grid min-h-screen place-items-center bg-[#F2ECE3] p-5 text-[#17120D]"><div className="w-full max-w-lg rounded-[28px] border border-[#DCC9AA] bg-white p-8 text-center shadow-[0_24px_65px_rgba(65,43,22,.12)]"><div className={`mx-auto grid h-16 w-16 place-items-center rounded-full ${tone === "success" ? "bg-[#E9F5E8] text-[#315B36]" : tone === "error" ? "bg-[#FFF0EA] text-[#934A35]" : "bg-[#FFF5E2] text-[#8A6130]"}`}>{icon}</div><p className="mt-6 font-serif text-2xl font-bold"><span className="text-[#B9853E]">Mesa</span>Link</p><h1 className="mt-4 text-3xl font-semibold tracking-[-.05em]">{title}</h1><p className="mt-3 text-sm leading-6 text-[#6B6258]">{text}</p></div></main>; }
 
 function resultMessageFor(result?: string) { if (result === "cancelled") return "A confirmação não foi concluída. O pedido continua pendente e pode tentar novamente."; if (result === "fiscal-required") return "Faltaram dados legais ou fiscais na confirmação. Tente novamente e preencha todos os campos apresentados."; if (result === "authorization-too-short") return "O cartão não permitiu manter a garantia até à data da reserva. Tente outro cartão."; if (result === "invalid-alternative") return "Escolha um horário com pelo menos duas horas de antecedência e dentro dos próximos seis dias."; if (result === "unavailable") return "Este pedido já não está disponível para confirmação."; if (result === "processing") return "A confirmação está a ser processada. Atualize esta página dentro de alguns instantes."; if (result === "payment-error") return "Não foi possível abrir a confirmação segura. Tente novamente."; return null; }
-function formatDateTime(value: Date) { return new Intl.DateTimeFormat("pt-PT", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(value); }
+function formatDateTime(value: Date, timeZone: string) { return formatDateTimeInTimeZone(value, timeZone, "long"); }
 function money(value: number) { return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value); }

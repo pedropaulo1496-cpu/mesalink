@@ -4,6 +4,7 @@ import { getReferralCapacity } from "@/lib/referral-availability";
 import { referralAuthorizationRequiredUntil } from "@/lib/referral-deadlines";
 import { EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS, issueExternalReferralAccess } from "@/lib/external-referral-requests";
 import { prisma } from "@/lib/prisma";
+import { safeReservationTimeZone, zonedDateTimeToUtc } from "@/lib/reservation-time-zone";
 
 class PartnerReservationUpdateError extends Error {
   constructor(public code: "NOT_EDITABLE" | "CAPACITY" | "AUTHORIZATION" | "GUEST_LIMIT") { super(code); }
@@ -19,13 +20,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ gr
   const customerName = typeof body?.customerName === "string" ? body.customerName.trim().slice(0, 100) : "";
   const customerPhone = typeof body?.customerPhone === "string" ? body.customerPhone.trim().slice(0, 30) : "";
   const customerEmail = typeof body?.customerEmail === "string" ? body.customerEmail.trim().toLowerCase().slice(0, 160) : "";
-  const desiredDate = new Date(body?.desiredDate);
+  const timeZone = safeReservationTimeZone(body?.timeZone);
+  const desiredDate = zonedDateTimeToUtc(body?.desiredDate, timeZone);
   const adults = Number(body?.adults);
   const children = Number(body?.children);
   const guests = adults + children;
   if (!customerName || customerPhone.replace(/\D/g, "").length < 7 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)
     || !Number.isInteger(adults) || adults < 1 || !Number.isInteger(children) || children < 0 || !Number.isInteger(guests) || guests > 200
-    || Number.isNaN(desiredDate.getTime()) || desiredDate <= new Date(Date.now() + 2 * 60 * 60 * 1000)) {
+    || !desiredDate || desiredDate <= new Date(Date.now() + 2 * 60 * 60 * 1000)) {
     return NextResponse.json({ error: "Revê o nome, contacto, data e número de pessoas." }, { status: 400 });
   }
 

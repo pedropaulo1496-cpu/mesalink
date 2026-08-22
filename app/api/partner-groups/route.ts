@@ -16,6 +16,7 @@ import {
 } from "@/lib/external-referral-requests";
 import { getGoogleRestaurant } from "@/lib/google-places";
 import { discoverRestaurantEmail, isValidPublicRestaurantEmail } from "@/lib/restaurant-contact-discovery";
+import { safeReservationTimeZone, zonedDateTimeToUtc } from "@/lib/reservation-time-zone";
 
 const EXTERNAL_PLACE_PROVIDERS = new Set(["GOOGLE_PLACES", "MESALINK"]);
 
@@ -38,7 +39,8 @@ export async function POST(request: Request) {
     const adults = Number(body?.adults);
     const children = Number(body?.children);
     const guests = adults + children;
-    const desiredDate = new Date(body?.desiredDate);
+    const timeZone = safeReservationTimeZone(body?.timeZone);
+    const desiredDate = zonedDateTimeToUtc(body?.desiredDate, timeZone);
     const customerName = typeof body?.customerName === "string" ? body.customerName.trim().slice(0, 100) : "";
     const customerPhone = typeof body?.customerPhone === "string" ? body.customerPhone.trim().slice(0, 30) : "";
     const customerEmail = typeof body?.customerEmail === "string" ? body.customerEmail.trim().toLowerCase().slice(0, 160) : "";
@@ -50,7 +52,7 @@ export async function POST(request: Request) {
       || !Number.isInteger(adults) || adults < 1
       || !Number.isInteger(children) || children < 0
       || !Number.isInteger(guests) || guests < 1 || guests > 200
-      || Number.isNaN(desiredDate.getTime()) || desiredDate <= new Date(Date.now() + 2 * 60 * 60 * 1000)
+      || !desiredDate || desiredDate <= new Date(Date.now() + 2 * 60 * 60 * 1000)
       || !customerName || customerPhone.replace(/\D/g, "").length < 7
       || !customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)
     ) return NextResponse.json({ error: "Revê o restaurante, data, número de pessoas, telemóvel e email do cliente." }, { status: 400 });

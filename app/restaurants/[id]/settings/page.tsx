@@ -8,6 +8,7 @@ import ApplyMondayButton from "./ApplyMondayButton";
 import RestaurantSidebar from "@/components/RestaurantSidebar";
 import BottomNav from "@/components/BottomNav";
 import RestaurantPushNotifications from "@/components/RestaurantPushNotifications";
+import AccountDeletionButton from "@/components/AccountDeletionButton";
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
@@ -611,6 +612,7 @@ export default async function SettingsPage({
             </button>
           </div>
         </form>
+        <div className="mt-6"><AccountDeletionButton accountLabel="MesaLink Restaurante" /></div>
          </section>
   </div>
 

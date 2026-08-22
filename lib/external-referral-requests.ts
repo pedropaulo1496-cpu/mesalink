@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
+import { formatDateTimeInTimeZone, reservationTimeZone } from "@/lib/reservation-time-zone";
 
 export const EXTERNAL_REFERRAL_COMMISSION_PER_PERSON = 1.5;
 export const EXTERNAL_REFERRAL_MAX_ADVANCE_DAYS = 6;
@@ -51,7 +52,8 @@ export async function issueExternalReferralAccess(offerId: string, requestUrl?: 
   });
 
   const responseUrl = `${externalReferralBaseUrl(requestUrl)}/partner-reservation/${token}`;
-  const date = formatDateTime(offer.group.desiredDate);
+  const timeZone = reservationTimeZone(offer.restaurant);
+  const date = formatDateTime(offer.group.desiredDate, timeZone);
   const simulation = isExternalReferralSimulation(offer);
   const resend = mailer();
   let delivery;
@@ -61,7 +63,7 @@ export async function issueExternalReferralAccess(offerId: string, requestUrl?: 
       to: offer.restaurant.email,
       replyTo: "info@mesalink.pt",
       subject: `${simulation ? "[SIMULAÇÃO] " : ""}Reserva pendente de confirmação · ${offer.group.guests} pessoas · ${date}`,
-      text: `Olá,\n\n${simulation ? "Esta é uma simulação segura do fluxo de pedidos de grupo. Não existe um cliente real e nenhuma opção gera cobrança.\n\n" : ""}Recebemos um pedido de reserva para ${offer.restaurant.name}.\n\nReserva pendente de confirmação\nData e hora: ${date}\nPessoas: ${offer.group.guests}\nNome da reserva: ${offer.group.customerName || "Cliente MesaLink"}\nReferência: ${offer.group.publicCode}\n\nAceite, recuse ou sugira outro horário através desta ligação segura:\n${responseUrl}\n\nA ligação é válida até ${formatDateTime(expiresAt)}.${simulation ? " Todas as respostas são apenas demonstrativas." : " Os contactos completos do cliente são disponibilizados após a confirmação."}\n\nMesaLink Reservas\ninfo@mesalink.pt`,
+      text: `Olá,\n\n${simulation ? "Esta é uma simulação segura do fluxo de pedidos de grupo. Não existe um cliente real e nenhuma opção gera cobrança.\n\n" : ""}Recebemos um pedido de reserva para ${offer.restaurant.name}.\n\nReserva pendente de confirmação\nData e hora: ${date}\nPessoas: ${offer.group.guests}\nNome da reserva: ${offer.group.customerName || "Cliente MesaLink"}\nReferência: ${offer.group.publicCode}\n\nAceite, recuse ou sugira outro horário através desta ligação segura:\n${responseUrl}\n\nA ligação é válida até ${formatDateTime(expiresAt, timeZone)}.${simulation ? " Todas as respostas são apenas demonstrativas." : " Os contactos completos do cliente são disponibilizados após a confirmação."}\n\nMesaLink Reservas\ninfo@mesalink.pt`,
       html: requestEmailHtml({
         restaurantName: offer.restaurant.name,
         customerName: offer.group.customerName || "Cliente MesaLink",
@@ -69,7 +71,7 @@ export async function issueExternalReferralAccess(offerId: string, requestUrl?: 
         date,
         code: offer.group.publicCode,
         responseUrl,
-        expiresAt: formatDateTime(expiresAt),
+        expiresAt: formatDateTime(expiresAt, timeZone),
         simulation,
       }),
     });
@@ -87,15 +89,16 @@ export async function issueExternalReferralAccess(offerId: string, requestUrl?: 
 export async function notifyExternalReferralOutcome(offerId: string, outcome: "DECLINED" | "ALTERNATIVE") {
   const offer = await prisma.referralOffer.findUnique({
     where: { id: offerId },
-    include: { group: { include: { partner: true } }, restaurant: { select: { name: true } } },
+    include: { group: { include: { partner: true } }, restaurant: { select: { name: true, address: true, latitude: true, longitude: true, billingCountry: true } } },
   });
   if (!offer) return;
-  const alternative = offer.group.alternativeDate ? formatDateTime(offer.group.alternativeDate) : null;
+  const timeZone = reservationTimeZone(offer.restaurant);
+  const alternative = offer.group.alternativeDate ? formatDateTime(offer.group.alternativeDate, timeZone) : null;
   const subject = outcome === "DECLINED"
     ? `Reserva ${offer.group.publicCode} recusada`
     : `Novo horário proposto · reserva ${offer.group.publicCode}`;
   const message = outcome === "DECLINED"
-    ? `${offer.restaurant.name} não confirmou a reserva para ${formatDateTime(offer.group.desiredDate)}.`
+    ? `${offer.restaurant.name} não confirmou a reserva para ${formatDateTime(offer.group.desiredDate, timeZone)}.`
     : `${offer.restaurant.name} propôs ${alternative} para a reserva de ${offer.group.guests} pessoas.`;
   const appUrl = `${externalReferralBaseUrl()}/partners/app?tab=history`;
   const delivery = await mailer().emails.send({
@@ -112,12 +115,13 @@ export async function notifyExternalReferralOutcome(offerId: string, outcome: "D
 export async function notifyExternalReferralCancellation(offerId: string) {
   const offer = await prisma.referralOffer.findUnique({
     where: { id: offerId },
-    include: { group: { include: { partner: true } }, restaurant: { select: { name: true, email: true } } },
+    include: { group: { include: { partner: true } }, restaurant: { select: { name: true, email: true, address: true, latitude: true, longitude: true, billingCountry: true } } },
   });
   if (!offer?.restaurant.email) return;
   const simulation = isExternalReferralSimulation(offer);
   const subject = `${simulation ? "[SIMULAÇÃO] " : ""}Pedido de reserva ${offer.group.publicCode} cancelado`;
-  const message = `${offer.group.partner.businessName} cancelou o pedido para ${formatDateTime(offer.group.desiredDate)}. Não é necessária qualquer ação e a ligação anterior já não permite responder.`;
+  const timeZone = reservationTimeZone(offer.restaurant);
+  const message = `${offer.group.partner.businessName} cancelou o pedido para ${formatDateTime(offer.group.desiredDate, timeZone)}. Não é necessária qualquer ação e a ligação anterior já não permite responder.`;
   const delivery = await mailer().emails.send({
     from: "MesaLink Reservas <info@mesalink.pt>",
     to: offer.restaurant.email,
@@ -139,8 +143,8 @@ function requestEmailHtml(input: { restaurantName: string; customerName: string;
   return `<div style="margin:0;background:#f4eee5;padding:28px 14px;font-family:Arial,sans-serif;color:#17120d"><div style="max-width:620px;margin:auto;border:1px solid #dfcfb8;border-radius:22px;background:white;overflow:hidden"><div style="background:#17120d;padding:22px 26px;color:white"><strong style="font-family:Georgia,serif;font-size:24px"><span style="color:#d7b267">Mesa</span>Link</strong></div><div style="padding:30px 28px">${simulationNotice}<p style="font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#9b6f3b">${input.simulation ? "Simulação · " : ""}Reserva pendente de confirmação</p><h1 style="margin:10px 0 14px;font:700 29px/1.16 Georgia,serif">Novo pedido para ${escapeHtml(input.restaurantName)}</h1><div style="border:1px solid #e4d3b9;border-radius:16px;background:#fff9ef;padding:18px;font-size:15px;line-height:1.75"><strong>${escapeHtml(input.customerName)}</strong><br>${input.guests} pessoas<br>${escapeHtml(input.date)}<br><span style="font-size:12px;color:#806f5c">Referência ${escapeHtml(input.code)}</span></div><p style="font-size:14px;line-height:1.65;color:#685d52">Confirme a reserva, recuse ou sugira outro horário através da ligação segura. ${input.simulation ? "Todas as respostas são apenas demonstrativas." : "Os contactos completos do cliente são disponibilizados após a confirmação."}</p><a href="${input.responseUrl}" style="display:inline-block;margin-top:8px;border-radius:999px;background:#17120d;padding:15px 24px;color:white;text-decoration:none;font-weight:700">Responder ao pedido</a><p style="margin-top:22px;font-size:11px;line-height:1.55;color:#918577">Ligação válida até ${escapeHtml(input.expiresAt)}.</p></div></div></div>`;
 }
 
-function formatDateTime(value: Date) {
-  return new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(value);
+function formatDateTime(value: Date, timeZone: string) {
+  return formatDateTimeInTimeZone(value, timeZone);
 }
 
 function escapeHtml(value: string) {

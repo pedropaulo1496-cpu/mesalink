@@ -5,6 +5,7 @@ import { requireAcceptedEmail } from "@/lib/email-delivery";
 import { prisma } from "@/lib/prisma";
 import { reservationManagementUrl } from "@/lib/reservation-management";
 import { publicCustomerOrigin, publicReservationUrl } from "@/lib/public-links";
+import { reservationTimeZone } from "@/lib/reservation-time-zone";
 
 const dateLocales: Record<string, string> = { pt: "pt-PT", en: "en-GB", es: "es-ES", fr: "fr-FR", de: "de-DE", zh: "zh-CN" };
 
@@ -12,7 +13,7 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
   const reservation = await prisma.reservation.findUnique({
     where: { id: reservationId },
     include: {
-      restaurant: { select: { id: true, name: true, slug: true, userId: true } },
+      restaurant: { select: { id: true, name: true, slug: true, userId: true, address: true, latitude: true, longitude: true, billingCountry: true } },
       experience: true,
       experienceAddOns: true,
       payment: true,
@@ -40,6 +41,7 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
     const locale = await getLocale();
     const t = await getTranslations("publicFlows.reserve.email");
     const intlLocale = dateLocales[locale] || "pt-PT";
+    const timeZone = reservationTimeZone(reservation.restaurant);
     const manageUrl = reservationManagementUrl(reservation.id, reservation.email);
     const cancelUrl = reservationManagementUrl(reservation.id, reservation.email, "cancel");
     const rebookUrl = publicReservationUrl(reservation.restaurant.slug);
@@ -80,8 +82,8 @@ export async function sendReservationLifecycleEmail(reservationId: string, type:
             ${type === "CANCELLED" && paymentMessage ? `<div style="margin:18px 0 0;padding:14px 16px;border-radius:16px;background:#FFF3D8;color:#6B4C24;font-weight:700;">${escapeHtml(paymentMessage)}</div>` : ""}
             <div style="margin:24px 0;padding:18px;border:1px solid #E1D0B8;border-radius:18px;background:#FFF9F0;">
               <p><strong>${escapeHtml(t("labelRestaurant"))}</strong> ${escapeHtml(reservation.restaurant.name)}</p>
-              <p><strong>${escapeHtml(t("labelDate"))}</strong> ${reservation.date.toLocaleDateString(intlLocale, { timeZone: "Europe/Lisbon" })}</p>
-              <p><strong>${escapeHtml(t("labelTime"))}</strong> ${reservation.date.toLocaleTimeString(intlLocale, { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Lisbon" })}</p>
+              <p><strong>${escapeHtml(t("labelDate"))}</strong> ${reservation.date.toLocaleDateString(intlLocale, { timeZone })}</p>
+              <p><strong>${escapeHtml(t("labelTime"))}</strong> ${reservation.date.toLocaleTimeString(intlLocale, { hour: "2-digit", minute: "2-digit", timeZone })}</p>
               <p><strong>${escapeHtml(t("labelGuests"))}</strong> ${reservation.guests}</p>
               <p><strong>${escapeHtml(t("labelStatus"))}</strong> ${escapeHtml(status)}</p>
               ${experienceRows}

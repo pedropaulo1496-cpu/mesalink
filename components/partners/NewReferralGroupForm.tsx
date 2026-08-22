@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Crosshair, ExternalLink, Handshake, ImageIcon, LoaderCircle, MapPin, Search, ShieldCheck, Star, UserPlus, UtensilsCrossed, X } from "lucide-react";
+import { reservationTimeZone, zonedDateTimeToUtc } from "@/lib/reservation-time-zone";
 
 const compactInputClass = "input-premium partner-compact-input";
 const MAX_PROXIMITY_KM = 20;
@@ -28,6 +29,7 @@ export type PartnerRestaurant = {
   averageTicket: number;
   latitude: number | null;
   longitude: number | null;
+  timeZone: string;
   commissionType: "PER_PERSON" | "TOTAL";
   commissionAmount: number;
   defaultDailyCapacity: number;
@@ -62,6 +64,7 @@ type ExternalRestaurantSearchItem = {
   address: string;
   latitude: number | null;
   longitude: number | null;
+  timeZone?: string;
   cuisine: string;
   rating: number | null;
   reviewCount: number | null;
@@ -491,6 +494,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
           externalPlaceId: pendingSelection ? selectedRestaurant.externalPlaceId : null,
           externalRestaurantEmail: pendingSelection ? selectedRestaurant.contactEmail : null,
           desiredDate,
+          timeZone: selectedRestaurant.timeZone,
           adults,
           children,
           guests,
@@ -728,6 +732,7 @@ function externalPartnerRestaurant(item: ExternalRestaurantSearchItem): PartnerR
     averageTicket: 0,
     latitude: item.latitude,
     longitude: item.longitude,
+    timeZone: item.timeZone || reservationTimeZone({ address: item.address, latitude: item.latitude, longitude: item.longitude }),
     commissionType: "PER_PERSON",
     commissionAmount: 1.5,
     defaultDailyCapacity: 0,
@@ -777,7 +782,7 @@ function remainingCapacity(restaurant: PartnerRestaurant, desiredDate: string) {
   if (restaurant.blockedSlots.some((slot) => slot.day === key && slot.time === time)) return 0;
   const override = restaurant.dailyAvailability.find((item) => item.date === key);
   const partnerLimit = override?.capacity ?? basePartnerLimit;
-  const selectedTime = new Date(desiredDate).getTime();
+  const selectedTime = zonedDateTimeToUtc(desiredDate, restaurant.timeZone)?.getTime() ?? Number.NaN;
   if (Number.isNaN(selectedTime)) return Math.min(restaurant.totalCapacity, partnerLimit);
   const slots = restaurant.reservationSlots.filter((reservation) => {
     const reservationTime = new Date(reservation.date).getTime();

@@ -16,8 +16,10 @@ import { issuePartnerRestaurantInviteToken } from "@/lib/partner-action-token";
 import { buildPartnerProfile } from "@/lib/partner-profile";
 import { referralAttendanceDeadline, referralInvoiceCutoff, referralInvoiceDeadline } from "@/lib/referral-deadlines";
 import { calculateReferralCommission, isCommissionType } from "@/lib/referrals";
+import { formatDateTimeInTimeZone, reservationTimeZone } from "@/lib/reservation-time-zone";
 import { prisma } from "@/lib/prisma";
 import PushNotificationToggle from "@/components/PushNotificationToggle";
+import AccountDeletionButton from "@/components/AccountDeletionButton";
 
 export default async function PartnerAppPage({
   searchParams,
@@ -34,7 +36,12 @@ export default async function PartnerAppPage({
         orderBy: { createdAt: "desc" },
         take: 50,
         include: {
-          acceptedRestaurant: { select: { name: true, billingLegalName: true, billingTaxId: true, billingAddressLine1: true, billingPostalCode: true, billingCity: true, billingCountry: true } },
+          acceptedRestaurant: { select: { name: true, address: true, latitude: true, longitude: true, billingLegalName: true, billingTaxId: true, billingAddressLine1: true, billingPostalCode: true, billingCity: true, billingCountry: true } },
+          offers: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: { restaurant: { select: { address: true, latitude: true, longitude: true, billingCountry: true } } },
+          },
           payment: true,
         },
       },
@@ -63,6 +70,7 @@ export default async function PartnerAppPage({
       address: true,
       latitude: true,
       longitude: true,
+      billingCountry: true,
       googlePlaceId: true,
       externalPlaceProvider: true,
       externalPlaceId: true,
@@ -211,6 +219,7 @@ export default async function PartnerAppPage({
       address: restaurant.googleBusinessAddress || restaurant.address || "",
       latitude: restaurant.latitude,
       longitude: restaurant.longitude,
+      timeZone: reservationTimeZone({ country: restaurant.billingCountry, address: restaurant.googleBusinessAddress || restaurant.address, latitude: restaurant.latitude, longitude: restaurant.longitude }),
       description: profile.description,
       heroImage: profile.heroImage,
       heroImageKind: profile.heroImage ? "PHOTO" as const : "NONE" as const,
@@ -272,7 +281,7 @@ export default async function PartnerAppPage({
             { id: "groups", label: "Nova reserva", short: "Nova", note: "Escolher restaurante", icon: <CalendarPlus2 size={14} /> },
             { id: "history", label: "Reservas", short: "Reservas", note: "Histórico e faturas", icon: <FileText size={14} /> },
             { id: "stats", label: "Resultados", short: "Resultados", note: "Receita gerada", icon: <BarChart3 size={14} /> },
-            { id: "account", label: "Pagamentos", short: "Pagamentos", note: "IBAN e estado", icon: <Landmark size={14} /> },
+            { id: "account", label: "Definições", short: "Definições", note: "Conta e pagamentos", icon: <Landmark size={14} /> },
             { id: "help", label: "Ajuda", short: "Ajuda", note: "Chat com o HQ", icon: <MessageCircleMore size={14} /> },
           ].map((item) => (
             <Link key={item.id} href={`/partners/app?tab=${item.id}`} className={`relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-1 rounded-[14px] px-0.5 py-1.5 text-center text-[8px] font-bold leading-none transition sm:min-h-12 sm:flex-row sm:justify-start sm:gap-2.5 sm:rounded-[16px] sm:px-3 sm:py-2 sm:text-left sm:text-[11px] ${tab === item.id ? "bg-[#17120D] text-white shadow-[0_7px_20px_rgba(23,18,13,0.18)]" : "text-[#5F574F] hover:bg-white"}`}>
@@ -352,8 +361,10 @@ export default async function PartnerAppPage({
               const destination = accepted || group.targetSummary || "Reserva em processamento";
               const externalPending = group.targetMode === "EXTERNAL" && group.status === "OPEN";
               const alternativeProposed = group.targetMode === "EXTERNAL" && group.status === "ALTERNATIVE_PROPOSED" && group.alternativeDate;
+              const groupRestaurant = group.acceptedRestaurant || group.offers[0]?.restaurant;
+              const timeZone = reservationTimeZone(groupRestaurant);
               return <div key={group.id} className="grid gap-3 rounded-[24px] border border-[#E1D0B8] bg-[#FFFDFC] p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} targetMode={group.targetMode} /></div><p className="mt-2 text-sm text-[#6B6258]">{group.actualGuests != null ? `${group.actualGuests} pessoas confirmadas · reserva inicial ${group.guests}` : groupPeople(group)} · {new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(group.desiredDate)} · {destination}</p>{externalPending && <div className="mt-3 w-fit rounded-full border border-[#E4D2B4] bg-[#FFF3DC] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">Pedido enviado · aguardamos a resposta do restaurante</div>}{alternativeProposed && <div className="mt-3 rounded-[16px] border border-[#C9D9C5] bg-[#F2F8F0] p-3"><p className="text-[9px] font-black uppercase tracking-[.13em] text-[#4F6C4D]">Novo horário proposto</p><p className="mt-1 text-xs font-bold text-[#315B36]">{formatDateTime(group.alternativeDate!)}</p><ExternalReferralAlternativeActions groupId={group.id} /></div>}{["OPEN", "BOOKED"].includes(group.status) && group.desiredDate > requestTime && <PartnerReservationEditor groupId={group.id} status={group.status} desiredDate={group.desiredDate.toISOString()} customerName={group.customerName || ""} customerPhone={group.customerPhone || ""} customerEmail={group.customerEmail || ""} adults={group.adults ?? Math.max(1, group.guests - group.children)} childGuests={group.children} syncedWithRestaurant={Boolean(group.reservationId)} />}{group.targetMode === "EXTERNAL" && ["OPEN", "ALTERNATIVE_PROPOSED"].includes(group.status) && <PartnerReservationCancelButton groupId={group.id} />}<PartnerInvoiceState group={group} /></div>
+                <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{group.publicCode}</p><Status status={group.status} targetMode={group.targetMode} /></div><p className="mt-2 text-sm text-[#6B6258]">{group.actualGuests != null ? `${group.actualGuests} pessoas confirmadas · reserva inicial ${group.guests}` : groupPeople(group)} · {formatDateTime(group.desiredDate, timeZone)} · {destination}</p>{externalPending && <div className="mt-3 w-fit rounded-full border border-[#E4D2B4] bg-[#FFF3DC] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">Pedido enviado · aguardamos a resposta do restaurante</div>}{alternativeProposed && <div className="mt-3 rounded-[16px] border border-[#C9D9C5] bg-[#F2F8F0] p-3"><p className="text-[9px] font-black uppercase tracking-[.13em] text-[#4F6C4D]">Novo horário proposto</p><p className="mt-1 text-xs font-bold text-[#315B36]">{formatDateTime(group.alternativeDate!, timeZone)}</p><ExternalReferralAlternativeActions groupId={group.id} /></div>}{["OPEN", "BOOKED"].includes(group.status) && group.desiredDate > requestTime && <PartnerReservationEditor groupId={group.id} status={group.status} desiredDate={group.desiredDate.toISOString()} timeZone={timeZone} customerName={group.customerName || ""} customerPhone={group.customerPhone || ""} customerEmail={group.customerEmail || ""} adults={group.adults ?? Math.max(1, group.guests - group.children)} childGuests={group.children} syncedWithRestaurant={Boolean(group.reservationId)} />}{group.targetMode === "EXTERNAL" && ["OPEN", "ALTERNATIVE_PROPOSED"].includes(group.status) && <PartnerReservationCancelButton groupId={group.id} />}<PartnerInvoiceState group={group} timeZone={timeZone} /></div>
                 <div className="flex items-center justify-between gap-5 sm:text-right"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8A7863]">{partnerPaymentLabel(group.payment?.status, group.status)}</p><p className="mt-1 font-semibold text-[#6C4B25]">{formatMoney(group.status === "CANCELLED" ? 0 : Number(group.payment?.partnerInvoiceTotal || group.payment?.partnerNet || amounts.partnerNet))}</p><p className="text-[9px] text-[#8A7863]">{group.status === "CANCELLED" ? "pedido cancelado" : "líquido · comissão e taxas descontadas"}</p></div><ArrowUpRight size={18} className="text-[#9B6F3B]" /></div>
               </div>;
             })}
@@ -377,7 +388,7 @@ export default async function PartnerAppPage({
             <p className="mt-2 text-xs leading-5 text-white/55">O valor líquido considera a comissão MesaLink, taxas de processamento e impostos aplicáveis.</p>
             <div className="mt-4 border-t border-white/10 pt-3 text-xs leading-5 text-white/55">Recebes semanalmente os valores com fatura verificada. A fatura tem de ser anexada até 30 dias após a cobrança; sem ela, o valor é devolvido ao restaurante e perdes esse montante.</div>
           </div>
-        </section></>}
+        </section><div className="mt-4"><AccountDeletionButton accountLabel="MesaLink Partners" /></div></>}
       </div>
       <PartnerHelpButton active={tab === "help"} />
     </main>
@@ -415,7 +426,7 @@ type PartnerHistoryGroup = {
   };
 };
 
-function PartnerInvoiceState({ group }: { group: PartnerHistoryGroup }) {
+function PartnerInvoiceState({ group, timeZone = "Europe/Lisbon" }: { group: PartnerHistoryGroup; timeZone?: string }) {
   const payment = group.payment;
   if (!payment) return null;
   const mesaLinkInvoiceUrl = payment.stripeInvoicePdfUrl || payment.stripeInvoiceUrl;
@@ -427,9 +438,9 @@ function PartnerInvoiceState({ group }: { group: PartnerHistoryGroup }) {
   if (group.status === "BOOKED") {
     const attendanceDeadline = referralAttendanceDeadline(group.desiredDate);
     const text = group.desiredDate > now
-      ? `Após a visita, o restaurante tem até ${formatDateTime(attendanceDeadline)} para confirmar as pessoas.`
+      ? `Após a visita, o restaurante tem até ${formatDateTime(attendanceDeadline, timeZone)} para confirmar as pessoas.`
       : attendanceDeadline > now
-        ? `O restaurante está a confirmar a visita. O prazo termina em ${formatDateTime(attendanceDeadline)}.`
+        ? `O restaurante está a confirmar a visita. O prazo termina em ${formatDateTime(attendanceDeadline, timeZone)}.`
         : "O prazo de 3 dias terminou. A cobrança automática está a ser processada.";
     return <div className="mt-3 flex flex-wrap items-center gap-2">{mesaLinkDocument}<div className="w-fit rounded-full border border-[#E4D2B4] bg-[#FFF3DC] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">{text}</div></div>;
   }
@@ -437,7 +448,7 @@ function PartnerInvoiceState({ group }: { group: PartnerHistoryGroup }) {
     return <div className="mt-3 flex flex-wrap items-center gap-2">{mesaLinkDocument}<div className="w-fit rounded-full border border-[#E4D2B4] bg-[#FFF3DC] px-3 py-1.5 text-[10px] font-bold text-[#795D38]">A cobrança está a ser regularizada pelo restaurante.</div></div>;
   }
   const invoiceDeadline = referralInvoiceDeadline(payment.capturedAt);
-  const deadlineLabel = formatDateTime(invoiceDeadline);
+  const deadlineLabel = formatDateTime(invoiceDeadline, timeZone);
   const recipient = group.acceptedRestaurant ? {
     legalName: group.acceptedRestaurant.billingLegalName,
     taxId: group.acceptedRestaurant.billingTaxId,
@@ -492,8 +503,8 @@ function recruitmentRewardLabel(status: string, paidMonths: number) {
   return "A aguardar o primeiro mês de subscrição paga.";
 }
 
-function formatDateTime(value: Date) {
-  return new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Lisbon" }).format(value);
+function formatDateTime(value: Date, timeZone = "Europe/Lisbon") {
+  return formatDateTimeInTimeZone(value, timeZone);
 }
 
 function groupPeople(group: { guests: number; adults: number | null; children: number }) {

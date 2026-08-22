@@ -107,9 +107,10 @@ export async function notifyRestaurantSupportReply(input: { conversationId: stri
 }
 
 export async function notifyRestaurantReservation(input: { restaurantId: string; customerName: string; guests: number; date: Date; source?: string }) {
-  const restaurant = await prisma.restaurant.findUnique({ where: { id: input.restaurantId }, select: { name: true, userId: true } });
+  const restaurant = await prisma.restaurant.findUnique({ where: { id: input.restaurantId }, select: { name: true, userId: true, address: true, latitude: true, longitude: true, billingCountry: true } });
   if (!restaurant?.userId) return;
-  const when = input.date.toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Lisbon" });
+  const { reservationTimeZone } = await import("@/lib/reservation-time-zone");
+  const when = input.date.toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short", timeZone: reservationTimeZone(restaurant) });
   await sendHqPush({
     title: `Nova reserva · ${restaurant.name}`,
     body: `${input.customerName} · ${input.guests} pessoas · ${when}${input.source === "PARTNER_NETWORK" ? " · MesaLink Partner" : ""}`,

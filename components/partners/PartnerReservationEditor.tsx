@@ -3,11 +3,13 @@
 import { FormEvent, useState } from "react";
 import { LoaderCircle, PencilLine, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { dateTimeInputInTimeZone } from "@/lib/reservation-time-zone";
 
 type Props = {
   groupId: string;
   status: string;
   desiredDate: string;
+  timeZone: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string;
@@ -27,21 +29,20 @@ export default function PartnerReservationEditor(props: Props) {
   const [customerName, setCustomerName] = useState(props.customerName);
   const [customerPhone, setCustomerPhone] = useState(props.customerPhone);
   const [customerEmail, setCustomerEmail] = useState(props.customerEmail);
-  const [desiredDate, setDesiredDate] = useState(portugalDateTimeInput(props.desiredDate));
+  const [desiredDate, setDesiredDate] = useState(dateTimeInputInTimeZone(props.desiredDate, props.timeZone));
   const [adults, setAdults] = useState(props.adults);
   const [children, setChildren] = useState(props.childGuests);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const parsedDate = new Date(desiredDate);
-    if (Number.isNaN(parsedDate.getTime())) return;
+    if (!desiredDate) return;
     setSaving(true);
     setMessage("");
     setError(false);
     const response = await fetch(`/api/partner-groups/${props.groupId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ customerName, customerPhone, customerEmail, desiredDate: parsedDate.toISOString(), adults, children }),
+      body: JSON.stringify({ customerName, customerPhone, customerEmail, desiredDate, timeZone: props.timeZone, adults, children }),
     }).catch(() => null);
     const data = await response?.json().catch(() => null);
     setSaving(false);
@@ -76,10 +77,4 @@ export default function PartnerReservationEditor(props: Props) {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <label className="min-w-0 text-[9px] font-bold text-[#655A4E]">{label}<span className="mt-1 block">{children}</span></label>;
-}
-
-function portugalDateTimeInput(value: string) {
-  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Lisbon", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(value));
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value || "";
-  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
 }
