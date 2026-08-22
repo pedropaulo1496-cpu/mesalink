@@ -83,7 +83,7 @@ type ExternalRestaurantSearchItem = {
 type ExternalRestaurantEnrichment = Pick<ExternalRestaurantSearchItem, "provider" | "placeId" | "websiteUrl" | "heroImage" | "galleryImages" | "description" | "openingHours" | "rating" | "reviewCount" | "ratingSource" | "priceLevel" | "contactEmail" | "photoAttribution" | "photoAttributionUri">;
 type FavoriteRestaurant = { provider: string; placeId: string; name: string; address: string | null; restaurant: ExternalRestaurantSearchItem | null };
 
-export default function NewReferralGroupForm({ restaurants, publishingEnabled = true }: { restaurants: PartnerRestaurant[]; publishingEnabled?: boolean }) {
+export default function NewReferralGroupForm({ restaurants, publishingEnabled = true, restaurantInviteToken }: { restaurants: PartnerRestaurant[]; publishingEnabled?: boolean; restaurantInviteToken: string }) {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState("");
   const [query, setQuery] = useState("");
   const [cuisineFilter, setCuisineFilter] = useState("ALL");
@@ -413,7 +413,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     const response = await fetch("/api/partners/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ restaurantName: networkRestaurantName.trim(), email: networkRestaurantEmail.trim() }),
+      body: JSON.stringify({ restaurantName: networkRestaurantName.trim(), email: networkRestaurantEmail.trim(), inviteToken: restaurantInviteToken }),
     }).catch(() => null);
     const data = await response?.json().catch(() => null);
     if (!response?.ok) {
@@ -436,7 +436,7 @@ export default function NewReferralGroupForm({ restaurants, publishingEnabled = 
     const response = await fetch("/api/partners/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: partnerInviteEmail.trim() }),
+      body: JSON.stringify({ email: partnerInviteEmail.trim(), inviteToken: restaurantInviteToken }),
     }).catch(() => null);
     const data = await response?.json().catch(() => null);
     if (!response?.ok) {

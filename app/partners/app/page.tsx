@@ -12,6 +12,7 @@ import PartnerReservationCancelButton from "@/components/partners/PartnerReserva
 import PartnerReservationEditor from "@/components/partners/PartnerReservationEditor";
 import PartnerRecruitmentInvoiceUpload from "@/components/partners/PartnerRecruitmentInvoiceUpload";
 import { requirePartner } from "@/lib/partner-auth";
+import { issuePartnerRestaurantInviteToken } from "@/lib/partner-action-token";
 import { buildPartnerProfile } from "@/lib/partner-profile";
 import { referralAttendanceDeadline, referralInvoiceCutoff, referralInvoiceDeadline } from "@/lib/referral-deadlines";
 import { calculateReferralCommission, isCommissionType } from "@/lib/referrals";
@@ -40,6 +41,7 @@ export default async function PartnerAppPage({
     },
   });
   if (!partner) redirect("/partners/login");
+  const restaurantInviteToken = issuePartnerRestaurantInviteToken(partner.id);
 
   const requestTime = new Date();
   const availabilityStart = new Date(requestTime);
@@ -49,15 +51,12 @@ export default async function PartnerAppPage({
     prisma.restaurant.findMany({
     where: {
       userId: { not: null },
-      referralNetworkEnabled: true,
-      referralAutoAcceptEnabled: true,
-      referralPaymentMethodId: { not: null },
-      referralPaymentBlockedAt: null,
     },
     orderBy: { name: "asc" },
     select: {
       id: true,
       userId: true,
+      user: { select: { email: true } },
       email: true,
       name: true,
       slug: true,
@@ -202,12 +201,12 @@ export default async function PartnerAppPage({
       id: restaurant.id,
       source: "MESALINK" as const,
       googlePlaceId: restaurant.googlePlaceId,
-      externalPlaceProvider: restaurant.externalPlaceProvider,
-      externalPlaceId: restaurant.externalPlaceId,
+      externalPlaceProvider: bookingReady ? restaurant.externalPlaceProvider : "MESALINK",
+      externalPlaceId: bookingReady ? restaurant.externalPlaceId : restaurant.id,
       name: restaurant.googleBusinessTitle || restaurant.name,
       isDemo,
       bookingReady,
-      contactEmail: restaurant.email,
+      contactEmail: restaurant.email || restaurant.user?.email || "",
       cuisine: profile.cuisine,
       address: restaurant.googleBusinessAddress || restaurant.address || "",
       latitude: restaurant.latitude,
@@ -220,8 +219,8 @@ export default async function PartnerAppPage({
       menuUrl: profile.menuUrl,
       menuSections: profile.menuSections,
       averageTicket: Number(restaurant.averageTicket || 0),
-      commissionType: agreement && isCommissionType(agreement.commissionType) ? agreement.commissionType : isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON" as const,
-      commissionAmount: isDemo ? 1.5 : Number(agreement?.commissionAmount ?? restaurant.referralDefaultCommissionAmount),
+      commissionType: bookingReady && agreement && isCommissionType(agreement.commissionType) ? agreement.commissionType : bookingReady && isCommissionType(restaurant.referralDefaultCommissionType) ? restaurant.referralDefaultCommissionType : "PER_PERSON" as const,
+      commissionAmount: isDemo || !bookingReady ? 1.5 : Number(agreement?.commissionAmount ?? restaurant.referralDefaultCommissionAmount),
       defaultDailyCapacity: isDemo ? Math.max(80, partnerLimit) : partnerLimit,
       totalCapacity: isDemo ? Math.max(80, totalCapacity) : totalCapacity,
       reservationSlots: restaurant.reservations.map((reservation) => ({
@@ -306,11 +305,11 @@ export default async function PartnerAppPage({
 
         {tab === "groups" && <>
         <section className="relative overflow-hidden rounded-[28px] bg-[#17120D] p-5 text-white shadow-[0_22px_55px_rgba(23,18,13,0.16)] sm:p-6" style={{ backgroundImage: "radial-gradient(circle at 78% 20%, rgba(215,178,103,.24), transparent 22rem), linear-gradient(125deg, rgba(255,255,255,.025), transparent 48%)" }}>
-          <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"><div><div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.24em] text-[#D7B267]"><Sparkles size={13} /> MesaLink Partners</div><h1 className="mt-3 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-0.055em] sm:text-[2.65rem]">Reserva o restaurante certo. A comissão fica registada.</h1><p className="mt-3 max-w-2xl text-xs leading-5 text-white/52 sm:text-sm">Escolhe o restaurante e vê logo se a reserva é imediata ou fica pendente de confirmação.</p></div><div className="grid grid-cols-3 gap-2"><PartnerHeroMetric label="Rede ativa" value={String(restaurantOptions.length)} /><PartnerHeroMetric label="Próximas" value={String(upcomingGroupsCount)} /><PartnerHeroMetric label="Recebido" value={formatMoney(paidRevenue)} /></div></div>
+          <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"><div><div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.24em] text-[#D7B267]"><Sparkles size={13} /> MesaLink Partners</div><h1 className="mt-3 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-0.055em] sm:text-[2.65rem]">Reserva o restaurante certo. A comissão fica registada.</h1><p className="mt-3 max-w-2xl text-xs leading-5 text-white/52 sm:text-sm">Escolhe o restaurante e vê logo se a reserva é imediata ou fica pendente de confirmação.</p></div><div className="grid grid-cols-3 gap-2"><PartnerHeroMetric label="Restaurantes" value={String(restaurantOptions.length)} /><PartnerHeroMetric label="Próximas" value={String(upcomingGroupsCount)} /><PartnerHeroMetric label="Recebido" value={formatMoney(paidRevenue)} /></div></div>
           <div className="relative mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 pt-4 text-[9px] font-semibold text-white/48"><span className="inline-flex items-center gap-1.5 text-[#9BC99D]"><ShieldCheck size={13} /> Contactos protegidos</span><span className="inline-flex items-center gap-1.5"><CheckCircle2 size={13} /> Comissão definida pelo restaurante</span><span className="inline-flex items-center gap-1.5"><Clock3 size={13} /> Pagamentos acompanhados na app</span></div>
         </section>
 
-        <div className="mt-5"><NewReferralGroupForm restaurants={restaurantOptions} publishingEnabled={partner.stripeOnboardingComplete} /></div>
+        <div className="mt-5"><NewReferralGroupForm restaurants={restaurantOptions} publishingEnabled={partner.stripeOnboardingComplete} restaurantInviteToken={restaurantInviteToken} /></div>
         </>}
 
         {tab === "help" && <PartnerSupportChat />}

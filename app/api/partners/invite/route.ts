@@ -2,26 +2,30 @@ import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getPartnerIdentity } from "@/lib/partner-auth";
+import { verifyPartnerRestaurantInviteToken } from "@/lib/partner-action-token";
 import { partnerRestaurantInvitationTokenHash } from "@/lib/partner-restaurant-invitations";
 import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/validation";
 
 export async function POST(request: Request) {
-  const partner = await getPartnerIdentity();
-  if (!partner) return NextResponse.json({ error: "Não autenticado na app Partners." }, { status: 401 });
   const body = await request.json().catch(() => null);
+  const sessionPartner = await getPartnerIdentity();
+  const invitePartnerId = typeof body?.inviteToken === "string" ? verifyPartnerRestaurantInviteToken(body.inviteToken) : null;
+  const partner = sessionPartner || (invitePartnerId ? await prisma.referralPartner.findFirst({ where: { id: invitePartnerId, status: { not: "SUSPENDED" } } }) : null);
+  if (!partner) return NextResponse.json({ error: "A sessão deste convite expirou. Atualiza a página e tenta novamente." }, { status: 401 });
   const email = typeof body?.email === "string" ? body.email.trim().toLowerCase().slice(0, 160) : "";
   if (!isValidEmail(email)) return NextResponse.json({ error: "Indica um email válido." }, { status: 400 });
   const [existingRestaurant, existingUser] = await Promise.all([
     prisma.restaurant.findFirst({ where: { email: { equals: email, mode: "insensitive" } }, select: { id: true, userId: true } }),
-    prisma.user.findUnique({ where: { email }, select: { id: true } }),
+    prisma.user.findUnique({ where: { email }, select: { id: true, subscription: { select: { id: true } }, _count: { select: { restaurants: true } } } }),
   ]);
+  const rewardEligible = !existingRestaurant && !existingUser?.subscription && !existingUser?._count.restaurants;
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: "Envio temporariamente indisponível." }, { status: 503 });
 
   const partnerName = partner.businessName || partner.contactName || "Um parceiro MesaLink";
   const token = randomBytes(32).toString("base64url");
   const invitation = await prisma.referralPartnerRestaurantInvitation.create({
-    data: { partnerId: partner.id, restaurantId: existingRestaurant?.id || null, email, tokenHash: partnerRestaurantInvitationTokenHash(token), expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), rewardEligible: !existingRestaurant && !existingUser },
+    data: { partnerId: partner.id, restaurantId: existingRestaurant?.id || null, email, tokenHash: partnerRestaurantInvitationTokenHash(token), expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), rewardEligible },
     select: { id: true },
   });
   const destinationUrl = `https://www.mesalink.pt/restaurant-invite/${token}`;
@@ -37,7 +41,7 @@ export async function POST(request: Request) {
     await prisma.referralPartnerRestaurantInvitation.deleteMany({ where: { id: invitation.id, acceptedAt: null } }).catch(() => undefined);
     return NextResponse.json({ error: "Não foi possível enviar o convite." }, { status: 502 });
   }
-  return NextResponse.json({ success: true, rewardEligible: !existingRestaurant && !existingUser });
+  return NextResponse.json({ success: true, rewardEligible });
 }
 
 function escapeHtml(value: string) {
