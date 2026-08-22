@@ -83,16 +83,16 @@
     },
     "reservationLink": {
       "sectionLabel": "Reservas online",
-      "title": "Enlace público",
+      "title": "Un enlace para todos los canales",
       "text": "Usa este enlace en los canales donde los clientes buscan mesa.",
       "active": "Activo",
       "urlLabel": "URL de reservas",
-      "open": "Abrir",
-      "copyForGoogle": "Copiar para Google",
+      "open": "2. Abrir Google",
+      "copyForGoogle": "1. Copiar enlace",
       "copied": "Enlace copiado",
       "howToUse": "Cómo usarlo",
       "steps": {
-        "googleMaps": { "title": "Google Maps", "text": "Pégalo en el botón de reservas de tu perfil de Google Business." },
+        "googleMaps": { "title": "Google Maps", "text": "Úsalo en Google Maps, Instagram, Facebook y tu web. En Google: Reservas → Añadir enlace → pegar → guardar." },
         "socials": { "title": "Instagram y Facebook", "text": "Úsalo en la bio, historias destacadas y respuestas automáticas." },
         "website": { "title": "Sitio web", "text": "Colócalo como botón principal de reserva online." }
       }

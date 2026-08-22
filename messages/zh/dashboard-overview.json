@@ -83,16 +83,16 @@
     },
     "reservationLink": {
       "sectionLabel": "在线预订",
-      "title": "公开链接",
+      "title": "一个链接，适用于所有渠道",
       "text": "在客户寻找餐位的各个渠道使用此链接。",
       "active": "已启用",
       "urlLabel": "预订链接",
-      "open": "打开",
-      "copyForGoogle": "复制到 Google",
+      "open": "2. 打开 Google",
+      "copyForGoogle": "1. 复制链接",
       "copied": "链接已复制",
       "howToUse": "使用方法",
       "steps": {
-        "googleMaps": { "title": "Google 地图", "text": "粘贴到您 Google 商家资料的预订按钮中。" },
+        "googleMaps": { "title": "Google 地图", "text": "可用于 Google 地图、Instagram、Facebook 和网站。在 Google 中：预订 → 添加链接 → 粘贴 → 保存。" },
         "socials": { "title": "Instagram 和 Facebook", "text": "用于个人简介、置顶动态和自动回复。" },
         "website": { "title": "网站", "text": "设为在线预订的主按钮。" }
       }

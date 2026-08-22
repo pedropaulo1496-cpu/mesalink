@@ -83,16 +83,16 @@
     },
     "reservationLink": {
       "sectionLabel": "Online-Reservierungen",
-      "title": "Öffentlicher Link",
+      "title": "Ein Link für alle Kanäle",
       "text": "Verwenden Sie diesen Link auf den Kanälen, über die Kunden nach einem Tisch suchen.",
       "active": "Aktiv",
       "urlLabel": "Reservierungs-URL",
-      "open": "Öffnen",
-      "copyForGoogle": "Für Google kopieren",
+      "open": "2. Google öffnen",
+      "copyForGoogle": "1. Link kopieren",
       "copied": "Link kopiert",
       "howToUse": "So verwenden Sie ihn",
       "steps": {
-        "googleMaps": { "title": "Google Maps", "text": "In den Reservierungs-Button Ihres Google Business-Profils einfügen." },
+        "googleMaps": { "title": "Google Maps", "text": "Für Google Maps, Instagram, Facebook und die Website. Bei Google: Reservierungen → Link hinzufügen → einfügen → speichern." },
         "socials": { "title": "Instagram und Facebook", "text": "In der Bio, angehefteten Stories und automatischen Antworten verwenden." },
         "website": { "title": "Website", "text": "Als Haupt-Button für Online-Reservierungen einrichten." }
       }

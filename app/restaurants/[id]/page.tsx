@@ -451,21 +451,25 @@ function MarketingInterventions({ t, restaurantId, growthAccess, inactiveCustome
 
 function ReservationLinkCard({ t, reservationUrl }: { t: TFunc; reservationUrl: string }) {
   return (
-    <section className="mt-4 overflow-hidden rounded-[24px] border border-[#D9C49F] bg-[#FFF8EB] shadow-[0_14px_42px_rgba(80,55,30,0.045)]">
-      <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.75fr)] lg:items-center">
+    <section className="mt-4 overflow-hidden rounded-[24px] border border-[#D9C49F] bg-[linear-gradient(115deg,#FFF8EB_0%,#FFFDF8_100%)] shadow-[0_14px_42px_rgba(80,55,30,0.055)]">
+      <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,0.7fr)] lg:items-center">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#17120D] text-[#D7B267]"><MapPin size={18} /></span>
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#17120D] text-[#E2BC73] shadow-[0_10px_24px_rgba(23,18,13,0.16)]"><MapPin size={19} /></span>
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2"><p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">{t("reservationLink.steps.googleMaps.title")}</p><span className="rounded-full bg-[#EAF5E8] px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-[#4A704E]">{t("reservationLink.active")}</span></div>
-            <h2 className="mt-1 text-lg font-semibold tracking-[-0.035em]">{t("reservationLink.title")}</h2>
-            <p className="mt-1 text-[11px] leading-5 text-[#6B6258]">{t("reservationLink.steps.googleMaps.text")}</p>
+            <div className="flex flex-wrap items-center gap-2"><p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#9B6F3B]">{t("reservationLink.sectionLabel")}</p><span className="rounded-full bg-[#EAF5E8] px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-[#4A704E]">{t("reservationLink.active")}</span></div>
+            <h2 className="mt-1 text-xl font-semibold tracking-[-0.04em]">{t("reservationLink.title")}</h2>
+            <p className="mt-1 max-w-2xl text-[11px] font-medium leading-5 text-[#6B6258]">{t("reservationLink.steps.googleMaps.text")}</p>
           </div>
         </div>
-        <div className="min-w-0 rounded-[18px] border border-[#DFCBAA] bg-white p-2.5">
-          <p className="truncate px-2 text-[11px] font-semibold text-[#5E5143]">{reservationUrl}</p>
+        <div className="min-w-0 rounded-[18px] border border-[#DFCBAA] bg-white/90 p-2.5 shadow-[0_8px_24px_rgba(80,55,30,0.04)]">
+          <div className="flex min-w-0 items-center gap-2 px-2">
+            <span className="shrink-0 text-[8px] font-black uppercase tracking-[0.14em] text-[#9B6F3B]">{t("reservationLink.urlLabel")}</span>
+            <span className="h-3 w-px shrink-0 bg-[#E8DCCB]" />
+            <p className="truncate text-[11px] font-semibold text-[#5E5143]">{reservationUrl}</p>
+          </div>
           <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
             <CopyButton text={reservationUrl} label={t("reservationLink.copyForGoogle")} copiedLabel={t("reservationLink.copied")} compact />
-            <Link href={reservationUrl} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#D8C6A9] bg-white px-4 text-xs font-bold text-[#5E4B36] transition hover:border-[#B99056]">{t("reservationLink.open")} <ArrowUpRight size={13} /></Link>
+            <Link href="https://business.google.com/locations" target="_blank" rel="noreferrer" className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#D8C6A9] bg-[#FFF9F0] px-4 text-xs font-bold text-[#5E4B36] transition hover:border-[#B99056] hover:bg-white">{t("reservationLink.open")} <ArrowUpRight size={13} /></Link>
           </div>
         </div>
       </div>
