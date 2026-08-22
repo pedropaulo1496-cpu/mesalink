@@ -105,6 +105,71 @@ export async function createExperience(restaurantId: string, formData: FormData)
   redirect(`/restaurants/${restaurantId}/experiences?result=created`);
 }
 
+export async function updateExperienceDetails(restaurantId: string, formData: FormData) {
+  await assertRestaurantOwner(restaurantId);
+  const experienceId = String(formData.get("experienceId") || "");
+  const experience = await prisma.diningExperience.findFirst({
+    where: { id: experienceId, restaurantId },
+    include: { addOns: { select: { id: true } }, restaurant: { select: { slug: true } } },
+  });
+  if (!experience) throw new Error("Menu não encontrado.");
+
+  const scheduleType = formData.get("scheduleType") === "FIXED" ? "FIXED" : "FLEXIBLE";
+  const title = String(formData.get("title") || "").trim().slice(0, 90);
+  const summary = String(formData.get("summary") || "").trim().slice(0, 320);
+  const details = String(formData.get("details") || "").trim().slice(0, 6000) || null;
+  const selectedPeriods = formData.getAll("servicePeriods").map(String);
+  const servicePeriods = ["LUNCH", "DINNER"].filter((period) => selectedPeriods.includes(period));
+  const startsAt = scheduleType === "FIXED" ? lisbonLocalToUtc(String(formData.get("startsAt") || "")) : null;
+  const pricePerPerson = boundedNumber(formData.get("pricePerPerson"), 1, 5000, 0);
+  const capacity = boundedInt(formData.get("capacity"), 1, 1000, 0);
+  const durationMinutes = boundedInt(formData.get("durationMinutes"), 30, 720, 120);
+  const cancellationHours = boundedInt(formData.get("cancellationHours"), 1, 336, 48);
+
+  if (!title || !summary || !servicePeriods.length || !pricePerPerson || !capacity || (scheduleType === "FIXED" && !startsAt) || (experience.paymentMode === "DEPOSIT" && Number(experience.depositPerPerson || 0) > pricePerPerson)) {
+    redirect(`/restaurants/${restaurantId}/experiences?result=invalid`);
+  }
+
+  const existingAddOns = experience.addOns.map(({ id }) => {
+    const name = String(formData.get(`addOnName:${id}`) || "").trim().slice(0, 70);
+    const price = boundedNumber(formData.get(`addOnPrice:${id}`), 0, 1000, 0);
+    const remove = formData.get(`removeAddOn:${id}`) === "on";
+    return {
+      id,
+      data: {
+        name: name || "Extra",
+        price,
+        perGuest: formData.get(`addOnPerGuest:${id}`) === "on",
+        active: !remove && Boolean(name) && price > 0,
+      },
+    };
+  });
+  const newAddOns = [1, 2, 3].flatMap((index) => {
+    const name = String(formData.get(`newAddOnName${index}`) || "").trim().slice(0, 70);
+    const price = boundedNumber(formData.get(`newAddOnPrice${index}`), 0, 1000, 0);
+    if (!name || price <= 0) return [];
+    return [{ name, price, perGuest: formData.get(`newAddOnPerGuest${index}`) === "on" }];
+  });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.diningExperience.update({
+      where: { id: experience.id },
+      data: { title, summary, details, servicePeriods, scheduleType, startsAt, durationMinutes, pricePerPerson, capacity, cancellationHours },
+    });
+    for (const addOn of existingAddOns) {
+      await tx.diningExperienceAddOn.update({ where: { id: addOn.id }, data: addOn.data });
+    }
+    if (newAddOns.length) {
+      await tx.diningExperienceAddOn.createMany({ data: newAddOns.map((addOn) => ({ ...addOn, experienceId: experience.id })) });
+    }
+  });
+
+  revalidatePath(`/restaurants/${restaurantId}/experiences`);
+  revalidatePath(`/restaurants/${restaurantId}`);
+  revalidatePath(`/reserve/${experience.restaurant.slug}`);
+  redirect(`/restaurants/${restaurantId}/experiences?result=details-updated`);
+}
+
 export async function updateExperiencePayment(restaurantId: string, formData: FormData) {
   await assertRestaurantOwner(restaurantId);
   const experienceId = String(formData.get("experienceId") || "");
